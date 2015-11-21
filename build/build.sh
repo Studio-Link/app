@@ -40,7 +40,7 @@ cd baresip-$baresip;
 curl ${patch_url}...studio-link-config.patch | patch -p1
 
 ## Link backend modules
-ln -s ../webapp modules/webapp
+cp -a ../webapp modules/webapp
 
 make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
     MODULES="opus stdio ice menu g711 turn stun uuid auloop contact webapp" \
