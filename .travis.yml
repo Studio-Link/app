@@ -1,0 +1,6 @@
+language: c
+os:
+- osx
+- linux
+before_install: sudo ./build/before_install.sh $TRAVIS_OS_NAME
+script: "./build/build.sh"
