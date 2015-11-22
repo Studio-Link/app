@@ -6,6 +6,7 @@
 #include <re.h>
 #include <baresip.h>
 #include <string.h>
+#include <stdlib.h>
 #include "assets/index_html.h"
 #include "assets/js.h"
 #include "assets/css.h"
@@ -213,19 +214,28 @@ static int module_init(void)
 {
 	int err = 0;
 	struct sa srv;
+	struct sa listen;
+	char command[100] = {0};
 
-	err |= sa_set_str(&srv, "0.0.0.0", 0);
+	err |= sa_set_str(&srv, "127.0.0.1", 0);
 
 	err = http_listen(&httpsock, &srv, http_req_handler, NULL);
 	if (err)
 		goto out;
+	tcp_sock_local_get(http_sock_tcp(httpsock), &listen);
+
+
+	re_snprintf(command, sizeof(command), "xdg-open http://localhost:%d/", sa_port(&listen));
+	warning("listening on port: %d\n", sa_port(&listen));
 
 	uag_event_register(ua_event_handler, NULL);
+
 	webapp_ws_init();
 	webapp_accounts_init();
 	webapp_contacts_init();
 	webapp_chat_init();
 	webapp_ws_meter_init();
+	system(command);
 
 out:
 	if (err) {

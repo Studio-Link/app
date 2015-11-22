@@ -106,7 +106,7 @@ void webapp_account_delete(char *user, char *domain)
 			odict_entry_del(accs, o->key);
 			snprintf(aor, sizeof(aor), "sip:%s@%s", user, domain);
 			info("delete uag: %p\n", uag_find_aor(aor));
-			ua_unregister(uag_find_aor(aor));
+			//ua_unregister(uag_find_aor(aor));
 			mem_deref(uag_find_aor(aor));
 			uag_current_set(NULL);
 			webapp_write_file(accs, filename);
@@ -300,6 +300,7 @@ int webapp_accounts_init(void)
 	for (le = accs->lst.head; le; le = le->next) {
 		sip_register(le->data);
 	}
+
 	provisioning();
 	webapp_account_current();
 

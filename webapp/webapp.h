@@ -59,7 +59,8 @@ void webapp_ws_chat(const struct websock_hdr *hdr,
 		struct mbuf *mb, void *arg);
 void webapp_ws_meter(const struct websock_hdr *hdr,
 		struct mbuf *mb, void *arg);
-int webapp_ws_meter_init(void);
+void ws_meter_process(unsigned int ch, float *in, unsigned long nframes);
+void webapp_ws_meter_init(void);
 void webapp_ws_meter_close(void);
 
 /*
