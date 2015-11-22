@@ -22,7 +22,13 @@ fi
 wget -N "http://www.creytiv.com/pub/re-${re}.tar.gz"
 tar -xzf re-${re}.tar.gz
 ln -s re-$re re
-cd re; make libre.a; cd ..
+if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+    cd re; make libre.a; cd ..
+else
+    cd re
+    make USE_OPENSSL=1 EXTRA_LFLAGS="-L /usr/local/opt/openssl/lib/" EXTRA_CFLAGS="-I /usr/local/opt/openssl/include" libre.a
+    cd ..
+fi
 mkdir -p my_include/re
 cp -a re/include/* my_include/re/
 

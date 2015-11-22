@@ -11,5 +11,8 @@ if [ "$1" == "linux" ]; then
     rm -f /usr/lib/x86_64-linux-gnu/libcrypto.so
     rm -f /usr/lib/x86_64-linux-gnu/libssl.so
 else
-    brew install openssl
+    sudo brew install openssl
+    rm -f /usr/local/opt/openssl/lib/libssl.1.0.0.dylib
+    rm -f /usr/local/opt/openssl/lib/libcrypto.1.0.0.dylib
+
 fi
