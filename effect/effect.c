@@ -86,19 +86,23 @@ static void sample_move_dS_s16 (float *dst, char *src, unsigned long nsamples, u
 	}
 }
 
+void ws_meter_process(unsigned int ch, float *in, unsigned long nframes);
+
 void effect_play(float* const output0, float* const output1, unsigned long nframes);
 
 void effect_play(float* const output0, float* const output1, unsigned long nframes) {
-
+	
 	if(st_play) {
 		st_play->wh(st_play->sampv, nframes * 2, st_play->arg);
 		sample_move_dS_s16(output0, (char*)st_play->sampv, nframes, 4);
 		sample_move_dS_s16(output1, (char*)st_play->sampv+2, nframes, 4);
+		ws_meter_process(1, (float*)output0, nframes);
 	} else {
 		for (uint32_t pos = 0; pos < nframes; pos++) {
 			output0[pos] = 0;
 			output1[pos] = 0;
 		}
+		ws_meter_process(1, (float*)output0, nframes);
 	}
 }
 
@@ -111,6 +115,7 @@ void effect_src(const float* const input0, const float* const input1, unsigned l
 		sample_move_d16_sS((char*)st_src->sampv+2, (float*)input1, nframes, 4);
 		st_src->rh(st_src->sampv, nframes * 2, st_src->arg);
 	}
+	ws_meter_process(0, (float*)input0, nframes);
 }
 
 
