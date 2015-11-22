@@ -21,6 +21,8 @@ wget -N "http://www.creytiv.com/pub/re-${re}.tar.gz"
 tar -xzf re-${re}.tar.gz
 ln -s re-$re re
 cd re; make libre.a; cd ..
+mkdir -p my_include/re
+cp -a re/include/* my_include/re/
 
 
 # Build librem
@@ -45,6 +47,7 @@ cp opus-$opus/include/*.h my_include/opus/
 #-----------------------------------------------------------------------------
 git clone https://github.com/Studio-Link-v2/baresip.git baresip-master
 ln -s baresip-$baresip baresip
+cp -a baresip-$baresip/include/baresip.h my_include/
 cd baresip-$baresip;
 
 ## Add patches
@@ -67,9 +70,6 @@ cd ..
 #-----------------------------------------------------------------------------
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     git clone https://github.com/Studio-Link-v2/overlay-lv2.git overlay-lv2
-    cp -a baresip/include/baresip.h overlay-lv2
-    mkdir overlay-lv2/re
-    cp -a re/include/* overlay-lv2/re/
     cd overlay-lv2
     ./build.sh
     cd ..
