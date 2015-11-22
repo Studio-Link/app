@@ -224,9 +224,14 @@ static int module_init(void)
 		goto out;
 	tcp_sock_local_get(http_sock_tcp(httpsock), &listen);
 
-
+#if defined (DARWIN)
+	re_snprintf(command, sizeof(command), "open http://localhost:%d/", sa_port(&listen));
+#elif defined (WIN32)
+	re_snprintf(command, sizeof(command), "start http://localhost:%d/", sa_port(&listen));
+#else
 	re_snprintf(command, sizeof(command), "xdg-open http://localhost:%d/", sa_port(&listen));
-	warning("listening on port: %d\n", sa_port(&listen));
+#endif
+	info("http listening on port: %d\n", sa_port(&listen));
 
 	uag_event_register(ua_event_handler, NULL);
 
