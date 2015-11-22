@@ -22,6 +22,22 @@ static void sip_delete(struct odict *cmd, const struct odict_entry *e)
 }
 
 
+static bool have_active_calls(void)
+{
+	struct le *le;
+
+	for (le = list_head(uag_list()); le; le = le->next) {
+
+		struct ua *ua = le->data;
+
+		if (ua_call(ua))
+			return true;
+	}
+
+	return false;
+}
+
+
 void webapp_ws_baresip(const struct websock_hdr *hdr,
 				     struct mbuf *mb, void *arg)
 {
@@ -38,8 +54,10 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 				ua_answer(uag_current(), NULL);
 			}
 			else if (!str_cmp(e->u.str, "hangup")) {
+				warning("close: %p", uag_current());
 				ua_hangup(uag_current(), NULL, 0, NULL);
-				ws_send_all(WS_BARESIP, SIP_CLOSED);
+				if(!have_active_calls())
+					ws_send_all(WS_BARESIP, SIP_CLOSED);
 			}
 			else if (!str_cmp(e->u.str, "call")) {
 				e = odict_lookup(cmd, "dial");
@@ -47,7 +65,8 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 					ws_send_all(WS_BARESIP, SIP_EMPTY);
 				}
 				else {
-					ui_input_str(e->u.str);
+					ua_connect(uag_current(), NULL, NULL,
+							e->u.str, NULL, VIDMODE_ON);
 				}
 			}
 			else if (!str_cmp(e->u.str, "addsip")) {

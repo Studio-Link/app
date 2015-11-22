@@ -2,6 +2,33 @@
 #include <baresip.h>
 #include "webapp.h"
 
+static const char *chat_peer; 
+
+static void select_chat_peer(const char *user) {
+
+	struct le *le;
+	struct pl dname, pl;
+
+	pl_set_str(&pl, user);
+	dname.l = pl.l;
+
+	for (le = list_head(contact_list()); le; le = le->next) {
+
+		struct contact *c = le->data;
+		dname.p = contact_addr(c)->dname.p;
+
+		if (dname.p) {
+
+			if (0 == pl_casecmp(&dname, &pl)) {
+				chat_peer = contact_str(c);
+				break;
+			}
+		}
+	}
+}
+
+
+
 void webapp_ws_chat(const struct websock_hdr *hdr,
 				     struct mbuf *mb, void *arg)
 {
@@ -33,7 +60,11 @@ void webapp_ws_chat(const struct websock_hdr *hdr,
 			warning("MESSAGE TO:%s, MESSAGE: %s\n", peer, message);
 			webapp_chat_add(peer, message, true);
 			ws_send_json(WS_CHAT, webapp_messages_get());
-			//message_send(uag_current(), peer, message)
+			select_chat_peer(peer);
+			err = message_send(uag_current(), chat_peer, message);
+
+			if (err)
+				warning("message failed: %d\n", err);
 		}
 	}
 

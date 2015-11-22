@@ -6,11 +6,19 @@ enum ws_type {
 	WS_CPU
 };
 
+enum webapp_call_state {
+	WS_CALL_OFF,
+	WS_CALL_RINGING,
+	WS_CALL_ON
+};
+
 struct webapp {
 	struct websock_conn *wc_srv;
 	struct le le;
 	enum ws_type ws_type;
 };
+
+enum webapp_call_state webapp_call_status;
 
 /*
  * account.c

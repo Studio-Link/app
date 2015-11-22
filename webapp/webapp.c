@@ -14,7 +14,7 @@
 
 
 static struct http_sock *httpsock = NULL;
-
+enum webapp_call_state webapp_call_status = WS_CALL_OFF;
 
 static int http_sreply(struct http_conn *conn, uint16_t scode,
 		const char *reason, const char *ctype,
@@ -177,12 +177,15 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 		case UA_EVENT_CALL_INCOMING:
 			ws_send_all(WS_BARESIP, "{ \"callback\": \"INCOMING\",\
 					\"peeruri\": \"sip:23423\" }");
+			webapp_call_status = WS_CALL_RINGING;
 			break;
 
 		case UA_EVENT_CALL_ESTABLISHED:
+			webapp_call_status = WS_CALL_ON;
 			break;
 
 		case UA_EVENT_CALL_CLOSED:
+			webapp_call_status = WS_CALL_OFF;
 			break;
 
 		case UA_EVENT_REGISTER_OK:
@@ -211,7 +214,7 @@ static int module_init(void)
 	int err = 0;
 	struct sa srv;
 
-	err |= sa_set_str(&srv, "0.0.0.0", 8082);
+	err |= sa_set_str(&srv, "0.0.0.0", 0);
 
 	err = http_listen(&httpsock, &srv, http_req_handler, NULL);
 	if (err)

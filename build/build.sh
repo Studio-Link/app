@@ -43,16 +43,15 @@ curl ${patch_url}...studio-link-config.patch | patch -p1
 cp -a ../webapp modules/webapp
 
 make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
-    MODULES="opus stdio ice menu g711 turn stun uuid auloop contact webapp" \
+    MODULES="opus stdio ice g711 turn stun uuid webapp" \
     EXTRA_CFLAGS="-I ../my_include" EXTRA_LFLAGS="$my_extra_lflags -L ../opus"
 cd ..
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     ldd baresip-$baresip/baresip
-    cp baresip-$baresip/baresip baresip-linux
+    cp baresip-$baresip/baresip studio-link-linux
 else
     otool -L baresip-$baresip/baresip
-    cp baresip-$baresip/baresip baresip-osx
+    cp baresip-$baresip/baresip studio-link-osx
 fi
 baresip-$baresip/baresip -t
-ls -lha ~/.studio-link

@@ -105,7 +105,10 @@ void webapp_account_delete(char *user, char *domain)
 		if (!str_cmp(o_user, user) && !str_cmp(o_domain, domain)) {
 			odict_entry_del(accs, o->key);
 			snprintf(aor, sizeof(aor), "sip:%s@%s", user, domain);
+			info("delete uag: %p\n", uag_find_aor(aor));
+			ua_unregister(uag_find_aor(aor));
 			mem_deref(uag_find_aor(aor));
+			uag_current_set(NULL);
 			webapp_write_file(accs, filename);
 			break;
 		}
@@ -137,6 +140,7 @@ void webapp_account_status(const char *aor, bool status)
 		snprintf(aor_find, sizeof(aor_find), "sip:%s@%s", user,
 				domain);
 
+		info("status uag: %p\n", uag_find_aor(aor_find));
 
 		if (!str_cmp(aor_find, aor)) {
 			if (odict_lookup(eg->u.odict, "status"))
@@ -203,7 +207,7 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 		return;
 	struct mbuf *mb = msg->mb;
 	struct odict *o = NULL;
-	struct odict_entry *e;
+	const struct odict_entry *e;
 	char message[8192] = {0};
 	char user[50] = {0};
 	char domain[50] = {0};
@@ -248,8 +252,6 @@ static void provisioning(void)
 	char host[] = "vpn.studio-link.de";
 	char path[] = "provisioning/index.php";
 	struct http_cli *cli = NULL;
-	int err = 0;
-
 	struct config *cfg = conf_config();
 
 	re_snprintf(url, sizeof(url), "https://%s/%s?uuid=%s",
@@ -257,7 +259,7 @@ static void provisioning(void)
 
 	http_client_alloc(&cli, net_dnsc());
 
-	err = http_request(&req, cli, "GET", url, http_resp_handler,
+	http_request(&req, cli, "GET", url, http_resp_handler,
 			http_data_handler, NULL, NULL);
 
 	mem_deref(cli);

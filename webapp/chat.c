@@ -46,11 +46,23 @@ static void message_handler(const struct pl *peer, const struct pl *ctype,
 	(void)ctype;
 	(void)arg;
 	char message[256] = {0};
+	char s_peer[50] = {0};
 
 	(void)re_snprintf(message, sizeof(message), "%b",
 			mbuf_buf(body), mbuf_get_left(body));
+	
+	(void)re_snprintf(s_peer, sizeof(s_peer), "%r", peer);
 
-	(void)webapp_chat_add(peer->p, message, false);
+	warning("message from %s: %s\n", s_peer, message);
+
+	struct contact *c = contact_find(s_peer);
+
+	if(c) {
+		const struct sip_addr *addr = contact_addr(c);
+		(void)re_snprintf(s_peer, sizeof(s_peer), "%r", &addr->dname);
+		(void)webapp_chat_add(s_peer, message, false);
+		ws_send_json(WS_CHAT, webapp_messages_get());
+	}
 }
 
 
@@ -69,5 +81,6 @@ int webapp_chat_init(void)
 
 void webapp_chat_close(void)
 {
+	message_close();
 	mem_deref(messages);
 }
