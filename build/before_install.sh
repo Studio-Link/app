@@ -10,4 +10,6 @@ if [ "$1" == "linux" ]; then
     # remove libs to prefer static binding (*.a)
     rm -f /usr/lib/x86_64-linux-gnu/libcrypto.so
     rm -f /usr/lib/x86_64-linux-gnu/libssl.so
+else
+    brew install openssl
 fi

@@ -10,8 +10,10 @@ echo "start build on $TRAVIS_OS_NAME"
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     my_extra_lflags=""
+    my_extra_modules=""
 else
-    my_extra_lflags="-framework SystemConfiguration -framework CoreFoundation"
+    my_extra_lflags="-framework SystemConfiguration -framework CoreFoundation -L /usr/local/opt/openssl/lib/"
+    my_extra_modules="coreaudio"
 fi
 
 
@@ -58,7 +60,7 @@ cp -a ../webapp modules/webapp
 cp -a ../effect modules/effect
 
 make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
-    MODULES="opus stdio ice g711 turn stun uuid webapp" \
+    MODULES="opus stdio ice g711 turn stun uuid webapp $my_extra_modules" \
     EXTRA_CFLAGS="-I ../my_include" EXTRA_LFLAGS="$my_extra_lflags -L ../opus"
 make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
     MODULES="opus stdio ice g711 turn stun uuid webapp effect" \
