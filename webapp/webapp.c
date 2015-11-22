@@ -171,28 +171,38 @@ static void http_req_handler(struct http_conn *conn,
 static void ua_event_handler(struct ua *ua, enum ua_event ev,
 		struct call *call, const char *prm, void *arg)
 {
-	(void)call;
-	(void)prm;
+	char json[150] = {0};
 
 	switch (ev) {
 		case UA_EVENT_CALL_INCOMING:
-			ws_send_all(WS_BARESIP, "{ \"callback\": \"INCOMING\",\
-					\"peeruri\": \"sip:23423\" }");
+			re_snprintf(json, sizeof(json),
+					"{ \"callback\": \"INCOMING\",\
+					\"peeruri\": \"%s\" }",
+					call_peeruri(call));
+			ws_send_all(WS_BARESIP, json);
 			webapp_call_status = WS_CALL_RINGING;
 			break;
 
 		case UA_EVENT_CALL_ESTABLISHED:
+			re_snprintf(json, sizeof(json),
+					"{ \"callback\": \"ESTABLISHED\",\
+					\"peeruri\": \"%s\" }",
+					call_peeruri(call));
+			ws_send_all(WS_BARESIP, json);
 			webapp_call_status = WS_CALL_ON;
 			break;
 
 		case UA_EVENT_CALL_CLOSED:
+			re_snprintf(json, sizeof(json),
+					"{ \"callback\": \"CLOSED\",\
+					\"message\": \"%s\" }", prm);
+			ws_send_all(WS_BARESIP, json);
 			webapp_call_status = WS_CALL_OFF;
 			break;
 
 		case UA_EVENT_REGISTER_OK:
 			warning("Register OK: %s\n", ua_aor(ua));
 			webapp_account_status(ua_aor(ua), true);
-			//webapp_account_current();
 			ws_send_json(WS_BARESIP, webapp_accounts_get());
 			break;
 
@@ -200,7 +210,6 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 		case UA_EVENT_REGISTER_FAIL:
 			warning("Register Fail: %s\n", ua_aor(ua));
 			webapp_account_status(ua_aor(ua), false);
-			//webapp_account_current();
 			ws_send_json(WS_BARESIP, webapp_accounts_get());
 			break;
 
@@ -225,11 +234,14 @@ static int module_init(void)
 	tcp_sock_local_get(http_sock_tcp(httpsock), &listen);
 
 #if defined (DARWIN)
-	re_snprintf(command, sizeof(command), "open http://localhost:%d/", sa_port(&listen));
+	re_snprintf(command, sizeof(command), "open http://localhost:%d/",
+			sa_port(&listen));
 #elif defined (WIN32)
-	re_snprintf(command, sizeof(command), "start http://localhost:%d/", sa_port(&listen));
+	re_snprintf(command, sizeof(command), "start http://localhost:%d/",
+			sa_port(&listen));
 #else
-	re_snprintf(command, sizeof(command), "xdg-open http://localhost:%d/", sa_port(&listen));
+	re_snprintf(command, sizeof(command), "xdg-open http://localhost:%d/",
+			sa_port(&listen));
 #endif
 	info("http listening on port: %d\n", sa_port(&listen));
 
