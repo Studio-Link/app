@@ -12,7 +12,8 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     my_extra_lflags=""
     my_extra_modules=""
 else
-    my_extra_lflags="-framework SystemConfiguration -framework CoreFoundation -L /usr/local/opt/openssl/lib/"
+    my_openssl_osx="/usr/local/opt/openssl/lib/libcrypto.a /usr/local/opt/openssl/lib/libssl.a"
+    my_extra_lflags="-framework SystemConfiguration -framework CoreFoundation $my_openssl_osx"
     my_extra_modules="coreaudio"
 fi
 
@@ -26,7 +27,7 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     cd re; make libre.a; cd ..
 else
     cd re
-    make USE_OPENSSL=1 EXTRA_LFLAGS="-L /usr/local/opt/openssl/lib/" EXTRA_CFLAGS="-I /usr/local/opt/openssl/include" libre.a
+    make USE_OPENSSL=1 EXTRA_CFLAGS="-I /usr/local/opt/openssl/include" libre.a
     cd ..
 fi
 mkdir -p my_include/re
