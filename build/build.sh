@@ -73,6 +73,7 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     cd overlay-lv2
     ./build.sh
     cd ..
+    tar -cvzf overlay-lv2.tar.gz overlay-lv2
 fi
 
 
