@@ -70,9 +70,8 @@ cd ..
 #-----------------------------------------------------------------------------
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     git clone https://github.com/Studio-Link-v2/overlay-lv2.git overlay-lv2
-    cd overlay-lv2
-    ./build.sh
-    cd ..
+    cd overlay-lv2; ./build.sh; cd ..
+    rm -Rf overlay-lv2/.git
     tar -cvzf overlay-lv2.tar.gz overlay-lv2
 fi
 
