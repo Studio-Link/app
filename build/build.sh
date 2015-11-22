@@ -35,7 +35,7 @@ cd rem; make librem.a; cd ..
 #-----------------------------------------------------------------------------
 wget -N "http://downloads.xiph.org/releases/opus/opus-${opus}.tar.gz"
 tar -xzf opus-${opus}.tar.gz
-cd opus-$opus; ./configure; make; cd ..
+cd opus-$opus; ./configure --with-pic; make; cd ..
 mkdir opus; cp opus-$opus/.libs/libopus.a opus/
 mkdir -p my_include/opus
 cp opus-$opus/include/*.h my_include/opus/ 
