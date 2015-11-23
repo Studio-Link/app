@@ -5,7 +5,6 @@ os:
 before_install: 
         - sudo ./build/before_install.sh $TRAVIS_OS_NAME
         - ./build/before_install.sh $TRAVIS_OS_NAME
-        - rvm 1.9.3 do gem install mime-types -v 2.6.2
 script: "./build/build.sh"
 deploy:
   provider: releases
