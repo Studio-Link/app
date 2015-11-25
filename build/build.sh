@@ -13,7 +13,7 @@ mkdir -p src; cd src
 mkdir -p my_include
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-    my_extra_lflags="../openssl/libcrypto.a ../openssl/libssl.a"
+    my_extra_lflags="-L../openssl"
     my_extra_modules=""
 else
     my_openssl_osx="/usr/local/opt/openssl/lib/libcrypto.a "
@@ -33,6 +33,8 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
         cd openssl
         ./config -fPIC shared
         make
+        rm -f libcrypto.so
+        rm -f libssl.so
         cd ..
         cp -a openssl/include/openssl ../my_include/
     fi
