@@ -3,18 +3,32 @@
 rem="0.4.6"
 re="0.4.14"
 opus="1.1"
+openssl="1.0.2d"
 baresip="master"
 patch_url="https://github.com/Studio-Link-v2/baresip/compare/Studio-Link-v2:master"
 
 echo "start build on $TRAVIS_OS_NAME"
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-    my_extra_lflags=""
+    my_extra_lflags="../openssl/libcrypto.a ../openssl/libssl.a"
     my_extra_modules=""
 else
     my_openssl_osx="/usr/local/opt/openssl/lib/libcrypto.a /usr/local/opt/openssl/lib/libssl.a"
     my_extra_lflags="-framework SystemConfiguration -framework CoreFoundation $my_openssl_osx"
     my_extra_modules="coreaudio"
+fi
+
+
+# Build openssl (linux only)
+#-----------------------------------------------------------------------------
+if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+    wget https://www.openssl.org/source/openssl-${openssl}.tar.gz
+    tar -xzf openssl-${openssl}.tar.gz
+    ln -s openssl-${openssl} openssl
+    cd openssl
+    ./config -fPIC shared
+    make
+    cd ..
 fi
 
 
