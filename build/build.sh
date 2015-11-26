@@ -14,7 +14,7 @@ mkdir -p my_include
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     my_extra_lflags="-L../openssl"
-    my_extra_modules=""
+    my_extra_modules="alsa"
 else
     my_openssl_osx="/usr/local/opt/openssl/lib/libcrypto.a "
     my_openssl_osx+="/usr/local/opt/openssl/lib/libssl.a"
@@ -99,6 +99,8 @@ if [ ! -d baresip-$baresip ]; then
     make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid webapp $my_extra_modules" \
         EXTRA_CFLAGS="-I ../my_include" EXTRA_LFLAGS="$my_extra_lflags -L ../opus"
+    cp -a baresip ../studio-link-standalone
+    make clean
     make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid webapp effect" \
         EXTRA_CFLAGS="-I ../my_include" EXTRA_LFLAGS="$my_extra_lflags -L ../opus" libbaresip.a
@@ -128,16 +130,14 @@ fi
 #-----------------------------------------------------------------------------
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-    ldd baresip-$baresip/baresip
-    cp baresip-$baresip/baresip studio-link-standalone
+    ldd studio-link-standalone
     mkdir -p lv2-plugin
     cp -a overlay-lv2/studio-link.so lv2-plugin/
     cp -a overlay-lv2/*.ttl lv2-plugin/
     cp -a overlay-lv2/README.md lv2-plugin/
     tar -czf studio-link-linux.tar.gz lv2-plugin studio-link-standalone
 else
-    otool -L baresip-$baresip/baresip
-    cp baresip-$baresip/baresip studio-link-standalone
+    otool -L studio-link-standalone
     tar -czf studio-link-osx.tar.gz studio-link-standalone
 fi
 baresip-$baresip/baresip -t
