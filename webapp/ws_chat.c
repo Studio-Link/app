@@ -2,7 +2,7 @@
 #include <baresip.h>
 #include "webapp.h"
 
-static const char *chat_peer; 
+static const char *chat_peer;
 
 static void select_chat_peer(const char *user) {
 
@@ -28,7 +28,6 @@ static void select_chat_peer(const char *user) {
 }
 
 
-
 void webapp_ws_chat(const struct websock_hdr *hdr,
 				     struct mbuf *mb, void *arg)
 {
@@ -46,14 +45,14 @@ void webapp_ws_chat(const struct websock_hdr *hdr,
 		if (!str_cmp(e->u.str, "message")) {
 			char peer[50] = {0};
 			char message[100] = {0};
-			
+
 			e = odict_lookup(cmd, "text");
-			if(!e)
+			if (!e)
 				goto out;
 			str_ncpy(message, e->u.str, sizeof(message));
 
 			e = odict_lookup(cmd, "peer");
-			if(!e)
+			if (!e)
 				goto out;
 			str_ncpy(peer, e->u.str, sizeof(peer));
 

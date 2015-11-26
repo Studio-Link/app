@@ -24,9 +24,11 @@ void webapp_ws_contacts(const struct websock_hdr *hdr,
 	}
 	else if (!str_cmp(e->u.str, "deletecontact")) {
 		char sip[100] = {0};
+
 		e = odict_lookup(cmd, "sip");
-		if(!e)
+		if (!e)
 			goto out;
+
 		str_ncpy(sip, e->u.str, sizeof(sip));
 		webapp_contact_delete(sip);
 		ws_send_json(WS_CONTACT, webapp_contacts_get());

@@ -105,7 +105,6 @@ void webapp_account_delete(char *user, char *domain)
 		if (!str_cmp(o_user, user) && !str_cmp(o_domain, domain)) {
 			odict_entry_del(accs, o->key);
 			snprintf(aor, sizeof(aor), "sip:%s@%s", user, domain);
-			//ua_unregister(uag_find_aor(aor));
 			mem_deref(uag_find_aor(aor));
 			uag_current_set(NULL);
 			webapp_write_file(accs, filename);
@@ -168,7 +167,7 @@ void webapp_account_current(void)
 	const char *uag = NULL;
 
 	uag = ua_aor(uag_current());
-	if(!uag) 
+	if (!uag)
 		return;
 	re_snprintf(aor_current, sizeof(aor_current), "%s", uag);
 
@@ -200,7 +199,7 @@ void webapp_account_current(void)
 
 static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 {
-	if(!msg)
+	if (!msg)
 		return;
 	struct mbuf *mb = msg->mb;
 	struct odict *o = NULL;

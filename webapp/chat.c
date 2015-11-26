@@ -23,7 +23,7 @@ int webapp_chat_add(const char *peer, const char *message, bool self)
 	struct odict *o;
 
 	err = odict_alloc(&o, DICT_BSIZE);
-	if(err)
+	if (err)
 		return ENOMEM;
 
 	odict_entry_add(o, "message", ODICT_STRING, message);
@@ -50,14 +50,14 @@ static void message_handler(const struct pl *peer, const struct pl *ctype,
 
 	(void)re_snprintf(message, sizeof(message), "%b",
 			mbuf_buf(body), mbuf_get_left(body));
-	
+
 	(void)re_snprintf(s_peer, sizeof(s_peer), "%r", peer);
 
 	warning("message from %s: %s\n", s_peer, message);
 
 	struct contact *c = contact_find(s_peer);
 
-	if(c) {
+	if (c) {
 		const struct sip_addr *addr = contact_addr(c);
 		(void)re_snprintf(s_peer, sizeof(s_peer), "%r", &addr->dname);
 		(void)webapp_chat_add(s_peer, message, false);
@@ -70,7 +70,7 @@ int webapp_chat_init(void)
 {
 	int err = 0;
 	err = message_init(message_handler, NULL);
-	if(err)
+	if (err)
 		return err;
 
 	err = odict_alloc(&messages, DICT_BSIZE);

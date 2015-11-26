@@ -74,8 +74,9 @@ void ws_meter_process(unsigned int ch, float *in, unsigned long nframes)
 		webapp_read_peaks();
 		write_ws();
 		callrun = 0;
-	} else {
-		callrun++;
+	}
+	else {
+		++callrun;
 	}
 
 }

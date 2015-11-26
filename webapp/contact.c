@@ -132,7 +132,7 @@ int webapp_contacts_init(void)
 
 	for (le = contacts->lst.head; le; le = le->next) {
 		contact_register(le->data);
-	} 
+	}
 
 out:
 	mem_deref(mb);

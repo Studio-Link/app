@@ -17,7 +17,7 @@ void webapp_odict_add(const struct odict_entry *eg, struct odict *og)
 		return;
 
 	le = (void *)&eg->le;
-	if(!le)
+	if (!le)
 		return;
 
 	for (le=le->list->head; le; le=le->next) {
@@ -30,9 +30,9 @@ void webapp_odict_add(const struct odict_entry *eg, struct odict *og)
 	/* Limited Loop
 	 * No one will need more than 100 accounts for a personal computer
 	 */
-	for(int i=0; i<100; i++) {
+	for (int i=0; i<100; i++) {
 		re_snprintf(index, sizeof(index), "%u", index_cnt);
-		if(!odict_lookup(og, index)) {
+		if (!odict_lookup(og, index)) {
 			break;
 		}
 		index_cnt = index_cnt + 1;
