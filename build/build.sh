@@ -140,4 +140,4 @@ else
     otool -L studio-link-standalone
     tar -czf studio-link-osx.tar.gz studio-link-standalone
 fi
-baresip-$baresip/baresip -t
+studio-link-standalone -t
