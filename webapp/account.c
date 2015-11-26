@@ -105,7 +105,6 @@ void webapp_account_delete(char *user, char *domain)
 		if (!str_cmp(o_user, user) && !str_cmp(o_domain, domain)) {
 			odict_entry_del(accs, o->key);
 			snprintf(aor, sizeof(aor), "sip:%s@%s", user, domain);
-			info("delete uag: %p\n", uag_find_aor(aor));
 			//ua_unregister(uag_find_aor(aor));
 			mem_deref(uag_find_aor(aor));
 			uag_current_set(NULL);
@@ -139,8 +138,6 @@ void webapp_account_status(const char *aor, bool status)
 		str_ncpy(domain, e->u.str, sizeof(domain));
 		snprintf(aor_find, sizeof(aor_find), "sip:%s@%s", user,
 				domain);
-
-		info("status uag: %p\n", uag_find_aor(aor_find));
 
 		if (!str_cmp(aor_find, aor)) {
 			if (odict_lookup(eg->u.odict, "status"))

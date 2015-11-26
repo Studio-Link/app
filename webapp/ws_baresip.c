@@ -58,7 +58,6 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 		ua_answer(uag_current(), NULL);
 	}
 	else if (!str_cmp(e->u.str, "hangup")) {
-		warning("close: %p", uag_current());
 		ua_hangup(uag_current(), NULL, 0, NULL);
 		if (!have_active_calls())
 			ws_send_all(WS_BARESIP, SIP_CLOSED);
@@ -88,7 +87,6 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 			goto out;
 		snprintf(aorfind, sizeof(aorfind), "sip:%s", e->u.str);
 		uag_current_set(uag_find_aor(aorfind));
-		warning("Current Account: %s\n", ua_aor(uag_current()));
 		webapp_account_current();
 		ws_send_json(WS_BARESIP, webapp_accounts_get());
 	}
