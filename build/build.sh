@@ -140,4 +140,4 @@ else
     otool -L studio-link-standalone
     tar -czf studio-link-osx.tar.gz studio-link-standalone
 fi
-studio-link-standalone -t
+./studio-link-standalone -t
