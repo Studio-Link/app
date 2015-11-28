@@ -4,7 +4,7 @@
 
 This repository contains the studio link - baresip modules and build environment
 
-## Requirements
+## Build Requirements
 
 - OpenSSL
 - LV2 (optional)
