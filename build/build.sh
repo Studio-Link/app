@@ -5,8 +5,11 @@ re="0.4.14"
 opus="1.1"
 openssl="1.0.2d"
 baresip="master"
-patch_url="https://github.com/Studio-Link-v2/baresip/compare/Studio-Link-v2:master"
+github_org="https://github.com/Studio-Link-v2"
+patch_url="$github_org/baresip/compare/Studio-Link-v2:master"
 
+# Start build
+#-----------------------------------------------------------------------------
 echo "start build on $TRAVIS_OS_NAME"
 
 mkdir -p src; cd src
@@ -18,7 +21,8 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
 else
     sl_openssl_osx="/usr/local/opt/openssl/lib/libcrypto.a "
     sl_openssl_osx+="/usr/local/opt/openssl/lib/libssl.a"
-    sl_extra_lflags="-framework SystemConfiguration -framework CoreFoundation $sl_openssl_osx"
+    sl_extra_lflags="-framework SystemConfiguration "
+    sl_extra_lflags+="-framework CoreFoundation $sl_openssl_osx"
     sl_extra_modules="coreaudio"
 fi
 
@@ -48,10 +52,13 @@ if [ ! -d re-$re ]; then
     tar -xzf re-${re}.tar.gz
     ln -s re-$re re
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-        cd re; make USE_OPENSSL=1 EXTRA_CFLAGS="-I ../my_include/" libre.a; cd ..
+        cd re
+        make USE_OPENSSL=1 EXTRA_CFLAGS="-I ../my_include/" libre.a
+        cd ..
     else
         cd re
-        make USE_OPENSSL=1 EXTRA_CFLAGS="-I /usr/local/opt/openssl/include" libre.a
+        make USE_OPENSSL=1 \
+            EXTRA_CFLAGS="-I /usr/local/opt/openssl/include" libre.a
         cd ..
     fi
     mkdir -p my_include/re
@@ -84,7 +91,7 @@ fi
 # Build baresip with studio link addons
 #-----------------------------------------------------------------------------
 if [ ! -d baresip-$baresip ]; then
-    git clone https://github.com/Studio-Link-v2/baresip.git baresip-$baresip
+    git clone $github_org/baresip.git baresip-$baresip
     ln -s baresip-$baresip baresip
     cp -a baresip-$baresip/include/baresip.h my_include/
     cd baresip-$baresip;
@@ -118,22 +125,24 @@ fi
 #-----------------------------------------------------------------------------
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     if [ ! -d overlay-lv2 ]; then
-        git clone https://github.com/Studio-Link-v2/overlay-lv2.git overlay-lv2
+        git clone $github_org/overlay-lv2.git overlay-lv2
         cd overlay-lv2; ./build.sh; cd ..
-        rm -Rf overlay-lv2/.git
-        tar -cvzf overlay-lv2.tar.gz overlay-lv2
     fi
 fi
 
 
 # Build overlay-audio-unit plugin (osx only)
 #-----------------------------------------------------------------------------
-# @TODO
-
+if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+    git clone --recursive $github_org/overlay-audio-unit.git overlay-audio-unit
+    cd overlay-audio-unit; ./build.sh; cd ..
+fi
 
 
 # Testing and prepare release upload
 #-----------------------------------------------------------------------------
+
+./studio-link-standalone -t
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     ldd studio-link-standalone
@@ -144,6 +153,6 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     tar -czf studio-link-linux.tar.gz lv2-plugin studio-link-standalone
 else
     otool -L studio-link-standalone
-    tar -czf studio-link-osx.tar.gz studio-link-standalone
+    mkdir -p audio-unit
+    tar -czf studio-link-osx.tar.gz audio-unit studio-link-standalone
 fi
-./studio-link-standalone -t
