@@ -264,7 +264,10 @@ static int module_init(void)
 	webapp_contacts_init();
 	webapp_chat_init();
 	webapp_ws_meter_init();
+
+#ifndef SLBOX
 	system(command);
+#endif
 
 out:
 	if (err) {
