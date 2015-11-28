@@ -59,6 +59,7 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 	}
 	else if (!str_cmp(e->u.str, "hangup")) {
 		ua_hangup(uag_current(), NULL, 0, NULL);
+		webapp_call_status = WS_CALL_OFF;
 		if (!have_active_calls())
 			ws_send_all(WS_BARESIP, SIP_CLOSED);
 	}

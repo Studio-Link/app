@@ -16,6 +16,7 @@
 
 static struct http_sock *httpsock = NULL;
 enum webapp_call_state webapp_call_status = WS_CALL_OFF;
+static char webapp_call_json[150] = {0};
 
 static int http_sreply(struct http_conn *conn, uint16_t scode,
 		const char *reason, const char *ctype,
@@ -57,6 +58,8 @@ static void http_req_handler(struct http_conn *conn,
 	if (0 == pl_strcasecmp(&msg->path, "/ws_baresip")) {
 		webapp_ws_handler(conn, WS_BARESIP, msg, webapp_ws_baresip);
 		ws_send_json(WS_BARESIP, webapp_accounts_get());
+		if (webapp_call_status != WS_CALL_OFF)
+			ws_send_all(WS_BARESIP, webapp_call_json);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path, "/ws_contacts")) {
@@ -168,35 +171,44 @@ static void http_req_handler(struct http_conn *conn,
 }
 
 
+static void ua_event_current_set(struct ua *ua) {
+			uag_current_set(ua);
+			webapp_account_current();
+			ws_send_json(WS_BARESIP, webapp_accounts_get());
+}
+
+
 static void ua_event_handler(struct ua *ua, enum ua_event ev,
 		struct call *call, const char *prm, void *arg)
 {
-	char json[150] = {0};
 
 	switch (ev) {
 		case UA_EVENT_CALL_INCOMING:
-			re_snprintf(json, sizeof(json),
+			ua_event_current_set(ua);
+			re_snprintf(webapp_call_json, sizeof(webapp_call_json),
 					"{ \"callback\": \"INCOMING\",\
 					\"peeruri\": \"%s\" }",
 					call_peeruri(call));
-			ws_send_all(WS_BARESIP, json);
+			ws_send_all(WS_BARESIP, webapp_call_json);
 			webapp_call_status = WS_CALL_RINGING;
 			break;
 
 		case UA_EVENT_CALL_ESTABLISHED:
-			re_snprintf(json, sizeof(json),
+			ua_event_current_set(ua);
+			re_snprintf(webapp_call_json, sizeof(webapp_call_json),
 					"{ \"callback\": \"ESTABLISHED\",\
 					\"peeruri\": \"%s\" }",
 					call_peeruri(call));
-			ws_send_all(WS_BARESIP, json);
+			ws_send_all(WS_BARESIP, webapp_call_json);
 			webapp_call_status = WS_CALL_ON;
 			break;
 
 		case UA_EVENT_CALL_CLOSED:
-			re_snprintf(json, sizeof(json),
+			ua_event_current_set(ua);
+			re_snprintf(webapp_call_json, sizeof(webapp_call_json),
 					"{ \"callback\": \"CLOSED\",\
 					\"message\": \"%s\" }", prm);
-			ws_send_all(WS_BARESIP, json);
+			ws_send_all(WS_BARESIP, webapp_call_json);
 			webapp_call_status = WS_CALL_OFF;
 			break;
 
