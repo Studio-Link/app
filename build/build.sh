@@ -13,13 +13,13 @@ mkdir -p src; cd src
 mkdir -p my_include
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-    my_extra_lflags="-L../openssl"
-    my_extra_modules="alsa"
+    sl_extra_lflags="-L../openssl"
+    sl_extra_modules="alsa"
 else
-    my_openssl_osx="/usr/local/opt/openssl/lib/libcrypto.a "
-    my_openssl_osx+="/usr/local/opt/openssl/lib/libssl.a"
-    my_extra_lflags="-framework SystemConfiguration -framework CoreFoundation $my_openssl_osx"
-    my_extra_modules="coreaudio"
+    sl_openssl_osx="/usr/local/opt/openssl/lib/libcrypto.a "
+    sl_openssl_osx+="/usr/local/opt/openssl/lib/libssl.a"
+    sl_extra_lflags="-framework SystemConfiguration -framework CoreFoundation $sl_openssl_osx"
+    sl_extra_modules="coreaudio"
 fi
 
 
@@ -96,14 +96,20 @@ if [ ! -d baresip-$baresip ]; then
     cp -a ../../webapp modules/webapp
     cp -a ../../effect modules/effect
 
+    # Standalone
     make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
-        MODULES="opus stdio ice g711 turn stun uuid webapp $my_extra_modules" \
-        EXTRA_CFLAGS="-I ../my_include" EXTRA_LFLAGS="$my_extra_lflags -L ../opus"
+        MODULES="opus stdio ice g711 turn stun uuid webapp $sl_extra_modules" \
+        EXTRA_CFLAGS="-I ../my_include" \
+        EXTRA_LFLAGS="$sl_extra_lflags -L ../opus"
+
     cp -a baresip ../studio-link-standalone
     make clean
+
+    # Effect Plugin
     make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid webapp effect" \
-        EXTRA_CFLAGS="-I ../my_include" EXTRA_LFLAGS="$my_extra_lflags -L ../opus" libbaresip.a
+        EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
+        EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
     cd ..
 fi
 
