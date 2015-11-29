@@ -153,5 +153,7 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     tar -czf studio-link-linux.tar.gz lv2-plugin studio-link-standalone
 else
     otool -L studio-link-standalone
-    tar -czf studio-link-osx.tar.gz ~/Library/Audio/Plug-Ins/Components/StudioLink.component studio-link-standalone
+    mkdir -p StudioLink.component
+    cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component/* StudioLink.component/
+    tar -czf studio-link-osx.tar.gz StudioLink.component studio-link-standalone
 fi
