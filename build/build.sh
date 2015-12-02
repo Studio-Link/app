@@ -1,6 +1,5 @@
 #!/bin/bash
 
-version="15.12.0-alpha15"
 rem="0.4.6"
 re="0.4.14"
 opus="1.1.1"
@@ -108,7 +107,7 @@ if [ ! -d baresip-$baresip ]; then
     # Standalone
     make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid webapp $sl_extra_modules" \
-        EXTRA_CFLAGS="-I ../my_include -DSLVERSION=$version" \
+        EXTRA_CFLAGS="-I ../my_include" \
         EXTRA_LFLAGS="$sl_extra_lflags -L ../opus"
 
     cp -a baresip ../studio-link-standalone
@@ -117,7 +116,7 @@ if [ ! -d baresip-$baresip ]; then
     # Effect Plugin
     make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid webapp effect" \
-        EXTRA_CFLAGS="-I ../my_include -DSLVERSION=$version -DSLPLUGIN" \
+        EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
         EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
     cd ..
 fi
@@ -136,8 +135,11 @@ fi
 # Build overlay-audio-unit plugin (osx only)
 #-----------------------------------------------------------------------------
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-    git clone --recursive $github_org/overlay-audio-unit.git overlay-audio-unit
-    cd overlay-audio-unit; ./build.sh; cd ..
+    if [ ! -d overlay-audio-unit ]; then
+        git clone --recursive \
+            $github_org/overlay-audio-unit.git overlay-audio-unit
+        cd overlay-audio-unit; ./build.sh; cd ..
+    fi
 fi
 
 

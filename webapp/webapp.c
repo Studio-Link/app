@@ -13,6 +13,7 @@
 #include "assets/fonts.h"
 #include "webapp.h"
 
+#define SLVERSION "15.11.0-alpha15"
 
 static struct http_sock *httpsock = NULL;
 enum webapp_call_state webapp_call_status = WS_CALL_OFF;
@@ -237,6 +238,16 @@ static int module_init(void)
 	struct sa srv;
 	struct sa listen;
 	char command[100] = {0};
+
+#ifdef SLPLUGIN
+	(void)re_fprintf(stderr, "Studio Link Webapp v%s - Effect Plugin"
+			" Copyright (C) 2015"
+			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
+#else
+	(void)re_fprintf(stderr, "Studio Link Webapp v%s - Standalone"
+			" Copyright (C) 2015"
+			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
+#endif
 
 	err |= sa_set_str(&srv, "127.0.0.1", 0);
 
