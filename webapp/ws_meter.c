@@ -57,7 +57,6 @@ static void write_ws(void)
 	p[n-1] = '\0'; /* remove trailing space */
 
 	ws_send_all(WS_METER, p);
-	warning("ws_send %d\n", p);
 }
 
 
