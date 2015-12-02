@@ -2,10 +2,10 @@
 
 # Syntax
 
-**Standalone** Changes to the standalone OSX, Windows and Linux Version
-**Plugin** Changes to the effect plugins (Audio Unit, LV2 and VST)
-**Box** Changes to the [orange] hardware box
-**Misc** Anything that is left or general.
+- **Standalone** Changes to the standalone OSX, Windows and Linux Version
+- **Plugin** Changes to the effect plugins (Audio Unit, LV2 and VST)
+- **Box** Changes to the [orange] hardware box
+- **Misc** Anything that is left or general.
 
 
 ## v15.12.0-beta (xx.12.2015)
