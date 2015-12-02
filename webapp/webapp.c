@@ -280,14 +280,14 @@ out:
 static int module_close(void)
 {
 	uag_event_unregister(ua_event_handler);
-	mem_deref(httpsock);
 
 	webapp_ws_meter_close();
 	webapp_accounts_close();
 	webapp_contacts_close();
 	webapp_chat_close();
-
 	webapp_ws_close();
+
+	mem_deref(httpsock);
 	return 0;
 }
 

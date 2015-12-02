@@ -12,6 +12,8 @@ static float bias = 1.0f;
 static float peaks[MAX_METERS];
 static float sent_peaks[MAX_METERS];
 
+static bool run = false;
+
 
 /* Read and reset the recent peak sample */
 static void webapp_read_peaks(void)
@@ -55,6 +57,7 @@ static void write_ws(void)
 	p[n-1] = '\0'; /* remove trailing space */
 
 	ws_send_all(WS_METER, p);
+	warning("ws_send %d\n", p);
 }
 
 
@@ -71,8 +74,10 @@ void ws_meter_process(unsigned int ch, float *in, unsigned long nframes)
 	}
 
 	if (callrun == 10) {
-		webapp_read_peaks();
-		write_ws();
+		if (run) {
+			webapp_read_peaks();
+			write_ws();
+		}
 		callrun = 0;
 	}
 	else {
@@ -84,9 +89,11 @@ void ws_meter_process(unsigned int ch, float *in, unsigned long nframes)
 
 void webapp_ws_meter_init(void)
 {
+	run = true;
 }
 
 
 void webapp_ws_meter_close(void)
 {
+	run = false;
 }

@@ -8,6 +8,7 @@ baresip="master"
 github_org="https://github.com/Studio-Link-v2"
 patch_url="$github_org/baresip/compare/Studio-Link-v2:master"
 
+
 # Start build
 #-----------------------------------------------------------------------------
 echo "start build on $TRAVIS_OS_NAME"
@@ -153,7 +154,6 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     tar -czf studio-link-linux.tar.gz lv2-plugin studio-link-standalone
 else
     otool -L studio-link-standalone
-    mkdir -p StudioLink.component
-    cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component/* StudioLink.component/
+    mv ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
     tar -czf studio-link-osx.tar.gz StudioLink.component studio-link-standalone
 fi

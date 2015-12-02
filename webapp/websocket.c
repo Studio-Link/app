@@ -15,6 +15,7 @@ int webapp_ws_handler(struct http_conn *conn, enum ws_type type,
 			0, recvh,
 			srv_websock_close_handler, webapp);
 	list_append(&ws_srv_conns, &webapp->le, webapp);
+	warning("websocket created: %p\n", webapp->wc_srv);
 	webapp->ws_type = type;
 
 	return 0;
@@ -77,7 +78,7 @@ void srv_websock_close_handler(int err, void *arg)
 
 static void websock_shutdown_handler(void *arg)
 {
-
+	warning("websocket shutdown\n");
 }
 
 
@@ -96,6 +97,15 @@ void webapp_ws_init(void)
 
 void webapp_ws_close(void)
 {
-	list_flush(&ws_srv_conns);
+	warning("webapp_ws_close\n");
+	struct le *le;
+	for (le = list_head(&ws_srv_conns); le; le = le->next) {
+		struct webapp *webapp = le->data;
+		warning("websocket possible closed: %p\n", webapp->wc_srv);
+		mem_deref(webapp->wc_srv);
+	}
+
+	//websock_shutdown(ws);
 	mem_deref(ws);
+	list_flush(&ws_srv_conns);
 }
