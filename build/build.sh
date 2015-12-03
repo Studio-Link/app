@@ -8,6 +8,10 @@ baresip="master"
 github_org="https://github.com/Studio-Link-v2"
 patch_url="$github_org/baresip/compare/Studio-Link-v2:master"
 
+if [ "$MINGW64" == 1 ]; then
+    echo "Not implemented yet...!"
+    exit 0;
+fi
 
 # Start build
 #-----------------------------------------------------------------------------

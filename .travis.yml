@@ -1,7 +1,7 @@
 language: c
 os:
-- osx
-- linux
+        - osx
+        - linux
 before_install: 
         - sudo ./build/before_install.sh $TRAVIS_OS_NAME
         - ./build/before_install.sh $TRAVIS_OS_NAME
@@ -14,3 +14,10 @@ deploy:
   skip_cleanup: true
   on:
        tags: true
+env:
+        - MINGW64=1
+        - MINGW64=0
+matrix:
+        exclude:
+                - os: osx
+                  env: MINGW64=1
