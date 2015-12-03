@@ -14,3 +14,4 @@
 - **Plugin** Basic LV2 and Audio Unit Version
 - **Standalone** Basic OSX and Linux Version
 - **Misc** Use Opus 1.1.1
+- **Misc** OpenSSL 1.0.2e (Linux)

@@ -3,7 +3,7 @@
 rem="0.4.6"
 re="0.4.14"
 opus="1.1.1"
-openssl="1.0.2d"
+openssl="1.0.2e"
 baresip="master"
 github_org="https://github.com/Studio-Link-v2"
 patch_url="$github_org/baresip/compare/Studio-Link-v2:master"
