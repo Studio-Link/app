@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-if [ "$MINGW64" == 1 ]; then
+if [ "$BUILD_OS" == "windows" ]; then
     echo "Not implemented yet...!"
     exit 0;
 fi

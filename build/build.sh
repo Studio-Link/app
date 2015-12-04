@@ -8,7 +8,7 @@ baresip="master"
 github_org="https://github.com/Studio-Link-v2"
 patch_url="$github_org/baresip/compare/Studio-Link-v2:master"
 
-if [ "$MINGW64" == 1 ]; then
+if [ "$BUILD_OS" == "windows" ]; then
     echo "Not implemented yet...!"
 
     tar -czf studio-link-windows.tar.gz .
