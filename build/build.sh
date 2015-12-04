@@ -10,6 +10,8 @@ patch_url="$github_org/baresip/compare/Studio-Link-v2:master"
 
 if [ "$MINGW64" == 1 ]; then
     echo "Not implemented yet...!"
+
+    tar -czf studio-link-windows.tar.gz .
     exit 0;
 fi
 

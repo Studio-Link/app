@@ -1,5 +1,10 @@
 #!/bin/bash -ex
 
+if [ "$MINGW64" == 1 ]; then
+    echo "Not implemented yet...!"
+    exit 0;
+fi
+
 if [ "$1" == "linux" ]; then
     if [ "$(id -u)" == "0" ]; then
         apt-get update -qq
