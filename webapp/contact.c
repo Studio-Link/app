@@ -122,11 +122,13 @@ int webapp_contacts_init(void)
 		return ENOMEM;
 
 	err = webapp_load_file(mb, filename);
-	if (err)
-		goto out;
-
-	err = json_decode_odict(&contacts, DICT_BSIZE,
+	if (err) {
+		err = odict_alloc(&contacts, DICT_BSIZE);
+	}
+	else {
+		err = json_decode_odict(&contacts, DICT_BSIZE,
 				(char *)mb->buf, mb->end, MAX_LEVELS);
+	}
 	if (err)
 		goto out;
 
