@@ -35,8 +35,8 @@ void webapp_ws_chat(const struct websock_hdr *hdr,
 	const struct odict_entry *e = NULL;
 	int err = 0;
 
-	err = json_decode_odict(&cmd, 32, (const char *)mbuf_buf(mb),
-			mbuf_get_left(mb), 8);
+	err = json_decode_odict(&cmd, DICT_BSIZE, (const char *)mbuf_buf(mb),
+			mbuf_get_left(mb), MAX_LEVELS);
 	if (!err) {
 		e = odict_lookup(cmd, "command");
 		if (!e)

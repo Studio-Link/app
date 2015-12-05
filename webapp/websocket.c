@@ -78,7 +78,7 @@ void srv_websock_close_handler(int err, void *arg)
 
 static void websock_shutdown_handler(void *arg)
 {
-	warning("websocket shutdown\n");
+	info("websocket shutdown\n");
 }
 
 
@@ -97,15 +97,13 @@ void webapp_ws_init(void)
 
 void webapp_ws_close(void)
 {
-	warning("webapp_ws_close\n");
+	info("webapp_ws_close\n");
 	struct le *le;
 	for (le = list_head(&ws_srv_conns); le; le = le->next) {
 		struct webapp *webapp = le->data;
-		warning("websocket possible closed: %p\n", webapp->wc_srv);
 		mem_deref(webapp->wc_srv);
 	}
 
-	//websock_shutdown(ws);
 	mem_deref(ws);
 	list_flush(&ws_srv_conns);
 }

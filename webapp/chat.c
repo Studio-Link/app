@@ -4,11 +4,6 @@
 #include <time.h>
 #include "webapp.h"
 
-enum {
-	DICT_BSIZE = 32,
-	MAX_LEVELS = 8,
-};
-
 static struct odict *messages = NULL;
 
 

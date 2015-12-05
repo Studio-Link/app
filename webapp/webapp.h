@@ -12,6 +12,11 @@ enum webapp_call_state {
 	WS_CALL_ON
 };
 
+enum {
+	DICT_BSIZE = 32,
+	MAX_LEVELS = 8,
+};
+
 struct webapp {
 	struct websock_conn *wc_srv;
 	struct le le;
