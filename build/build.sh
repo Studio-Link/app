@@ -121,7 +121,7 @@ if [ ! -d baresip-$baresip ]; then
 
     # Effect Plugin
     make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
-        MODULES="opus stdio ice g711 turn stun uuid webapp effect" \
+        MODULES="opus stdio ice g711 turn stun uuid webapp menu auloop effect" \
         EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
         EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
     cd ..
