@@ -305,4 +305,5 @@ void webapp_accounts_close(void)
 {
 	webapp_write_file(accs, filename);
 	mem_deref(accs);
+	uag_current_set(NULL);
 }
