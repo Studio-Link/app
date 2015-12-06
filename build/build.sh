@@ -24,13 +24,13 @@ mkdir -p my_include
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     sl_extra_lflags="-L../openssl"
-    sl_extra_modules="alsa"
+    sl_extra_modules="alsa auloop menu"
 else
     sl_openssl_osx="/usr/local/opt/openssl/lib/libcrypto.a "
     sl_openssl_osx+="/usr/local/opt/openssl/lib/libssl.a"
     sl_extra_lflags="-framework SystemConfiguration "
     sl_extra_lflags+="-framework CoreFoundation $sl_openssl_osx"
-    sl_extra_modules="coreaudio"
+    sl_extra_modules="coreaudio auloop menu"
 fi
 
 
