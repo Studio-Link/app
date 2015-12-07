@@ -24,13 +24,13 @@ mkdir -p my_include
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     sl_extra_lflags="-L../openssl"
-    sl_extra_modules="alsa auloop menu"
+    sl_extra_modules="alsa"
 else
     sl_openssl_osx="/usr/local/opt/openssl/lib/libcrypto.a "
     sl_openssl_osx+="/usr/local/opt/openssl/lib/libssl.a"
     sl_extra_lflags="-framework SystemConfiguration "
     sl_extra_lflags+="-framework CoreFoundation $sl_openssl_osx"
-    sl_extra_modules="coreaudio auloop menu"
+    sl_extra_modules="audiounit"
 fi
 
 
@@ -112,7 +112,7 @@ if [ ! -d baresip-$baresip ]; then
 
     # Standalone
     make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
-        MODULES="opus stdio ice g711 turn stun uuid webapp $sl_extra_modules" \
+        MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
         EXTRA_CFLAGS="-I ../my_include" \
         EXTRA_LFLAGS="$sl_extra_lflags -L ../opus"
 
@@ -121,7 +121,7 @@ if [ ! -d baresip-$baresip ]; then
 
     # Effect Plugin
     make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
-        MODULES="opus stdio ice g711 turn stun uuid webapp menu auloop effect" \
+        MODULES="opus stdio ice g711 turn stun uuid auloop webapp effect" \
         EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
         EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
     cd ..
