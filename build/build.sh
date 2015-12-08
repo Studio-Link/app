@@ -8,19 +8,18 @@ baresip="master"
 github_org="https://github.com/Studio-Link-v2"
 patch_url="$github_org/baresip/compare/Studio-Link-v2:master"
 
-if [ "$BUILD_OS" == "windows" ]; then
-    echo "Not implemented yet...!"
-
-    tar -czf studio-link-windows.tar.gz .
-    exit 0;
-fi
-
 # Start build
 #-----------------------------------------------------------------------------
 echo "start build on $TRAVIS_OS_NAME"
 
 mkdir -p src; cd src
 mkdir -p my_include
+
+if [ "$BUILD_OS" == "windows" ]; then
+    echo "Not implemented yet...!" > README.txt
+    tar -czf studio-link-windows.tar.gz README.txt
+    exit 0;
+fi
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     sl_extra_lflags="-L../openssl"
