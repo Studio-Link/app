@@ -17,7 +17,7 @@ mkdir -p my_include
 
 if [ "$BUILD_OS" == "windows" ]; then
     echo "Not implemented yet...!" > README.txt
-    tar -czf studio-link-windows.tar.gz README.txt
+    zip studio-link-windows README.txt
     exit 0;
 fi
 
@@ -159,9 +159,9 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     cp -a overlay-lv2/studio-link.so lv2-plugin/
     cp -a overlay-lv2/*.ttl lv2-plugin/
     cp -a overlay-lv2/README.md lv2-plugin/
-    tar -czf studio-link-linux.tar.gz lv2-plugin studio-link-standalone
+    zip -r studio-link-linux lv2-plugin studio-link-standalone
 else
     otool -L studio-link-standalone
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
-    tar -czf studio-link-osx.tar.gz StudioLink.component studio-link-standalone
+    zip -r studio-link-osx StudioLink.component studio-link-standalone
 fi
