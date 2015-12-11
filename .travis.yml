@@ -3,8 +3,8 @@ os:
         - osx
         - linux
 before_install: 
-        - sudo ./build/before_install.sh
-        - ./build/before_install.sh
+        - sudo ./build/before_install.sh $BUILD_OS
+        - ./build/before_install.sh $BUILD_OS
 script: "./build/build.sh"
 deploy:
   provider: releases
