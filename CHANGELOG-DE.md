@@ -10,7 +10,7 @@
 
 ## v15.12.0-beta (xx.12.2015)
 
-- **Misc** Komplette Neuimplementierung von der Webapp
+- **Misc** Komplette Neuimplementierung der Webanwendung
 - **Plugin** Erste LV2 und Audio Unit Version
 - **Standalone** Erste OSX and Linux Version
 - **Misc** Opus 1.1.1
