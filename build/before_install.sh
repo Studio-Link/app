@@ -13,6 +13,4 @@ elif [ "$1" == "osx" ]; then
         brew update
         brew install openssl
     fi
-elif [ "$1" == "windows" ]; then
-    echo "Not implemented, yet!"
 fi

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 
 rem="0.4.6"
 re="0.4.14"
@@ -14,12 +14,6 @@ echo "start build on $TRAVIS_OS_NAME"
 
 mkdir -p src; cd src
 mkdir -p my_include
-
-if [ "$BUILD_OS" == "windows" ]; then
-    echo "Not implemented yet...!" > README.txt
-    zip studio-link-windows README.txt
-    exit 0;
-fi
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     sl_extra_lflags="-L../openssl"
