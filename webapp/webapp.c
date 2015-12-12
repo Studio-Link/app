@@ -106,6 +106,14 @@ static void http_req_handler(struct http_conn *conn,
 
 		return;
 	}
+	if (0 == pl_strcasecmp(&msg->path, "/version")) {
+		http_sreply(conn, 200, "OK",
+				"text/html",
+				(const char*)SLVERSION,
+				sizeof(SLVERSION));
+
+		return;
+	}
 	if (0 == pl_strcasecmp(&msg->path, "/js/all.js")) {
 		http_sreply(conn, 200, "OK",
 				"application/javascript",
