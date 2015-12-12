@@ -1,6 +1,4 @@
-# Changelog / Änderungen
-
-# Syntax
+## Syntax
 
 - **Standalone** Änderungen zur Standalone Version unter OSX, Windows und Linux
 - **Plugin** Änderungen an der Plugin Variante (Audio Unit, LV2 and VST)
@@ -8,7 +6,7 @@
 - **Misc** Generelle Veränderungen
 
 
-## v15.12.0-beta (xx.12.2015)
+### v15.12.0-beta (xx.12.2015)
 
 - **Misc** Komplette Neuimplementierung der Webanwendung
 - **Plugin** Erste LV2 und Audio Unit Version
