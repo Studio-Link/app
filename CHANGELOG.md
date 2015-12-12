@@ -1,6 +1,4 @@
-# Changelog
-
-# Syntax
+### Syntax
 
 - **Standalone** Changes to the standalone OSX, Windows and Linux Version
 - **Plugin** Changes to the effect plugins (Audio Unit, LV2 and VST)
@@ -8,7 +6,7 @@
 - **Misc** Anything that is left or general.
 
 
-## v15.12.0-beta (xx.12.2015)
+### v15.12.0-beta (xx.12.2015)
 
 - **Misc** Complete webapp rewrite
 - **Plugin** Basic LV2 and Audio Unit Version

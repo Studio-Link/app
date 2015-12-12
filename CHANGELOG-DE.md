@@ -1,4 +1,4 @@
-## Syntax
+### Syntax
 
 - **Standalone** Änderungen zur Standalone Version unter OSX, Windows und Linux
 - **Plugin** Änderungen an der Plugin Variante (Audio Unit, LV2 and VST)
