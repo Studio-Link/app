@@ -6,13 +6,13 @@
 #include "webapp.h"
 
 
-#define MAX_METERS 2
+#define MAX_METERS 8
 
 static float bias = 1.0f;
 static float peaks[MAX_METERS];
 static float sent_peaks[MAX_METERS];
 
-static bool run = false;
+static struct tmr tmr;
 
 
 /* Read and reset the recent peak sample */
@@ -59,11 +59,17 @@ static void write_ws(void)
 	ws_send_all(WS_METER, p);
 }
 
+static void tmr_handler(void *arg)
+{
+	tmr_start(&tmr, 100, tmr_handler, NULL);
+	webapp_read_peaks();
+	write_ws();
+}
+
 
 void ws_meter_process(unsigned int ch, float *in, unsigned long nframes)
 {
 	unsigned int i;
-	static unsigned int callrun = 0;
 
 	for (i = 0; i < nframes; i=i+2) {
 		const float s = fabs(in[i]);
@@ -71,28 +77,17 @@ void ws_meter_process(unsigned int ch, float *in, unsigned long nframes)
 			peaks[ch] = s;
 		}
 	}
-
-	if (callrun == 10) {
-		if (run) {
-			webapp_read_peaks();
-			write_ws();
-		}
-		callrun = 0;
-	}
-	else {
-		++callrun;
-	}
-
 }
 
 
 void webapp_ws_meter_init(void)
 {
-	run = true;
+	tmr_init(&tmr);
+	tmr_start(&tmr, 100, tmr_handler, NULL);
 }
 
 
 void webapp_ws_meter_close(void)
-{
-	run = false;
+{	
+	tmr_cancel(&tmr);
 }
