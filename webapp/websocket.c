@@ -99,9 +99,11 @@ void webapp_ws_close(void)
 {
 	info("webapp_ws_close\n");
 	struct le *le;
-	for (le = list_head(&ws_srv_conns); le; le = le->next) {
-		struct webapp *webapp = le->data;
-		mem_deref(webapp->wc_srv);
+	if (!list_isempty(&ws_srv_conns)) {
+		for (le = list_head(&ws_srv_conns); le; le = le->next) {
+			struct webapp *webapp = le->data;
+			mem_deref(webapp->wc_srv);
+		}
 	}
 
 	mem_deref(ws);
