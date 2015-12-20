@@ -109,10 +109,11 @@ struct session* effect_session_start(void)
 }
 
 
-void effect_session_stop(struct session *session);
-void effect_session_stop(struct session *session)
+int effect_session_stop(struct session *session);
+int effect_session_stop(struct session *session)
 {
 	mem_deref(session);
+	return (int)list_count(&sessionl);
 }
 
 
