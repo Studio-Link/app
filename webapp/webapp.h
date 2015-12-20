@@ -1,5 +1,6 @@
 enum ws_type {
 	WS_BARESIP,
+	WS_CALLS,
 	WS_CONTACT,
 	WS_CHAT,
 	WS_METER,
@@ -24,6 +25,10 @@ struct webapp {
 };
 
 enum webapp_call_state webapp_call_status;
+
+struct odict *webapp_calls;
+
+int webapp_call_update(const char *peer, char *state);
 
 /*
  * account.c
@@ -58,6 +63,8 @@ const struct odict* webapp_messages_get(void);
  */
 void webapp_ws_baresip(const struct websock_hdr *hdr,
 		struct mbuf *mb, void *arg);
+void webapp_ws_calls(const struct websock_hdr *hdr,
+		struct mbuf *mb, void *arg);
 void webapp_ws_contacts(const struct websock_hdr *hdr,
 		struct mbuf *mb, void *arg);
 void webapp_ws_chat(const struct websock_hdr *hdr,
@@ -84,6 +91,6 @@ void webapp_ws_close(void);
 /*
  * utils.c
  */
-void webapp_odict_add(const struct odict_entry *e, struct odict *og);
+void webapp_odict_add(struct odict *og, const struct odict_entry *e);
 int webapp_write_file(struct odict *json, char *filename);
 int webapp_load_file(struct mbuf *mb, char *filename);

@@ -66,7 +66,7 @@ static int contact_register(const struct odict_entry *o)
 void webapp_contact_add(const struct odict_entry *contact)
 {
 	contact_register(contact);
-	webapp_odict_add(contact, contacts);
+	webapp_odict_add(contacts, contact);
 	webapp_write_file(contacts, filename);
 }
 

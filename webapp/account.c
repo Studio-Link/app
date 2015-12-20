@@ -103,6 +103,7 @@ void webapp_account_delete(char *user, char *domain)
 			mem_deref(uag_find_aor(aor));
 			uag_current_set(NULL);
 			webapp_write_file(accs, filename);
+			warning("DELETE USER %s;", aor);
 			break;
 		}
 	}
@@ -146,7 +147,7 @@ void webapp_account_status(const char *aor, bool status)
 void webapp_account_add(const struct odict_entry *acc)
 {
 	sip_register(acc);
-	webapp_odict_add(acc, accs);
+	webapp_odict_add(accs, acc);
 	webapp_write_file(accs, filename);
 }
 

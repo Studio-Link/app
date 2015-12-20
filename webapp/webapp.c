@@ -18,6 +18,7 @@
 static struct http_sock *httpsock = NULL;
 enum webapp_call_state webapp_call_status = WS_CALL_OFF;
 static char webapp_call_json[150] = {0};
+struct odict *webapp_calls = NULL;
 
 static int http_sreply(struct http_conn *conn, uint16_t scode,
 		const char *reason, const char *ctype,
@@ -59,8 +60,6 @@ static void http_req_handler(struct http_conn *conn,
 	if (0 == pl_strcasecmp(&msg->path, "/ws_baresip")) {
 		webapp_ws_handler(conn, WS_BARESIP, msg, webapp_ws_baresip);
 		ws_send_json(WS_BARESIP, webapp_accounts_get());
-		if (webapp_call_status != WS_CALL_OFF)
-			ws_send_all(WS_BARESIP, webapp_call_json);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path, "/ws_contacts")) {
@@ -75,6 +74,11 @@ static void http_req_handler(struct http_conn *conn,
 	}
 	if (0 == pl_strcasecmp(&msg->path, "/ws_meter")) {
 		webapp_ws_handler(conn, WS_METER, msg, webapp_ws_meter);
+		return;
+	}
+	if (0 == pl_strcasecmp(&msg->path, "/ws_calls")) {
+		webapp_ws_handler(conn, WS_CALLS, msg, webapp_ws_calls);
+		ws_send_json(WS_CALLS, webapp_calls);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path, "/status.json")) {
@@ -181,9 +185,28 @@ static void http_req_handler(struct http_conn *conn,
 
 
 static void ua_event_current_set(struct ua *ua) {
-			uag_current_set(ua);
-			webapp_account_current();
-			ws_send_json(WS_BARESIP, webapp_accounts_get());
+	uag_current_set(ua);
+	webapp_account_current();
+	ws_send_json(WS_BARESIP, webapp_accounts_get());
+}
+
+
+int webapp_call_update(const char *peer, char *state) {
+	struct odict *o;
+	int err = 0;
+
+	err = odict_alloc(&o, DICT_BSIZE);
+	if (err)
+		return ENOMEM;
+
+	odict_entry_del(webapp_calls, peer);
+	odict_entry_add(o, "peer", ODICT_STRING, peer);
+	odict_entry_add(o, "state", ODICT_STRING, state);
+	odict_entry_add(webapp_calls, peer, ODICT_OBJECT, o);
+
+	ws_send_json(WS_CALLS, webapp_calls);
+	mem_deref(o);
+	return err;
 }
 
 
@@ -198,17 +221,14 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 					"{ \"callback\": \"INCOMING\",\
 					\"peeruri\": \"%s\" }",
 					call_peeruri(call));
-			ws_send_all(WS_BARESIP, webapp_call_json);
+			webapp_call_update(call_peeruri(call), "Incoming");
+			ws_send_all(WS_CALLS, webapp_call_json);
 			webapp_call_status = WS_CALL_RINGING;
 			break;
 
 		case UA_EVENT_CALL_ESTABLISHED:
 			ua_event_current_set(ua);
-			re_snprintf(webapp_call_json, sizeof(webapp_call_json),
-					"{ \"callback\": \"ESTABLISHED\",\
-					\"peeruri\": \"%s\" }",
-					call_peeruri(call));
-			ws_send_all(WS_BARESIP, webapp_call_json);
+			webapp_call_update(call_peeruri(call), "Established");
 			webapp_call_status = WS_CALL_ON;
 			break;
 
@@ -217,7 +237,9 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			re_snprintf(webapp_call_json, sizeof(webapp_call_json),
 					"{ \"callback\": \"CLOSED\",\
 					\"message\": \"%s\" }", prm);
-			ws_send_all(WS_BARESIP, webapp_call_json);
+			odict_entry_del(webapp_calls, call_peeruri(call));
+			ws_send_all(WS_CALLS, webapp_call_json);
+			ws_send_json(WS_CALLS, webapp_calls);
 			webapp_call_status = WS_CALL_OFF;
 			break;
 
@@ -246,6 +268,10 @@ static int module_init(void)
 	struct sa srv;
 	struct sa listen;
 	char command[100] = {0};
+
+	err = odict_alloc(&webapp_calls, DICT_BSIZE);
+	if (err)
+		goto out;
 
 #ifdef SLPLUGIN
 	(void)re_fprintf(stderr, "Studio Link Webapp v%s - Effect Plugin"
@@ -307,6 +333,7 @@ static int module_close(void)
 	webapp_ws_close();
 
 	mem_deref(httpsock);
+	mem_deref(webapp_calls);
 	return 0;
 }
 

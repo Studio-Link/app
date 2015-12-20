@@ -4,7 +4,7 @@
 #include <fcntl.h>
 #include "webapp.h"
 
-void webapp_odict_add(const struct odict_entry *eg, struct odict *og)
+void webapp_odict_add(struct odict *og, const struct odict_entry *eg)
 {
 	struct le *le;
 	struct odict *o;

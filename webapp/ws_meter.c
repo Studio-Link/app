@@ -88,6 +88,6 @@ void webapp_ws_meter_init(void)
 
 
 void webapp_ws_meter_close(void)
-{	
+{
 	tmr_cancel(&tmr);
 }

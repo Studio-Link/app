@@ -4,7 +4,6 @@
 
 #define SIP_EMPTY "{ \"callback\": \"CLOSED\",\
 	\"message\": \"SIP Number Empty\" }"
-#define SIP_CLOSED "{ \"callback\": \"CLOSED\"}"
 
 static void sip_delete(struct odict *cmd, const struct odict_entry *e)
 {
@@ -18,23 +17,8 @@ static void sip_delete(struct odict *cmd, const struct odict_entry *e)
 	if (e)
 		str_ncpy(domain, e->u.str, sizeof(domain));
 	webapp_account_delete(user, domain);
+	warning("delete executed\n");
 	ws_send_json(WS_BARESIP, webapp_accounts_get());
-}
-
-
-static bool have_active_calls(void)
-{
-	struct le *le;
-
-	for (le = list_head(uag_list()); le; le = le->next) {
-
-		struct ua *ua = le->data;
-
-		if (ua_call(ua))
-			return true;
-	}
-
-	return false;
 }
 
 
@@ -43,6 +27,7 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 {
 	struct odict *cmd = NULL;
 	const struct odict_entry *e = NULL;
+	struct call *call = NULL;
 	int err = 0;
 
 	err = json_decode_odict(&cmd, DICT_BSIZE, (const char *)mbuf_buf(mb),
@@ -54,23 +39,15 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 	if (!e)
 		goto out;
 
-	if (!str_cmp(e->u.str, "accept")) {
-		ua_answer(uag_current(), NULL);
-	}
-	else if (!str_cmp(e->u.str, "hangup")) {
-		ua_hangup(uag_current(), NULL, 0, NULL);
-		webapp_call_status = WS_CALL_OFF;
-		if (!have_active_calls())
-			ws_send_all(WS_BARESIP, SIP_CLOSED);
-	}
-	else if (!str_cmp(e->u.str, "call")) {
+	if (!str_cmp(e->u.str, "call")) {
 		e = odict_lookup(cmd, "dial");
 		if (!str_cmp(e->u.str, "")) {
-			ws_send_all(WS_BARESIP, SIP_EMPTY);
+			ws_send_all(WS_CALLS, SIP_EMPTY);
 		}
 		else {
-			ua_connect(uag_current(), NULL, NULL,
+			ua_connect(uag_current(), &call, NULL,
 					e->u.str, NULL, VIDMODE_ON);
+			webapp_call_update(call_peeruri(call), "Outgoing");
 		}
 	}
 	else if (!str_cmp(e->u.str, "addsip")) {
