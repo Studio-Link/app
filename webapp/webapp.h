@@ -31,6 +31,16 @@ struct odict *webapp_calls;
 int webapp_call_update(const char *peer, char *state);
 
 /*
+ * vumeter.c
+ */
+int webapp_vu_encode_update(struct aufilt_enc_st **stp, void **ctx,
+			 const struct aufilt *af, struct aufilt_prm *prm);
+int webapp_vu_decode_update(struct aufilt_dec_st **stp, void **ctx,
+			 const struct aufilt *af, struct aufilt_prm *prm);
+int webapp_vu_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc);
+int webapp_vu_decode(struct aufilt_dec_st *st, int16_t *sampv, size_t *sampc);
+
+/*
  * account.c
  */
 int webapp_accounts_init(void);

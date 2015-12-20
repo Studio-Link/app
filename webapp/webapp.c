@@ -20,6 +20,13 @@ enum webapp_call_state webapp_call_status = WS_CALL_OFF;
 static char webapp_call_json[150] = {0};
 struct odict *webapp_calls = NULL;
 
+static struct aufilt vumeter = {
+	LE_INIT, "webapp_vumeter",
+	webapp_vu_encode_update, webapp_vu_encode,
+	webapp_vu_decode_update, webapp_vu_decode
+};
+
+
 static int http_sreply(struct http_conn *conn, uint16_t scode,
 		const char *reason, const char *ctype,
 		const char *fmt, size_t size)
@@ -281,6 +288,8 @@ static int module_init(void)
 	(void)re_fprintf(stderr, "Studio Link Webapp v%s - Standalone"
 			" Copyright (C) 2015"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
+
+	aufilt_register(&vumeter);
 #endif
 
 	err |= sa_set_str(&srv, "127.0.0.1", 0);
@@ -331,6 +340,10 @@ static int module_close(void)
 	webapp_contacts_close();
 	webapp_chat_close();
 	webapp_ws_close();
+
+#ifndef SLPLUGIN
+	aufilt_unregister(&vumeter);
+#endif
 
 	mem_deref(httpsock);
 	mem_deref(webapp_calls);
