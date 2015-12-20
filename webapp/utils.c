@@ -44,7 +44,25 @@ void webapp_odict_add(struct odict *og, const struct odict_entry *eg)
 }
 
 
-int webapp_write_file(struct odict *json, char *filename)
+int webapp_write_file(char *string, char *filename)
+{
+	FILE *f = NULL;
+	int err = 0;
+
+	f = fopen(filename, "w");
+	if (!f)
+		return errno;
+
+	re_fprintf(f, "%s", string);
+
+	if (f)
+		(void)fclose(f);
+
+	return err;
+}
+
+
+int webapp_write_file_json(struct odict *json, char *filename)
 {
 	FILE *f = NULL;
 	int err = 0;

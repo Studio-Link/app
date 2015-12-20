@@ -102,5 +102,6 @@ void webapp_ws_close(void);
  * utils.c
  */
 void webapp_odict_add(struct odict *og, const struct odict_entry *e);
-int webapp_write_file(struct odict *json, char *filename);
+int webapp_write_file(char *string, char *filename);
+int webapp_write_file_json(struct odict *json, char *filename);
 int webapp_load_file(struct mbuf *mb, char *filename);

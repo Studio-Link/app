@@ -19,6 +19,7 @@ static struct http_sock *httpsock = NULL;
 enum webapp_call_state webapp_call_status = WS_CALL_OFF;
 static char webapp_call_json[150] = {0};
 struct odict *webapp_calls = NULL;
+static char command[100] = {0};
 
 static struct aufilt vumeter = {
 	LE_INIT, "webapp_vumeter",
@@ -269,12 +270,69 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 }
 
 
+static int http_port(void)
+{
+	char path[256] = "";
+	char filename[256] = "";
+	struct mbuf *mb;
+	struct sa srv;
+	struct sa listen;
+	int port = 0;
+	char port_string[10];
+	int err = 0;
+
+	mb = mbuf_alloc(20);
+	if (!mb)
+		return ENOMEM;
+
+	err = conf_path_get(path, sizeof(path));
+	if (err)
+		goto out;
+
+	if (re_snprintf(filename, sizeof(filename),
+				"%s/http_port", path) < 0)
+		return ENOMEM;
+
+	err = webapp_load_file(mb, filename);
+	if (err) {
+		port = 0;
+	} else {
+		port = atoi((char *)mb->buf);
+	}
+
+	err = sa_set_str(&srv, "127.0.0.1", port);
+
+	err |= http_listen(&httpsock, &srv, http_req_handler, NULL);
+	if (err)
+		goto out;
+	tcp_sock_local_get(http_sock_tcp(httpsock), &listen);
+
+	re_snprintf(port_string, sizeof(port_string), "%d",
+			sa_port(&listen));
+
+#if defined (DARWIN)
+	re_snprintf(command, sizeof(command), "open http://localhost:%s/",
+			port_string);
+#elif defined (WIN32)
+	re_snprintf(command, sizeof(command), "start http://localhost:%s/",
+			port_string);
+#else
+	re_snprintf(command, sizeof(command), "xdg-open http://localhost:%s/",
+			port_string);
+#endif
+	info("http listening on port: %s\n", port_string);
+
+	webapp_write_file(port_string, filename);
+
+out:
+	mem_deref(mb);
+	return err;
+}
+
+
 static int module_init(void)
 {
 	int err = 0;
-	struct sa srv;
-	struct sa listen;
-	char command[100] = {0};
 
 	err = odict_alloc(&webapp_calls, DICT_BSIZE);
 	if (err)
@@ -292,24 +350,9 @@ static int module_init(void)
 	aufilt_register(&vumeter);
 #endif
 
-	err |= sa_set_str(&srv, "127.0.0.1", 0);
-
-	err = http_listen(&httpsock, &srv, http_req_handler, NULL);
+	err = http_port();
 	if (err)
 		goto out;
-	tcp_sock_local_get(http_sock_tcp(httpsock), &listen);
-
-#if defined (DARWIN)
-	re_snprintf(command, sizeof(command), "open http://localhost:%d/",
-			sa_port(&listen));
-#elif defined (WIN32)
-	re_snprintf(command, sizeof(command), "start http://localhost:%d/",
-			sa_port(&listen));
-#else
-	re_snprintf(command, sizeof(command), "xdg-open http://localhost:%d/",
-			sa_port(&listen));
-#endif
-	info("http listening on port: %d\n", sa_port(&listen));
 
 	uag_event_register(ua_event_handler, NULL);
 

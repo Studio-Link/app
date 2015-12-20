@@ -67,7 +67,7 @@ void webapp_contact_add(const struct odict_entry *contact)
 {
 	contact_register(contact);
 	webapp_odict_add(contacts, contact);
-	webapp_write_file(contacts, filename);
+	webapp_write_file_json(contacts, filename);
 }
 
 
@@ -90,7 +90,7 @@ void webapp_contact_delete(const char *sip)
 			snprintf(aor, sizeof(aor), "sip:%s@%s", user, domain);
 			mem_deref(uag_find_aor(aor));
 			*/
-			webapp_write_file(contacts, filename);
+			webapp_write_file_json(contacts, filename);
 			break;
 		}
 	}
@@ -139,6 +139,6 @@ out:
 
 void webapp_contacts_close(void)
 {
-	webapp_write_file(contacts, filename);
+	webapp_write_file_json(contacts, filename);
 	mem_deref(contacts);
 }
