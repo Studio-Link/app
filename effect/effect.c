@@ -35,6 +35,9 @@
 	}
 
 
+enum {
+	MAX_CHANNELS = 4
+};
 
 struct auplay_st {
 	const struct auplay *ap;  /* pointer to base-class (inheritance) */
@@ -68,7 +71,7 @@ struct session {
 	struct le le;
 	struct ausrc_st *st_src;
 	struct auplay_st *st_play;
-	unsigned int ch;
+	uint8_t ch;
 	bool run_src;
 	bool run_play;
 };
@@ -77,6 +80,8 @@ static struct list sessionl;
 
 static struct ausrc *ausrc;
 static struct auplay *auplay;
+
+static bool channels[MAX_CHANNELS] = {false};
 
 
 static void sess_destruct(void *arg)
@@ -90,6 +95,20 @@ static void sess_destruct(void *arg)
 }
 
 
+static int calc_channel(struct session *sess)
+{
+	for (uint8_t pos = 0; pos < MAX_CHANNELS; pos++) {
+		if (!channels[pos]) {
+			channels[pos] = true;
+			sess->ch = pos * 2;
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+
 struct session* effect_session_start(void);
 struct session* effect_session_start(void)
 {
@@ -99,12 +118,17 @@ struct session* effect_session_start(void)
 	if (!sess)
 		return NULL;
 
-	sess->ch = (unsigned int)list_count(&sessionl) * 2;
+	if (calc_channel(sess)) {
+		/* Max Channels rechead */
+		sess->ch = MAX_CHANNELS * 2;
+	}
+
 	sess->run_play = false;
 	sess->run_src = false;
 
 	list_append(&sessionl, &sess->le, sess);
 	warning("SESSION STARTED\n");
+
 	return sess;
 }
 
@@ -112,6 +136,8 @@ struct session* effect_session_start(void)
 int effect_session_stop(struct session *session);
 int effect_session_stop(struct session *session)
 {
+	uint8_t pos = session->ch / 2;
+	channels[pos] = false;
 	mem_deref(session);
 	return (int)list_count(&sessionl);
 }
