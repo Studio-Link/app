@@ -6,7 +6,7 @@
 - **Generell** Allgemeine Veränderungen
 
 
-### v15.12.0-beta (xx.12.2015)
+### v15.12.0-beta (24.12.2015)
 
 - **Generell** Komplette Neuimplementierung der Webanwendung
 - **Generell** Bessere Unterstützung/Anzeige von parallelen Gesprächen

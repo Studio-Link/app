@@ -6,7 +6,7 @@
 - **Misc** Anything that is left or general.
 
 
-### v15.12.0-beta (xx.12.2015)
+### v15.12.0-beta (24.12.2015)
 
 - **Misc** Complete webapp rewrite
 - **Misc** Multi call handling

@@ -119,7 +119,7 @@ struct session* effect_session_start(void)
 		return NULL;
 
 	if (calc_channel(sess)) {
-		/* Max Channels rechead */
+		/* Max Channels reached */
 		sess->ch = MAX_CHANNELS * 2;
 	}
 
