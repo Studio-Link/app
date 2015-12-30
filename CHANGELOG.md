@@ -8,6 +8,7 @@
 ### v15.12.1-beta (xx.12.2015)
 
 - **Misc** Add update available notification
+- **Misc** Fix vumeter on windows
 
 
 ### v15.12.0-beta (24.12.2015)

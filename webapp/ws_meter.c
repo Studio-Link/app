@@ -9,8 +9,8 @@
 #define MAX_METERS 8
 
 static float bias = 1.0f;
-static float peaks[MAX_METERS];
-static float sent_peaks[MAX_METERS];
+static float peaks[MAX_METERS] = {0};
+static float sent_peaks[MAX_METERS] = {0};
 
 static struct tmr tmr;
 
@@ -50,7 +50,7 @@ static void write_ws(void)
 	p[0] = '\0';
 	for (i=0; i<MAX_METERS; i++) {
 		db = 20.0f * log10f(sent_peaks[i] * bias);
-		snprintf(one_peak, 100, "%f ", db);
+		re_snprintf(one_peak, 100, "%f ", db);
 		strcat((char*)p, one_peak);
 	}
 	n = strlen(p);
