@@ -5,7 +5,7 @@
 - **Box** Changes to the [orange] hardware box
 - **Misc** Anything that is left or general.
 
-### v15.12.1-beta (xx.12.2015)
+### v15.12.1-beta (31.12.2015)
 
 - **Misc** Add update available notification
 - **Misc** Fix vumeter on windows

@@ -5,6 +5,11 @@
 - **Box** Modifikationen der "orangenen" Box (Software)
 - **Generell** Allgemeine Veränderungen
 
+### v15.12.1-beta (31.12.2015)
+
+- **Misc** Benachrichtung über Updates
+- **Misc** Fehlerhafte Pegelanzeige unter Windows gefixt
+
 
 ### v15.12.0-beta (24.12.2015)
 
