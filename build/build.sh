@@ -140,13 +140,13 @@ fi
 
 # Build overlay-audio-unit plugin (osx only)
 #-----------------------------------------------------------------------------
-#if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-#    if [ ! -d overlay-audio-unit ]; then
-#        git clone --recursive \
-#            $github_org/overlay-audio-unit.git overlay-audio-unit
-#        cd overlay-audio-unit; ./build.sh; cd ..
-#    fi
-#fi
+if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+    if [ ! -d overlay-audio-unit ]; then
+        git clone --recursive \
+            $github_org/overlay-audio-unit.git overlay-audio-unit
+        cd overlay-audio-unit; ./build.sh; cd ..
+    fi
+fi
 
 
 # Build standalone app bundle (osx only)
@@ -174,11 +174,10 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     cp -a overlay-lv2/studio-link.so lv2-plugin/
     cp -a overlay-lv2/*.ttl lv2-plugin/
     cp -a overlay-lv2/README.md lv2-plugin/
-    zip -r studio-link-linux lv2-plugin studio-link-standalone 
+    zip -r studio-link-linux lv2-plugin studio-link-standalone
 else
     otool -L studio-link-standalone
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
     cp -a overlay-standalone-osx/StudioLinkStandalone/build/Release/StudioLinkStandalone.app .
-    zip -r studio-link-osx StudioLink.component \
-        studio-link-standalone StudioLinkStandalone.app
+    zip -r studio-link-osx StudioLink.component StudioLinkStandalone.app
 fi
