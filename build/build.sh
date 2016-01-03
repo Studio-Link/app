@@ -155,9 +155,9 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     if [ ! -d overlay-standalone-osx ]; then
         git clone \
             $github_org/overlay-standalone-osx.git overlay-standalone-osx
-        cp -a my_include/re overlay-standalone-osx/Studio\ Link\ Standalone/
+        cp -a my_include/re overlay-standalone-osx/StudioLinkStandalone/
         cp -a my_include/baresip.h \
-            overlay-standalone-osx/Studio\ Link\ Standalone/
+            overlay-standalone-osx/StudioLinkStandalone/
         cd overlay-standalone-osx; ./build.sh; cd ..
     fi
 fi
@@ -178,7 +178,7 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
 else
     otool -L studio-link-standalone
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
-    cp -a overlay-standalone-osx/Studio\ Link\ Standalone/build/Release/Studio\ Link\ Standalone.app .
+    cp -a overlay-standalone-osx/StudioLinkStandalone/build/Release/StudioLinkStandalone.app .
     zip -r studio-link-osx StudioLink.component \
-        studio-link-standalone Studio\ Link\ Standalone.app
+        studio-link-standalone StudioLinkStandalone.app
 fi
