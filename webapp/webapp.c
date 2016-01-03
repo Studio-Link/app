@@ -13,7 +13,7 @@
 #include "assets/fonts.h"
 #include "webapp.h"
 
-#define SLVERSION "15.12.1-beta"
+#define SLVERSION "15.12.2-dev"
 
 static struct http_sock *httpsock = NULL;
 enum webapp_call_state webapp_call_status = WS_CALL_OFF;

@@ -110,9 +110,16 @@ if [ ! -d baresip-$baresip ]; then
         EXTRA_LFLAGS="$sl_extra_lflags -L ../opus"
 
     cp -a baresip ../studio-link-standalone
-    make clean
+
+    # libbaresip.a without effect plugin
+    make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+        MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
+        EXTRA_CFLAGS="-I ../my_include" \
+        EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
+    cp -a libbaresip.a ../my_include/libbaresip_standalone.a
 
     # Effect Plugin
+    make clean
     make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp effect" \
         EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
@@ -142,6 +149,19 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
 fi
 
 
+# Build standalone app bundle (osx only)
+#-----------------------------------------------------------------------------
+if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+    if [ ! -d overlay-standalone-osx ]; then
+        git clone
+            $github_org/overlay-standalone-osx.git overlay-standalone-osx
+            cp -a my_include/re overlay-standalone-osx/Studio\ Link\ Standalone/
+            cp -a my_include/baresip.h overlay-standalone-osx/Studio\ Link\ Standalone/
+        cd overlay-standalone-osx; ./build.sh; cd ..
+    fi
+fi
+
+
 # Testing and prepare release upload
 #-----------------------------------------------------------------------------
 
@@ -153,9 +173,10 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     cp -a overlay-lv2/studio-link.so lv2-plugin/
     cp -a overlay-lv2/*.ttl lv2-plugin/
     cp -a overlay-lv2/README.md lv2-plugin/
-    zip -r studio-link-linux lv2-plugin studio-link-standalone
+    zip -r studio-link-linux lv2-plugin studio-link-standalone 
 else
     otool -L studio-link-standalone
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
-    zip -r studio-link-osx StudioLink.component studio-link-standalone
+    cp -a overlay-standalone-osx/Studio\ Link\ Standalone/build/Release/Studio\ Link\ Standalone.app .
+    zip -r studio-link-osx StudioLink.component studio-link-standalone Studio\ Link\ Standalone.app
 fi
