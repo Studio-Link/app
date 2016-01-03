@@ -140,13 +140,13 @@ fi
 
 # Build overlay-audio-unit plugin (osx only)
 #-----------------------------------------------------------------------------
-if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-    if [ ! -d overlay-audio-unit ]; then
-        git clone --recursive \
-            $github_org/overlay-audio-unit.git overlay-audio-unit
-        cd overlay-audio-unit; ./build.sh; cd ..
-    fi
-fi
+#if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+#    if [ ! -d overlay-audio-unit ]; then
+#        git clone --recursive \
+#            $github_org/overlay-audio-unit.git overlay-audio-unit
+#        cd overlay-audio-unit; ./build.sh; cd ..
+#    fi
+#fi
 
 
 # Build standalone app bundle (osx only)
