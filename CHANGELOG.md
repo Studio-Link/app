@@ -6,7 +6,7 @@
 - **Misc** Anything that is left or general.
 
 
-### v15.12.2-beta (xx.01.2016)
+### v15.12.2-beta (05.01.2016)
 
 - **Standalone** Add OSX App Bundle
 - **Plugin** Fix VST crashes on windows at startup
