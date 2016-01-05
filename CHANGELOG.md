@@ -9,6 +9,7 @@
 ### v15.12.2-beta (xx.01.2016)
 
 - **Standalone** Add OSX App Bundle
+- **Plugin** Fix VST crashes on windows at startup
 
 
 ### v15.12.1-beta (31.12.2015)

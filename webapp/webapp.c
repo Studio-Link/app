@@ -13,7 +13,9 @@
 #include "assets/fonts.h"
 #include "webapp.h"
 
-#define SLVERSION "15.12.2-dev"
+#define SLVERSION "15.12.2-beta"
+
+static struct tmr tmr;
 
 static struct http_sock *httpsock = NULL;
 enum webapp_call_state webapp_call_status = WS_CALL_OFF;
@@ -296,7 +298,8 @@ static int http_port(void)
 	err = webapp_load_file(mb, filename);
 	if (err) {
 		port = 0;
-	} else {
+	}
+	else {
 		port = atoi((char *)mb->buf);
 	}
 
@@ -330,6 +333,13 @@ out:
 }
 
 
+static void syscmd(void *arg)
+{
+#ifndef SLBOX
+	system(command);
+#endif
+}
+
 static int module_init(void)
 {
 	int err = 0;
@@ -355,15 +365,17 @@ static int module_init(void)
 		goto out;
 
 	uag_event_register(ua_event_handler, NULL);
-
 	webapp_ws_init();
 	webapp_accounts_init();
 	webapp_contacts_init();
 	webapp_chat_init();
 	webapp_ws_meter_init();
 
-#ifndef SLBOX
-	system(command);
+	tmr_init(&tmr);
+#if defined (WIN32) && defined (SLPLUGIN)
+	tmr_start(&tmr, 800, syscmd, NULL);
+#else
+	syscmd();
 #endif
 
 out:
@@ -376,6 +388,7 @@ out:
 
 static int module_close(void)
 {
+	tmr_cancel(&tmr);
 	uag_event_unregister(ua_event_handler);
 
 	webapp_ws_meter_close();

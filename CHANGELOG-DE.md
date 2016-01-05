@@ -5,10 +5,17 @@
 - **Box** Modifikationen der "orangenen" Box (Software)
 - **Generell** Allgemeine Veränderungen
 
+
+### v15.12.2-beta (05.01.2016)
+
+- **Standalone** OSX Version in ein schickes App Bundle verpackt
+- **Plugin** VST Crashes unter Windows beim Starten gefixt
+
+
 ### v15.12.1-beta (31.12.2015)
 
-- **Misc** Benachrichtung über Updates
-- **Misc** Fehlerhafte Pegelanzeige unter Windows gefixt
+- **Generell** Benachrichtung über Updates
+- **Generell** Fehlerhafte Pegelanzeige unter Windows gefixt
 
 
 ### v15.12.0-beta (24.12.2015)

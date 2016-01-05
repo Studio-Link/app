@@ -3,11 +3,11 @@
 #include <string.h>
 #include "webapp.h"
 
+static struct tmr tmr;
 static struct odict *accs = NULL;
-
 static char filename[256] = "";
-
 static struct http_req *req = NULL;
+
 
 const struct odict* webapp_accounts_get(void) {
 	return (const struct odict *)accs;
@@ -257,12 +257,19 @@ static void provisioning(void)
 	mem_deref(cli);
 }
 
+static void startup(void *arg)
+{
+	struct le *le;
+	for (le = accs->lst.head; le; le = le->next) {
+		sip_register(le->data);
+	}
+	provisioning();
+}
 
 int webapp_accounts_init(void)
 {
 	char path[256] = "";
 	struct mbuf *mb;
-	struct le *le;
 	int err = 0;
 
 	mb = mbuf_alloc(8192);
@@ -289,11 +296,13 @@ int webapp_accounts_init(void)
 		goto out;
 
 
-	for (le = accs->lst.head; le; le = le->next) {
-		sip_register(le->data);
-	}
+	tmr_init(&tmr);
+#if defined (WIN32) && defined (SLPLUGIN)
+	tmr_start(&tmr, 800, startup, NULL);
+#else
+	startup();
+#endif
 
-	provisioning();
 	webapp_account_current();
 
 out:
@@ -304,6 +313,7 @@ out:
 
 void webapp_accounts_close(void)
 {
+	tmr_cancel(&tmr);
 	webapp_write_file_json(accs, filename);
 	mem_deref(accs);
 	uag_current_set(NULL);

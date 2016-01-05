@@ -178,6 +178,6 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
 else
     otool -L studio-link-standalone
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
-    cp -a overlay-standalone-osx/build/Release/StudioLinkStandalone.app .
-    zip -r studio-link-osx StudioLink.component StudioLinkStandalone.app
+    mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app-unsigned
+    zip -r studio-link-osx StudioLink.component StudioLinkStandalone.app-unsigned
 fi
