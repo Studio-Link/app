@@ -300,7 +300,7 @@ int webapp_accounts_init(void)
 #if defined (WIN32) && defined (SLPLUGIN)
 	tmr_start(&tmr, 800, startup, NULL);
 #else
-	startup();
+	startup(NULL);
 #endif
 
 	webapp_account_current();

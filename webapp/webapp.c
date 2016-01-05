@@ -375,7 +375,7 @@ static int module_init(void)
 #if defined (WIN32) && defined (SLPLUGIN)
 	tmr_start(&tmr, 800, syscmd, NULL);
 #else
-	syscmd();
+	syscmd(NULL);
 #endif
 
 out:
