@@ -73,7 +73,7 @@ int webapp_vu_decode_update(struct aufilt_dec_st **stp, void **ctx,
 	st = mem_zalloc(sizeof(*st), vu_dec_destructor);
 	if (!st)
 		return ENOMEM;
-	
+
 	st->ch = channels_dec+1;
 	channels_dec = channels_dec + 2;
 
@@ -112,7 +112,7 @@ int webapp_vu_decode(struct aufilt_dec_st *st, int16_t *sampv, size_t *sampc)
 	float f_sampv[*sampc];
 
 	convert_float(sampv, f_sampv, *sampc);
-	
+
 	ws_meter_process(vu->ch, f_sampv, (unsigned long)*sampc);
 
 	return 0;
