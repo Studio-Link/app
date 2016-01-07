@@ -89,8 +89,10 @@ static void sess_destruct(void *arg)
 	struct session *sess = arg;
 
 	list_unlink(&sess->le);
-	//mem_deref(sess->st_src);
-	//mem_deref(sess->st_play);
+#if 0
+	mem_deref(sess->st_src);
+	mem_deref(sess->st_play);
+#endif
 	warning("DESTRUCT SESSION\n");
 }
 
@@ -169,10 +171,10 @@ static void sample_move_dS_s16(float *dst, char *src, unsigned long nsamples,
 
 void ws_meter_process(unsigned int ch, float *in, unsigned long nframes);
 
-void effect_play(struct session *sess, float* const output0, 
+void effect_play(struct session *sess, float* const output0,
 		float* const output1, unsigned long nframes);
 
-void effect_play(struct session *sess, float* const output0, 
+void effect_play(struct session *sess, float* const output0,
 		float* const output1, unsigned long nframes)
 {
 
@@ -195,10 +197,10 @@ void effect_play(struct session *sess, float* const output0,
 }
 
 
-void effect_src(struct session *sess, const float* const input0, 
+void effect_src(struct session *sess, const float* const input0,
 		const float* const input1, unsigned long nframes);
 
-void effect_src(struct session *sess, const float* const input0, 
+void effect_src(struct session *sess, const float* const input0,
 		const float* const input1, unsigned long nframes)
 {
 
@@ -255,10 +257,10 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	for (le = sessionl.head; le; le = le->next) {
 		struct session *sess = le->data;
 
-		if(!sess->run_src) {
+		if (!sess->run_src) {
 			sess->st_src = mem_zalloc(sizeof(*st_src),
 					ausrc_destructor);
-			if(!sess->st_src)
+			if (!sess->st_src)
 				return ENOMEM;
 			st_src = sess->st_src;
 			st_src->sess = sess;
@@ -266,8 +268,8 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 			break;
 		}
 	}
-	
-	if(!st_src)
+
+	if (!st_src)
 		return EINVAL;
 
 	st_src->run = false;
@@ -305,11 +307,11 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 
 	for (le = sessionl.head; le; le = le->next) {
 		struct session *sess = le->data;
-		
-		if(!sess->run_play) {
+
+		if (!sess->run_play) {
 			sess->st_play = mem_zalloc(sizeof(*st_play),
 					auplay_destructor);
-			if(!sess->st_play)
+			if (!sess->st_play)
 				return ENOMEM;
 			st_play = sess->st_play;
 			st_play->sess = sess;
@@ -317,8 +319,8 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 			break;
 		}
 	}
-	
-	if(!st_play)
+
+	if (!st_play)
 		return EINVAL;
 
 	st_play->run = false;
