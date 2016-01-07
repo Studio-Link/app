@@ -28,7 +28,8 @@ enum webapp_call_state webapp_call_status;
 
 struct odict *webapp_calls;
 
-int webapp_call_update(const char *peer, char *state);
+int webapp_call_delete(struct call *call);
+int webapp_call_update(struct call *call, char *state);
 
 /*
  * vumeter.c

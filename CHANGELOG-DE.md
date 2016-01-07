@@ -6,6 +6,12 @@
 - **Generell** Allgemeine Veränderungen
 
 
+### v15.12.3-beta (xx.01.2016)
+
+- **Generell** Geisteraustreibung von nicht sichtbaren Gesprächen
+- **Generell** Pegelanzeige etwas besser dem Verhalten von DAWs angepasst (Übergang von Grün zu Gelb -18db)
+
+
 ### v15.12.2-beta (05.01.2016)
 
 - **Standalone** OSX Version in ein schickes App Bundle verpackt

@@ -13,7 +13,7 @@
 #include "assets/fonts.h"
 #include "webapp.h"
 
-#define SLVERSION "15.12.2-beta"
+#define SLVERSION "15.12.3-dev"
 
 static struct tmr tmr;
 
@@ -194,25 +194,48 @@ static void http_req_handler(struct http_conn *conn,
 }
 
 
-static void ua_event_current_set(struct ua *ua) {
+static void ua_event_current_set(struct ua *ua)
+{
 	uag_current_set(ua);
 	webapp_account_current();
 	ws_send_json(WS_BARESIP, webapp_accounts_get());
 }
 
 
-int webapp_call_update(const char *peer, char *state) {
-	struct odict *o;
+int webapp_call_delete(struct call *call)
+{
+	char id[64] = {0};
 	int err = 0;
+
+	if (!call)
+		return EINVAL;
+
+	re_snprintf(id, sizeof(id), "%x", call);
+	odict_entry_del(webapp_calls, id);
+
+	return err;
+}
+
+
+int webapp_call_update(struct call *call, char *state)
+{
+	struct odict *o;
+	char id[64] = {0};
+	int err = 0;
+
+	if (!call || !state)
+		return EINVAL;
 
 	err = odict_alloc(&o, DICT_BSIZE);
 	if (err)
 		return ENOMEM;
 
-	odict_entry_del(webapp_calls, peer);
-	odict_entry_add(o, "peer", ODICT_STRING, peer);
+	re_snprintf(id, sizeof(id), "%x", call);
+
+	odict_entry_del(webapp_calls, id);
+	odict_entry_add(o, "peer", ODICT_STRING, call_peeruri(call));
 	odict_entry_add(o, "state", ODICT_STRING, state);
-	odict_entry_add(webapp_calls, peer, ODICT_OBJECT, o);
+	odict_entry_add(webapp_calls, id, ODICT_OBJECT, o);
 
 	ws_send_json(WS_CALLS, webapp_calls);
 	mem_deref(o);
@@ -229,16 +252,16 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			ua_event_current_set(ua);
 			re_snprintf(webapp_call_json, sizeof(webapp_call_json),
 					"{ \"callback\": \"INCOMING\",\
-					\"peeruri\": \"%s\" }",
-					call_peeruri(call));
-			webapp_call_update(call_peeruri(call), "Incoming");
+					\"peeruri\": \"%s\", \"key\": \"%x\" }",
+					call_peeruri(call), call);
+			webapp_call_update(call, "Incoming");
 			ws_send_all(WS_CALLS, webapp_call_json);
 			webapp_call_status = WS_CALL_RINGING;
 			break;
 
 		case UA_EVENT_CALL_ESTABLISHED:
 			ua_event_current_set(ua);
-			webapp_call_update(call_peeruri(call), "Established");
+			webapp_call_update(call, "Established");
 			webapp_call_status = WS_CALL_ON;
 			break;
 
@@ -247,7 +270,7 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			re_snprintf(webapp_call_json, sizeof(webapp_call_json),
 					"{ \"callback\": \"CLOSED\",\
 					\"message\": \"%s\" }", prm);
-			odict_entry_del(webapp_calls, call_peeruri(call));
+			webapp_call_delete(call);
 			ws_send_all(WS_CALLS, webapp_call_json);
 			ws_send_json(WS_CALLS, webapp_calls);
 			webapp_call_status = WS_CALL_OFF;
