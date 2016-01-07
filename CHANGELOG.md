@@ -6,7 +6,7 @@
 - **Misc** Anything that is left or general.
 
 
-### v15.12.3-beta (xx.01.2016)
+### v16.01.0-dev (xx.01.2016)
 
 - **Misc** Fix possible Ghost Calls (rewrite call id handling)
 - **Misc** Improve vumeter warning state
