@@ -3,12 +3,15 @@
  *
  * Copyright (C) 2015 studio-link.de
  */
+#define _DEFAULT_SOURCE 1
+#define _BSD_SOURCE 1
 #include <stdlib.h>
 #include <string.h>
 #include <re.h>
 #include <rem.h>
 #include <baresip.h>
 #include <math.h>
+#include <unistd.h>
 #include <pthread.h>
 
 
@@ -71,9 +74,12 @@ struct session {
 	struct le le;
 	struct ausrc_st *st_src;
 	struct auplay_st *st_play;
+	int16_t *mix;
 	uint8_t ch;
 	bool run_src;
 	bool run_play;
+	bool mix_lock_read;
+	bool mix_lock_write;
 };
 
 static struct list sessionl;
@@ -169,6 +175,16 @@ static void sample_move_dS_s16(float *dst, char *src, unsigned long nsamples,
 }
 
 
+static void mix_save(int16_t *src, int16_t *dst, unsigned long nsamples)
+{
+	while (nsamples--) {
+		*dst = *src;	
+		++dst;
+		++src;
+	}
+}
+
+
 void ws_meter_process(unsigned int ch, float *in, unsigned long nframes);
 
 void effect_play(struct session *sess, float* const output0,
@@ -182,6 +198,19 @@ void effect_play(struct session *sess, float* const output0,
 		struct auplay_st *st_play = sess->st_play;
 
 		st_play->wh(st_play->sampv, nframes * 2, st_play->arg);
+		for (unsigned i = 0; i<10; ++i) {
+			if (!sess->mix_lock_read)
+			{
+				sess->mix_lock_write = true;
+				mix_save(st_play->sampv, sess->mix, 
+						nframes * 2);
+				sess->mix_lock_write = false;
+				if (i > 1)
+					warning("Write Busy loop runs %d\n", i);
+				break;
+			}
+			usleep(1);
+		}
 		sample_move_dS_s16(output0, (char*)st_play->sampv,
 				nframes, 4);
 		sample_move_dS_s16(output1, (char*)st_play->sampv+2,
@@ -194,6 +223,36 @@ void effect_play(struct session *sess, float* const output0,
 		}
 	}
 	ws_meter_process(sess->ch+1, (float*)output0, nframes);
+}
+
+
+static void mix_n_minus_1(struct session *sess, int16_t *dst, unsigned long nsamples)
+{
+	struct le *le;
+	for (le = sessionl.head; le; le = le->next) {
+		struct session *msess = le->data;
+		int16_t *mixv = msess->mix;
+		if (msess->run_play && msess != sess) {
+			for (unsigned n = 0; n<10; ++n) {
+				if (!sess->mix_lock_write)
+				{
+					sess->mix_lock_read = true;
+					for (unsigned i = 0; i < nsamples; ++i) {
+						*dst = *dst/2 + *mixv/2;
+						++mixv;
+						++dst;
+					}
+					sess->mix_lock_read = false;
+					if (n > 1)
+						warning("Read Busy loop runs %d\n", n);
+					break;
+				}
+				usleep(1);
+			}
+
+
+		}
+	}
 }
 
 
@@ -211,6 +270,9 @@ void effect_src(struct session *sess, const float* const input0,
 				nframes, 4);
 		sample_move_d16_sS((char*)st_src->sampv+2, (float*)input1,
 				nframes, 4);
+		
+		mix_n_minus_1(sess, st_src->sampv, nframes * 2);
+
 		st_src->rh(st_src->sampv, nframes * 2, st_src->arg);
 	}
 	ws_meter_process(sess->ch, (float*)input0, nframes);
@@ -236,6 +298,7 @@ static void auplay_destructor(void *arg)
 	sess->run_play = false;
 	sys_msleep(20);
 	mem_deref(st->sampv);
+	mem_deref(sess->mix);
 }
 
 
@@ -304,6 +367,7 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 	int err = 0;
 	if (!stp || !ap || !prm)
 		return EINVAL;
+	size_t sampc = prm->srate * prm->ch * prm->ptime / 1000;
 
 	for (le = sessionl.head; le; le = le->next) {
 		struct session *sess = le->data;
@@ -312,6 +376,9 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 			sess->st_play = mem_zalloc(sizeof(*st_play),
 					auplay_destructor);
 			if (!sess->st_play)
+				return ENOMEM;
+			sess->mix = mem_zalloc(10 * sampc, NULL);
+			if (!sess->mix)
 				return ENOMEM;
 			st_play = sess->st_play;
 			st_play->sess = sess;
@@ -327,8 +394,8 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 	st_play->ap  = ap;
 	st_play->wh  = wh;
 	st_play->arg = arg;
-	st_play->sampc = prm->srate * prm->ch * prm->ptime / 1000;
-	st_play->sampv = mem_alloc(10 * st_play->sampc, NULL);
+	st_play->sampc = sampc;
+	st_play->sampv = mem_alloc(10 * sampc, NULL);
 	if (!st_play->sampv) {
 		err = ENOMEM;
 		goto out;
