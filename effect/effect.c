@@ -74,6 +74,7 @@ struct session {
 	struct le le;
 	struct ausrc_st *st_src;
 	struct auplay_st *st_play;
+	int32_t *dstmix;
 	int16_t *mix;
 	uint8_t ch;
 	bool run_src;
@@ -198,7 +199,7 @@ void effect_play(struct session *sess, float* const output0,
 		struct auplay_st *st_play = sess->st_play;
 
 		st_play->wh(st_play->sampv, nframes * 2, st_play->arg);
-		for (unsigned i = 0; i<10; ++i) {
+		for (unsigned i = 1; i<100; ++i) {
 			if (!sess->mix_lock_read)
 			{
 				sess->mix_lock_write = true;
@@ -229,18 +230,23 @@ void effect_play(struct session *sess, float* const output0,
 static void mix_n_minus_1(struct session *sess, int16_t *dst, unsigned long nsamples)
 {
 	struct le *le;
+	int32_t *dstmixv = sess->dstmix;
+	int16_t *dstv = dst;
+	unsigned active = 0;
+
 	for (le = sessionl.head; le; le = le->next) {
 		struct session *msess = le->data;
 		int16_t *mixv = msess->mix;
+
 		if (msess->run_play && msess != sess) {
-			for (unsigned n = 0; n<10; ++n) {
+			for (unsigned n = 1; n<100; ++n) {
 				if (!sess->mix_lock_write)
 				{
 					sess->mix_lock_read = true;
 					for (unsigned i = 0; i < nsamples; ++i) {
-						*dst = *dst/2 + *mixv/2;
+						*dstmixv = *dstmixv + *mixv;
 						++mixv;
-						++dst;
+						++dstmixv;
 					}
 					sess->mix_lock_read = false;
 					if (n > 1)
@@ -249,12 +255,31 @@ static void mix_n_minus_1(struct session *sess, int16_t *dst, unsigned long nsam
 				}
 				usleep(1);
 			}
+			++active;
+		}
+	}
 
+	if (active) {
+		dstmixv = sess->dstmix;
+		for (unsigned i = 0; i < nsamples; ++i) {
+			*dstmixv = *dstmixv + *dstv;
+			++dstv;
+			++dstmixv;
+		}
 
+		dstmixv = sess->dstmix;
+		for (unsigned i = 0; i < nsamples; ++i) {
+			if (*dstmixv > SAMPLE_16BIT_MAX)
+				*dstmixv = SAMPLE_16BIT_MAX;
+			if (*dstmixv < SAMPLE_16BIT_MIN)
+				*dstmixv = SAMPLE_16BIT_MIN;
+			*dst = *dstmixv;
+			*dstmixv = 0;
+			++dst;
+			++dstmixv;
 		}
 	}
 }
-
 
 void effect_src(struct session *sess, const float* const input0,
 		const float* const input1, unsigned long nframes);
@@ -270,9 +295,7 @@ void effect_src(struct session *sess, const float* const input0,
 				nframes, 4);
 		sample_move_d16_sS((char*)st_src->sampv+2, (float*)input1,
 				nframes, 4);
-		
 		mix_n_minus_1(sess, st_src->sampv, nframes * 2);
-
 		st_src->rh(st_src->sampv, nframes * 2, st_src->arg);
 	}
 	ws_meter_process(sess->ch, (float*)input0, nframes);
@@ -299,6 +322,7 @@ static void auplay_destructor(void *arg)
 	sys_msleep(20);
 	mem_deref(st->sampv);
 	mem_deref(sess->mix);
+	mem_deref(sess->dstmix);
 }
 
 
@@ -378,6 +402,9 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 			if (!sess->st_play)
 				return ENOMEM;
 			sess->mix = mem_zalloc(10 * sampc, NULL);
+			if (!sess->mix)
+				return ENOMEM;
+			sess->dstmix = mem_zalloc(20 * sampc, NULL);
 			if (!sess->mix)
 				return ENOMEM;
 			st_play = sess->st_play;
