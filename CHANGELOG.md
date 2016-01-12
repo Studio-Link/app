@@ -10,6 +10,7 @@
 
 - **Misc** Fix possible Ghost Calls (rewrite call id handling)
 - **Misc** Improve vumeter warning state
+- **Misc** Update Opus 1.1.2
 
 
 ### v15.12.2-beta (05.01.2016)
