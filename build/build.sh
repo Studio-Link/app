@@ -24,6 +24,11 @@ else
     sl_extra_lflags="-framework SystemConfiguration "
     sl_extra_lflags+="-framework CoreFoundation $sl_openssl_osx"
     sl_extra_modules="audiounit"
+
+    security create-keychain -p travis sl-build.keychain
+    security import ./build/keychain/apple.cer -k ~/Library/Keychains/sl-build.keychain -T /usr/bin/codesign
+    security import ./build/keychain/cert.cer -k ~/Library/Keychains/sl-build.keychain -T /usr/bin/codesign
+    security import ./build/keychain/key.p12 -k ~/Library/Keychains/sl-build.keychain -P $KEY_PASSWORD -T /usr/bin/codesign
 fi
 
 
@@ -179,6 +184,8 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
 else
     otool -L studio-link-standalone
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
-    mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app-unsigned
-    zip -r studio-link-osx StudioLink.component StudioLinkStandalone.app-unsigned
+    mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app
+    codesign -f -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkStandalone.app
+    zip -r studio-link-osx StudioLink.component StudioLinkStandalone.app
+    security delete-keychain sl-build.keychain
 fi
