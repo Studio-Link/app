@@ -1,0 +1,58 @@
+From 2fdb6a55b4c3fe143653b1813abef6f38baccc1a Mon Sep 17 00:00:00 2001
+Date: Fri, 15 Jan 2016 19:12:26 +0100
+Subject: [PATCH] Fix audiounit recording on OSX, technotes TN2223 and TN2091
+
+---
+ modules/audiounit/recorder.c | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+
+diff --git a/modules/audiounit/recorder.c b/modules/audiounit/recorder.c
+index d46f331..25095e1 100644
+--- a/modules/audiounit/recorder.c
++++ b/modules/audiounit/recorder.c
+@@ -104,6 +104,13 @@ int audiounit_recorder_alloc(struct ausrc_st **stp, const struct ausrc *as,
+ 	AURenderCallbackStruct cb;
+ 	struct ausrc_st *st;
+ 	UInt32 enable = 1;
++	UInt32 ausize;
++	ausize = sizeof(AudioDeviceID);
++	AudioDeviceID inputDevice;
++	AudioObjectPropertyAddress auAddress = {
++		kAudioHardwarePropertyDefaultInputDevice,
++		kAudioObjectPropertyScopeGlobal,
++		kAudioObjectPropertyElementMaster };
+ 	OSStatus ret = 0;
+ 	int err;
+ 
+@@ -138,6 +145,31 @@ int audiounit_recorder_alloc(struct ausrc_st **stp, const struct ausrc *as,
+ 	if (ret)
+ 		goto out;
+ 
++	enable = 0;
++	ret = AudioUnitSetProperty(st->au, kAudioOutputUnitProperty_EnableIO,
++				   kAudioUnitScope_Output, 0,
++				   &enable, sizeof(enable));
++	if (ret)
++		goto out;
++
++	ret = AudioObjectGetPropertyData(kAudioObjectSystemObject,
++			&auAddress,
++			0,
++			NULL,
++			&ausize,
++			&inputDevice);
++	if (ret)
++		goto out;
++
++	ret = AudioUnitSetProperty(st->au,
++			kAudioOutputUnitProperty_CurrentDevice,
++			kAudioUnitScope_Global,
++			0,
++			&inputDevice,
++			sizeof(inputDevice));
++	if (ret)
++		goto out;
++
+ 	fmt.mSampleRate       = prm->srate;
+ 	fmt.mFormatID         = kAudioFormatLinearPCM;
+ #if TARGET_OS_IPHONE

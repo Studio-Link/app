@@ -9,6 +9,7 @@
 ### v16.01.0-dev (xx.01.2016)
 
 - **Misc** Fix possible Ghost Calls (rewrite call id handling)
+- **Standalone** Fix Audiounit mic input bug
 - **Misc** Improve vumeter warning state
 - **Misc** Update Opus 1.1.2
 
