@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 if [ "$1" == "linux" ]; then
     if [ "$(id -u)" == "0" ]; then
@@ -12,5 +12,9 @@ elif [ "$1" == "osx" ]; then
     if [ "$(id -u)" != "0" ]; then
         brew update
         brew install openssl
+        security create-keychain -p travis sl-build.keychain
+        security import ./build/keychain/apple.cer -k ~/Library/Keychains/sl-build.keychain -T /usr/bin/codesign
+        security import ./build/keychain/cert.cer -k ~/Library/Keychains/sl-build.keychain -T /usr/bin/codesign
+        security import ./build/keychain/key.p12 -k ~/Library/Keychains/sl-build.keychain -P $KEY_PASSWORD -T /usr/bin/codesign
     fi
 fi
