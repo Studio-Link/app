@@ -26,9 +26,9 @@ else
     sl_extra_modules="audiounit"
 
     security create-keychain -p travis sl-build.keychain
-    security import ./build/keychain/apple.cer -k ~/Library/Keychains/sl-build.keychain -T /usr/bin/codesign
-    security import ./build/keychain/cert.cer -k ~/Library/Keychains/sl-build.keychain -T /usr/bin/codesign
-    security import ./build/keychain/key.p12 -k ~/Library/Keychains/sl-build.keychain -P $KEY_PASSWORD -T /usr/bin/codesign
+    security import ../build/keychain/apple.cer -k ~/Library/Keychains/sl-build.keychain -T /usr/bin/codesign
+    security import ../build/keychain/cert.cer -k ~/Library/Keychains/sl-build.keychain -T /usr/bin/codesign
+    security import ../build/keychain/key.p12 -k ~/Library/Keychains/sl-build.keychain -P $KEY_PASSWORD -T /usr/bin/codesign
 fi
 
 
