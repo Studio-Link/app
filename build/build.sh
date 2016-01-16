@@ -175,12 +175,14 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     cp -a overlay-lv2/studio-link.so lv2-plugin/
     cp -a overlay-lv2/*.ttl lv2-plugin/
     cp -a overlay-lv2/README.md lv2-plugin/
-    zip -r studio-link-linux lv2-plugin studio-link-standalone
+    zip -r studio-link-plugin-linux lv2-plugin
+    zip -r studio-link-standalone-linux studio-link-standalone
 else
     otool -L studio-link-standalone
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
     mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app
     codesign -f -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" --keychain ~/Library/Keychains/sl-build.keychain StudioLinkStandalone.app
-    zip -r studio-link-osx StudioLink.component StudioLinkStandalone.app
+    zip -r studio-link-plugin-osx StudioLink.component
+    zip -r studio-link-standalone-osx StudioLinkStandalone.app
     security delete-keychain sl-build.keychain
 fi
