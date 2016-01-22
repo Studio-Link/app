@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-rem="0.4.6"
+rem="0.4.7"
 re="0.4.14"
 opus="1.1.2"
 openssl="1.0.2e"
@@ -98,7 +98,6 @@ if [ ! -d baresip-$baresip ]; then
 
     ## Add patches
     curl ${patch_url}...studio-link-config.patch | patch -p1
-    patch -p1 < ../../build/audiounit.patch
 
     ## Link backend modules
     cp -a ../../webapp modules/webapp

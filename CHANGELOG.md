@@ -11,7 +11,9 @@
 - **Misc** Fix possible Ghost Calls (rewrite call id handling)
 - **Standalone** Fix Audiounit mic input bug
 - **Misc** Improve vumeter warning state
-- **Misc** Update Opus 1.1.2
+- **Misc** Baresip 0.4.17
+- **Misc** rem 0.4.7
+- **Misc** Opus 1.1.2
 
 
 ### v15.12.2-beta (05.01.2016)
