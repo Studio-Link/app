@@ -39,8 +39,8 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
         make
         rm -f libcrypto.so
         rm -f libssl.so
-        cd ..
         cp -a openssl/include/openssl ../my_include/
+        cd ..
     fi
 fi
 
