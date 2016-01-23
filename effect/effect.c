@@ -39,7 +39,7 @@
 
 
 enum {
-	MAX_CHANNELS = 4
+	MAX_CHANNELS = 6
 };
 
 struct auplay_st {

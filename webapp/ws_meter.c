@@ -6,7 +6,7 @@
 #include "webapp.h"
 
 
-#define MAX_METERS 8
+#define MAX_METERS 12
 
 static float bias = 1.0f;
 static float peaks[MAX_METERS] = {0};
@@ -59,9 +59,10 @@ static void write_ws(void)
 	ws_send_all(WS_METER, p);
 }
 
+
 static void tmr_handler(void *arg)
 {
-	tmr_start(&tmr, 100, tmr_handler, NULL);
+	tmr_start(&tmr, 200, tmr_handler, NULL);
 	webapp_read_peaks();
 	write_ws();
 }
@@ -83,7 +84,7 @@ void ws_meter_process(unsigned int ch, float *in, unsigned long nframes)
 void webapp_ws_meter_init(void)
 {
 	tmr_init(&tmr);
-	tmr_start(&tmr, 100, tmr_handler, NULL);
+	tmr_start(&tmr, 200, tmr_handler, NULL);
 }
 
 

@@ -11,6 +11,7 @@
 - **Standalone** Fix Audiounit mic input bug
 - **Standalone** Signing OSX app bundle
 - **Plugin** Fix Apple Logic auval crashes
+- **Plugin** Raise audio channels/calls from 4 to 6
 - **Misc** Fix possible Ghost Calls (rewrite call id handling)
 - **Misc** Support OSX Versions <10.11
 - **Misc** Improve vumeter warning state
