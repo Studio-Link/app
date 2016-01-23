@@ -252,7 +252,8 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			ua_event_current_set(ua);
 			re_snprintf(webapp_call_json, sizeof(webapp_call_json),
 					"{ \"callback\": \"INCOMING\",\
-					\"peeruri\": \"%s\", \"key\": \"%x\" }",
+					\"peeruri\": \"%s\",\
+					\"key\": \"%x\" }",
 					call_peeruri(call), call);
 			webapp_call_update(call, "Incoming");
 			ws_send_all(WS_CALLS, webapp_call_json);
@@ -283,6 +284,11 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			break;
 
 		case UA_EVENT_UNREGISTERING:
+			warning("UNREGISTERING: %s\n", ua_aor(ua));
+			webapp_account_status(ua_aor(ua), false);
+			ws_send_json(WS_BARESIP, webapp_accounts_get());
+			break;
+
 		case UA_EVENT_REGISTER_FAIL:
 			warning("Register Fail: %s\n", ua_aor(ua));
 			webapp_account_status(ua_aor(ua), false);
@@ -395,7 +401,7 @@ static int module_init(void)
 	webapp_ws_meter_init();
 
 	tmr_init(&tmr);
-#if defined (WIN32) && defined (SLPLUGIN)
+#if defined (SLPLUGIN)
 	tmr_start(&tmr, 800, syscmd, NULL);
 #else
 	syscmd(NULL);

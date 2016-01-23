@@ -59,7 +59,7 @@ void webapp_ws_calls(const struct websock_hdr *hdr,
 	key = odict_lookup(cmd, "key");
 	if (!key)
 		goto out;
-	
+
 	call = get_call(key->u.str);
 
 	if (!str_cmp(e->u.str, "accept")) {
