@@ -79,6 +79,10 @@ static int sip_register(const struct odict_entry *o)
 void webapp_account_delete(char *user, char *domain)
 {
 	struct le *le;
+
+	if (!accs)
+		return;
+
 	for (le = accs->lst.head; le; le = le->next) {
 		char o_user[50];
 		char o_domain[50];
@@ -103,7 +107,7 @@ void webapp_account_delete(char *user, char *domain)
 			mem_deref(uag_find_aor(aor));
 			uag_current_set(NULL);
 			webapp_write_file_json(accs, filename);
-			warning("DELETE USER %s;", aor);
+			warning("DELETE USER %s\n", aor);
 			break;
 		}
 	}
@@ -195,14 +199,17 @@ void webapp_account_current(void)
 
 static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 {
-	if (!msg)
-		return;
-	struct mbuf *mb = msg->mb;
+	struct mbuf *mb = NULL;
 	struct odict *o = NULL;
 	const struct odict_entry *e;
 	char message[8192] = {0};
 	char user[50] = {0};
 	char domain[50] = {0};
+
+	if (!msg)
+		goto out2;
+
+	mb = msg->mb;
 
 	(void)re_snprintf(message, sizeof(message), "%b",
 			mb->buf, mb->end);
@@ -228,7 +235,8 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 
 out:
 	mem_deref(o);
-	mem_deref(req);
+out2:
+	req = mem_deref(req);
 	return;
 }
 
@@ -297,8 +305,8 @@ int webapp_accounts_init(void)
 
 
 	tmr_init(&tmr);
-#if defined (WIN32) && defined (SLPLUGIN)
-	tmr_start(&tmr, 800, startup, NULL);
+#if defined (SLPLUGIN)
+	tmr_start(&tmr, 500, startup, NULL);
 #else
 	startup(NULL);
 #endif
@@ -314,6 +322,8 @@ out:
 void webapp_accounts_close(void)
 {
 	tmr_cancel(&tmr);
+	if (req)
+		mem_deref(req);
 	webapp_write_file_json(accs, filename);
 	mem_deref(accs);
 	uag_current_set(NULL);
