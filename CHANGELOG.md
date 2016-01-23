@@ -8,8 +8,11 @@
 
 ### v16.01.0-dev (xx.01.2016)
 
-- **Misc** Fix possible Ghost Calls (rewrite call id handling)
 - **Standalone** Fix Audiounit mic input bug
+- **Standalone** Signing OSX app bundle
+- **Plugin** Fix Apple Logic auval crashes
+- **Misc** Fix possible Ghost Calls (rewrite call id handling)
+- **Misc** Support OSX Versions <10.11
 - **Misc** Improve vumeter warning state
 - **Misc** Baresip 0.4.17
 - **Misc** rem 0.4.7
