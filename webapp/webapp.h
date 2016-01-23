@@ -4,7 +4,8 @@ enum ws_type {
 	WS_CONTACT,
 	WS_CHAT,
 	WS_METER,
-	WS_CPU
+	WS_CPU,
+	WS_OPTIONS,
 };
 
 enum webapp_call_state {
@@ -62,6 +63,14 @@ void webapp_contact_delete(const char *sip);
 const struct odict* webapp_contacts_get(void);
 
 /*
+ * option.c
+ */
+int webapp_options_init(void);
+void webapp_options_close(void);
+const struct odict* webapp_options_get(void);
+void webapp_options_set(char *key, char *value);
+
+/*
  * chat.c
  */
 int webapp_chat_init(void);
@@ -81,6 +90,8 @@ void webapp_ws_contacts(const struct websock_hdr *hdr,
 void webapp_ws_chat(const struct websock_hdr *hdr,
 		struct mbuf *mb, void *arg);
 void webapp_ws_meter(const struct websock_hdr *hdr,
+		struct mbuf *mb, void *arg);
+void webapp_ws_options(const struct websock_hdr *hdr,
 		struct mbuf *mb, void *arg);
 void ws_meter_process(unsigned int ch, float *in, unsigned long nframes);
 void webapp_ws_meter_init(void);

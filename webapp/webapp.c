@@ -1,7 +1,7 @@
 /**
  * @file webapp.c Webserver UI module
  *
- * Copyright (C) 2015 studio-link.de Sebastian Reimers
+ * Copyright (C) 2016 studio-link.de Sebastian Reimers
  */
 #include <re.h>
 #include <baresip.h>
@@ -91,6 +91,11 @@ static void http_req_handler(struct http_conn *conn,
 		ws_send_json(WS_CALLS, webapp_calls);
 		return;
 	}
+	if (0 == pl_strcasecmp(&msg->path, "/ws_options")) {
+		webapp_ws_handler(conn, WS_OPTIONS, msg, webapp_ws_options);
+		ws_send_json(WS_OPTIONS, webapp_options_get());
+		return;
+	}
 	if (0 == pl_strcasecmp(&msg->path, "/status.json")) {
 		char ipv4[15];
 		char json[255];
@@ -98,8 +103,10 @@ static void http_req_handler(struct http_conn *conn,
 		sa_ntop(net_laddr_af(AF_INET), ipv4, sizeof(ipv4));
 
 		re_snprintf(json, sizeof(json), "[{ \"name\": \"IPv4\", \
-				\"value\": \"%s\", \"label\": \"default\"}]",
-				ipv4);
+				\"value\": \"%s\", \"label\": \"default\"},\
+				{ \"name\": \"ID\", \
+                                \"value\": \"%s\", \"label\": \"default\"}]",
+				ipv4, "12j3k1l2j3lk123j@studio-link.de");
 
 		http_sreply(conn, 200, "OK",
 				"application/json",
@@ -379,11 +386,11 @@ static int module_init(void)
 
 #ifdef SLPLUGIN
 	(void)re_fprintf(stderr, "Studio Link Webapp v%s - Effect Plugin"
-			" Copyright (C) 2015"
+			" Copyright (C) 2016"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 #else
 	(void)re_fprintf(stderr, "Studio Link Webapp v%s - Standalone"
-			" Copyright (C) 2015"
+			" Copyright (C) 2016"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 
 	aufilt_register(&vumeter);
@@ -397,6 +404,7 @@ static int module_init(void)
 	webapp_ws_init();
 	webapp_accounts_init();
 	webapp_contacts_init();
+	webapp_options_init();
 	webapp_chat_init();
 	webapp_ws_meter_init();
 
@@ -423,6 +431,7 @@ static int module_close(void)
 	webapp_ws_meter_close();
 	webapp_accounts_close();
 	webapp_contacts_close();
+	webapp_options_close();
 	webapp_chat_close();
 	webapp_ws_close();
 
