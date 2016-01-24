@@ -1,7 +1,7 @@
 /**
  * @file effect.c DAW Effect Overlay Plugin
  *
- * Copyright (C) 2015 studio-link.de
+ * Copyright (C) 2016 studio-link.de
  */
 #define _DEFAULT_SOURCE 1
 #define _BSD_SOURCE 1
@@ -81,6 +81,7 @@ struct session {
 	bool run_play;
 	bool mix_lock_read;
 	bool mix_lock_write;
+	bool run_auto_mix;
 };
 
 static struct list sessionl;
@@ -179,7 +180,7 @@ static void sample_move_dS_s16(float *dst, char *src, unsigned long nsamples,
 static void mix_save(int16_t *src, int16_t *dst, unsigned long nsamples)
 {
 	while (nsamples--) {
-		*dst = *src;	
+		*dst = *src;
 		++dst;
 		++src;
 	}
@@ -195,27 +196,54 @@ void effect_play(struct session *sess, float* const output0,
 		float* const output1, unsigned long nframes)
 {
 
-	if (sess->run_play) {
-		struct auplay_st *st_play = sess->st_play;
+	if (!sess->run_play)
+		goto out;
 
-		st_play->wh(st_play->sampv, nframes * 2, st_play->arg);
-		for (unsigned i = 1; i<100; ++i) {
-			if (!sess->mix_lock_read)
-			{
-				sess->mix_lock_write = true;
-				mix_save(st_play->sampv, sess->mix, 
-						nframes * 2);
-				sess->mix_lock_write = false;
-				if (i > 1)
-					warning("Write Busy loop runs %d\n", i);
-				break;
-			}
-			usleep(1);
+	struct auplay_st *st_play = sess->st_play;
+
+	st_play->wh(st_play->sampv, nframes * 2, st_play->arg);
+	for (unsigned i = 1; i<100; ++i) {
+		if (!sess->mix_lock_read)
+		{
+			sess->mix_lock_write = true;
+			mix_save(st_play->sampv, sess->mix,
+					nframes * 2);
+			sess->mix_lock_write = false;
+			if (i > 1)
+				warning("Write Busy loop runs %d\n", i);
+			break;
 		}
-		sample_move_dS_s16(output0, (char*)st_play->sampv,
-				nframes, 4);
-		sample_move_dS_s16(output1, (char*)st_play->sampv+2,
-				nframes, 4);
+		usleep(1);
+	}
+	sample_move_dS_s16(output0, (char*)st_play->sampv,
+			nframes, 4);
+	sample_move_dS_s16(output1, (char*)st_play->sampv+2,
+			nframes, 4);
+
+out:
+	ws_meter_process(sess->ch+1, (float*)output0, nframes);
+}
+
+
+void effect_bypass(struct session *sess,
+		float* const output0,
+		float* const output1,
+		const float* const input0,
+		const float* const input1,
+		unsigned long nframes);
+
+void effect_bypass(struct session *sess,
+		float* const output0,
+		float* const output1,
+		const float* const input0,
+		const float* const input1,
+		unsigned long nframes)
+{
+	if (sess->run_auto_mix) {
+		for (uint32_t pos = 0; pos < nframes; pos++) {
+			output0[pos] = input0[pos];
+			output1[pos] = input1[pos];
+		}
 	}
 	else {
 		for (uint32_t pos = 0; pos < nframes; pos++) {
@@ -223,11 +251,11 @@ void effect_play(struct session *sess, float* const output0,
 			output1[pos] = 0;
 		}
 	}
-	ws_meter_process(sess->ch+1, (float*)output0, nframes);
 }
 
 
-static void mix_n_minus_1(struct session *sess, int16_t *dst, unsigned long nsamples)
+static void mix_n_minus_1(struct session *sess, int16_t *dst,
+		unsigned long nsamples)
 {
 	struct le *le;
 	int32_t *dstmixv = sess->dstmix;
@@ -295,7 +323,8 @@ void effect_src(struct session *sess, const float* const input0,
 				nframes, 4);
 		sample_move_d16_sS((char*)st_src->sampv+2, (float*)input1,
 				nframes, 4);
-		mix_n_minus_1(sess, st_src->sampv, nframes * 2);
+		if (sess->run_auto_mix)
+			mix_n_minus_1(sess, st_src->sampv, nframes * 2);
 		st_src->rh(st_src->sampv, nframes * 2, st_src->arg);
 	}
 	ws_meter_process(sess->ch, (float*)input0, nframes);
@@ -325,6 +354,7 @@ static void auplay_destructor(void *arg)
 	mem_deref(sess->dstmix);
 }
 
+char* webapp_options_getv(char *key);
 
 static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 		struct media_ctx **ctx,
@@ -337,6 +367,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	struct ausrc_st *st_src = NULL;
 	struct le *le;
 	int err = 0;
+	char *automixv = webapp_options_getv("auto-mix-n-1");
 
 	if (!stp || !as || !prm)
 		return EINVAL;
@@ -352,6 +383,15 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 			st_src = sess->st_src;
 			st_src->sess = sess;
 			sess->run_src = true;
+
+			if (0 == str_cmp(automixv, "true")) {
+				sess->run_auto_mix = true;
+				warning("auto mix enabled\n");
+			}
+			else {
+				sess->run_auto_mix = false;
+				warning("auto mix disabled\n");
+			}
 			break;
 		}
 	}

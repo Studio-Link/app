@@ -69,6 +69,7 @@ int webapp_options_init(void);
 void webapp_options_close(void);
 const struct odict* webapp_options_get(void);
 void webapp_options_set(char *key, char *value);
+char* webapp_options_getv(char *key);
 
 /*
  * chat.c

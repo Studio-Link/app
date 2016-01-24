@@ -22,8 +22,16 @@ void webapp_options_set(char *key, char *value)
 }
 
 
-void webapp_options_getv(char *key)
+char* webapp_options_getv(char *key)
 {
+	const struct odict_entry *e = NULL;
+
+	e = odict_lookup(options, key);
+
+	if(!e)
+		return NULL;
+
+	return e->u.str;
 }
 
 

@@ -62,7 +62,7 @@ static void write_ws(void)
 
 static void tmr_handler(void *arg)
 {
-	tmr_start(&tmr, 200, tmr_handler, NULL);
+	tmr_start(&tmr, 150, tmr_handler, NULL);
 	webapp_read_peaks();
 	write_ws();
 }
@@ -84,7 +84,7 @@ void ws_meter_process(unsigned int ch, float *in, unsigned long nframes)
 void webapp_ws_meter_init(void)
 {
 	tmr_init(&tmr);
-	tmr_start(&tmr, 200, tmr_handler, NULL);
+	tmr_start(&tmr, 150, tmr_handler, NULL);
 }
 
 
