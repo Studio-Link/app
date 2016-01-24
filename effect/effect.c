@@ -239,6 +239,9 @@ void effect_bypass(struct session *sess,
 		const float* const input1,
 		unsigned long nframes)
 {
+	if (sess->run_play)
+		return;
+
 	if (sess->run_auto_mix) {
 		for (uint32_t pos = 0; pos < nframes; pos++) {
 			output0[pos] = input0[pos];
