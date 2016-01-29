@@ -270,15 +270,18 @@ static void mix_n_minus_1(struct session *sess, int16_t *dst,
 		unsigned long nsamples)
 {
 	struct le *le;
-	int32_t *dstmixv = sess->dstmix;
+	int32_t *dstmixv;
 	int16_t *dstv = dst;
+	int16_t *mixv;
 	unsigned active = 0;
 
 	for (le = sessionl.head; le; le = le->next) {
 		struct session *msess = le->data;
-		int16_t *mixv = msess->mix;
 
 		if (msess->run_play && msess != sess) {
+			mixv = msess->mix;
+			dstmixv = sess->dstmix;
+
 			for (unsigned n = 1; n<100; ++n) {
 				if (!sess->mix_lock_write)
 				{
