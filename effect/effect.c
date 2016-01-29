@@ -119,10 +119,12 @@ static int calc_channel(struct session *sess)
 }
 
 
+char* webapp_options_getv(char *key);
 struct session* effect_session_start(void);
 struct session* effect_session_start(void)
 {
 	struct session *sess;
+	char *automixv = webapp_options_getv("auto-mix-n-1");
 
 	sess = mem_zalloc(sizeof(*sess), sess_destruct);
 	if (!sess)
@@ -138,6 +140,14 @@ struct session* effect_session_start(void)
 
 	list_append(&sessionl, &sess->le, sess);
 	warning("SESSION STARTED\n");
+	if (0 == str_cmp(automixv, "true")) {
+		sess->run_auto_mix = true;
+		warning("auto mix enabled\n");
+	}
+	else {
+		sess->run_auto_mix = false;
+		warning("auto mix disabled\n");
+	}
 
 	return sess;
 }
@@ -197,7 +207,7 @@ void effect_play(struct session *sess, float* const output0,
 {
 
 	if (!sess->run_play)
-		goto out;
+		return;
 
 	struct auplay_st *st_play = sess->st_play;
 
@@ -220,7 +230,6 @@ void effect_play(struct session *sess, float* const output0,
 	sample_move_dS_s16(output1, (char*)st_play->sampv+2,
 			nframes, 4);
 
-out:
 	ws_meter_process(sess->ch+1, (float*)output0, nframes);
 }
 
@@ -357,7 +366,6 @@ static void auplay_destructor(void *arg)
 	mem_deref(sess->dstmix);
 }
 
-char* webapp_options_getv(char *key);
 
 static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 		struct media_ctx **ctx,
@@ -370,7 +378,6 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	struct ausrc_st *st_src = NULL;
 	struct le *le;
 	int err = 0;
-	char *automixv = webapp_options_getv("auto-mix-n-1");
 
 	if (!stp || !as || !prm)
 		return EINVAL;
@@ -386,15 +393,6 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 			st_src = sess->st_src;
 			st_src->sess = sess;
 			sess->run_src = true;
-
-			if (0 == str_cmp(automixv, "true")) {
-				sess->run_auto_mix = true;
-				warning("auto mix enabled\n");
-			}
-			else {
-				sess->run_auto_mix = false;
-				warning("auto mix disabled\n");
-			}
 			break;
 		}
 	}
