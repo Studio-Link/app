@@ -105,17 +105,18 @@ static void sess_destruct(void *arg)
 }
 
 
-static int calc_channel(struct session *sess)
+static void calc_channel(struct session *sess)
 {
 	for (uint8_t pos = 0; pos < MAX_CHANNELS; pos++) {
 		if (!channels[pos]) {
 			channels[pos] = true;
 			sess->ch = pos * 2;
-			return 0;
+			return;
 		}
 	}
 
-	return 1;
+	/* Max Channels reached */
+	sess->ch = MAX_CHANNELS * 2;
 }
 
 
@@ -130,10 +131,7 @@ struct session* effect_session_start(void)
 	if (!sess)
 		return NULL;
 
-	if (calc_channel(sess)) {
-		/* Max Channels reached */
-		sess->ch = MAX_CHANNELS * 2;
-	}
+	calc_channel(sess);
 
 	sess->run_play = false;
 	sess->run_src = false;
