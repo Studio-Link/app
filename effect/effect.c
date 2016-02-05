@@ -74,13 +74,13 @@ struct session {
 	struct le le;
 	struct ausrc_st *st_src;
 	struct auplay_st *st_play;
+	uint32_t trev;
+	uint32_t prev;
 	int32_t *dstmix;
-	int16_t *mix;
 	uint8_t ch;
 	bool run_src;
 	bool run_play;
-	bool mix_lock_read;
-	bool mix_lock_write;
+	struct lock *plock;
 	bool run_auto_mix;
 };
 
@@ -97,6 +97,7 @@ static void sess_destruct(void *arg)
 	struct session *sess = arg;
 
 	list_unlink(&sess->le);
+	mem_deref(sess->plock);
 #if 0
 	mem_deref(sess->st_src);
 	mem_deref(sess->st_play);
@@ -135,6 +136,9 @@ struct session* effect_session_start(void)
 
 	sess->run_play = false;
 	sess->run_src = false;
+	sess->trev = 0;
+	sess->prev = 0;
+	lock_alloc(&sess->plock);
 
 	list_append(&sessionl, &sess->le, sess);
 	warning("SESSION STARTED\n");
@@ -185,13 +189,12 @@ static void sample_move_dS_s16(float *dst, char *src, unsigned long nsamples,
 }
 
 
-static void mix_save(int16_t *src, int16_t *dst, unsigned long nsamples)
+static void play_process(struct session *sess, unsigned long nframes)
 {
-	while (nsamples--) {
-		*dst = *src;
-		++dst;
-		++src;
-	}
+	struct auplay_st *st_play = sess->st_play;
+
+	st_play->wh(st_play->sampv, nframes, st_play->arg);
+	++sess->prev;
 }
 
 
@@ -209,26 +212,18 @@ void effect_play(struct session *sess, float* const output0,
 
 	struct auplay_st *st_play = sess->st_play;
 
-	st_play->wh(st_play->sampv, nframes * 2, st_play->arg);
-	for (unsigned i = 1; i<100; ++i) {
-		if (!sess->mix_lock_read)
-		{
-			sess->mix_lock_write = true;
-			mix_save(st_play->sampv, sess->mix,
-					nframes * 2);
-			sess->mix_lock_write = false;
-			if (i > 1)
-				warning("Write Busy loop runs %d\n", i);
-			break;
-		}
-		usleep(1);
-	}
+	lock_write_get(sess->plock);
+	if (sess->trev > sess->prev)
+		play_process(sess, nframes*2);
+
 	sample_move_dS_s16(output0, (char*)st_play->sampv,
 			nframes, 4);
 	sample_move_dS_s16(output1, (char*)st_play->sampv+2,
 			nframes, 4);
+	lock_rel(sess->plock);
 
 	ws_meter_process(sess->ch+1, (float*)output0, nframes);
+	++sess->trev;
 }
 
 
@@ -261,6 +256,8 @@ void effect_bypass(struct session *sess,
 			output1[pos] = 0;
 		}
 	}
+	++sess->trev;
+	++sess->prev;
 }
 
 
@@ -277,39 +274,33 @@ static void mix_n_minus_1(struct session *sess, int16_t *dst,
 		struct session *msess = le->data;
 
 		if (msess->run_play && msess != sess) {
-			mixv = msess->mix;
+			mixv = msess->st_play->sampv;
 			dstmixv = sess->dstmix;
 
-			for (unsigned n = 1; n<100; ++n) {
-				if (!sess->mix_lock_write)
-				{
-					sess->mix_lock_read = true;
-					for (unsigned i = 0; i < nsamples; ++i) {
-						*dstmixv = *dstmixv + *mixv;
-						++mixv;
-						++dstmixv;
-					}
-					sess->mix_lock_read = false;
-					if (n > 1)
-						warning("Read Busy loop runs %d\n", n);
-					break;
-				}
-				usleep(1);
+			lock_write_get(msess->plock);
+			if (sess->trev > msess->prev)
+				play_process(msess, nsamples);
+			for (unsigned n = 0; n < nsamples; n++) {
+				*dstmixv = *dstmixv + *mixv;
+				++mixv;
+				++dstmixv;
 			}
+			lock_rel(msess->plock);
+
 			++active;
 		}
 	}
 
 	if (active) {
 		dstmixv = sess->dstmix;
-		for (unsigned i = 0; i < nsamples; ++i) {
+		for (unsigned i = 0; i < nsamples; i++) {
 			*dstmixv = *dstmixv + *dstv;
 			++dstv;
 			++dstmixv;
 		}
 
 		dstmixv = sess->dstmix;
-		for (unsigned i = 0; i < nsamples; ++i) {
+		for (unsigned i = 0; i < nsamples; i++) {
 			if (*dstmixv > SAMPLE_16BIT_MAX)
 				*dstmixv = SAMPLE_16BIT_MAX;
 			if (*dstmixv < SAMPLE_16BIT_MIN)
@@ -341,6 +332,7 @@ void effect_src(struct session *sess, const float* const input0,
 		st_src->rh(st_src->sampv, nframes * 2, st_src->arg);
 	}
 	ws_meter_process(sess->ch, (float*)input0, nframes);
+
 }
 
 
@@ -363,7 +355,6 @@ static void auplay_destructor(void *arg)
 	sess->run_play = false;
 	sys_msleep(20);
 	mem_deref(st->sampv);
-	mem_deref(sess->mix);
 	mem_deref(sess->dstmix);
 }
 
@@ -443,11 +434,8 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 					auplay_destructor);
 			if (!sess->st_play)
 				return ENOMEM;
-			sess->mix = mem_zalloc(10 * sampc, NULL);
-			if (!sess->mix)
-				return ENOMEM;
 			sess->dstmix = mem_zalloc(20 * sampc, NULL);
-			if (!sess->mix)
+			if (!sess->dstmix)
 				return ENOMEM;
 			st_play = sess->st_play;
 			st_play->sess = sess;
