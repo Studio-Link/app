@@ -103,10 +103,8 @@ static void http_req_handler(struct http_conn *conn,
 		sa_ntop(net_laddr_af(AF_INET), ipv4, sizeof(ipv4));
 
 		re_snprintf(json, sizeof(json), "[{ \"name\": \"IPv4\", \
-				\"value\": \"%s\", \"label\": \"default\"},\
-				{ \"name\": \"ID\", \
-                                \"value\": \"%s\", \"label\": \"default\"}]",
-				ipv4, "12j3k1l2j3lk123j@studio-link.de");
+				\"value\": \"%s\", \"label\": \"default\"}]",
+				ipv4);
 
 		http_sreply(conn, 200, "OK",
 				"application/json",
