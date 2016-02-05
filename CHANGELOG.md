@@ -6,7 +6,7 @@
 - **Misc** Anything that is left or general.
 
 
-### v16.01.0-dev (xx.01.2016)
+### v16.02.0-dev (xx.02.2016)
 
 - **Standalone** Fix Audiounit mic input bug
 - **Standalone** Signing OS X app bundle
