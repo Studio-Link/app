@@ -15,6 +15,7 @@
 - **Plugin** Apple Logic auval Abstürze behoben
 - **Plugin** Anzahl der max. Spuren von 4 auf 6 erhöht
 - **Plugin** Automatischer N-1 Mix (deaktivierbar)
+- **Generell** Anzeige der Studio Link SIP ID auf der Hauptseite
 - **Generell** Support von OS X Versionen <10.11
 - **Generell** Baresip 0.4.17
 - **Generell** rem 0.4.7

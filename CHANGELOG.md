@@ -16,6 +16,7 @@
 - **Misc** Fix possible Ghost Calls (rewrite call id handling)
 - **Misc** Support OS X Versions <10.11
 - **Misc** Improve vumeter warning state
+- **Misc** Show Studio Link SIP ID on front page
 - **Misc** Baresip 0.4.17
 - **Misc** rem 0.4.7
 - **Misc** Opus 1.1.2
