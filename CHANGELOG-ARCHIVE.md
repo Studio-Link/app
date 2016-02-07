@@ -22,4 +22,26 @@
 - **Misc** Opus 1.1.2
 - **Misc** OpenSSL 1.0.2f
 
-[Complete Changelogs...](https://github.com/Studio-Link-v2/backend/blob/master/CHANGELOG-ARCHIVE.md)
+
+### v15.12.2-beta (05.01.2016)
+
+- **Standalone** Add OS X App Bundle
+- **Plugin** Fix VST crashes on windows at DAW startup
+
+
+### v15.12.1-beta (31.12.2015)
+
+- **Misc** Add update available notification
+- **Misc** Fix vumeter on windows
+
+
+### v15.12.0-beta (24.12.2015)
+
+- **Misc** Complete webapp rewrite
+- **Misc** Multi call handling
+- **Plugin** Basic LV2 and Audio Unit Version
+- **Standalone** Basic OS X and Linux Version
+- **Standalone** Add vumeter
+- **Misc** Use Opus 1.1.1
+- **Misc** OpenSSL 1.0.2e (Linux)
+- **Misc** Baresip 0.4.16
