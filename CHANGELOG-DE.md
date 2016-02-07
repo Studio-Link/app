@@ -6,7 +6,7 @@
 - **Generell** Allgemeine Veränderungen
 
 
-### v16.02.0-dev (xx.02.2016)
+### v16.02.0-beta (07.02.2016)
 
 - **Generell** Geisteraustreibung von nicht sichtbaren Gesprächen
 - **Generell** Pegelanzeige etwas besser dem Verhalten von DAWs angepasst (Übergang von Grün zu Gelb -18db)
