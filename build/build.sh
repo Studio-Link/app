@@ -1,7 +1,7 @@
 #!/bin/bash -ex
 
 rem="0.4.7"
-re="0.4.14"
+re="0.4.15"
 opus="1.1.2"
 openssl="1.0.2f"
 baresip="master"
