@@ -5,6 +5,10 @@
 - **Box** Changes to the [orange] hardware box
 - **Misc** Anything that is left or general.
 
+### v16.02.1-dev (xx.02.2016)
+
+- **Misc** re 0.4.15
+
 
 ### v16.02.0-beta (07.02.2016)
 

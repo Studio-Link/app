@@ -5,6 +5,9 @@
 - **Box** Modifikationen der "orangenen" Box (Software)
 - **Generell** Allgemeine Veränderungen
 
+### v16.02.1-dev (xx.02.2016)
+
+- **Generell** re 0.4.15
 
 ### v16.02.0-beta (07.02.2016)
 
