@@ -7,6 +7,8 @@
 
 ### v16.02.1-dev (xx.02.2016)
 
+- **Plugin** Add track bypass
+- **Misc** Rename audio in-/outputs
 - **Misc** re 0.4.15
 
 

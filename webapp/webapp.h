@@ -1,3 +1,10 @@
+#ifdef SLPLUGIN
+/*
+ * effect/effect.c
+ */
+void effect_set_bypass(bool value);
+#endif
+
 enum ws_type {
 	WS_BARESIP,
 	WS_CALLS,

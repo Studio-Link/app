@@ -133,6 +133,19 @@ static void http_req_handler(struct http_conn *conn,
 
 		return;
 	}
+	if (0 == pl_strcasecmp(&msg->path, "/swvariant")) {
+#ifdef SLPLUGIN
+		const char* value = "plugin";
+#else
+		
+		const char* value = "standalone";
+#endif
+		http_sreply(conn, 200, "OK",
+				"text/html",
+				value,
+				strlen(value));
+		return;
+	}
 	if (0 == pl_strcasecmp(&msg->path, "/js/all.js")) {
 		http_sreply(conn, 200, "OK",
 				"application/javascript",

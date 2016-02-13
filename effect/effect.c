@@ -82,6 +82,7 @@ struct session {
 	bool run_play;
 	struct lock *plock;
 	bool run_auto_mix;
+	bool bypass;
 };
 
 static struct list sessionl;
@@ -90,6 +91,8 @@ static struct ausrc *ausrc;
 static struct auplay *auplay;
 
 static bool channels[MAX_CHANNELS] = {false};
+
+static bool bypass = false;
 
 
 static void sess_destruct(void *arg)
@@ -136,6 +139,7 @@ struct session* effect_session_start(void)
 
 	sess->run_play = false;
 	sess->run_src = false;
+	sess->bypass = bypass;
 	sess->trev = 0;
 	sess->prev = 0;
 	lock_alloc(&sess->plock);
@@ -244,7 +248,7 @@ void effect_bypass(struct session *sess,
 	if (sess->run_play)
 		return;
 
-	if (sess->run_auto_mix) {
+	if (sess->run_auto_mix && sess->bypass) {
 		for (uint32_t pos = 0; pos < nframes; pos++) {
 			output0[pos] = input0[pos];
 			output1[pos] = input1[pos];
@@ -467,6 +471,18 @@ out:
 
 	return err;
 
+}
+
+
+void effect_set_bypass(bool value);
+void effect_set_bypass(bool value)
+{
+	struct le *le;
+	for (le = sessionl.head; le; le = le->next) {
+		struct session *sess = le->data;
+		sess->bypass = value;
+	}
+	bypass = value;
 }
 
 
