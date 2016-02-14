@@ -5,7 +5,7 @@
 - **Box** Changes to the [orange] hardware box
 - **Misc** Anything that is left or general.
 
-### v16.02.1-dev (xx.02.2016)
+### v16.02.1-beta (14.02.2016)
 
 - **Plugin** Add track bypass
 - **Misc** Rename audio in-/outputs
