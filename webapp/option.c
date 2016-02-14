@@ -20,8 +20,8 @@ void webapp_options_set(char *key, char *value)
 	ws_send_json(WS_OPTIONS, options);
 	webapp_write_file_json(options, filename);
 #ifdef SLPLUGIN
-	if (str_cmp(key, "bypass")) {
-		if (str_cmp(value, "false")) {
+	if (!str_cmp(key, "bypass")) {
+		if (!str_cmp(value, "false")) {
 			effect_set_bypass(false);
 		} else {
 			effect_set_bypass(true);
@@ -68,7 +68,6 @@ int webapp_options_init(void)
 		err = odict_alloc(&options, DICT_BSIZE);
 #ifdef SLPLUGIN
 		odict_entry_add(options, "auto-mix-n-1", ODICT_STRING, "true");
-		odict_entry_add(options, "effect-bypass", ODICT_STRING, "false");
 #endif
 	}
 	else {
@@ -77,6 +76,7 @@ int webapp_options_init(void)
 	}
 	if (err)
 		goto out;
+	odict_entry_del(options, "bypass");
 
 out:
 	mem_deref(mb);
@@ -86,7 +86,6 @@ out:
 
 void webapp_options_close(void)
 {
-	odict_entry_del(options, "bypass");
 	webapp_write_file_json(options, filename);
 	mem_deref(options);
 }
