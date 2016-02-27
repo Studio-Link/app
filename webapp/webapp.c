@@ -23,12 +23,13 @@ static char webapp_call_json[150] = {0};
 struct odict *webapp_calls = NULL;
 static char command[100] = {0};
 
+#ifndef SLPLUGIN
 static struct aufilt vumeter = {
 	LE_INIT, "webapp_vumeter",
 	webapp_vu_encode_update, webapp_vu_encode,
 	webapp_vu_decode_update, webapp_vu_decode
 };
-
+#endif
 
 static int http_sreply(struct http_conn *conn, uint16_t scode,
 		const char *reason, const char *ctype,
