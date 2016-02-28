@@ -5,6 +5,13 @@
 - **Box** Modifikationen der "orangenen" Box (Software)
 - **Generell** Allgemeine Veränderungen
 
+
+### v16.02.2-beta (xx.02.2016)
+
+- **Plugin** Bug im Audio Routing behoben
+- **Plugin** Windows/VST: Versionsinformationen hinzugefügt
+
+
 ### v16.02.1-beta (14.02.2016)
 
 - **Plugin** Neue Bypass Funktion (für den Schnitt)

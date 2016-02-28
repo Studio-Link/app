@@ -5,9 +5,11 @@
 - **Box** Changes to the [orange] hardware box
 - **Misc** Anything that is left or general.
 
+
 ### v16.02.2-beta (xx.02.2016)
 
-@TODO
+- **Plugin** Fix audio routing sync bug
+- **Plugin** Windows/VST: Add version information
 
 
 ### v16.02.1-beta (14.02.2016)
