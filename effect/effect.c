@@ -94,7 +94,6 @@ static bool channels[MAX_CHANNELS] = {false};
 
 static bool bypass = false;
 
-
 static void sess_destruct(void *arg)
 {
 	struct session *sess = arg;
@@ -145,7 +144,7 @@ struct session* effect_session_start(void)
 	lock_alloc(&sess->plock);
 
 	list_append(&sessionl, &sess->le, sess);
-	warning("SESSION STARTED\n");
+
 	if (0 == str_cmp(automixv, "true")) {
 		sess->run_auto_mix = true;
 		warning("auto mix enabled\n");
@@ -245,6 +244,10 @@ void effect_bypass(struct session *sess,
 		const float* const input1,
 		unsigned long nframes)
 {
+	struct le *le;
+	struct session *msess;
+	int8_t counter;
+
 	if (sess->run_play)
 		return;
 
@@ -260,6 +263,21 @@ void effect_bypass(struct session *sess,
 			output1[pos] = 0;
 		}
 	}
+
+
+	for (le = sessionl.head; le; le = le->next) {
+		msess = le->data;
+		if (msess != sess) {
+			counter = msess->trev - sess->trev;
+			if (counter > 1) {
+				sess->trev = msess->trev;
+				sess->prev = msess->prev;
+				warning("sync thread %d\n", counter);
+				return;
+			}
+		}
+	}
+
 	++sess->trev;
 	++sess->prev;
 }
