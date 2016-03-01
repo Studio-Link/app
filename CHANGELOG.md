@@ -6,10 +6,11 @@
 - **Misc** Anything that is left or general.
 
 
-### v16.02.2-beta (xx.02.2016)
+### v16.02.2-beta (xx.03.2016)
 
 - **Plugin** Fix audio routing sync bug
 - **Plugin** Windows/VST: Add version information
+- **Misc** OpenSSL 1.0.2g
 
 
 ### v16.02.1-beta (14.02.2016)
