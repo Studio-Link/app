@@ -6,6 +6,20 @@
 - **Misc** Anything that is left or general.
 
 
+### v16.02.2-beta (03.03.2016)
+
+- **Plugin** Fix audio routing sync bug
+- **Plugin** Windows/VST: Add version information
+- **Misc** OpenSSL 1.0.2g
+
+
+### v16.02.1-beta (14.02.2016)
+
+- **Plugin** Add track bypass
+- **Misc** Rename audio in-/outputs
+- **Misc** re 0.4.15
+
+
 ### v16.02.0-beta (07.02.2016)
 
 - **Standalone** Fix Audiounit mic input bug

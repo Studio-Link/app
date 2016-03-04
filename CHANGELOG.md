@@ -6,34 +6,9 @@
 - **Misc** Anything that is left or general.
 
 
-### v16.02.2-beta (03.03.2016)
+### v16.03.0-beta (xx.03.2016)
 
-- **Plugin** Fix audio routing sync bug
-- **Plugin** Windows/VST: Add version information
-- **Misc** OpenSSL 1.0.2g
+- **Misc** Accept dialing with enter key
 
-
-### v16.02.1-beta (14.02.2016)
-
-- **Plugin** Add track bypass
-- **Misc** Rename audio in-/outputs
-- **Misc** re 0.4.15
-
-
-### v16.02.0-beta (07.02.2016)
-
-- **Standalone** Fix Audiounit mic input bug
-- **Standalone** Signing OS X app bundle
-- **Plugin** Fix Apple Logic auval crashes
-- **Plugin** Raise audio channels/calls from 4 to 6
-- **Plugin** Add option auto-mix-n-1
-- **Misc** Fix possible Ghost Calls (rewrite call id handling)
-- **Misc** Support OS X Versions <10.11
-- **Misc** Improve vumeter warning state
-- **Misc** Show Studio Link SIP ID on front page
-- **Misc** Baresip 0.4.17
-- **Misc** rem 0.4.7
-- **Misc** Opus 1.1.2
-- **Misc** OpenSSL 1.0.2f
 
 [Complete Changelogs...](https://github.com/Studio-Link-v2/backend/blob/master/CHANGELOG-ARCHIVE.md)
