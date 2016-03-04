@@ -184,5 +184,5 @@ else
     codesign -f -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" --keychain ~/Library/Keychains/sl-build.keychain StudioLinkStandalone.app
     zip -r studio-link-plugin-osx StudioLink.component
     zip -r studio-link-standalone-osx StudioLinkStandalone.app
-    security delete-keychain sl-build.keychain
+    #security delete-keychain sl-build.keychain
 fi
