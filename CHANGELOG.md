@@ -9,6 +9,7 @@
 ### v16.03.0-beta (xx.03.2016)
 
 - **Misc** Accept dialing with enter key
+- **Standalone** OSX fix default samplerate (48kHz)
 
 
 [Complete Changelogs...](https://github.com/Studio-Link-v2/backend/blob/master/CHANGELOG-ARCHIVE.md)

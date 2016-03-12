@@ -99,6 +99,7 @@ if [ ! -d baresip-$baresip ]; then
     ## Add patches
     curl ${patch_url}...studio-link-config.patch | patch -p1
     patch -p1 < ../../build/max_calls.patch
+    patch -p1 < ../../build/osx_sample_rate.patch
 
     ## Link backend modules
     cp -a ../../webapp modules/webapp
