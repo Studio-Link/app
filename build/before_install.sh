@@ -12,6 +12,7 @@ if [ "$1" == "linux" ]; then
     fi
 elif [ "$1" == "osx" ]; then
     if [ "$(id -u)" != "0" ]; then
+        brew update
         wget https://github.com/Studio-Link-v2/homebrew-openssl/releases/download/$openssl/openssl-$openssl.mavericks.bottle.1.tar.gz
         brew install openssl-$openssl.mavericks.bottle.1.tar.gz
         security create-keychain -p travis sl-build.keychain
