@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+openssl="1.0.2g"
+
 if [ "$1" == "linux" ]; then
     if [ "$(id -u)" == "0" ]; then
         apt-get update -qq
@@ -10,8 +12,8 @@ if [ "$1" == "linux" ]; then
     fi
 elif [ "$1" == "osx" ]; then
     if [ "$(id -u)" != "0" ]; then
-        brew update
-        brew install openssl --universal 
+        wget https://github.com/Studio-Link-v2/homebrew-openssl/releases/download/$openssl/openssl-$openssl.mavericks.bottle.1.tar.gz
+        brew install openssl-$openssl.mavericks.bottle.1.tar.gz
         security create-keychain -p travis sl-build.keychain
         security import ./build/keychain/apple.cer -k ~/Library/Keychains/sl-build.keychain -T /usr/bin/codesign
         security import ./build/keychain/cert.cer -k ~/Library/Keychains/sl-build.keychain -T /usr/bin/codesign
