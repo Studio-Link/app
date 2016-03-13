@@ -1,5 +1,9 @@
 #!/bin/bash -ex
 
+version_t="v16.03.0-dev"
+version_n="16.03.0"
+
+#-----------------------------------------------------------------------------
 rem="0.4.7"
 re="0.4.15"
 opus="1.1.2"
@@ -17,14 +21,22 @@ mkdir -p src; cd src
 mkdir -p my_include
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+
     sl_extra_lflags="-L../openssl"
     sl_extra_modules="alsa"
+
 else
+    universal="-arch i386 -arch x86_64"
     sl_openssl_osx="/usr/local/opt/openssl/lib/libcrypto.a "
     sl_openssl_osx+="/usr/local/opt/openssl/lib/libssl.a"
+    
     sl_extra_lflags="-framework SystemConfiguration "
-    sl_extra_lflags+="-framework CoreFoundation $sl_openssl_osx"
+    sl_extra_lflags+="-framework CoreFoundation $sl_openssl_osx $universal"
     sl_extra_modules="audiounit"
+
+    opus_flags="CXXFLAGS='$universal' "
+    opus_flags+="CFLAGS='$universal' "
+    opus_flags+="LDFLAGS='$universal'"
 fi
 
 
@@ -59,7 +71,8 @@ if [ ! -d re-$re ]; then
     else
         cd re
         make USE_OPENSSL=1 \
-            EXTRA_CFLAGS="-I /usr/local/opt/openssl/include" libre.a
+            EXTRA_CFLAGS="-I /usr/local/opt/openssl/include $universal" \
+            EXTRA_LFLAGS="$universal" libre.a
         cd ..
     fi
     mkdir -p my_include/re
@@ -73,7 +86,9 @@ if [ ! -d rem-$rem ]; then
     wget -N "http://www.creytiv.com/pub/rem-${rem}.tar.gz"
     tar -xzf rem-${rem}.tar.gz
     ln -s rem-$rem rem
-    cd rem; make librem.a; cd ..
+    cd rem
+    make EXTRA_LFLAGS="$universal" EXTRA_CFLAGS="$universal" librem.a 
+    cd ..
 fi
 
 
@@ -82,7 +97,7 @@ fi
 if [ ! -d opus-$opus ]; then
     wget -N "http://downloads.xiph.org/releases/opus/opus-${opus}.tar.gz"
     tar -xzf opus-${opus}.tar.gz
-    cd opus-$opus; ./configure --with-pic; make; cd ..
+    cd opus-$opus; ./configure --with-pic; make $opus_flags; cd ..
     mkdir opus; cp opus-$opus/.libs/libopus.a opus/
     mkdir -p my_include/opus
     cp opus-$opus/include/*.h my_include/opus/ 
@@ -125,8 +140,8 @@ if [ ! -d baresip-$baresip ]; then
     make clean
     make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp effect" \
-        EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
-        EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
+        EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN $universal" \
+        EXTRA_LFLAGS="$sl_extra_lflags -L ../opus $universal" libbaresip.a
     cd ..
 fi
 
