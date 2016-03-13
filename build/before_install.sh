@@ -11,7 +11,7 @@ if [ "$1" == "linux" ]; then
 elif [ "$1" == "osx" ]; then
     if [ "$(id -u)" != "0" ]; then
         brew update
-        brew install openssl
+        brew install openssl --universal 
         security create-keychain -p travis sl-build.keychain
         security import ./build/keychain/apple.cer -k ~/Library/Keychains/sl-build.keychain -T /usr/bin/codesign
         security import ./build/keychain/cert.cer -k ~/Library/Keychains/sl-build.keychain -T /usr/bin/codesign

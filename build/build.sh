@@ -5,6 +5,7 @@ re="0.4.15"
 opus="1.1.2"
 openssl="1.0.2g"
 baresip="master"
+juce="4.1.0"
 github_org="https://github.com/Studio-Link-v2"
 patch_url="$github_org/baresip/compare/Studio-Link-v2:master"
 
@@ -144,9 +145,15 @@ fi
 #-----------------------------------------------------------------------------
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     if [ ! -d overlay-audio-unit ]; then
-        git clone --recursive \
+        git clone \
             $github_org/overlay-audio-unit.git overlay-audio-unit
-        cd overlay-audio-unit; ./build.sh; cd ..
+        cd overlay-audio-unit
+        wget https://github.com/julianstorer/JUCE/archive/$juce.tar.gz
+        tar -xzf $juce.tar.gz
+        rm -Rf JUCE
+        mv JUCE-$juce JUCE
+        ./build.sh
+        cd ..
     fi
 fi
 
