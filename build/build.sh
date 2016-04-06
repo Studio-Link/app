@@ -23,7 +23,7 @@ mkdir -p my_include
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
 
     sl_extra_lflags="-L../openssl"
-    sl_extra_modules="alsa"
+    sl_extra_modules="alsa jack"
 
 else
     universal="-arch i386 -arch x86_64"
