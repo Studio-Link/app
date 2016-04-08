@@ -1,7 +1,7 @@
 #!/bin/bash -ex
 
-version_t="v16.03.0-dev"
-version_n="16.03.0"
+version_t="v16.04.0-dev"
+version_n="16.04.0"
 
 #-----------------------------------------------------------------------------
 rem="0.4.7"
@@ -207,5 +207,5 @@ else
     codesign -f -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" --keychain ~/Library/Keychains/sl-build.keychain StudioLinkStandalone.app
     zip -r studio-link-plugin-osx StudioLink.component
     zip -r studio-link-standalone-osx StudioLinkStandalone.app
-    #security delete-keychain sl-build.keychain
+    security delete-keychain ~/Library/Keychains/sl-build.keychain
 fi
