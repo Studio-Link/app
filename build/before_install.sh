@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-openssl="1.0.2g"
+openssl="1.0.2h"
 
 if [ "$1" == "linux" ]; then
     if [ "$(id -u)" == "0" ]; then
