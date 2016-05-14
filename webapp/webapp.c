@@ -138,7 +138,6 @@ static void http_req_handler(struct http_conn *conn,
 #ifdef SLPLUGIN
 		const char* value = "plugin";
 #else
-		
 		const char* value = "standalone";
 #endif
 		http_sreply(conn, 200, "OK",
@@ -446,11 +445,9 @@ static int module_close(void)
 	webapp_options_close();
 	webapp_chat_close();
 	webapp_ws_close();
-
 #ifndef SLPLUGIN
 	aufilt_unregister(&vumeter);
 #endif
-
 	mem_deref(httpsock);
 	mem_deref(webapp_calls);
 	return 0;

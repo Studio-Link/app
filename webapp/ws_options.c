@@ -19,7 +19,7 @@ void webapp_ws_options(const struct websock_hdr *hdr,
 	key = odict_lookup(cmd, "key");
 	if (!key)
 		goto out;
-	
+
 	value = odict_lookup(cmd, "value");
 	if (!value)
 		goto out;

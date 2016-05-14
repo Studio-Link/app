@@ -7,7 +7,7 @@ static struct odict *options = NULL;
 static char filename[256] = "";
 
 
-const struct odict* webapp_options_get(void) 
+const struct odict* webapp_options_get(void)
 {
 	return (const struct odict *)options;
 }
@@ -23,7 +23,8 @@ void webapp_options_set(char *key, char *value)
 	if (!str_cmp(key, "bypass")) {
 		if (!str_cmp(value, "false")) {
 			effect_set_bypass(false);
-		} else {
+		}
+		else {
 			effect_set_bypass(true);
 		}
 	}
@@ -38,7 +39,7 @@ char* webapp_options_getv(char *key)
 
 	e = odict_lookup(options, key);
 
-	if(!e)
+	if (!e)
 		return NULL;
 
 	return e->u.str;
