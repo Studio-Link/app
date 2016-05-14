@@ -208,6 +208,8 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 
 	if (!msg)
 		goto out2;
+	if (!req)
+		return;
 
 	mb = msg->mb;
 
@@ -306,7 +308,7 @@ int webapp_accounts_init(void)
 
 	tmr_init(&tmr);
 #if defined (SLPLUGIN)
-	tmr_start(&tmr, 500, startup, NULL);
+	tmr_start(&tmr, 1000, startup, NULL);
 #else
 	startup(NULL);
 #endif
@@ -322,9 +324,8 @@ out:
 void webapp_accounts_close(void)
 {
 	tmr_cancel(&tmr);
-	if (req)
-		mem_deref(req);
+	req = mem_deref(req);
 	webapp_write_file_json(accs, filename);
-	mem_deref(accs);
+	accs = mem_deref(accs);
 	uag_current_set(NULL);
 }
