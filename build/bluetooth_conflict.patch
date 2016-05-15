@@ -1,0 +1,36 @@
+diff -Naur re-0.4.15/src/sdp/attr.c re-0.4.15_patched/src/sdp/attr.c
+--- re-0.4.15/src/sdp/attr.c    2012-04-10 11:32:34.000000000 +0200
++++ re-0.4.15_patched/src/sdp/attr.c    2016-05-15 11:25:37.714468859 +0200
+@@ -31,7 +31,7 @@
+ }
+ 
+ 
+-int sdp_attr_add(struct list *lst, struct pl *name, struct pl *val)
++int sdp_attr_addp(struct list *lst, struct pl *name, struct pl *val)
+ {
+        struct sdp_attr *attr;
+        int err;
+diff -Naur re-0.4.15/src/sdp/msg.c re-0.4.15_patched/src/sdp/msg.c
+--- re-0.4.15/src/sdp/msg.c     2014-06-03 13:39:20.000000000 +0200
++++ re-0.4.15_patched/src/sdp/msg.c     2016-05-15 11:25:40.814453575 +0200
+@@ -119,7 +119,7 @@
+                *dir = SDP_SENDRECV;
+ 
+        else
+-               err = sdp_attr_add(m ? &m->rattrl : &sess->rattrl,
++               err = sdp_attr_addp(m ? &m->rattrl : &sess->rattrl,
+                                   &name, &val);
+ 
+        return err;
+diff -Naur re-0.4.15/src/sdp/sdp.h re-0.4.15_patched/src/sdp/sdp.h
+--- re-0.4.15/src/sdp/sdp.h     2014-06-03 13:39:20.000000000 +0200
++++ re-0.4.15_patched/src/sdp/sdp.h     2016-05-15 11:25:39.214461492 +0200
+@@ -77,7 +77,7 @@
+ /* attribute */
+ struct sdp_attr;
+ 
+-int  sdp_attr_add(struct list *lst, struct pl *name, struct pl *val);
++int  sdp_attr_addp(struct list *lst, struct pl *name, struct pl *val);
+ int  sdp_attr_addv(struct list *lst, const char *name, const char *val,
+                   va_list ap);
+ void sdp_attr_del(const struct list *lst, const char *name);

@@ -65,16 +65,17 @@ if [ ! -d re-$re ]; then
     wget -N "http://www.creytiv.com/pub/re-${re}.tar.gz"
     tar -xzf re-${re}.tar.gz
     ln -s re-$re re
+    cd re
+    patch -p1 < ../../build/bluetooth_conflict.patch
+
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-        cd re
         make USE_OPENSSL=1 EXTRA_CFLAGS="-I ../my_include/" libre.a
-        cd ..
     else
-        cd re
         make USE_OPENSSL=1 \
             EXTRA_CFLAGS="-I /usr/local/opt/openssl/include" libre.a
-        cd ..
     fi
+
+    cd ..
     mkdir -p my_include/re
     cp -a re/include/* my_include/re/
 fi
