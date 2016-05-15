@@ -164,7 +164,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
         git clone \
             $github_org/overlay-audio-unit.git overlay-audio-unit
         cd overlay-audio-unit
-        sed -i'' s/SLVERSION_N/$version_n/ StudioLink/StudioLink.jucer
+        sed -i '' s/SLVERSION_N/$version_n/ StudioLink/StudioLink.jucer
         wget https://github.com/julianstorer/JUCE/archive/$juce.tar.gz
         tar -xzf $juce.tar.gz
         rm -Rf JUCE
@@ -185,7 +185,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
         cp -a my_include/baresip.h \
             overlay-standalone-osx/StudioLinkStandalone/
         cd overlay-standalone-osx
-        sed -i'' s/SLVERSION_N/$version_n/ StudioLinkStandalone/Info.plist
+        sed -i '' s/SLVERSION_N/$version_n/ StudioLinkStandalone/Info.plist
         ./build.sh
         cd ..
     fi
