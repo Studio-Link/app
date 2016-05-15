@@ -66,7 +66,7 @@ if [ ! -d re-$re ]; then
     tar -xzf re-${re}.tar.gz
     ln -s re-$re re
     cd re
-    patch -p1 < ../../build/bluetooth_conflict.patch
+    patch --ignore-whitespace -p1 < ../../build/bluetooth_conflict.patch
 
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
         make USE_OPENSSL=1 EXTRA_CFLAGS="-I ../my_include/" libre.a
