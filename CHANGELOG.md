@@ -6,9 +6,12 @@
 - **Misc** Anything that is left or general.
 
 
-### v16.03.0-beta (xx.03.2016)
+### v16.04.0-beta (15.05.2016)
 
 - **Misc** Accept dialing with enter key
+- **Misc** Cleanup Webinterface
+- **Plugin** Fix another OSX auval crash bug
+- **Plugin** Fix bluetooth conflict #5
 - **Standalone** OSX fix default samplerate (48kHz)
 
 

@@ -6,6 +6,20 @@
 - **Generell** Allgemeine Veränderungen
 
 
+### v16.02.2-beta (03.03.2016)
+
+- **Plugin** Bug im Audio Routing behoben
+- **Plugin** Windows/VST: Versionsinformationen hinzugefügt
+- **Generell** OpenSSL 1.0.2g
+
+
+### v16.02.1-beta (14.02.2016)
+
+- **Plugin** Neue Bypass Funktion (für den Schnitt)
+- **Misc** Audio Spuren umbenannt
+- **Generell** re 0.4.15
+
+
 ### v16.02.0-beta (07.02.2016)
 
 - **Generell** Geisteraustreibung von nicht sichtbaren Gesprächen
