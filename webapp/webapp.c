@@ -206,6 +206,60 @@ static void http_req_handler(struct http_conn *conn,
 			    fonts_glyphicons_halflings_regular_woff2_len);
 		return;
 	}
+	if (0 == pl_strcasecmp(&msg->path,
+				"/fonts/FontAwesome.otf")) {
+		http_sreply(conn, 200, "OK",
+			    "application/octet-stream",
+			    (const char*)
+			    fonts_FontAwesome_otf,
+			    fonts_FontAwesome_otf_len);
+		return;
+	}
+	if (0 == pl_strcasecmp(&msg->path,
+				"/fonts/fontawesome-webfont.eot")) {
+		http_sreply(conn, 200, "OK",
+			    "application/octet-stream",
+			    (const char*)
+			    fonts_fontawesome_webfont_eot,
+			    fonts_fontawesome_webfont_eot_len);
+		return;
+	}
+	if (0 == pl_strcasecmp(&msg->path,
+				"/fonts/fontawesome-webfont.svg")) {
+		http_sreply(conn, 200, "OK",
+			    "application/octet-stream",
+			    (const char*)
+			    fonts_fontawesome_webfont_svg,
+			    fonts_fontawesome_webfont_svg_len);
+		return;
+	}
+	if (0 == pl_strcasecmp(&msg->path,
+				"/fonts/fontawesome-webfont.ttf")) {
+		http_sreply(conn, 200, "OK",
+			    "application/octet-stream",
+			    (const char*)
+			    fonts_fontawesome_webfont_ttf,
+			    fonts_fontawesome_webfont_ttf_len);
+		return;
+	}
+	if (0 == pl_strcasecmp(&msg->path,
+				"/fonts/fontawesome-webfont.woff")) {
+		http_sreply(conn, 200, "OK",
+			    "application/octet-stream",
+			    (const char*)
+			    fonts_fontawesome_webfont_woff,
+			    fonts_fontawesome_webfont_woff_len);
+		return;
+	}
+	if (0 == pl_strcasecmp(&msg->path,
+				"/fonts/fontawesome-webfont.woff2")) {
+		http_sreply(conn, 200, "OK",
+			    "application/octet-stream",
+			    (const char*)
+			    fonts_fontawesome_webfont_woff2,
+			    fonts_fontawesome_webfont_woff2_len);
+		return;
+	}
 
 
 	http_ereply(conn, 404, "Not found");
