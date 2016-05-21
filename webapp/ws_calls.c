@@ -3,7 +3,38 @@
 #include "webapp.h"
 
 #define SIP_CLOSED "{ \"callback\": \"CLOSED\"}"
+#define CALLS_MUTED "{ \"callback\": \"MUTED\"}"
+#define CALLS_UNMUTED "{ \"callback\": \"UNMUTED\"}"
 
+static bool calls_muted = false;
+
+void webapp_ws_call_mute_send() {
+	if (calls_muted) {
+		ws_send_all(WS_CALLS, CALLS_MUTED);
+	}
+	else {
+		ws_send_all(WS_CALLS, CALLS_UNMUTED);
+	}
+}
+
+static int mute_calls(bool muted)
+{
+	struct list *calls = ua_calls(uag_current());
+	struct call *call = NULL;
+	struct le *le;
+	struct audio *audio;
+
+	for (le = list_head(calls); le; le = le->next) {
+		call = le->data;
+		audio = call_audio(call);
+		audio_mute(audio, muted);
+	}
+
+	calls_muted = muted;
+	webapp_ws_call_mute_send();
+
+	return 0;
+}
 
 static struct call* get_call(char *sid)
 {
@@ -69,9 +100,20 @@ void webapp_ws_calls(const struct websock_hdr *hdr,
 		webapp_call_delete(call);
 		ua_hangup(uag_current(), call, 0, NULL);
 		webapp_call_status = WS_CALL_OFF;
-		if (!active_calls())
+		if (!active_calls()) {
 			ws_send_all(WS_CALLS, SIP_CLOSED);
+			calls_muted = false;
+			webapp_ws_call_mute_send();
+		}
 		ws_send_json(WS_CALLS, webapp_calls);
+	}
+	else if (!str_cmp(e->u.str, "buttonmute")) {
+		if (calls_muted) {
+			mute_calls(false);
+		}
+		else {
+			mute_calls(true);
+		}
 	}
 
 out:
