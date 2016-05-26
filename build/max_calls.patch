@@ -7,7 +7,7 @@ index 009553a..559b470 100644
  
  enum {
 -	MAX_CALLS       =    4
-+	MAX_CALLS       =    6
++	MAX_CALLS       =    8
  };
  
  

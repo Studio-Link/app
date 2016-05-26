@@ -13,7 +13,7 @@
 #include "assets/fonts.h"
 #include "webapp.h"
 
-#define SLVERSION "16.04.0-beta"
+#define SLVERSION "16.04.1-beta"
 
 static struct tmr tmr;
 
