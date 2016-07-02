@@ -67,7 +67,7 @@ if [ ! -d re-$re ]; then
     ln -s re-$re re
     cd re
     patch --ignore-whitespace -p1 < ../../build/bluetooth_conflict.patch
-    patch -p1 < ../../build/re_ice_bug.patch
+    patch --ignore-whitespace -p1 < ../../build/re_ice_bug.patch
 
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
         make USE_OPENSSL=1 EXTRA_CFLAGS="-I ../my_include/" libre.a
