@@ -5,6 +5,12 @@
 - **Box** Changes to the [orange] hardware box
 - **Misc** Anything that is left or general.
 
+### v16.04.1-beta (02.07.2016)
+
+- **Plugin** Increase tracks (6->8)
+- **Plugin Linux LV2** Fix sync bug linux
+- **Misc** Fix possible failed audio channel (mostly one direction) after 30-300 seconds
+
 
 ### v16.04.0-beta (23.05.2016)
 
