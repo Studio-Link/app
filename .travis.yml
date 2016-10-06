@@ -2,6 +2,7 @@ language: c
 os:
 - osx
 - linux
+osx_image: xcode6.4
 before_install:
 - sudo ./build/before_install.sh $TRAVIS_OS_NAME
 - "./build/before_install.sh $TRAVIS_OS_NAME"

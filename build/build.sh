@@ -7,9 +7,10 @@ version_n="16.04.1"
 rem="0.4.7"
 re="0.4.15"
 opus="1.1.2"
-openssl="1.0.2h"
+openssl="1.0.2j"
 baresip="16.04.0"
 juce="4.1.0"
+github_org="https://github.com/Studio-Link-v2"
 
 # Start build
 #-----------------------------------------------------------------------------
@@ -24,18 +25,12 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     sl_extra_modules="alsa jack"
 
 else
-    #universal="-arch i386 -arch x86_64"
     sl_openssl_osx="/usr/local/opt/openssl/lib/libcrypto.a "
     sl_openssl_osx+="/usr/local/opt/openssl/lib/libssl.a"
     
     sl_extra_lflags="-framework SystemConfiguration "
     sl_extra_lflags+="-framework CoreFoundation $sl_openssl_osx"
     sl_extra_modules="audiounit"
-
-    #opus_flags="CXXFLAGS='$universal' "
-    #opus_flags+="CFLAGS='$universal' "
-    #opus_flags+="LDFLAGS='$universal'"
-    #./configure CC="$CC -m32"
 fi
 
 
