@@ -8,10 +8,8 @@ rem="0.4.7"
 re="0.4.15"
 opus="1.1.2"
 openssl="1.0.2h"
-baresip="master"
+baresip="16.04.0"
 juce="4.1.0"
-github_org="https://github.com/Studio-Link-v2"
-patch_url="$github_org/baresip/compare/Studio-Link-v2:master"
 
 # Start build
 #-----------------------------------------------------------------------------
@@ -66,8 +64,8 @@ if [ ! -d re-$re ]; then
     tar -xzf re-${re}.tar.gz
     ln -s re-$re re
     cd re
-    patch --ignore-whitespace -p1 < ../../build/bluetooth_conflict.patch
-    patch --ignore-whitespace -p1 < ../../build/re_ice_bug.patch
+    patch --ignore-whitespace -p1 < ../../build/patches/bluetooth_conflict.patch
+    patch --ignore-whitespace -p1 < ../../build/patches/re_ice_bug.patch
 
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
         make USE_OPENSSL=1 EXTRA_CFLAGS="-I ../my_include/" libre.a
@@ -109,15 +107,16 @@ fi
 # Build baresip with studio link addons
 #-----------------------------------------------------------------------------
 if [ ! -d baresip-$baresip ]; then
-    git clone $github_org/baresip.git baresip-$baresip
+    wget https://github.com/Studio-Link-v2/baresip/archive/$baresip.tar.gz
+    tar -xzf $baresip.tar.gz
     ln -s baresip-$baresip baresip
     cp -a baresip-$baresip/include/baresip.h my_include/
     cd baresip-$baresip;
 
     ## Add patches
-    curl ${patch_url}...studio-link-config.patch | patch -p1
-    patch -p1 < ../../build/max_calls.patch
-    patch -p1 < ../../build/osx_sample_rate.patch
+    patch -p1 < ../../build/patches/config.patch
+    patch -p1 < ../../build/patches/max_calls.patch
+    patch -p1 < ../../build/patches/osx_sample_rate.patch
 
     ## Link backend modules
     cp -a ../../webapp modules/webapp
