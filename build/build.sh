@@ -204,7 +204,7 @@ else
     otool -L studio-link-standalone
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
     mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app
-    codesign -f -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" --keychain ~/Library/Keychains/sl-build.keychain StudioLinkStandalone.app
+    codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" --keychain ~/Library/Keychains/sl-build.keychain StudioLinkStandalone.app
     zip -r studio-link-plugin-osx StudioLink.component
     zip -r studio-link-standalone-osx StudioLinkStandalone.app
     #security delete-keychain ~/Library/Keychains/sl-build.keychain
