@@ -16,5 +16,7 @@ elif [ "$1" == "osx" ]; then
         security import ./build/keychain/apple.cer -k ~/Library/Keychains/sl-build.keychain -T /usr/bin/codesign
         security import ./build/keychain/cert.cer -k ~/Library/Keychains/sl-build.keychain -T /usr/bin/codesign
         security import ./build/keychain/key.p12 -k ~/Library/Keychains/sl-build.keychain -P $KEY_PASSWORD -T /usr/bin/codesign
+        # Increase default timeout 5min
+        security set-keychain-settings -t 3600 -l ~/Library/Keychains/sl-build.keychain
     fi
 fi
