@@ -8,7 +8,7 @@ rem="0.4.7"
 re="0.4.15"
 opus="1.1.2"
 openssl="1.0.2j"
-baresip="v0.4.20"
+baresip="16.04.0"
 juce="4.1.0"
 github_org="https://github.com/Studio-Link-v2"
 
