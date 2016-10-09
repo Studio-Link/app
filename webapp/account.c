@@ -255,11 +255,12 @@ static void provisioning(void)
 	char path[] = "provisioning/index.php";
 	struct http_cli *cli = NULL;
 	struct config *cfg = conf_config();
+	const struct network *net = baresip_network();
 
 	re_snprintf(url, sizeof(url), "https://%s/%s?uuid=%s",
 			host, path, cfg->sip.uuid);
 
-	http_client_alloc(&cli, net_dnsc());
+	http_client_alloc(&cli, net_dnsc(net));
 
 	http_request(&req, cli, "GET", url, http_resp_handler,
 			http_data_handler, NULL, NULL);

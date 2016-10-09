@@ -42,6 +42,7 @@ static void message_handler(const struct pl *peer, const struct pl *ctype,
 	(void)arg;
 	char message[256] = {0};
 	char s_peer[50] = {0};
+	struct contacts *contacts = baresip_contacts();
 
 	(void)re_snprintf(message, sizeof(message), "%b",
 			mbuf_buf(body), mbuf_get_left(body));
@@ -50,7 +51,7 @@ static void message_handler(const struct pl *peer, const struct pl *ctype,
 
 	warning("message from %s: %s\n", s_peer, message);
 
-	struct contact *c = contact_find(s_peer);
+	struct contact *c = contact_find(contacts, s_peer);
 
 	if (c) {
 		const struct sip_addr *addr = contact_addr(c);
