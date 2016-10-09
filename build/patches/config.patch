@@ -1,7 +1,7 @@
 From 3e4ebb4feb0956f478d16d05586fa95ac25c1fcf Mon Sep 17 00:00:00 2001
 From: Sebastian Reimers <info@miete-admin.de>
 Date: Sun, 9 Oct 2016 11:41:38 +0200
-Subject: [PATCH 1/2] add sl config
+Subject: [PATCH 1/3] add sl config
 
 ---
  src/conf.c   | 11 ++++++++++-
@@ -187,7 +187,7 @@ index b81c43e..999bacd 100644
 From 3965041fd1d876d76f677cfc1fcebe152e0ff127 Mon Sep 17 00:00:00 2001
 From: Sebastian Reimers <info@miete-admin.de>
 Date: Sun, 9 Oct 2016 11:44:01 +0200
-Subject: [PATCH 2/2] fix eldif
+Subject: [PATCH 2/3] fix eldif
 
 ---
  src/conf.c | 4 ++--
@@ -210,3 +210,25 @@ index c56a39a..c619b24 100644
  	if (re_snprintf(path, sz, "%s" DIR_SEP ".studio-link-live", buf) < 0)
  		return ENOMEM;
  #else
+
+From 8e7fa2b861453c57305a4735ef5a1eb0a12209ad Mon Sep 17 00:00:00 2001
+From: Sebastian Reimers <info@miete-admin.de>
+Date: Sun, 9 Oct 2016 14:32:05 +0200
+Subject: [PATCH 3/3] fix config
+
+---
+ src/config.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/config.c b/src/config.c
+index 999bacd..d19ec05 100644
+--- a/src/config.c
++++ b/src/config.c
+@@ -484,7 +484,6 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
+ 			  "\n# Network\n"
+ 			  "#dns_server\t\t10.0.0.1:53\n"
+ 			  "#net_interface\t\t%H\n",
+-			  cfg->avt.jbuf_del.min, cfg->avt.jbuf_del.max,
+ 			  default_interface_print, NULL);
+ 
+ #ifdef USE_VIDEO
