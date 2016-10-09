@@ -5,8 +5,8 @@ version_n="16.10.0"
 
 #-----------------------------------------------------------------------------
 rem="0.4.7"
-re="0.4.15"
-opus="1.1.2"
+re="0.4.17"
+opus="1.1.3"
 openssl="1.0.2j"
 baresip="master"
 juce="4.1.0"
@@ -110,7 +110,7 @@ if [ ! -d baresip-$baresip ]; then
 
     ## Add patches
     patch -p1 < ../../build/patches/config.patch
-    patch -p1 < ../../build/patches/max_calls.patch
+    #patch -p1 < ../../build/patches/max_calls.patch
     patch -p1 < ../../build/patches/osx_sample_rate.patch
 
     ## Link backend modules
