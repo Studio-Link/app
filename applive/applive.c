@@ -30,13 +30,13 @@ static int module_init(void)
 	webapp_accounts_init();
 
 #if defined (DARWIN)
-	re_snprintf(command, sizeof(command), "open http://stream.studio-link.de/auth.php?uuid=%s/",
+	re_snprintf(command, sizeof(command), "open https://control.studio-link.de/auth.php?uuid=%s",
 			cfg->sip.uuid);
 #elif defined (WIN32)
-	re_snprintf(command, sizeof(command), "start http://stream.studio-link.de/auth.php?uuid=%s/",
+	re_snprintf(command, sizeof(command), "start https://control.studio-link.de/auth.php?uuid=%s",
 			cfg->sip.uuid);
 #else
-	re_snprintf(command, sizeof(command), "xdg-open http://stream.studio-link.de/auth.php?uuid=%s/",
+	re_snprintf(command, sizeof(command), "xdg-open https://control.studio-link.de/auth.php?uuid=%s",
 			cfg->sip.uuid);
 #endif
 
