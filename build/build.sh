@@ -132,6 +132,15 @@ if [ ! -d baresip-$baresip ]; then
         EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
     cp -a libbaresip.a ../my_include/libbaresip_standalone.a
 
+    # Effectlive Plugin
+    make clean
+    make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+        MODULES="opus stdio ice g711 turn stun uuid auloop applive effectlive" \
+        EXTRA_CFLAGS="-I ../my_include -DSLIVE" \
+        EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
+    cp -a libbaresip.a ../my_include/libbaresip_live.a
+    cd ..
+
     # Effect Plugin
     make clean
     make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
@@ -139,6 +148,7 @@ if [ ! -d baresip-$baresip ]; then
         EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
         EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
     cd ..
+
 fi
 
 
