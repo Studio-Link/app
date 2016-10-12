@@ -9,7 +9,7 @@ re="0.4.17"
 opus="1.1.3"
 openssl="1.0.2j"
 baresip="master"
-juce="4.1.0"
+juce="4.2.4"
 github_org="https://github.com/Studio-Link-v2"
 
 # Start build
@@ -181,6 +181,24 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
 fi
 
 
+# Build overlay-audio-unit plugin (osx only)
+#-----------------------------------------------------------------------------
+if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+    if [ ! -d overlay-live-au ]; then
+        git clone \
+            $github_org/overlay-live-au.git overlay-live-au
+        cd overlay-live-au
+        #sed -i '' s/SLVERSION_N/$version_n/ StudioLink/StudioLink.jucer
+        wget https://github.com/julianstorer/JUCE/archive/$juce.tar.gz
+        tar -xzf $juce.tar.gz
+        rm -Rf JUCE
+        mv JUCE-$juce JUCE
+        ./build.sh
+        cd ..
+    fi
+fi
+
+
 # Build standalone app bundle (osx only)
 #-----------------------------------------------------------------------------
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
@@ -214,9 +232,10 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
 else
     otool -L studio-link-standalone
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
+    cp -a ~/Library/Audio/Plug-Ins/Components/StudioLinkLive.component StudioLinkLive.component
     mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app
     codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" --keychain ~/Library/Keychains/sl-build.keychain StudioLinkStandalone.app
-    zip -r studio-link-plugin-osx StudioLink.component
+    zip -r studio-link-plugin-osx StudioLink.component StudioLinkLive.component
     zip -r studio-link-standalone-osx StudioLinkStandalone.app
     #security delete-keychain ~/Library/Keychains/sl-build.keychain
 fi
