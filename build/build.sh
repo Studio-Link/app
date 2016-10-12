@@ -141,7 +141,6 @@ if [ ! -d baresip-$baresip ]; then
         EXTRA_CFLAGS="-I ../my_include -DSLIVE" \
         EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
     cp -a libbaresip.a ../my_include/libbaresip_live.a
-    cd ..
 
     # Effect Plugin
     make clean
@@ -149,8 +148,8 @@ if [ ! -d baresip-$baresip ]; then
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp effect" \
         EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
         EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
-    cd ..
 
+    cd ..
 fi
 
 
