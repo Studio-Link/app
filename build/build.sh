@@ -116,6 +116,8 @@ if [ ! -d baresip-$baresip ]; then
     ## Link backend modules
     cp -a ../../webapp modules/webapp
     cp -a ../../effect modules/effect
+    cp -a ../../effectlive modules/effectlive
+    cp -a ../../applive modules/applive
 
     # Standalone
     make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
