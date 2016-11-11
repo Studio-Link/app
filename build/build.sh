@@ -5,13 +5,12 @@ version_n="16.10.0"
 
 #-----------------------------------------------------------------------------
 rem="0.4.7"
-re="0.4.17"
+re="master"
 opus="1.1.3"
-openssl="1.0.2j"
+openssl="1.1.0c"
 baresip="master"
 juce="4.2.4"
 github_org="https://github.com/Studio-Link-v2"
-
 
 if [ "$BUILD_OS" == "windows" ]; then
     curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash
@@ -25,43 +24,38 @@ echo "start build on $TRAVIS_OS_NAME"
 mkdir -p src; cd src
 mkdir -p my_include
 
+sl_extra_lflags="-L../openssl"
+
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-
-    sl_extra_lflags="-L../openssl"
     sl_extra_modules="alsa jack"
-
 else
-    sl_openssl_osx="/usr/local/opt/openssl/lib/libcrypto.a "
-    sl_openssl_osx+="/usr/local/opt/openssl/lib/libssl.a"
-    
     sl_extra_lflags="-framework SystemConfiguration "
-    sl_extra_lflags+="-framework CoreFoundation $sl_openssl_osx"
+    sl_extra_lflags+="-framework CoreFoundation"
     sl_extra_modules="audiounit"
 fi
 
 
 # Build openssl (linux only)
 #-----------------------------------------------------------------------------
-if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+#if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     if [ ! -d openssl-${openssl} ]; then
         wget https://www.openssl.org/source/openssl-${openssl}.tar.gz
         tar -xzf openssl-${openssl}.tar.gz
         ln -s openssl-${openssl} openssl
         cd openssl
-        ./config -fPIC shared
-        make
-        rm -f libcrypto.so
-        rm -f libssl.so
+        ./Configure no-shared
+        make build_libs
         cp -a include/openssl ../my_include/
         cd ..
     fi
-fi
+#fi
 
 
 # Build libre
 #-----------------------------------------------------------------------------
 if [ ! -d re-$re ]; then
-    wget -N "http://www.creytiv.com/pub/re-${re}.tar.gz"
+    #wget -N "http://www.creytiv.com/pub/re-${re}.tar.gz"
+    wget https://github.com/creytiv/re/archive/${re}.tar.gz
     tar -xzf re-${re}.tar.gz
     ln -s re-$re re
     cd re
