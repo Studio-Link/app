@@ -19,4 +19,6 @@ elif [ "$1" == "osx" ]; then
         # Increase default timeout 5min
         security set-keychain-settings -t 3600 -l ~/Library/Keychains/sl-build.keychain
     fi
+elif [ "$1" == "windows" ]; then
+    curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash
 fi

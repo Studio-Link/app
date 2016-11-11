@@ -4,19 +4,41 @@ os:
 - linux
 osx_image: xcode7.1
 before_install:
-- sudo ./build/before_install.sh $TRAVIS_OS_NAME
-- "./build/before_install.sh $TRAVIS_OS_NAME"
-script: "./build/build.sh"
+- sudo ./build/before_install.sh $BUILD_OS
+- "./build/before_install.sh $BUILD_OS"
+script: "./build/build.sh $BUILD_OS"
 deploy:
   provider: releases
   api_key:
     secure: R7Qo1n7SPn0lumai6BssUVXInVoS3ZylraT0OJOeJpN9iLE4iri4p4unrJV7PiVetxsscGYQ0ijnTG2q0DymjiD0eKNBaMmx5os5mvi1x7VBDtAW1Ki53N/S4EQMF0JKEbeKzuW0Jsp21wGEv3ZDpdq2u8Bf+M1+qEpYz0t8FU8gtFLIrpfszUqv9L+wOcnEwepiZUGRD1czfM7lJ39bkOC5gSaskekcydk3qECzdlZdh4e4vnlI9ymNOvDiaPtBiXgDVBhq4QVCuOy696k2NKD9cpeLLblgxSYDTphQAfLZn93CQ0Knx3wr8YImVJA6qtprPuoPLgS3HWZW0uxVdLqKTsqIH6YbSbjK6Awg1xJhiWJMwK2oDC1EU6+RgeaV7x3KbmT7prJiZQGfhp5mWIxoGvXabLrwh17JInWYyq8+CS3xDdTEykQmZYsAEW6CR96Ie4YnrK9YjwE+PVwUiwyiGhKzdato4br9lKs6nrZpXwydYUvWqNfNeaQtFjiHSkb6Gac2Dj7PliWnScm/qq9imaq/Riz9L/X6Gogw9CFSVdf8pM932Jgl65dIf99BMJT4uBCcWddCpEgKa8/RMRDLp38GiJQbw6CSQUVs4zHBtT2PbiurCp5TBmrRvwOYOAfcbPoTJ+lx9nAG4pULHW2HdXBkC0hRSuTUZOFu/G8=
   file: 
-          - src/studio-link-standalone-$TRAVIS_OS_NAME.zip
-          - src/studio-link-plugin-$TRAVIS_OS_NAME.zip
+          - src/studio-link-standalone-$BUILD_OS.zip
+          - src/studio-link-plugin-$BUILD_OS.zip
   skip_cleanup: true
   on:
     tags: true
 env:
   global:
     secure: WkYGUGZ3XX88IebmFHtVnPu7arU7cxAmNPIMv3/S6IpWotIdn4/KWocNdKyB7AHJcs/fI/ER+gdZOFHMxLG+6R/lexk1BUv8Okszv9/2Fo1k+Sk5pF1YmTnh3uBagYE4Tm0LE5jA9ZnBt1AlX4ocO51faTEJFACpna5+OpOzxhi3doRbHqACSxFpm4XVxIPKv4ZPR9xQ4wAT1xbg9x2bM6f5XSXxHVN10LkEXN2YeaQVTmg+B+CzJ4ET3M7Yv3jEuysKliAARmz6O+a+WcVmQh9oDfy79AXwbTThKOopD4W18Ed4REpO/y5cvIEXg2cKUtynTLdrlEtpSqFeLIJgx7eAIbQhMMQERx1W+onN/OJB8221KsCPceA4w3k7EBERPr1Fnj/vkrfvWVlQjohjxrVW9kfhgCcpYYemz7PbEC/svSwvzTxUUSM4b8SHnpqf9lr/ydFOl0pwRewVwBnaByPr2ENz1aViFBJXp+Mg1RsUXVb9Q4iNOFW2snN4svOD5+Wi02jIT8xNO94wyC46b607WN9cb9bhl9gNafZr+b/wLR2xCfJzUW4CHoKX5OstNOXUtL6c9b0tOpUCKxO4FoEBClkPsrWSu3af1JkSMaLMJY+73lxk3ABrkmK9Fm6x3/q1oYX7N/SI/KFfdVCYGlNubqrLEzr4xMeuLNkrVvo=
+
+  - BUILD_OS="windows"          
+  - BUILD_OS="linux"         
+  - BUILD_OS="osx"
+
+matrix:              
+        exclude:            
+          - os: osx                
+            env: BUILD_OS="windows"             
+          - os: osx          
+            env: BUILD_OS="linux"         
+          - os: linux          
+            env: BUILD_OS="osx"
+
+arch:
+        packages:
+            - mingw-w64-gcc
+            - mingw-w64-winpthreads
+            - mingw-w64-opus
+        script:
+            - "./build/build_windows.sh"
+
