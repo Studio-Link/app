@@ -62,10 +62,14 @@ if [ ! -d re-$re ]; then
     patch --ignore-whitespace -p1 < ../../build/patches/bluetooth_conflict.patch
     patch --ignore-whitespace -p1 < ../../build/patches/re_ice_bug.patch
 
+
+    # WARNING build releases with RELEASE=1, because otherwise its MEM Debug
+    # statements are not THREAD SAFE! on every platform, especilly windows.
+
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-        make USE_OPENSSL=1 EXTRA_CFLAGS="-I ../my_include/" libre.a
+        make RELEASE=1 USE_OPENSSL=1 EXTRA_CFLAGS="-I ../my_include/" libre.a
     else
-        make USE_OPENSSL=1 \
+        make RELEASE=1 USE_OPENSSL=1 \
             EXTRA_CFLAGS="-I /usr/local/opt/openssl/include" libre.a
     fi
 
@@ -82,7 +86,7 @@ if [ ! -d rem-$rem ]; then
     tar -xzf rem-${rem}.tar.gz
     ln -s rem-$rem rem
     cd rem
-    make librem.a 
+    make RELEASE=1 librem.a 
     cd ..
 fi
 
@@ -120,7 +124,7 @@ if [ ! -d baresip-$baresip ]; then
     cp -a ../../applive modules/applive
 
     # Standalone
-    make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
         EXTRA_CFLAGS="-I ../my_include" \
         EXTRA_LFLAGS="$sl_extra_lflags -L ../opus"
@@ -128,7 +132,7 @@ if [ ! -d baresip-$baresip ]; then
     cp -a baresip ../studio-link-standalone
 
     # libbaresip.a without effect plugin
-    make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
         EXTRA_CFLAGS="-I ../my_include" \
         EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
@@ -136,7 +140,7 @@ if [ ! -d baresip-$baresip ]; then
 
     # Effectlive Plugin
     make clean
-    make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop applive effectlive" \
         EXTRA_CFLAGS="-I ../my_include -DSLIVE" \
         EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
@@ -144,7 +148,7 @@ if [ ! -d baresip-$baresip ]; then
 
     # Effect Plugin
     make clean
-    make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp effect" \
         EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
         EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
