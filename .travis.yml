@@ -1,4 +1,3 @@
-language: c
 os:
 - osx
 - linux
@@ -25,7 +24,6 @@ env:
     - BUILD_OS="windows"          
     - BUILD_OS="linux"         
     - BUILD_OS="osx"
-
 matrix:              
         exclude:            
           - os: osx                
@@ -34,7 +32,6 @@ matrix:
             env: BUILD_OS="linux"         
           - os: linux          
             env: BUILD_OS="osx"
-
 arch:
         packages:
             - mingw-w64-gcc
@@ -42,4 +39,3 @@ arch:
             - mingw-w64-opus
         script:
             - "./build/build_windows.sh"
-
