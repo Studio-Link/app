@@ -21,6 +21,6 @@ elif [ "$1" == "osx" ]; then
     fi
 elif [ "$1" == "windows" ]; then
     if [ "$(id -u)" != "0" ]; then
-        curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash
+#        curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash
     fi
 fi

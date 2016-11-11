@@ -12,6 +12,12 @@ baresip="master"
 juce="4.2.4"
 github_org="https://github.com/Studio-Link-v2"
 
+
+if [ "$BUILD_OS" == "windows" ]; then
+    curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash
+    exit 0
+fi
+
 # Start build
 #-----------------------------------------------------------------------------
 echo "start build on $TRAVIS_OS_NAME"
