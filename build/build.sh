@@ -27,8 +27,10 @@ mkdir -p my_include
 sl_extra_lflags="-L../openssl"
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+    openssl_target="linux-x86_64"
     sl_extra_modules="alsa jack"
 else
+    openssl_target="darwin64-x86_64-cc"
     sl_extra_lflags="-framework SystemConfiguration "
     sl_extra_lflags+="-framework CoreFoundation"
     sl_extra_modules="audiounit"
@@ -43,7 +45,7 @@ fi
         tar -xzf openssl-${openssl}.tar.gz
         ln -s openssl-${openssl} openssl
         cd openssl
-        ./Configure no-shared
+        ./Configure $openssl_target no-shared
         make build_libs
         cp -a include/openssl ../my_include/
         cd ..
