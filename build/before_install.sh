@@ -20,5 +20,7 @@ elif [ "$1" == "osx" ]; then
         security set-keychain-settings -t 3600 -l ~/Library/Keychains/sl-build.keychain
     fi
 elif [ "$1" == "windows" ]; then
-    curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash
+    if [ "$(id -u)" == "0" ]; then
+        curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash
+    fi
 fi
