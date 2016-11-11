@@ -58,7 +58,7 @@ fi
 if [ ! -d re-$re ]; then
     #wget -N "http://www.creytiv.com/pub/re-${re}.tar.gz"
     wget https://github.com/creytiv/re/archive/${re}.tar.gz
-    tar -xzf re-${re}.tar.gz
+    tar -xzf ${re}.tar.gz
     ln -s re-$re re
     cd re
     patch --ignore-whitespace -p1 < ../../build/patches/bluetooth_conflict.patch
