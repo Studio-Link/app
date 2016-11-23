@@ -56,7 +56,6 @@ if [ ! -d baresip-$baresip ]; then
 
     ## Add patches
     patch -p1 < ../../build/patches/config.patch
-    #patch -p1 < ../../build/patches/max_calls.patch
     patch -p1 < ../../build/patches/osx_sample_rate.patch
 
     ## Link backend modules
@@ -70,7 +69,7 @@ fi
 # Build
 #-----------------------------------------------------------------------------
 
-cp -a ../../build/windows/Makefile .
+cp -a ../build/windows/Makefile .
 make openssl
 make
 ls -lha
