@@ -52,7 +52,6 @@ if [ ! -d baresip-$baresip ]; then
     wget https://github.com/Studio-Link-v2/baresip/archive/$baresip.tar.gz
     tar -xzf $baresip.tar.gz
     ln -s baresip-$baresip baresip
-    cp -a baresip-$baresip/include/baresip.h my_include/
     cd baresip-$baresip;
 
     ## Add patches
