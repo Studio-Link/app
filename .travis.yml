@@ -37,5 +37,6 @@ arch:
             - mingw-w64-gcc
             - mingw-w64-winpthreads
             - mingw-w64-opus
+            - wget
         script:
             - "./build/build_windows.sh"
