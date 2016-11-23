@@ -8,6 +8,7 @@ rem="0.4.7"
 re="master"
 opus="1.1.3"
 openssl="1.1.0c"
+openssl_sha256="fc436441a2e05752d31b4e46115eb89709a28aef96d4fe786abe92409b2fd6f5"
 baresip="master"
 github_org="https://github.com/Studio-Link-v2"
 
