@@ -32,7 +32,7 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
 else
     openssl_target="darwin64-x86_64-cc"
     sl_extra_lflags+="-framework SystemConfiguration "
-    sl_extra_lflags+="-framework CoreFoundation "
+    sl_extra_lflags+="-framework CoreFoundation"
     sl_extra_modules="audiounit"
 fi
 
@@ -69,12 +69,7 @@ if [ ! -d re-$re ]; then
     # WARNING build releases with RELEASE=1, because otherwise its MEM Debug
     # statements are not THREAD SAFE! on every platform, especilly windows.
 
-    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-        make RELEASE=1 USE_OPENSSL=1 EXTRA_CFLAGS="-I ../my_include/" libre.a
-    else
-        make RELEASE=1 USE_OPENSSL=1 \
-            EXTRA_CFLAGS="-I /usr/local/opt/openssl/include" libre.a
-    fi
+    make RELEASE=1 USE_OPENSSL=1 EXTRA_CFLAGS="-I ../my_include/" libre.a
 
     cd ..
     mkdir -p my_include/re
