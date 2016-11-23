@@ -91,7 +91,7 @@ baresip:	Makefile librem.a libre.a
 openssl:
 	cd openssl && \
 		CC=$(CC) RANLIB=$(RANLIB) AR=$(AR) \
-		./Configure $(SLARCH) no-shared && \
+		./Configure $(SSLARCH) no-shared && \
 		make build_libs
 
 clean:
