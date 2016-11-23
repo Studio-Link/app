@@ -24,7 +24,7 @@ echo "start build on $TRAVIS_OS_NAME"
 mkdir -p src; cd src
 mkdir -p my_include
 
-sl_extra_lflags="-L../openssl"
+sl_extra_lflags="-L ../openssl -L ../opus "
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     openssl_target="linux-x86_64"
@@ -32,7 +32,7 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
 else
     openssl_target="darwin64-x86_64-cc"
     sl_extra_lflags+="-framework SystemConfiguration "
-    sl_extra_lflags+="-framework CoreFoundation"
+    sl_extra_lflags+="-framework CoreFoundation "
     sl_extra_modules="audiounit"
 fi
 
@@ -130,7 +130,7 @@ if [ ! -d baresip-$baresip ]; then
     make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
         EXTRA_CFLAGS="-I ../my_include" \
-        EXTRA_LFLAGS="$sl_extra_lflags -L ../opus"
+        EXTRA_LFLAGS="$sl_extra_lflags"
 
     cp -a baresip ../studio-link-standalone
 
@@ -138,7 +138,7 @@ if [ ! -d baresip-$baresip ]; then
     make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
         EXTRA_CFLAGS="-I ../my_include" \
-        EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
+        EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
     cp -a libbaresip.a ../my_include/libbaresip_standalone.a
 
     # Effectlive Plugin
@@ -146,7 +146,7 @@ if [ ! -d baresip-$baresip ]; then
     make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop applive effectlive" \
         EXTRA_CFLAGS="-I ../my_include -DSLIVE" \
-        EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
+        EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
     cp -a libbaresip.a ../my_include/libbaresip_live.a
 
     # Effect Plugin
@@ -154,7 +154,7 @@ if [ ! -d baresip-$baresip ]; then
     make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp effect" \
         EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
-        EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
+        EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
 
     cd ..
 fi
