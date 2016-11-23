@@ -46,6 +46,29 @@ if [ ! -d rem-$rem ]; then
     ln -s rem-$rem rem
 fi
 
+# Build opus
+#-----------------------------------------------------------------------------
+if [ ! -d opus-$opus ]; then
+    if [ "$BUILD_OS" == "windows32" ]; then
+        _arch="i686-w64-mingw32"
+    else
+        _arch="x86_64-w64-mingw32"
+    fi
+    wget -N "http://downloads.xiph.org/releases/opus/opus-${opus}.tar.gz"
+    tar -xzf opus-${opus}.tar.gz
+    mkdir opus-$opus/build
+    pushd opus-$opus/build
+    ${_arch}-configure \
+        --enable-custom-modes \
+        --disable-doc \
+        --disable-extra-programs
+    make
+    popd
+    mkdir opus; cp opus-$opus/build/.libs/libopus.a opus/
+    cp -a opus-$opus/include opus/
+fi
+
+
 # Download baresip with studio link addons
 #-----------------------------------------------------------------------------
 if [ ! -d baresip-$baresip ]; then
