@@ -6,9 +6,11 @@
 
 ifeq ($(BUILD_OS),windows64)
 	TUPLE   := x86_64-w64-mingw32
+	SLARCH	:= 64
 endif
 ifeq ($(BUILD_OS),windows32)
 	TUPLE	:= i686-w64-mingw32
+	SLARCH	:= 32	
 endif
 
 
@@ -19,7 +21,6 @@ CXX       := $(TUPLE)-g++
 RANLIB    := $(TUPLE)-ranlib
 AR        := $(TUPLE)-ar
 PWD       := $(shell pwd)
-WINE      := wine
 
 
 # Compiler and Linker Flags
@@ -90,7 +91,7 @@ baresip:	Makefile librem.a libre.a
 openssl:
 	cd openssl && \
 		CC=$(CC) RANLIB=$(RANLIB) AR=$(AR) \
-		./Configure mingw64 no-shared && \
+		./Configure mingw$(SLARCH) no-shared && \
 		make build_libs
 
 clean:
