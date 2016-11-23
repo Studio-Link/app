@@ -12,8 +12,8 @@ openssl_sha256="fc436441a2e05752d31b4e46115eb89709a28aef96d4fe786abe92409b2fd6f5
 baresip="master"
 github_org="https://github.com/Studio-Link-v2"
 
-mkdir src_windows
-cd src_windows
+mkdir src
+cd src
 
 # Download openssl
 #-----------------------------------------------------------------------------
