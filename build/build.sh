@@ -8,6 +8,7 @@ rem="0.4.7"
 re="master"
 opus="1.1.3"
 openssl="1.1.0c"
+openssl_sha256="fc436441a2e05752d31b4e46115eb89709a28aef96d4fe786abe92409b2fd6f5"
 baresip="master"
 juce="4.2.4"
 github_org="https://github.com/Studio-Link-v2"
@@ -42,6 +43,7 @@ fi
 #if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     if [ ! -d openssl-${openssl} ]; then
         wget https://www.openssl.org/source/openssl-${openssl}.tar.gz
+        echo "$openssl_sha256  openssl-${openssl}.tar.gz" | shasum -a 256 -c -
         tar -xzf openssl-${openssl}.tar.gz
         ln -s openssl-${openssl} openssl
         cd openssl
