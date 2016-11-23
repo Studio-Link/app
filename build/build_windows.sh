@@ -19,7 +19,8 @@ cd src_windows
 #-----------------------------------------------------------------------------
 if [ ! -d openssl-${openssl} ]; then
     wget https://www.openssl.org/source/openssl-${openssl}.tar.gz
-    echo "$openssl_sha256  openssl-${openssl}.tar.gz" | shasum -a 256 -c -
+    echo "$openssl_sha256  openssl-${openssl}.tar.gz" | \
+        /usr/bin/core_perl/shasum -a 256 -c -
     tar -xzf openssl-${openssl}.tar.gz
     ln -s openssl-${openssl} openssl
 fi
