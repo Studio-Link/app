@@ -38,5 +38,6 @@ arch:
             - mingw-w64-winpthreads
             - mingw-w64-opus
             - wget
+            - perl
         script:
             - "./build/build_windows.sh"
