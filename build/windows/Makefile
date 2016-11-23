@@ -87,7 +87,6 @@ baresip:	Makefile librem.a libre.a
 	PKG_CONFIG_LIBDIR="$(SYSROOT)/lib/pkgconfig" \
 	make selftest.exe baresip.exe -C baresip $(COMMON_FLAGS) STATIC=1 \
 		LIBRE_SO=$(PWD)/re LIBREM_PATH=$(PWD)/rem EXTRA_MODULES="opus webapp"
-	cd baresip && $(WINE) selftest.exe && cd ..
 
 .PHONY: openssl
 openssl:

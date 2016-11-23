@@ -39,6 +39,5 @@ arch:
             - mingw-w64-opus
             - wget
             - perl
-            - wine
         script:
             - "./build/build_windows.sh"
