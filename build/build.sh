@@ -38,21 +38,19 @@ else
 fi
 
 
-# Build openssl (linux only)
+# Build openssl
 #-----------------------------------------------------------------------------
-#if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-    if [ ! -d openssl-${openssl} ]; then
-        wget https://www.openssl.org/source/openssl-${openssl}.tar.gz
-        echo "$openssl_sha256  openssl-${openssl}.tar.gz" | shasum -a 256 -c -
-        tar -xzf openssl-${openssl}.tar.gz
-        ln -s openssl-${openssl} openssl
-        cd openssl
-        ./Configure $openssl_target no-shared
-        make build_libs
-        cp -a include/openssl ../my_include/
-        cd ..
-    fi
-#fi
+if [ ! -d openssl-${openssl} ]; then
+    wget https://www.openssl.org/source/openssl-${openssl}.tar.gz
+    echo "$openssl_sha256  openssl-${openssl}.tar.gz" | shasum -a 256 -c -
+    tar -xzf openssl-${openssl}.tar.gz
+    ln -s openssl-${openssl} openssl
+    cd openssl
+    ./Configure $openssl_target no-shared
+    make build_libs
+    cp -a include/openssl ../my_include/
+    cd ..
+fi
 
 
 # Build libre
