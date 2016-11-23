@@ -72,4 +72,6 @@ fi
 cp -a ../build/windows/Makefile .
 make openssl
 make
+cp -a baresip/baresip.exe studio-link-standalone.exe
+zip -r studio-link-standalone-$BUILD_OS studio-link-standalone.exe
 ls -lha

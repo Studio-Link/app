@@ -13,7 +13,7 @@ baresip="master"
 juce="4.2.4"
 github_org="https://github.com/Studio-Link-v2"
 
-if [ "$BUILD_OS" == "windows" ]; then
+if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
     curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash
     exit 0
 fi

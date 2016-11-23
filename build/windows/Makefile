@@ -4,13 +4,11 @@
 # Copyright (C) 2010 - 2016 Creytiv.com
 #
 
-OS        := $(shell uname -s | tr "[A-Z]" "[a-z]")
-
-ifeq ($(OS),linux)
+ifeq ($(BUILD_OS),windows64)
 	TUPLE   := x86_64-w64-mingw32
 endif
-ifeq ($(OS),darwin)
-	TUPLE	:= i386-mingw32
+ifeq ($(BUILD_OS),windows32)
+	TUPLE	:= i686-w64-mingw32
 endif
 
 
