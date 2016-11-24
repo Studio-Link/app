@@ -65,7 +65,7 @@ if [ ! -d opus-$opus ]; then
     make
     popd
     mkdir opus; cp opus-$opus/build/.libs/libopus.a opus/
-    cp -a opus-$opus/include opus/
+    cp -a opus-$opus/include/*.h opus/
 fi
 
 

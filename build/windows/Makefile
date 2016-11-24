@@ -27,7 +27,7 @@ PWD       := $(shell pwd)
 #
 
 CFLAGS    := -DFD_SETSIZE=4096 \
-	-isystem $(PWD)/openssl/include -I$(PWD)/opus/include -g -gdwarf-2
+	-isystem $(PWD)/openssl/include -I$(PWD) -g -gdwarf-2
 
 LFLAGS    := -L$(SYSROOT)/lib/ \
 	-L$(PWD)/openssl \
