@@ -12,7 +12,7 @@ openssl_sha256="fc436441a2e05752d31b4e46115eb89709a28aef96d4fe786abe92409b2fd6f5
 baresip="master"
 github_org="https://github.com/Studio-Link-v2"
 
-mkdir src
+mkdir -p src
 cd src
 
 # Download openssl
@@ -95,6 +95,5 @@ fi
 cp -a ../build/windows/Makefile .
 make openssl
 make
-cp -a baresip/baresip.exe studio-link-standalone.exe
 zip -r studio-link-standalone-$BUILD_OS studio-link-standalone.exe
 ls -lha
