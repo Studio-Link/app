@@ -28,7 +28,8 @@ fi
 # Download libre
 #-----------------------------------------------------------------------------
 if [ ! -d re-$re ]; then
-    wget https://github.com/creytiv/re/archive/${re}.tar.gz
+    wget -N "http://www.creytiv.com/pub/re-${re}.tar.gz"
+    #wget https://github.com/creytiv/re/archive/${re}.tar.gz
     tar -xzf ${re}.tar.gz
     rm -f ${re}.tar.gz
     ln -s re-$re re
