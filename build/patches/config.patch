@@ -1,63 +1,76 @@
-From 2573930ed7ab63010c4c31294663c669881be321 Mon Sep 17 00:00:00 2001
+From 3e4ebb4feb0956f478d16d05586fa95ac25c1fcf Mon Sep 17 00:00:00 2001
 From: Sebastian Reimers <info@miete-admin.de>
-Date: Sat, 21 Nov 2015 13:04:56 +0100
-Subject: [PATCH] studio link custom config
+Date: Sun, 9 Oct 2016 11:41:38 +0200
+Subject: [PATCH 1/3] add sl config
 
 ---
- src/conf.c   |  9 ++++++---
- src/config.c | 50 ++++++++++++++++++++++++++++----------------------
- 2 files changed, 34 insertions(+), 25 deletions(-)
+ src/conf.c   | 11 ++++++++++-
+ src/config.c | 57 ++++++++++++++++++++++++++++++++++++---------------------
+ 2 files changed, 46 insertions(+), 22 deletions(-)
 
 diff --git a/src/conf.c b/src/conf.c
-index bc29ba7..7f415e9 100644
+index aa6b930..c56a39a 100644
 --- a/src/conf.c
 +++ b/src/conf.c
-@@ -167,10 +167,13 @@ int conf_path_get(char *path, size_t sz)
- 	err = fs_gethome(buf, sizeof(buf));
- 	if (err)
+@@ -174,8 +174,17 @@ int conf_path_get(char *path, size_t sz)
  		return err;
--
+ #endif
+ 
 -	if (re_snprintf(path, sz, "%s" DIR_SEP ".baresip", buf) < 0)
++
 +#ifdef SLPLUGIN
 +	if (re_snprintf(path, sz, "%s" DIR_SEP ".studio-link-plugin", buf) < 0)
++		return ENOMEM;
++#elif SLIVE
++	if (re_snprintf(path, sz, "%s" DIR_SEP ".studio-link-live", buf) < 0)
  		return ENOMEM;
--
 +#else
 +	if (re_snprintf(path, sz, "%s" DIR_SEP ".studio-link", buf) < 0)
 +		return ENOMEM;
 +#endif
+ 
  	return 0;
  }
- 
 diff --git a/src/config.c b/src/config.c
-index 242ce9f..761b0b5 100644
+index b81c43e..999bacd 100644
 --- a/src/config.c
 +++ b/src/config.c
-@@ -312,10 +312,12 @@ int config_print(struct re_printf *pf, const struct config *cfg)
+@@ -33,7 +33,7 @@ static struct config core_config = {
+ 	/** Call config */
+ 	{
+ 		120,
+-		4
++		8
+ 	},
+ 
+ 	/** Audio */
+@@ -350,10 +350,14 @@ int config_print(struct re_printf *pf, const struct config *cfg)
  
  static const char *default_audio_device(void)
  {
 -#if defined (ANDROID)
 +#if defined (SLPLUGIN)
 +	return "effect";
++#elif defined (SLIVE)
++	return "effectlive";
 +#elif defined (ANDROID)
- 	return "opensles";
+ 	return "opensles,nil";
  #elif defined (DARWIN)
 -	return "coreaudio,nil";
 +	return "audiounit,nil";
  #elif defined (FREEBSD)
  	return "oss,/dev/dsp";
  #elif defined (OPENBSD)
-@@ -387,7 +389,7 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
+@@ -425,7 +429,7 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
  				"\n"
  			  "\n# SIP\n"
  			  "sip_trans_bsize\t\t128\n"
 -			  "#sip_listen\t\t0.0.0.0:5060\n"
 +			  "sip_listen\t\t0.0.0.0:0\n"
  			  "#sip_certificate\tcert.pem\n"
- 			  "\n# Audio\n"
- 			  "audio_player\t\t%s\n"
-@@ -395,10 +397,10 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
+ 			  "\n"
+ 			  "# Call\n"
+@@ -439,10 +443,10 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
  			  "audio_alert\t\t%s\n"
  			  "audio_srate\t\t%u-%u\n"
  			  "audio_channels\t\t%u-%u\n"
@@ -71,22 +84,17 @@ index 242ce9f..761b0b5 100644
 +			  "auplay_channels\t\t2\n"
  			  ,
  			  poll_method_name(poll_method_best()),
- 			  default_audio_device(),
-@@ -428,12 +430,11 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
+ 			  cfg->call.local_timeout,
+@@ -474,7 +478,7 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
  			  "#rtp_bandwidth\t\t512-1024 # [kbit/s]\n"
  			  "rtcp_enable\t\tyes\n"
  			  "rtcp_mux\t\tno\n"
 -			  "jitter_buffer_delay\t%u-%u\t\t# frames\n"
 +			  "jitter_buffer_delay\t1-5\t\t# frames\n"
  			  "rtp_stats\t\tno\n"
+ 			  "#rtp_timeout\t\t60\n"
  			  "\n# Network\n"
- 			  "#dns_server\t\t10.0.0.1:53\n"
- 			  "#net_interface\t\t%H\n",
--			  cfg->avt.jbuf_del.min, cfg->avt.jbuf_del.max,
- 			  default_interface_print, NULL);
- 
- #ifdef USE_VIDEO
-@@ -556,7 +557,7 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -603,7 +607,7 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "httpd" MOD_EXT "\n");
  
  	(void)re_fprintf(f, "\n# Audio codec Modules (in order)\n");
@@ -95,25 +103,14 @@ index 242ce9f..761b0b5 100644
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "silk" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "amr" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "g7221" MOD_EXT "\n");
-@@ -569,18 +570,21 @@ int config_write_template(const char *file, const struct config *cfg)
- 	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "bv32" MOD_EXT "\n");
- 
- 	(void)re_fprintf(f, "\n# Audio filter Modules (in encoding order)\n");
--	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "vumeter" MOD_EXT "\n");
-+	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "vumeter" MOD_EXT "\n");
- 	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "sndfile" MOD_EXT "\n");
- 	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "speex_aec" MOD_EXT "\n");
- 	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "speex_pp" MOD_EXT "\n");
- 	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "plc" MOD_EXT "\n");
- 
+@@ -626,9 +630,12 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "\n# Audio driver Modules\n");
--#if defined (ANDROID)
-+#if defined (SLPLUGIN)
-+	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "effect" MOD_EXT "\n");
-+#elif defined (__SYMBIAN32__)
-+	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "mda" MOD_EXT "\n");
-+#elif defined (ANDROID)
+ #if defined (ANDROID)
  	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "opensles" MOD_EXT "\n");
++#elif defined (SLPLUGIN)
++	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "effect" MOD_EXT "\n");
++#elif defined (SLIVE)
++	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "effectlive" MOD_EXT "\n");
  #elif defined (DARWIN)
 -	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "coreaudio" MOD_EXT "\n");
 -	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "audiounit" MOD_EXT "\n");
@@ -121,7 +118,7 @@ index 242ce9f..761b0b5 100644
  #elif defined (FREEBSD)
  	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "oss" MOD_EXT "\n");
  #elif defined (OPENBSD)
-@@ -655,15 +659,16 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -705,23 +712,28 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "# Temporary Modules (loaded then unloaded)\n");
  	(void)re_fprintf(f, "\n");
  	(void)re_fprintf(f, "module_tmp\t\t" MOD_PRE "uuid" MOD_EXT "\n");
@@ -133,14 +130,30 @@ index 242ce9f..761b0b5 100644
  			 "------------------------------------------\n");
  	(void)re_fprintf(f, "# Application Modules\n");
  	(void)re_fprintf(f, "\n");
-+	(void)re_fprintf(f, "module_app\t\t" MOD_PRE "webapp"MOD_EXT"\n");
- 	(void)re_fprintf(f, "module_app\t\t" MOD_PRE "auloop"MOD_EXT"\n");
+-	(void)re_fprintf(f, "module_app\t\t" MOD_PRE "auloop"MOD_EXT"\n");
 -	(void)re_fprintf(f, "module_app\t\t"  MOD_PRE "contact"MOD_EXT"\n");
+-	(void)re_fprintf(f, "module_app\t\t"  MOD_PRE "debug_cmd"MOD_EXT"\n");
+-	(void)re_fprintf(f, "module_app\t\t"  MOD_PRE "menu"MOD_EXT"\n");
++#ifdef SLIVE
++	(void)re_fprintf(f, "module_app\t\t" MOD_PRE "applive"MOD_EXT"\n");
++#else
++	(void)re_fprintf(f, "module_app\t\t" MOD_PRE "webapp"MOD_EXT"\n");
++#endif
++	(void)re_fprintf(f, "#module_app\t\t" MOD_PRE "auloop"MOD_EXT"\n");
 +	(void)re_fprintf(f, "#module_app\t\t"  MOD_PRE "contact"MOD_EXT"\n");
- 	(void)re_fprintf(f, "module_app\t\t"  MOD_PRE "menu"MOD_EXT"\n");
++	(void)re_fprintf(f, "#module_app\t\t"  MOD_PRE "debug_cmd"MOD_EXT"\n");
++	(void)re_fprintf(f, "#module_app\t\t"  MOD_PRE "menu"MOD_EXT"\n");
  	(void)re_fprintf(f, "#module_app\t\t"  MOD_PRE "mwi"MOD_EXT"\n");
  	(void)re_fprintf(f, "#module_app\t\t" MOD_PRE "natbd"MOD_EXT"\n");
-@@ -678,13 +683,12 @@ int config_write_template(const char *file, const struct config *cfg)
+ 	(void)re_fprintf(f, "#module_app\t\t" MOD_PRE "presence"MOD_EXT"\n");
+ 	(void)re_fprintf(f, "#module_app\t\t" MOD_PRE "syslog"MOD_EXT"\n");
+ #ifdef USE_VIDEO
+-	(void)re_fprintf(f, "module_app\t\t" MOD_PRE "vidloop"MOD_EXT"\n");
++	(void)re_fprintf(f, "#module_app\t\t" MOD_PRE "vidloop"MOD_EXT"\n");
+ #endif
+ 	(void)re_fprintf(f, "\n");
+ 
+@@ -729,7 +741,7 @@ int config_write_template(const char *file, const struct config *cfg)
  			 "------------------------------------------\n");
  	(void)re_fprintf(f, "# Module parameters\n");
  	(void)re_fprintf(f, "\n");
@@ -149,29 +162,17 @@ index 242ce9f..761b0b5 100644
  	(void)re_fprintf(f, "\n");
  	(void)re_fprintf(f, "cons_listen\t\t0.0.0.0:5555\n");
  
- 	(void)re_fprintf(f, "\n");
- 	(void)re_fprintf(f, "http_listen\t\t0.0.0.0:8000\n");
--
- 	(void)re_fprintf(f, "\n");
- 	(void)re_fprintf(f, "evdev_device\t\t/dev/input/event0\n");
- 
-@@ -699,11 +703,13 @@ int config_write_template(const char *file, const struct config *cfg)
- 	(void)re_fprintf(f, "speex_agc_level\t\t8000\n");
+@@ -751,6 +763,9 @@ int config_write_template(const char *file, const struct config *cfg)
  
  	(void)re_fprintf(f, "\n# Opus codec parameters\n");
--	(void)re_fprintf(f, "opus_bitrate\t\t28000 # 6000-510000\n");
--
-+	(void)re_fprintf(f, "opus_bitrate\t\t64000 # 6000-510000\n");
- 	(void)re_fprintf(f, "\n# NAT Behavior Discovery\n");
- 	(void)re_fprintf(f, "natbd_server\t\tcreytiv.com\n");
- 	(void)re_fprintf(f, "natbd_interval\t\t600\t\t# in seconds\n");
+ 	(void)re_fprintf(f, "opus_bitrate\t\t28000 # 6000-510000\n");
 +#endif
 +	(void)re_fprintf(f, "\n# Opus codec parameters\n");
-+	(void)re_fprintf(f, "opus_bitrate\t\t64000 # 6000-510000\n");
++	(void)re_fprintf(f, "opus_bitrate\t\t64000\n");
  
  	(void)re_fprintf(f,
  			"\n# Selfview\n"
-@@ -712,8 +718,8 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -759,8 +774,8 @@ int config_write_template(const char *file, const struct config *cfg)
  
  	(void)re_fprintf(f,
  			"\n# ICE\n"
@@ -182,3 +183,52 @@ index 242ce9f..761b0b5 100644
  			"ice_nomination\t\tregular\t# {regular,aggressive}\n"
  			"ice_mode\t\tfull\t# {full,lite}\n");
  
+
+From 3965041fd1d876d76f677cfc1fcebe152e0ff127 Mon Sep 17 00:00:00 2001
+From: Sebastian Reimers <info@miete-admin.de>
+Date: Sun, 9 Oct 2016 11:44:01 +0200
+Subject: [PATCH 2/3] fix eldif
+
+---
+ src/conf.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/conf.c b/src/conf.c
+index c56a39a..c619b24 100644
+--- a/src/conf.c
++++ b/src/conf.c
+@@ -175,10 +175,10 @@ int conf_path_get(char *path, size_t sz)
+ #endif
+ 
+ 
+-#ifdef SLPLUGIN
++#if defined (SLPLUGIN)
+ 	if (re_snprintf(path, sz, "%s" DIR_SEP ".studio-link-plugin", buf) < 0)
+ 		return ENOMEM;
+-#elif SLIVE
++#elif defined (SLIVE)
+ 	if (re_snprintf(path, sz, "%s" DIR_SEP ".studio-link-live", buf) < 0)
+ 		return ENOMEM;
+ #else
+
+From 8e7fa2b861453c57305a4735ef5a1eb0a12209ad Mon Sep 17 00:00:00 2001
+From: Sebastian Reimers <info@miete-admin.de>
+Date: Sun, 9 Oct 2016 14:32:05 +0200
+Subject: [PATCH 3/3] fix config
+
+---
+ src/config.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/config.c b/src/config.c
+index 999bacd..d19ec05 100644
+--- a/src/config.c
++++ b/src/config.c
+@@ -484,7 +484,6 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
+ 			  "\n# Network\n"
+ 			  "#dns_server\t\t10.0.0.1:53\n"
+ 			  "#net_interface\t\t%H\n",
+-			  cfg->avt.jbuf_del.min, cfg->avt.jbuf_del.max,
+ 			  default_interface_print, NULL);
+ 
+ #ifdef USE_VIDEO

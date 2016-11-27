@@ -8,11 +8,12 @@ static void select_chat_peer(const char *user) {
 
 	struct le *le;
 	struct pl dname, pl;
+	struct contacts *contacts = baresip_contacts();
 
 	pl_set_str(&pl, user);
 	dname.l = pl.l;
 
-	for (le = list_head(contact_list()); le; le = le->next) {
+	for (le = list_head(contact_list(contacts)); le; le = le->next) {
 
 		struct contact *c = le->data;
 		dname.p = contact_addr(c)->dname.p;

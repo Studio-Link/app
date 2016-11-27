@@ -1,8 +1,17 @@
+From 9cfc8a683a136bbba6d627d69afb71d96dc17224 Mon Sep 17 00:00:00 2001
+From: Sebastian Reimers <info@miete-admin.de>
+Date: Sun, 9 Oct 2016 13:41:17 +0200
+Subject: [PATCH] add samplerate patch
+
+---
+ modules/audiounit/recorder.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
 diff --git a/modules/audiounit/recorder.c b/modules/audiounit/recorder.c
-index 663fc3d..8d16890 100644
+index cf6a1af..1dcf601 100644
 --- a/modules/audiounit/recorder.c
 +++ b/modules/audiounit/recorder.c
-@@ -113,6 +113,11 @@ int audiounit_recorder_alloc(struct ausrc_st **stp, const struct ausrc *as,
+@@ -114,6 +114,11 @@ int audiounit_recorder_alloc(struct ausrc_st **stp, const struct ausrc *as,
  		kAudioHardwarePropertyDefaultInputDevice,
  		kAudioObjectPropertyScopeGlobal,
  		kAudioObjectPropertyElementMaster };
@@ -11,13 +20,14 @@ index 663fc3d..8d16890 100644
 +		kAudioObjectPropertyScopeGlobal,
 +		kAudioObjectPropertyElementMaster };
 +	Float64 sampleRate = 48000.0;
+ #endif
  	Float64 hw_srate = 0.0;
  	UInt32 hw_size = sizeof(hw_srate);
- 	OSStatus ret = 0;
-@@ -174,6 +179,21 @@ int audiounit_recorder_alloc(struct ausrc_st **stp, const struct ausrc *as,
+@@ -176,6 +181,21 @@ int audiounit_recorder_alloc(struct ausrc_st **stp, const struct ausrc *as,
+ 			sizeof(inputDevice));
  	if (ret)
  		goto out;
- 
++
 +	ret = AudioObjectSetPropertyData(inputDevice,
 +			&srateAddress,
 +			0,
@@ -32,7 +42,6 @@ index 663fc3d..8d16890 100644
 +				&sampleRate,
 +				sizeof(sampleRate));
 +	}
-+
+ #endif
+ 
  	fmt.mSampleRate       = prm->srate;
- 	fmt.mFormatID         = kAudioFormatLinearPCM;
- #if TARGET_OS_IPHONE

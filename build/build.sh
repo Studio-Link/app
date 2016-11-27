@@ -1,16 +1,22 @@
 #!/bin/bash -ex
 
-version_t="v16.04.1-beta"
-version_n="16.04.1"
+version_t="v16.10.0-alpha0"
+version_n="16.10.0"
 
 #-----------------------------------------------------------------------------
 rem="0.4.7"
-re="0.4.15"
-opus="1.1.2"
-openssl="1.0.2j"
-baresip="16.04.0"
-juce="4.1.0"
+re="0.5.0"
+opus="1.1.3"
+openssl="1.1.0c"
+openssl_sha256="fc436441a2e05752d31b4e46115eb89709a28aef96d4fe786abe92409b2fd6f5"
+baresip="master"
+juce="4.2.4"
 github_org="https://github.com/Studio-Link-v2"
+
+if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
+    curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash
+    exit 0
+fi
 
 # Start build
 #-----------------------------------------------------------------------------
@@ -19,36 +25,31 @@ echo "start build on $TRAVIS_OS_NAME"
 mkdir -p src; cd src
 mkdir -p my_include
 
+sl_extra_lflags="-L ../openssl -L ../opus "
+
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-
-    sl_extra_lflags="-L../openssl"
+    openssl_target="linux-x86_64"
     sl_extra_modules="alsa jack"
-
 else
-    sl_openssl_osx="/usr/local/opt/openssl/lib/libcrypto.a "
-    sl_openssl_osx+="/usr/local/opt/openssl/lib/libssl.a"
-    
-    sl_extra_lflags="-framework SystemConfiguration "
-    sl_extra_lflags+="-framework CoreFoundation $sl_openssl_osx"
+    openssl_target="darwin64-x86_64-cc"
+    sl_extra_lflags+="-framework SystemConfiguration "
+    sl_extra_lflags+="-framework CoreFoundation"
     sl_extra_modules="audiounit"
 fi
 
 
-# Build openssl (linux only)
+# Build openssl
 #-----------------------------------------------------------------------------
-if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-    if [ ! -d openssl-${openssl} ]; then
-        wget https://www.openssl.org/source/openssl-${openssl}.tar.gz
-        tar -xzf openssl-${openssl}.tar.gz
-        ln -s openssl-${openssl} openssl
-        cd openssl
-        ./config -fPIC shared
-        make
-        rm -f libcrypto.so
-        rm -f libssl.so
-        cp -a include/openssl ../my_include/
-        cd ..
-    fi
+if [ ! -d openssl-${openssl} ]; then
+    wget https://www.openssl.org/source/openssl-${openssl}.tar.gz
+    echo "$openssl_sha256  openssl-${openssl}.tar.gz" | shasum -a 256 -c -
+    tar -xzf openssl-${openssl}.tar.gz
+    ln -s openssl-${openssl} openssl
+    cd openssl
+    ./Configure $openssl_target no-shared
+    make build_libs
+    cp -a include/openssl ../my_include/
+    cd ..
 fi
 
 
@@ -56,18 +57,19 @@ fi
 #-----------------------------------------------------------------------------
 if [ ! -d re-$re ]; then
     wget -N "http://www.creytiv.com/pub/re-${re}.tar.gz"
+    #wget https://github.com/creytiv/re/archive/${re}.tar.gz
     tar -xzf re-${re}.tar.gz
+    rm -f re-${re}.tar.gz
     ln -s re-$re re
     cd re
     patch --ignore-whitespace -p1 < ../../build/patches/bluetooth_conflict.patch
     patch --ignore-whitespace -p1 < ../../build/patches/re_ice_bug.patch
 
-    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-        make USE_OPENSSL=1 EXTRA_CFLAGS="-I ../my_include/" libre.a
-    else
-        make USE_OPENSSL=1 \
-            EXTRA_CFLAGS="-I /usr/local/opt/openssl/include" libre.a
-    fi
+
+    # WARNING build releases with RELEASE=1, because otherwise its MEM Debug
+    # statements are not THREAD SAFE! on every platform, especilly windows.
+
+    make RELEASE=1 USE_OPENSSL=1 EXTRA_CFLAGS="-I ../my_include/" libre.a
 
     cd ..
     mkdir -p my_include/re
@@ -82,7 +84,7 @@ if [ ! -d rem-$rem ]; then
     tar -xzf rem-${rem}.tar.gz
     ln -s rem-$rem rem
     cd rem
-    make librem.a 
+    make RELEASE=1 librem.a 
     cd ..
 fi
 
@@ -110,34 +112,45 @@ if [ ! -d baresip-$baresip ]; then
 
     ## Add patches
     patch -p1 < ../../build/patches/config.patch
-    patch -p1 < ../../build/patches/max_calls.patch
+    #patch -p1 < ../../build/patches/max_calls.patch
     patch -p1 < ../../build/patches/osx_sample_rate.patch
 
     ## Link backend modules
     cp -a ../../webapp modules/webapp
     cp -a ../../effect modules/effect
+    cp -a ../../effectlive modules/effectlive
+    cp -a ../../applive modules/applive
 
     # Standalone
-    make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
         EXTRA_CFLAGS="-I ../my_include" \
-        EXTRA_LFLAGS="$sl_extra_lflags -L ../opus"
+        EXTRA_LFLAGS="$sl_extra_lflags"
 
     cp -a baresip ../studio-link-standalone
 
     # libbaresip.a without effect plugin
-    make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
         EXTRA_CFLAGS="-I ../my_include" \
-        EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
+        EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
     cp -a libbaresip.a ../my_include/libbaresip_standalone.a
+
+    # Effectlive Plugin
+    make clean
+    make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+        MODULES="opus stdio ice g711 turn stun uuid auloop applive effectlive" \
+        EXTRA_CFLAGS="-I ../my_include -DSLIVE" \
+        EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
+    cp -a libbaresip.a ../my_include/libbaresip_live.a
 
     # Effect Plugin
     make clean
-    make LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp effect" \
         EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
-        EXTRA_LFLAGS="$sl_extra_lflags -L ../opus" libbaresip.a
+        EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
+
     cd ..
 fi
 
@@ -160,6 +173,24 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
             $github_org/overlay-audio-unit.git overlay-audio-unit
         cd overlay-audio-unit
         sed -i '' s/SLVERSION_N/$version_n/ StudioLink/StudioLink.jucer
+        wget https://github.com/julianstorer/JUCE/archive/$juce.tar.gz
+        tar -xzf $juce.tar.gz
+        rm -Rf JUCE
+        mv JUCE-$juce JUCE
+        ./build.sh
+        cd ..
+    fi
+fi
+
+
+# Build overlay-audio-unit plugin (osx only)
+#-----------------------------------------------------------------------------
+if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+    if [ ! -d overlay-live-au ]; then
+        git clone \
+            $github_org/overlay-live-au.git overlay-live-au
+        cd overlay-live-au
+        #sed -i '' s/SLVERSION_N/$version_n/ StudioLink/StudioLink.jucer
         wget https://github.com/julianstorer/JUCE/archive/$juce.tar.gz
         tar -xzf $juce.tar.gz
         rm -Rf JUCE
@@ -203,9 +234,10 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
 else
     otool -L studio-link-standalone
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
+    cp -a ~/Library/Audio/Plug-Ins/Components/StudioLinkLive.component StudioLinkLive.component
     mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app
     codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" --keychain ~/Library/Keychains/sl-build.keychain StudioLinkStandalone.app
-    zip -r studio-link-plugin-osx StudioLink.component
+    zip -r studio-link-plugin-osx StudioLink.component StudioLinkLive.component
     zip -r studio-link-standalone-osx StudioLinkStandalone.app
     #security delete-keychain ~/Library/Keychains/sl-build.keychain
 fi

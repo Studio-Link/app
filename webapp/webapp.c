@@ -13,7 +13,7 @@
 #include "assets/fonts.h"
 #include "webapp.h"
 
-#define SLVERSION "16.04.1-beta"
+#define SLVERSION "16.10.0-alpha0"
 
 static struct tmr tmr;
 
@@ -63,6 +63,7 @@ out:
 static void http_req_handler(struct http_conn *conn,
 			     const struct http_msg *msg, void *arg)
 {
+	const struct network *net = baresip_network();
 
 	/*
 	 * Dynamic Requests
@@ -101,8 +102,7 @@ static void http_req_handler(struct http_conn *conn,
 	if (0 == pl_strcasecmp(&msg->path, "/status.json")) {
 		char ipv4[15];
 		char json[255];
-
-		sa_ntop(net_laddr_af(AF_INET), ipv4, sizeof(ipv4));
+		sa_ntop(net_laddr_af(net, AF_INET), ipv4, sizeof(ipv4));
 
 		re_snprintf(json, sizeof(json), "[{ \"name\": \"IPv4\", \
 				\"value\": \"%s\", \"label\": \"default\"}]",
