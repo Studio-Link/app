@@ -242,7 +242,7 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     zip -r studio-link-plugin-linux lv2-plugin
 
     mkdir -p lv2-plugin-live
-    cp -a overlay-lv2-live/studio-link.so lv2-plugin-live/
+    cp -a overlay-lv2-live/studio-link-live.so lv2-plugin-live/
     cp -a overlay-lv2-live/*.ttl lv2-plugin-live/
     cp -a overlay-lv2-live/README.md lv2-plugin-live/
     zip -r studio-link-plugin-live-linux lv2-plugin-live
