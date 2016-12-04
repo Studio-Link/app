@@ -165,6 +165,16 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
 fi
 
 
+# Build overlay-lv2-live plugin (linux only)
+#-----------------------------------------------------------------------------
+if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+    if [ ! -d overlay-lv2-live ]; then
+        git clone $github_org/overlay-lv2-live.git overlay-lv2-live
+        cd overlay-lv2-live; ./build.sh; cd ..
+    fi
+fi
+
+
 # Build overlay-audio-unit plugin (osx only)
 #-----------------------------------------------------------------------------
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
@@ -230,6 +240,13 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     cp -a overlay-lv2/*.ttl lv2-plugin/
     cp -a overlay-lv2/README.md lv2-plugin/
     zip -r studio-link-plugin-linux lv2-plugin
+
+    mkdir -p lv2-plugin-live
+    cp -a overlay-lv2-live/studio-link.so lv2-plugin-live/
+    cp -a overlay-lv2-live/*.ttl lv2-plugin-live/
+    cp -a overlay-lv2-live/README.md lv2-plugin-live/
+    zip -r studio-link-plugin-live-linux lv2-plugin-live
+
     zip -r studio-link-standalone-linux studio-link-standalone
 else
     otool -L studio-link-standalone

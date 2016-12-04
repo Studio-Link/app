@@ -18,7 +18,7 @@ static void startup(void *arg)
 	struct call *call = NULL;
 	system(command);
 	ua_connect(uag_current(), &call, NULL,
-			"stream-ultraschall", NULL, VIDMODE_ON);
+			"stream", NULL, VIDMODE_ON);
 }
 
 
