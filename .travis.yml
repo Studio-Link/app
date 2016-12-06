@@ -15,6 +15,7 @@ deploy:
   file: 
           - src/studio-link-standalone-$BUILD_OS.zip
           - src/studio-link-plugin-$BUILD_OS.zip
+          - src/studio-link-plugin-live-$BUILD_OS.zip
   skip_cleanup: true
   on:
     tags: true
