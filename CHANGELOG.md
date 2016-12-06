@@ -2,8 +2,20 @@
 
 - **Standalone** Changes to the standalone OS X, Windows and Linux Version
 - **Plugin** Changes to the effect plugins (Audio Unit, LV2 and VST)
+- **onAir** Changes to the onAir streaming effect plugin (Audio Unit, LV2 and VST)
 - **Box** Changes to the [orange] hardware box
 - **Misc** Anything that is left or general.
+
+
+### v16.12.0-beta (xx.xx.2016)
+
+- **Misc** Fix crash bug on windows 10
+- **Misc** OpenSSL 1.1.0c
+- **Misc** Opus 1.1.3
+- **Misc** Update Baresip and re libs
+- **Plugin** Fix opus crash after multiple plug-in reloads
+- **onAir** First release of the new streaming plug-in
+
 
 ### v16.04.1-beta (02.07.2016)
 
