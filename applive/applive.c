@@ -42,7 +42,7 @@ static int module_init(void)
 
 
 	tmr_init(&tmr);
-	tmr_start(&tmr, 1000, startup, NULL);
+	tmr_start(&tmr, 1500, startup, NULL);
 
 	return err;
 }
