@@ -84,7 +84,7 @@ index cd6430a..295fe6f 100644
 +			  "jitter_buffer_delay\t1-5\t\t# frames\n"
  			  "rtp_stats\t\tno\n"
 -			  "#rtp_timeout\t\t60\n"
-+			  "rtp_timeout\t\t60\n"
++			  "##rtp_timeout\t\t60\n"
  			  "\n# Network\n"
  			  "#dns_server\t\t10.0.0.1:53\n"
  			  "#net_interface\t\t%H\n",
