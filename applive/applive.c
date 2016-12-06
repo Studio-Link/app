@@ -16,7 +16,6 @@ static char command[255] = {0};
 static void startup(void *arg)
 {
 	struct call *call = NULL;
-	system(command);
 	ua_connect(uag_current(), &call, NULL,
 			"stream", NULL, VIDMODE_ON);
 }
@@ -30,16 +29,17 @@ static int module_init(void)
 	webapp_accounts_init();
 
 #if defined (DARWIN)
-	re_snprintf(command, sizeof(command), "open https://control.studio-link.de/auth.php?uuid=%s",
+	re_snprintf(command, sizeof(command), "open https://stream.studio-link.de/stream/login/%s",
 			cfg->sip.uuid);
 #elif defined (WIN32)
-	re_snprintf(command, sizeof(command), "start https://control.studio-link.de/auth.php?uuid=%s",
+	re_snprintf(command, sizeof(command), "start https://stream.studio-link.de/stream/login/%s",
 			cfg->sip.uuid);
 #else
-	re_snprintf(command, sizeof(command), "xdg-open https://control.studio-link.de/auth.php?uuid=%s",
+	re_snprintf(command, sizeof(command), "xdg-open https://stream.studio-link.de/stream/login/%s",
 			cfg->sip.uuid);
 #endif
 
+	system(command);
 
 	tmr_init(&tmr);
 	tmr_start(&tmr, 3000, startup, NULL);
