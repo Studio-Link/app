@@ -18,6 +18,7 @@ static void startup(void *arg)
 	struct call *call = NULL;
 	ua_connect(uag_current(), &call, NULL,
 			"stream", NULL, VIDMODE_ON);
+	system(command);
 }
 
 
@@ -39,10 +40,9 @@ static int module_init(void)
 			cfg->sip.uuid);
 #endif
 
-	system(command);
 
 	tmr_init(&tmr);
-	tmr_start(&tmr, 3000, startup, NULL);
+	tmr_start(&tmr, 1000, startup, NULL);
 
 	return err;
 }
