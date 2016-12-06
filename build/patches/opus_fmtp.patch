@@ -1,0 +1,32 @@
+diff --git a/modules/opus/opus.c b/modules/opus/opus.c
+index d1e9c24..b794533 100644
+--- a/modules/opus/opus.c
++++ b/modules/opus/opus.c
+@@ -36,7 +36,7 @@
+ 
+ 
+ static bool opus_mirror;
+-static char fmtp[256] = "stereo=1;sprop-stereo=1";
++static char fmtp[256];
+ static char fmtp_mirror[256];
+ 
+ 
+@@ -88,10 +88,17 @@ static int module_init(void)
+ {
+ 	struct conf *conf = conf_cur();
+ 	uint32_t value;
+-	char *p = fmtp + str_len(fmtp);
++	char *p = fmtp;
+ 	bool b;
+ 	int n = 0;
+ 
++	n = re_snprintf(p, sizeof(fmtp) - str_len(p),
++			"stereo=1;sprop-stereo=1");
++	if (n <= 0)
++		return ENOMEM;
++	p += n;
++
++
+ 	if (0 == conf_get_u32(conf, "opus_bitrate", &value)) {
+ 
+ 		n = re_snprintf(p, sizeof(fmtp) - str_len(p),
