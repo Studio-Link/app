@@ -239,17 +239,17 @@ fi
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     ldd studio-link-standalone
-    mkdir -p lv2-plugin
-    cp -a overlay-lv2/studio-link.so lv2-plugin/
-    cp -a overlay-lv2/*.ttl lv2-plugin/
-    cp -a overlay-lv2/README.md lv2-plugin/
-    zip -r studio-link-plugin-linux lv2-plugin
+    mkdir -p studio-link.lv2
+    cp -a overlay-lv2/studio-link.so studio-link.lv2/
+    cp -a overlay-lv2/*.ttl studio-link.lv2/
+    cp -a overlay-lv2/README.md studio-link.lv2/
+    zip -r studio-link-plugin-linux studio-link.lv2
 
-    mkdir -p lv2-plugin-live
-    cp -a overlay-lv2-live/studio-link-live.so lv2-plugin-live/
-    cp -a overlay-lv2-live/*.ttl lv2-plugin-live/
-    cp -a overlay-lv2-live/README.md lv2-plugin-live/
-    zip -r studio-link-plugin-live-linux lv2-plugin-live
+    mkdir -p studio-link-live.lv2
+    cp -a overlay-lv2-live/studio-link-live.so studio-link-live.lv2/
+    cp -a overlay-lv2-live/*.ttl studio-link-live.lv2/
+    cp -a overlay-lv2-live/README.md studio-link-live.lv2/
+    zip -r studio-link-plugin-live-linux studio-link-live.lv2
 
     zip -r studio-link-standalone-linux studio-link-standalone
 else
