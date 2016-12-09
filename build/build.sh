@@ -25,7 +25,7 @@ echo "start build on $TRAVIS_OS_NAME"
 mkdir -p src; cd src
 mkdir -p my_include
 
-sl_extra_lflags="-L ../openssl -L ../opus "
+sl_extra_lflags="-L ../opus "
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     openssl_target="linux-x86_64"
@@ -40,7 +40,7 @@ fi
 
 # Build openssl
 #-----------------------------------------------------------------------------
-if [ ! -d openssl-${openssl} ]; then
+if [ ! -d openssl-${openssl} ] && [ "$TRAVIS_OS_NAME" == "osx" ]; then
     wget https://www.openssl.org/source/openssl-${openssl}.tar.gz
     echo "$openssl_sha256  openssl-${openssl}.tar.gz" | shasum -a 256 -c -
     tar -xzf openssl-${openssl}.tar.gz
