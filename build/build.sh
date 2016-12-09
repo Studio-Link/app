@@ -32,6 +32,7 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     sl_extra_modules="alsa jack"
 else
     openssl_target="darwin64-x86_64-cc"
+    sl_extra_lflags+="-L ../openssl "
     sl_extra_lflags+="-framework SystemConfiguration "
     sl_extra_lflags+="-framework CoreFoundation"
     sl_extra_modules="audiounit"
