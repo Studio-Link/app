@@ -11,6 +11,7 @@ openssl="1.1.0c"
 openssl_sha256="fc436441a2e05752d31b4e46115eb89709a28aef96d4fe786abe92409b2fd6f5"
 baresip="master"
 juce="4.2.4"
+sndfile="1.0.27"
 github_org="https://github.com/Studio-Link-v2"
 
 if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
@@ -25,7 +26,7 @@ echo "start build on $TRAVIS_OS_NAME"
 mkdir -p src; cd src
 mkdir -p my_include
 
-sl_extra_lflags="-L ../opus "
+sl_extra_lflags="-L ../opus ../my_include/libsndfile.a"
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     openssl_target="linux-x86_64"
@@ -50,6 +51,21 @@ if [ ! -d openssl-${openssl} ] && [ "$TRAVIS_OS_NAME" == "osx" ]; then
     ./Configure $openssl_target no-shared
     make build_libs
     cp -a include/openssl ../my_include/
+    cd ..
+fi
+
+
+# Build libsndfile
+#-----------------------------------------------------------------------------
+if [ ! -d libsndfile-${sndfile} ]; then
+    wget http://www.mega-nerd.com/libsndfile/files/libsndfile-${sndfile}.tar.gz
+    tar -xzf libsndfile-${sndfile}.tar.gz
+    ln -s libsndfile-${sndfile} libsndfile
+    cd libsndfile
+    ./configure
+    make
+    cp -a src/sndfile.h ../my_include/
+    cp -a src/.libs/libsndfile.a ../my_include/
     cd ..
 fi
 
