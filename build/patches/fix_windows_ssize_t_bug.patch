@@ -1,0 +1,15 @@
+diff --git a/include/re_types.h b/include/re_types.h
+index b3d3922..4edae22 100644
+--- a/include/re_types.h
++++ b/include/re_types.h
+@@ -47,10 +47,6 @@ typedef unsigned long long int    uint64_t;
+ #endif /* __BIT_TYPES_DEFINED__ */
+ 
+ #endif /* __int8_t_defined */
+-#ifndef __ssize_t_defined
+-typedef long     ssize_t;
+-#define __ssize_t_defined
+-#endif
+ 
+ #ifndef WIN32
+ typedef uint32_t socklen_t;

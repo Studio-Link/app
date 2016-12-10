@@ -36,6 +36,7 @@ if [ ! -d re-$re ]; then
     cd re
     patch --ignore-whitespace -p1 < ../../build/patches/bluetooth_conflict.patch
     patch --ignore-whitespace -p1 < ../../build/patches/re_ice_bug.patch
+    patch -p1 < ../../build/patches/fix_windows_ssize_t_bug.patch
     cd ..
 fi
 
