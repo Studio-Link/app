@@ -71,9 +71,3 @@ void webapp_mono_set(bool active)
 {
 	mono = active;
 }
-
-
-bool webapp_mono_get(void)
-{
-	return mono;
-}
