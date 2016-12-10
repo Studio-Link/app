@@ -101,7 +101,7 @@ fi
 if [ ! -d overlay-vst ]; then
     git clone https://github.com/Studio-Link-v2/overlay-vst.git
     wget http://www.steinberg.net/sdk_downloads/vstsdk366_27_06_2016_build_61.zip
-    unzip vstsdk366_27_06_2016_build_61.zip
+    unzip -q vstsdk366_27_06_2016_build_61.zip
     mv VST3\ SDK overlay-vst/vstsdk2.4
 fi
 
