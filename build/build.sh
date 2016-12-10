@@ -205,7 +205,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
         git clone \
             $github_org/overlay-live-au.git overlay-live-au
         cd overlay-live-au
-        #sed -i '' s/SLVERSION_N/$version_n/ StudioLink/StudioLink.jucer
+        sed -i '' s/SLVERSION_N/$version_n/ StudioLinkLive/StudioLinkLive.jucer
         cp -a ../overlay-audio-unit/JUCE .
         ./build.sh
         cd ..
