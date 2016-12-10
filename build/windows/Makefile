@@ -88,7 +88,7 @@ baresip:	Makefile librem.a libre.a
 		LIBRE_SO=$(PWD)/re LIBREM_PATH=$(PWD)/rem \
 		MODULES="opus wincons ice g711 turn stun uuid auloop webapp winwave"
 	cp -a baresip/baresip.exe studio-link-standalone.exe
-	cd baresip; make clean; cd ..
+	make clean -C baresip $(COMMON_FLAGS)
 	make libbaresip.a -C baresip $(COMMON_FLAGS) STATIC=1 RELEASE=1 \
 		LIBRE_SO=$(PWD)/re LIBREM_PATH=$(PWD)/rem \
 		MODULES="opus ice g711 turn stun uuid webapp effect" \
