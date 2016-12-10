@@ -48,5 +48,6 @@ arch:
             - wget
             - perl
             - zip
+            - unzip
         script:
             - "./build/build_windows.sh"

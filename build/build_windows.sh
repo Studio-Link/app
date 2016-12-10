@@ -14,6 +14,13 @@ github_org="https://github.com/Studio-Link-v2"
 
 mkdir -p src
 cd src
+mkdir -p my_include
+
+if [ "$BUILD_OS" == "windows32" ]; then
+    _arch="i686-w64-mingw32"
+else
+    _arch="x86_64-w64-mingw32"
+fi
 
 # Download openssl
 #-----------------------------------------------------------------------------
@@ -38,6 +45,8 @@ if [ ! -d re-$re ]; then
     patch --ignore-whitespace -p1 < ../../build/patches/re_ice_bug.patch
     patch -p1 < ../../build/patches/fix_windows_ssize_t_bug.patch
     cd ..
+    mkdir -p my_include/re
+    cp -a re/include/* my_include/re/
 fi
 
 # Download librem
@@ -51,11 +60,6 @@ fi
 # Build opus
 #-----------------------------------------------------------------------------
 if [ ! -d opus-$opus ]; then
-    if [ "$BUILD_OS" == "windows32" ]; then
-        _arch="i686-w64-mingw32"
-    else
-        _arch="x86_64-w64-mingw32"
-    fi
     wget -N "http://downloads.xiph.org/releases/opus/opus-${opus}.tar.gz"
     tar -xzf opus-${opus}.tar.gz
     mkdir opus-$opus/build
@@ -77,6 +81,7 @@ if [ ! -d baresip-$baresip ]; then
     wget https://github.com/Studio-Link-v2/baresip/archive/$baresip.tar.gz
     tar -xzf $baresip.tar.gz
     ln -s baresip-$baresip baresip
+    cp -a baresip-$baresip/include/baresip.h my_include/
     cd baresip-$baresip;
 
     ## Add patches
@@ -91,11 +96,23 @@ if [ ! -d baresip-$baresip ]; then
     cd ..
 fi
 
+# Download overlay-vst
+#-----------------------------------------------------------------------------
+if [ ! -d overlay-vst ]; then
+    git clone https://github.com/Studio-Link-v2/overlay-vst.git
+    wget http://www.steinberg.net/sdk_downloads/vstsdk366_27_06_2016_build_61.zip
+    unzip vstsdk366_27_06_2016_build_61.zip
+    mv VST3\ SDK overlay-vst/vstsdk2.4
+fi
+
 # Build
 #-----------------------------------------------------------------------------
 
 cp -a ../build/windows/Makefile .
 make openssl
 make
+
+cd overlay-vst
+make PREFIX=$_arch
 zip -r studio-link-standalone-$BUILD_OS studio-link-standalone.exe
 ls -lha
