@@ -50,6 +50,15 @@ int webapp_vu_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc);
 int webapp_vu_decode(struct aufilt_dec_st *st, int16_t *sampv, size_t *sampc);
 
 /*
+ * mono.c
+ */
+int webapp_mono_encode_update(struct aufilt_enc_st **stp, void **ctx,
+			 const struct aufilt *af, struct aufilt_prm *prm);
+int webapp_mono_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc);
+void webapp_mono_set(bool active);
+bool webapp_mono_get(void);
+
+/*
  * account.c
  */
 int webapp_accounts_init(void);

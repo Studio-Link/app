@@ -29,6 +29,11 @@ static struct aufilt vumeter = {
 	webapp_vu_encode_update, webapp_vu_encode,
 	webapp_vu_decode_update, webapp_vu_decode
 };
+static struct aufilt mono = {
+	LE_INIT, "webapp_mono",
+	webapp_mono_encode_update, webapp_mono_encode,
+	NULL, NULL
+};
 #endif
 
 static int http_sreply(struct http_conn *conn, uint16_t scode,
@@ -460,6 +465,7 @@ static int module_init(void)
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 
 	aufilt_register(&vumeter);
+	aufilt_register(&mono);
 #endif
 
 	err = http_port();
@@ -502,6 +508,7 @@ static int module_close(void)
 	webapp_ws_close();
 #ifndef SLPLUGIN
 	aufilt_unregister(&vumeter);
+	aufilt_unregister(&mono);
 #endif
 	mem_deref(httpsock);
 	mem_deref(webapp_calls);

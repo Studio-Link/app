@@ -28,7 +28,15 @@ void webapp_options_set(char *key, char *value)
 			effect_set_bypass(true);
 		}
 	}
-
+#else
+	if (!str_cmp(key, "mono")) {
+		if (!str_cmp(value, "false")) {
+			webapp_mono_set(false);
+		}
+		else {
+			webapp_mono_set(true);
+		}
+	}
 #endif
 }
 
