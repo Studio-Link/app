@@ -16,6 +16,7 @@
 - **Plugin** Fix opus crash after multiple plug-in reloads
 - **onAir** First release of the new streaming plug-in
 - **Standalone** Add mono button feature
+- **Standalone** Add record button feature
 
 
 ### v16.04.1-beta (02.07.2016)

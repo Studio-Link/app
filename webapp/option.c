@@ -37,6 +37,14 @@ void webapp_options_set(char *key, char *value)
 			webapp_mono_set(true);
 		}
 	}
+	if (!str_cmp(key, "record")) {
+		if (!str_cmp(value, "false")) {
+			webapp_record_set(false);
+		}
+		else {
+			webapp_record_set(true);
+		}
+	}
 #endif
 }
 
@@ -86,6 +94,8 @@ int webapp_options_init(void)
 	if (err)
 		goto out;
 	odict_entry_del(options, "bypass");
+	odict_entry_del(options, "mono");
+	odict_entry_del(options, "record");
 
 out:
 	mem_deref(mb);

@@ -34,6 +34,11 @@ static struct aufilt mono = {
 	webapp_mono_encode_update, webapp_mono_encode,
 	NULL, NULL
 };
+static struct aufilt record = {
+	LE_INIT, "webapp_record",
+	webapp_record_encode_update, webapp_record_encode,
+	NULL, NULL
+};
 #endif
 
 static int http_sreply(struct http_conn *conn, uint16_t scode,
@@ -466,6 +471,7 @@ static int module_init(void)
 
 	aufilt_register(&vumeter);
 	aufilt_register(&mono);
+	aufilt_register(&record);
 #endif
 
 	err = http_port();
@@ -509,6 +515,7 @@ static int module_close(void)
 #ifndef SLPLUGIN
 	aufilt_unregister(&vumeter);
 	aufilt_unregister(&mono);
+	aufilt_unregister(&record);
 #endif
 	mem_deref(httpsock);
 	mem_deref(webapp_calls);
