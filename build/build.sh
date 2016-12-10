@@ -206,10 +206,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
             $github_org/overlay-live-au.git overlay-live-au
         cd overlay-live-au
         #sed -i '' s/SLVERSION_N/$version_n/ StudioLink/StudioLink.jucer
-        wget https://github.com/julianstorer/JUCE/archive/$juce.tar.gz
-        tar -xzf $juce.tar.gz
-        rm -Rf JUCE
-        mv JUCE-$juce JUCE
+        cp -a ../overlay-audio-unit/JUCE .
         ./build.sh
         cd ..
     fi
