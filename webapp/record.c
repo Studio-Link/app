@@ -7,6 +7,10 @@
 #include "FLAC/stream_encoder.h"
 
 #if defined (WIN32)
+#include <windows.h>
+#include <shlobj.h>
+#include <direct.h>
+#include <lmaccess.h>
 #define DIR_SEP "\\"
 #else
 #define DIR_SEP "/"
@@ -60,10 +64,22 @@ static int openfile(struct record_enc *st)
 	FLAC__StreamEncoderInitStatus init_status;
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
 	int err;
+#ifdef WIN32
+	char win32_path[MAX_PATH];
 
+	if (S_OK != SHGetFolderPath(NULL,
+				CSIDL_DESKTOPDIRECTORY,
+				NULL,
+				0,
+				win32_path)) {
+		return ENOENT;
+	}
+	str_ncpy(buf, win32_path, sizeof(buf));
+#else
 	err = fs_gethome(buf, sizeof(buf));
 	if (err)
 		return err;
+#endif
 
 	(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "studio-link-%H.flac", 
 			buf, timestamp_print, tm);
