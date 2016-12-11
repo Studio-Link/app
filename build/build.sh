@@ -11,7 +11,7 @@ openssl="1.1.0c"
 openssl_sha256="fc436441a2e05752d31b4e46115eb89709a28aef96d4fe786abe92409b2fd6f5"
 baresip="master"
 juce="4.2.4"
-sndfile="1.0.27"
+flac="1.3.1"
 github_org="https://github.com/Studio-Link-v2"
 
 if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
@@ -26,7 +26,7 @@ echo "start build on $TRAVIS_OS_NAME"
 mkdir -p src; cd src
 mkdir -p my_include
 
-sl_extra_lflags="-L ../opus ../my_include/libsndfile.a"
+sl_extra_lflags="-L ../opus -L ../my_include "
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     openssl_target="linux-x86_64"
@@ -55,17 +55,18 @@ if [ ! -d openssl-${openssl} ] && [ "$TRAVIS_OS_NAME" == "osx" ]; then
 fi
 
 
-# Build libsndfile
+# Build FLAC
 #-----------------------------------------------------------------------------
-if [ ! -d libsndfile-${sndfile} ]; then
-    wget http://www.mega-nerd.com/libsndfile/files/libsndfile-${sndfile}.tar.gz
-    tar -xzf libsndfile-${sndfile}.tar.gz
-    ln -s libsndfile-${sndfile} libsndfile
-    cd libsndfile
-    ./configure
+if [ ! -d flac-${flac} ]; then
+    wget http://downloads.xiph.org/releases/flac/flac-${flac}.tar.xz
+    tar -xf flac-${flac}.tar.xz 
+    ln -s flac-${flac} flac
+    cd flac
+    ./configure --disable-ogg --enable-static
     make
-    cp -a src/sndfile.h ../my_include/
-    cp -a src/.libs/libsndfile.a ../my_include/
+    cp -a include/FLAC ../my_include/
+    cp -a include/share ../my_include/
+    cp -a src/libFLAC/.libs/libFLAC.a ../my_include/
     cd ..
 fi
 
