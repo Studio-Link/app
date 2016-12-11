@@ -27,15 +27,16 @@ PWD       := $(shell pwd)
 #
 
 CFLAGS    := -DFD_SETSIZE=4096 \
-	-isystem $(PWD)/openssl/include -I$(PWD) -g -gdwarf-2
+	-isystem $(PWD)/openssl/include -I$(PWD) -I $(PWD)/my_include -g -gdwarf-2
 
 LFLAGS    := -L$(SYSROOT)/lib/ \
 	-L$(PWD)/openssl \
 	-L$(PWD)/rem \
-	-L$(PWD)/opus
+	-L$(PWD)/opus \
+	-L$(PWD)/my_include
 
 # workaround for linker order (note, the order is important)
-LIBS	:= -lrem -lssl -lcrypto -lwsock32 -lws2_32 -liphlpapi -lwinmm -lcrypt32 -lopus
+LIBS	:= -lrem -lssl -lcrypto -lwsock32 -lws2_32 -liphlpapi -lwinmm -lcrypt32 -lopus -lFLAC
 
 
 COMMON_FLAGS := CC=$(CC) \

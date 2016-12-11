@@ -11,6 +11,7 @@ openssl="1.1.0c"
 openssl_sha256="fc436441a2e05752d31b4e46115eb89709a28aef96d4fe786abe92409b2fd6f5"
 baresip="master"
 github_org="https://github.com/Studio-Link-v2"
+flac="1.3.1"
 
 mkdir -p src
 cd src
@@ -32,6 +33,22 @@ if [ ! -d openssl-${openssl} ]; then
     ln -s openssl-${openssl} openssl
 fi
 
+# Build FLAC
+#-----------------------------------------------------------------------------
+if [ ! -d flac-${flac} ]; then
+    wget http://downloads.xiph.org/releases/flac/flac-${flac}.tar.xz
+    tar -xf flac-${flac}.tar.xz 
+    ln -s flac-${flac} flac
+    mkdir flac/build_win
+    pushd flac/build_win
+    ${_arch}-configure --disable-ogg --enable-static
+    make
+    popd
+    cp -a flac/include/FLAC my_include/
+    cp -a flac/include/share my_include/
+    cp -a flac/build_win/src/libFLAC/.libs/libFLAC.a my_include/
+fi
+
 # Download libre
 #-----------------------------------------------------------------------------
 if [ ! -d re-$re ]; then
@@ -40,11 +57,11 @@ if [ ! -d re-$re ]; then
     tar -xzf re-${re}.tar.gz
     rm -f re-${re}.tar.gz
     ln -s re-$re re
-    cd re
+    pushd re
     patch --ignore-whitespace -p1 < ../../build/patches/bluetooth_conflict.patch
     patch --ignore-whitespace -p1 < ../../build/patches/re_ice_bug.patch
     patch -p1 < ../../build/patches/fix_windows_ssize_t_bug.patch
-    cd ..
+    popd
     mkdir -p my_include/re
     cp -a re/include/* my_include/re/
 fi
@@ -82,7 +99,7 @@ if [ ! -d baresip-$baresip ]; then
     tar -xzf $baresip.tar.gz
     ln -s baresip-$baresip baresip
     cp -a baresip-$baresip/include/baresip.h my_include/
-    cd baresip-$baresip;
+    pushd baresip-$baresip
 
     ## Add patches
     patch -p1 < ../../build/patches/config.patch
@@ -93,7 +110,7 @@ if [ ! -d baresip-$baresip ]; then
     cp -a ../../effect modules/effect
     cp -a ../../effectlive modules/effectlive
     cp -a ../../applive modules/applive
-    cd ..
+    popd
 fi
 
 # Download overlay-vst
