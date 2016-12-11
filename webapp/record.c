@@ -6,6 +6,12 @@
 #include "FLAC/metadata.h"
 #include "FLAC/stream_encoder.h"
 
+#if defined (WIN32)
+#define DIR_SEP "\\"
+#else
+#define DIR_SEP "/"
+#endif
+
 static bool record = false;
 static FLAC__int32 pcm[4096 * 2];
 
@@ -45,17 +51,22 @@ static int timestamp_print(struct re_printf *pf, const struct tm *tm)
 
 static int openfile(struct record_enc *st)
 {
-	char filename[128];
+	char filename[256];
+	char buf[256];
 	time_t tnow = time(0);
 	struct tm *tm = localtime(&tnow);
 	FLAC__bool ok = true;
 	FLAC__StreamMetadata *metadata[2];
 	FLAC__StreamEncoderInitStatus init_status;
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
+	int err;
 
-	(void)re_snprintf(filename, sizeof(filename),
-			  "studio-link-%H.flac",
-			  timestamp_print, tm);
+	err = fs_gethome(buf, sizeof(buf));
+	if (err)
+		return err;
+
+	(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "studio-link-%H.flac", 
+			buf, timestamp_print, tm);
 
 	/* Basic Encoder */
 	if((st->enc = FLAC__stream_encoder_new()) == NULL) {
