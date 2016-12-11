@@ -12,6 +12,7 @@
 - **Misc** Fix crash bug on windows 10
 - **Misc** OpenSSL 1.1.0c
 - **Misc** Opus 1.1.3
+- **Misc** Add FLAC Support
 - **Misc** Update Baresip and re libs
 - **Plugin** Fix opus crash after multiple plug-in reloads
 - **onAir** First release of the new streaming plug-in
