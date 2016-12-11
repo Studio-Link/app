@@ -1,15 +1,17 @@
-#include <sndfile.h>
 #include <time.h>
 #include <re.h>
 #include <baresip.h>
 #include "webapp.h"
-#include <string.h>
+#include "share/compat.h"
+#include "FLAC/metadata.h"
+#include "FLAC/stream_encoder.h"
 
 static bool record = false;
+static FLAC__int32 pcm[4096 * 2];
 
 struct record_enc {
 	struct aufilt_enc_st af;  /* inheritance */
-	SNDFILE *enc;
+	FLAC__StreamEncoder *enc;
 	uint32_t srate;
 	uint32_t ch;
 };
@@ -18,8 +20,14 @@ struct record_enc {
 static void record_enc_destructor(void *arg)
 {
 	struct record_enc *st = arg;
-	if (st->enc)
-		sf_close(st->enc);
+	if (st->enc) {
+		FLAC__stream_encoder_finish(st->enc);
+		/*
+		FLAC__metadata_object_delete(metadata[0]);
+		FLAC__metadata_object_delete(metadata[1]);
+		*/
+		FLAC__stream_encoder_delete(st->enc);
+	}
 	list_unlink(&st->af.le);
 }
 
@@ -35,32 +43,66 @@ static int timestamp_print(struct re_printf *pf, const struct tm *tm)
 }
 
 
-static SNDFILE *openfile(const struct record_enc *st)
+static int openfile(struct record_enc *st)
 {
 	char filename[128];
-	SF_INFO sfinfo;
 	time_t tnow = time(0);
 	struct tm *tm = localtime(&tnow);
-	SNDFILE *sf;
+	FLAC__bool ok = true;
+	FLAC__StreamMetadata *metadata[2];
+	FLAC__StreamEncoderInitStatus init_status;
+	FLAC__StreamMetadata_VorbisComment_Entry entry;
 
 	(void)re_snprintf(filename, sizeof(filename),
 			  "studio-link-%H.flac",
 			  timestamp_print, tm);
-	memset(&sfinfo, 0, sizeof(sfinfo));
-	sfinfo.samplerate = st->srate;
-	sfinfo.channels   = st->ch;
-	sfinfo.format     = SF_FORMAT_FLAC | SF_FORMAT_PCM_16;
 
-	sf = sf_open(filename, SFM_WRITE, &sfinfo);
-	if (!sf) {
-		warning("sndfile: could not open: %s\n", filename);
-		puts(sf_strerror(NULL));
-		return NULL;
+	/* Basic Encoder */
+	if((st->enc = FLAC__stream_encoder_new()) == NULL) {
+		warning("ERROR: allocating FLAC encoder\n");
+		return 1;
 	}
 
-	info("sndfile: dumping audio to %s\n", filename);
+	ok &= FLAC__stream_encoder_set_verify(st->enc, true);
+	ok &= FLAC__stream_encoder_set_compression_level(st->enc, 5);
+	ok &= FLAC__stream_encoder_set_channels(st->enc, st->ch);
+	ok &= FLAC__stream_encoder_set_bits_per_sample(st->enc, 16);
+	ok &= FLAC__stream_encoder_set_sample_rate(st->enc, st->srate);
+	ok &= FLAC__stream_encoder_set_total_samples_estimate(st->enc, 0);
 
-	return sf;
+	/* METADATA */
+	if(ok) {
+		if(
+			(metadata[0] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT)) == NULL ||
+			(metadata[1] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING)) == NULL ||
+			/* there are many tag (vorbiscomment) functions but these are convenient for this particular use: */
+			!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, "ARTIST", "STUDIO LINK") ||
+			!FLAC__metadata_object_vorbiscomment_append_comment(metadata[0], entry, /*copy=*/false) || /* copy=false: let metadata object take control of entry's allocated       string */
+			!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, "YEAR", "2016") ||
+			!FLAC__metadata_object_vorbiscomment_append_comment(metadata[0], entry, /*copy=*/false)
+		) {
+			warning("FLAC METADATA ERROR: out of memory or tag error\n");
+			ok = false;
+		}
+
+		metadata[1]->length = 1234; /* set the padding length */
+
+		ok = FLAC__stream_encoder_set_metadata(st->enc, metadata, 2);
+	}
+
+	/* initialize encoder */
+	if(ok) {
+		init_status = FLAC__stream_encoder_init_file(st->enc, filename, NULL, NULL);
+		if(init_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
+			warning("FLAC ERROR: initializing encoder: %s\n", 
+					FLAC__StreamEncoderInitStatusString[init_status]);
+			ok = false;
+		}
+	}
+
+
+
+	return 0;
 }
 
 
@@ -92,17 +134,30 @@ int webapp_record_encode_update(struct aufilt_enc_st **stp, void **ctx,
 int webapp_record_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc)
 {
 	struct record_enc *sf = (struct record_enc *)st;
+	FLAC__bool ok = true;
+	unsigned i;
 
 	if (record) {
 		if (!sf->enc) {
-			sf->enc = openfile(sf);
+			openfile(sf);
 			if (!sf->enc)
 				return ENOMEM;
 		}
-		sf_write_short(sf->enc, sampv, *sampc);
+
+		for(i = 0; i < *sampc; i++) {
+			pcm[i] = (FLAC__int32)sampv[i];
+		}
+
+		ok = FLAC__stream_encoder_process_interleaved(sf->enc, pcm, *sampc/2);
+		if (!ok) {
+			warning("FLAC ENCODE ERROR: %s\n", 
+				FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(sf->enc)]);
+		}
+	
 	} else {
 		if (sf->enc) {
-			sf_close(sf->enc);
+			FLAC__stream_encoder_finish(sf->enc);
+			FLAC__stream_encoder_delete(sf->enc);
 			sf->enc = NULL;
 			warning("Close record\n");
 		}
