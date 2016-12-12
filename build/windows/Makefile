@@ -60,7 +60,8 @@ COMMON_FLAGS := CC=$(CC) \
 		USE_OPENSSL=yes \
 		USE_OPENSSL_DTLS=yes \
 		USE_OPENSSL_SRTP=yes \
-		USE_ZLIB=
+		USE_ZLIB= \
+		RELEASE=1
 
 #default:	retest baresip
 default:	baresip
@@ -85,12 +86,12 @@ retest:		Makefile librem.a libre.a
 baresip:	Makefile librem.a libre.a
 	@rm -f baresip/baresip.exe baresip/src/static.c
 	PKG_CONFIG_LIBDIR="$(SYSROOT)/lib/pkgconfig" \
-	make baresip.exe -C baresip $(COMMON_FLAGS) STATIC=1 RELEASE=1 \
+	make baresip.exe -C baresip $(COMMON_FLAGS) STATIC=1 \
 		LIBRE_SO=$(PWD)/re LIBREM_PATH=$(PWD)/rem \
 		MODULES="opus wincons ice g711 turn stun uuid auloop webapp winwave"
 	cp -a baresip/baresip.exe studio-link-standalone.exe
 	make clean -C baresip $(COMMON_FLAGS)
-	make libbaresip.a -C baresip $(COMMON_FLAGS) STATIC=1 RELEASE=1 \
+	make libbaresip.a -C baresip $(COMMON_FLAGS) STATIC=1 \
 		LIBRE_SO=$(PWD)/re LIBREM_PATH=$(PWD)/rem \
 		MODULES="opus ice g711 turn stun uuid webapp effect" \
 		EXTRA_CFLAGS="$(CFLAGS) -DSLPLUGIN"
