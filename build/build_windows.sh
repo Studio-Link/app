@@ -25,7 +25,7 @@ fi
 
 sudo rm -f /usr/x86_64-w64-mingw32/bin/libwinpthread-1.dll
 sudo rm -f /usr/i686-w64-mingw32/bin/libwinpthread-1.dll
-mv /usr/i686-w64-mingw32/include/pthread.h /usr/i686-w64-mingw32/include/pthread.h_disabled
+sudo mv /usr/i686-w64-mingw32/include/pthread.h /usr/i686-w64-mingw32/include/pthread.h_disabled
 
 # Download openssl
 #-----------------------------------------------------------------------------
