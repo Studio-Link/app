@@ -7,7 +7,7 @@
 - **Misc** Anything that is left or general.
 
 
-### v16.12.0-beta (xx.xx.2016)
+### v16.12.0-beta (16.12.2016)
 
 - **Misc** Fix crash bug on windows 10
 - **Misc** OpenSSL 1.1.0c
