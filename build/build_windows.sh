@@ -128,7 +128,7 @@ fi
 cp -a ../build/windows/Makefile .
 make openssl
 make
-pacman --noconfirm -S mingw-w64-winpthreads
+sudo pacman --noconfirm -S mingw-w64-winpthreads
 make -C overlay-vst PREFIX=$_arch
 zip -r studio-link-standalone-$BUILD_OS studio-link-standalone.exe
 zip -r studio-link-plugin-$BUILD_OS overlay-vst/studio-link.dll
