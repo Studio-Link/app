@@ -23,10 +23,6 @@ else
     _arch="x86_64-w64-mingw32"
 fi
 
-sudo rm -f /usr/x86_64-w64-mingw32/bin/libwinpthread-1.dll
-sudo rm -f /usr/i686-w64-mingw32/bin/libwinpthread-1.dll
-sudo mv /usr/i686-w64-mingw32/include/pthread.h /usr/i686-w64-mingw32/include/pthread.h_disabled
-
 # Download openssl
 #-----------------------------------------------------------------------------
 if [ ! -d openssl-${openssl} ]; then
@@ -45,7 +41,7 @@ if [ ! -d flac-${flac} ]; then
     ln -s flac-${flac} flac
     mkdir flac/build_win
     pushd flac/build_win
-    ${_arch}-configure --disable-ogg --enable-static
+    ${_arch}-configure --disable-ogg --enable-static --disable-cpplibs
     make
     popd
     cp -a flac/include/FLAC my_include/
@@ -132,7 +128,6 @@ fi
 cp -a ../build/windows/Makefile .
 make openssl
 make
-#sudo pacman --noconfirm -S mingw-w64-winpthreads
 make -C overlay-vst PREFIX=$_arch
 zip -r studio-link-standalone-$BUILD_OS studio-link-standalone.exe
 zip -r studio-link-plugin-$BUILD_OS overlay-vst/studio-link.dll
