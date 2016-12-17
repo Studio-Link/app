@@ -1,5 +1,5 @@
 diff --git a/src/conf.c b/src/conf.c
-index 6be861e..c2e2750 100644
+index 6be861e..93d237f 100644
 --- a/src/conf.c
 +++ b/src/conf.c
 @@ -174,8 +174,17 @@ int conf_path_get(char *path, size_t sz)
@@ -13,16 +13,25 @@ index 6be861e..c2e2750 100644
 +		return ENOMEM;
 +#elif SLIVE
 +	if (re_snprintf(path, sz, "%s" DIR_SEP ".studio-link-live", buf) < 0)
- 		return ENOMEM;
++		return ENOMEM;
 +#else
 +	if (re_snprintf(path, sz, "%s" DIR_SEP ".studio-link", buf) < 0)
-+		return ENOMEM;
+ 		return ENOMEM;
 +#endif
  
  	return 0;
  }
+@@ -312,6 +321,8 @@ int conf_configure(void)
+ 	if (re_snprintf(file, sizeof(file), "%s/config", path) < 0)
+ 		return ENOMEM;
+ 
++	unlink(file);
++
+ 	if (!conf_fileexist(file)) {
+ 
+ 		(void)fs_mkdir(path, 0700);
 diff --git a/src/config.c b/src/config.c
-index cd6430a..295fe6f 100644
+index cd6430a..93af884 100644
 --- a/src/config.c
 +++ b/src/config.c
 @@ -33,7 +33,7 @@ static struct config core_config = {
