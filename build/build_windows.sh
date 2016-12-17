@@ -23,8 +23,6 @@ else
     _arch="x86_64-w64-mingw32"
 fi
 
-sudo mv /usr/i686-w64-mingw32/include/pthread.h /usr/i686-w64-mingw32/include/pthread.h_disabled
-
 # Download openssl
 #-----------------------------------------------------------------------------
 if [ ! -d openssl-${openssl} ]; then
