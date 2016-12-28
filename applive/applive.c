@@ -42,7 +42,7 @@ static void startup_call(void *arg)
 
 static void startup(void *arg)
 {
-	startup_call();
+	startup_call(NULL);
 	system(command);
 }
 
