@@ -9,15 +9,40 @@
 #include <stdlib.h>
 #include "webapp.h"
 
-static struct tmr tmr;
+static struct tmr tmr_startup, tmr_call;
 static char command[255] = {0};
+
+
+static bool no_active_call(void)
+{
+	struct le *le;
+
+	for (le = list_head(uag_list()); le; le = le->next) {
+
+		struct ua *ua = le->data;
+
+		if (ua_call(ua))
+			return false;
+	}
+
+	return true;
+}
+
+
+static void startup_call(void *arg)
+{
+	struct call *call = NULL;
+	if (no_active_call()) {
+		ua_connect(uag_current(), &call, NULL,
+				"stream", NULL, VIDMODE_ON);
+	}
+	tmr_start(&tmr_call, 6000, startup_call, NULL);
+}
 
 
 static void startup(void *arg)
 {
-	struct call *call = NULL;
-	ua_connect(uag_current(), &call, NULL,
-			"stream", NULL, VIDMODE_ON);
+	startup_call();
 	system(command);
 }
 
@@ -41,8 +66,9 @@ static int module_init(void)
 #endif
 
 
-	tmr_init(&tmr);
-	tmr_start(&tmr, 1500, startup, NULL);
+	tmr_init(&tmr_startup);
+	tmr_init(&tmr_call);
+	tmr_start(&tmr_startup, 1500, startup, NULL);
 
 	return err;
 }
@@ -50,7 +76,8 @@ static int module_init(void)
 
 static int module_close(void)
 {
-	tmr_cancel(&tmr);
+	tmr_cancel(&tmr_startup);
+	tmr_cancel(&tmr_call);
 	webapp_accounts_close();
 	return 0;
 }
