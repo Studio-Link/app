@@ -5,6 +5,7 @@
 #include "share/compat.h"
 #include "FLAC/metadata.h"
 #include "FLAC/stream_encoder.h"
+#include <pthread.h>
 
 #if defined (WIN32)
 #include <windows.h>
@@ -17,19 +18,27 @@
 #endif
 
 static bool record = false;
-static FLAC__int32 pcm[4096 * 2];
 
 struct record_enc {
 	struct aufilt_enc_st af;  /* inheritance */
 	FLAC__StreamEncoder *enc;
 	uint32_t srate;
 	uint32_t ch;
+	bool run;
+	struct lock *lock;
+	bool ready;
+	size_t sampc;
+	FLAC__int32 *pcm;
+	pthread_t thread;
 };
 
 
 static void record_enc_destructor(void *arg)
 {
 	struct record_enc *st = arg;
+
+	st->run = false;
+	(void)pthread_join(st->thread, NULL);
 	if (st->enc) {
 		FLAC__stream_encoder_finish(st->enc);
 		/*
@@ -39,6 +48,7 @@ static void record_enc_destructor(void *arg)
 		FLAC__stream_encoder_delete(st->enc);
 	}
 	list_unlink(&st->af.le);
+	mem_deref(st->lock);
 }
 
 
@@ -133,6 +143,34 @@ static int openfile(struct record_enc *st)
 }
 
 
+static void *process_thread(void *arg)
+{
+	struct record_enc *sf = arg;
+	FLAC__bool ok = true;
+
+	while (sf->run) {
+
+		if (sf->ready) {
+			ok = FLAC__stream_encoder_process_interleaved(sf->enc, sf->pcm, sf->sampc/2);
+
+			if (!ok) {
+				warning("FLAC ENCODE ERROR: %s\n", 
+						FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(sf->enc)]);
+
+				warning("samples: %d\n", sf->sampc);
+			}
+			lock_write_get(sf->lock);
+			sf->ready = false;
+			lock_rel(sf->lock);
+		}
+
+		sys_msleep(1);
+	}
+
+	return NULL;
+}
+
+
 int webapp_record_encode_update(struct aufilt_enc_st **stp, void **ctx,
 			 const struct aufilt *af, struct aufilt_prm *prm)
 {
@@ -146,6 +184,9 @@ int webapp_record_encode_update(struct aufilt_enc_st **stp, void **ctx,
 		return 0;
 
 	st = mem_zalloc(sizeof(*st), record_enc_destructor);
+	st->pcm = mem_alloc(2 * 4096, NULL);
+	st->ready = false;
+	lock_alloc(&st->lock);
 	if (!st)
 		return ENOMEM;
 
@@ -161,33 +202,38 @@ int webapp_record_encode_update(struct aufilt_enc_st **stp, void **ctx,
 int webapp_record_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc)
 {
 	struct record_enc *sf = (struct record_enc *)st;
-	FLAC__bool ok = true;
 	unsigned i;
 
 	if (record) {
+		lock_write_get(sf->lock);
+		sf->sampc = *sampc;
+		for(i = 0; i < *sampc; i++) {
+			sf->pcm[i] = (FLAC__int32)sampv[i];
+		}
+		sf->ready = true;
+		lock_rel(sf->lock);
+
 		if (!sf->enc) {
 			openfile(sf);
 			if (!sf->enc)
 				return ENOMEM;
+			//START PROCESS THREAD
+			sf->run = true;
+			pthread_create(&sf->thread, NULL, process_thread, sf);
 		}
 
-		for(i = 0; i < *sampc; i++) {
-			pcm[i] = (FLAC__int32)sampv[i];
-		}
+		return 0;
+	}	
 
-		ok = FLAC__stream_encoder_process_interleaved(sf->enc, pcm, *sampc/2);
-		if (!ok) {
-			warning("FLAC ENCODE ERROR: %s\n", 
-				FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(sf->enc)]);
-		}
-	
-	} else {
-		if (sf->enc) {
-			FLAC__stream_encoder_finish(sf->enc);
-			FLAC__stream_encoder_delete(sf->enc);
-			sf->enc = NULL;
-			warning("Close record\n");
-		}
+	if (sf->enc) {
+		//STOP PROCESS THREAD
+		sf->run = false;
+		(void)pthread_join(sf->thread, NULL);
+
+		FLAC__stream_encoder_finish(sf->enc);
+		FLAC__stream_encoder_delete(sf->enc);
+		sf->enc = NULL;
+		warning("Close record\n");
 	}
 
 	return 0;
