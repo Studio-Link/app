@@ -18,6 +18,8 @@
 #define DIR_SEP "/"
 #endif
 
+#define PTIME 20
+
 static bool record = false;
 
 struct record_enc {
@@ -43,7 +45,6 @@ static void record_enc_destructor(void *arg)
 		st->ready = false;
 		st->run = false;
 		(void)pthread_join(st->thread, NULL);
-		warning("kill flac thread\n");
 	}
 
 	if (st->enc) {
@@ -76,6 +77,7 @@ static int timestamp_print(struct re_printf *pf, const struct tm *tm)
 static int openfile(struct record_enc *st)
 {
 	char filename[256];
+	char command[256];
 	char buf[256];
 	time_t tnow = time(0);
 	struct tm *tm = localtime(&tnow);
@@ -101,8 +103,27 @@ static int openfile(struct record_enc *st)
 		return err;
 #endif
 
-	(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "studio-link-%H.flac", 
+
+	(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "studio-link", 
 			buf, timestamp_print, tm);
+	
+	fs_mkdir(filename, 0700);
+
+#if defined (DARWIN)
+	re_snprintf(command, sizeof(command), "open %s",
+			filename);
+#elif defined (WIN32)
+	re_snprintf(command, sizeof(command), "start %s",
+			filename);
+#else
+	re_snprintf(command, sizeof(command), "xdg-open %s",
+			filename);
+#endif
+
+	(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "outgoing-%H.flac", 
+			filename, timestamp_print, tm);
+
+	system(command);
 
 	/* Basic Encoder */
 	if((st->enc = FLAC__stream_encoder_new()) == NULL) {
@@ -162,7 +183,11 @@ static void *process_thread(void *arg)
 
 	while (sf->run) {
 		if (sf->ready) {
-			ret = aubuf_get_samp(sf->aubuf, 20, sf->sampv, sf->sampc);
+			if (!sf->enc) {
+				openfile(sf);
+			}
+
+			ret = aubuf_get_samp(sf->aubuf, PTIME, sf->sampv, sf->sampc);
 			if (ret) {
 				goto sleep;
 			}
@@ -172,10 +197,17 @@ static void *process_thread(void *arg)
 			}
 
 			ok = FLAC__stream_encoder_process_interleaved(sf->enc, sf->pcm, sf->sampc/2);
-
 			if (!ok) {
 				warning("FLAC ENCODE ERROR: %s\n", 
 						FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(sf->enc)]);
+			}
+
+		} else {
+			if (sf->enc) {
+				FLAC__stream_encoder_finish(sf->enc);
+				FLAC__stream_encoder_delete(sf->enc);
+
+				sf->enc = NULL;
 			}
 		}
 sleep:
@@ -201,7 +233,7 @@ int webapp_record_encode_update(struct aufilt_enc_st **stp, void **ctx,
 	st = mem_zalloc(sizeof(*st), record_enc_destructor);
 	st->pcm = mem_zalloc(10 * 1920, NULL);
 	st->sampv = mem_zalloc(10 * 1920, NULL);
-	aubuf_alloc(&st->aubuf, 1920 * 2, 1920 * 30);
+	aubuf_alloc(&st->aubuf, 1920 * 2, 1920 * 100);
 	st->ready = false;
 	st->run = true;
 	pthread_create(&st->thread, NULL, process_thread, st);
@@ -225,25 +257,12 @@ int webapp_record_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc
 		sf->sampc = *sampc;
 		(void)aubuf_write_samp(sf->aubuf, sampv, sf->sampc);
 
-		if (!sf->enc) {
-			openfile(sf);
-			if (!sf->enc)
-				return ENOMEM;
-			sf->ready = true;
-		}
+		sf->ready = true;
 
 		return 0;
 	}	
 
-	if (sf->enc) {
-		sf->ready = false;
-		sys_msleep(1);
-		FLAC__stream_encoder_finish(sf->enc);
-		FLAC__stream_encoder_delete(sf->enc);
-
-		sf->enc = NULL;
-		warning("Close record\n");
-	}
+	sf->ready = false;
 
 	return 0;
 }
