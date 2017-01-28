@@ -1,5 +1,6 @@
 #include <time.h>
 #include <re.h>
+#include <rem.h>
 #include <baresip.h>
 #include "webapp.h"
 #include "share/compat.h"
@@ -25,11 +26,12 @@ struct record_enc {
 	uint32_t srate;
 	uint32_t ch;
 	bool run;
-	struct lock *lock;
 	bool ready;
 	size_t sampc;
+	int16_t *sampv;
 	FLAC__int32 *pcm;
 	pthread_t thread;
+	struct aubuf *aubuf;
 };
 
 
@@ -37,8 +39,13 @@ static void record_enc_destructor(void *arg)
 {
 	struct record_enc *st = arg;
 
-	st->run = false;
-	(void)pthread_join(st->thread, NULL);
+	if (st->run) {
+		st->ready = false;
+		st->run = false;
+		(void)pthread_join(st->thread, NULL);
+		warning("kill flac thread\n");
+	}
+
 	if (st->enc) {
 		FLAC__stream_encoder_finish(st->enc);
 		/*
@@ -47,8 +54,11 @@ static void record_enc_destructor(void *arg)
 		*/
 		FLAC__stream_encoder_delete(st->enc);
 	}
+
+	mem_deref(st->aubuf);
+	mem_deref(st->sampv);
+	mem_deref(st->pcm);
 	list_unlink(&st->af.le);
-	mem_deref(st->lock);
 }
 
 
@@ -115,7 +125,7 @@ static int openfile(struct record_enc *st)
 			/* there are many tag (vorbiscomment) functions but these are convenient for this particular use: */
 			!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, "ARTIST", "STUDIO LINK") ||
 			!FLAC__metadata_object_vorbiscomment_append_comment(metadata[0], entry, /*copy=*/false) || /* copy=false: let metadata object take control of entry's allocated       string */
-			!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, "YEAR", "2016") ||
+			!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, "YEAR", "2017") ||
 			!FLAC__metadata_object_vorbiscomment_append_comment(metadata[0], entry, /*copy=*/false)
 		) {
 			warning("FLAC METADATA ERROR: out of memory or tag error\n");
@@ -137,7 +147,7 @@ static int openfile(struct record_enc *st)
 		}
 	}
 
-
+	
 
 	return 0;
 }
@@ -147,24 +157,29 @@ static void *process_thread(void *arg)
 {
 	struct record_enc *sf = arg;
 	FLAC__bool ok = true;
+	unsigned i;
+	int ret;
 
 	while (sf->run) {
-
 		if (sf->ready) {
+			ret = aubuf_get_samp(sf->aubuf, 20, sf->sampv, sf->sampc);
+			if (ret) {
+				goto sleep;
+			}
+
+			for(i = 0; i < sf->sampc; i++) {
+				sf->pcm[i] = (FLAC__int32)sf->sampv[i];
+			}
+
 			ok = FLAC__stream_encoder_process_interleaved(sf->enc, sf->pcm, sf->sampc/2);
 
 			if (!ok) {
 				warning("FLAC ENCODE ERROR: %s\n", 
 						FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(sf->enc)]);
-
-				warning("samples: %d\n", sf->sampc);
 			}
-			lock_write_get(sf->lock);
-			sf->ready = false;
-			lock_rel(sf->lock);
 		}
-
-		sys_msleep(1);
+sleep:
+		sys_msleep(5);
 	}
 
 	return NULL;
@@ -184,9 +199,12 @@ int webapp_record_encode_update(struct aufilt_enc_st **stp, void **ctx,
 		return 0;
 
 	st = mem_zalloc(sizeof(*st), record_enc_destructor);
-	st->pcm = mem_alloc(2 * 4096, NULL);
+	st->pcm = mem_zalloc(10 * 1920, NULL);
+	st->sampv = mem_zalloc(10 * 1920, NULL);
+	aubuf_alloc(&st->aubuf, 1920 * 2, 1920 * 30);
 	st->ready = false;
-	lock_alloc(&st->lock);
+	st->run = true;
+	pthread_create(&st->thread, NULL, process_thread, st);
 	if (!st)
 		return ENOMEM;
 
@@ -202,36 +220,27 @@ int webapp_record_encode_update(struct aufilt_enc_st **stp, void **ctx,
 int webapp_record_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc)
 {
 	struct record_enc *sf = (struct record_enc *)st;
-	unsigned i;
 
 	if (record) {
-		lock_write_get(sf->lock);
 		sf->sampc = *sampc;
-		for(i = 0; i < *sampc; i++) {
-			sf->pcm[i] = (FLAC__int32)sampv[i];
-		}
-		sf->ready = true;
-		lock_rel(sf->lock);
+		(void)aubuf_write_samp(sf->aubuf, sampv, sf->sampc);
 
 		if (!sf->enc) {
 			openfile(sf);
 			if (!sf->enc)
 				return ENOMEM;
-			//START PROCESS THREAD
-			sf->run = true;
-			pthread_create(&sf->thread, NULL, process_thread, sf);
+			sf->ready = true;
 		}
 
 		return 0;
 	}	
 
 	if (sf->enc) {
-		//STOP PROCESS THREAD
-		sf->run = false;
-		(void)pthread_join(sf->thread, NULL);
-
+		sf->ready = false;
+		sys_msleep(1);
 		FLAC__stream_encoder_finish(sf->enc);
 		FLAC__stream_encoder_delete(sf->enc);
+
 		sf->enc = NULL;
 		warning("Close record\n");
 	}
