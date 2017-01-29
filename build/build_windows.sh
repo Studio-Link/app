@@ -122,6 +122,13 @@ if [ ! -d overlay-vst ]; then
     mv VST3\ SDK overlay-vst/vstsdk2.4
 fi
 
+# Download overlay-onair-vst
+#-----------------------------------------------------------------------------
+if [ ! -d overlay-onair-vst ]; then
+    git clone https://github.com/Studio-Link-v2/overlay-onair-vst.git
+    cp -a overlay-vst/vstsdk2.4 overlay-onair-vst/
+fi
+
 # Build
 #-----------------------------------------------------------------------------
 
@@ -129,6 +136,8 @@ cp -a ../build/windows/Makefile .
 make openssl
 make
 make -C overlay-vst PREFIX=$_arch
+make -C overlay-onair-vst PREFIX=$_arch
 zip -r studio-link-standalone-$BUILD_OS studio-link-standalone.exe
 zip -r studio-link-plugin-$BUILD_OS overlay-vst/studio-link.dll
+zip -r studio-link-plugin-onair-$BUILD_OS overlay-onair-vst/studio-link-onair.dll
 ls -lha

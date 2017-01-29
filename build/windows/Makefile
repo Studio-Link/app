@@ -93,6 +93,12 @@ baresip:	Makefile librem.a libre.a
 	make clean -C baresip $(COMMON_FLAGS)
 	make libbaresip.a -C baresip $(COMMON_FLAGS) STATIC=1 \
 		LIBRE_SO=$(PWD)/re LIBREM_PATH=$(PWD)/rem \
+		MODULES="opus ice g711 turn stun uuid apponair effectonair" \
+		EXTRA_CFLAGS="$(CFLAGS) -DSLIVE"
+	cp -a baresip/libbaresip.a libbaresip_onair.a 
+	make clean -C baresip $(COMMON_FLAGS)
+	make libbaresip.a -C baresip $(COMMON_FLAGS) STATIC=1 \
+		LIBRE_SO=$(PWD)/re LIBREM_PATH=$(PWD)/rem \
 		MODULES="opus ice g711 turn stun uuid webapp effect" \
 		EXTRA_CFLAGS="$(CFLAGS) -DSLPLUGIN"
 
