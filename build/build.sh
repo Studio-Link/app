@@ -140,8 +140,8 @@ if [ ! -d baresip-$baresip ]; then
     ## Link backend modules
     cp -a ../../webapp modules/webapp
     cp -a ../../effect modules/effect
-    cp -a ../../effectlive modules/effectlive
-    cp -a ../../applive modules/applive
+    cp -a ../../effectonair modules/effectonair
+    cp -a ../../apponair modules/apponair
 
     # Standalone
     make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
@@ -158,13 +158,13 @@ if [ ! -d baresip-$baresip ]; then
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
     cp -a libbaresip.a ../my_include/libbaresip_standalone.a
 
-    # Effectlive Plugin
+    # Effectonair Plugin
     make clean
     make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
-        MODULES="opus stdio ice g711 turn stun uuid auloop applive effectlive" \
+        MODULES="opus stdio ice g711 turn stun uuid auloop apponair effectonair" \
         EXTRA_CFLAGS="-I ../my_include -DSLIVE" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
-    cp -a libbaresip.a ../my_include/libbaresip_live.a
+    cp -a libbaresip.a ../my_include/libbaresip_onair.a
 
     # Effect Plugin
     make clean
@@ -187,12 +187,12 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
 fi
 
 
-# Build overlay-lv2-live plugin (linux only)
+# Build overlay-onair-lv2 plugin (linux only)
 #-----------------------------------------------------------------------------
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-    if [ ! -d overlay-lv2-live ]; then
-        git clone $github_org/overlay-lv2-live.git overlay-lv2-live
-        cd overlay-lv2-live; ./build.sh; cd ..
+    if [ ! -d overlay-onair-lv2 ]; then
+        git clone $github_org/overlay-onair-lv2.git overlay-onair-lv2
+        cd overlay-onair-lv2; ./build.sh; cd ..
     fi
 fi
 
@@ -218,11 +218,11 @@ fi
 # Build overlay-audio-unit plugin (osx only)
 #-----------------------------------------------------------------------------
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-    if [ ! -d overlay-live-au ]; then
+    if [ ! -d overlay-onair-au ]; then
         git clone \
-            $github_org/overlay-live-au.git overlay-live-au
-        cd overlay-live-au
-        sed -i '' s/SLVERSION_N/$version_n/ StudioLinkLive/StudioLinkLive.jucer
+            $github_org/overlay-onair-au.git overlay-onair-au
+        cd overlay-onair-au
+        sed -i '' s/SLVERSION_N/$version_n/ StudioLinkOnAir/StudioLinkOnAir.jucer
         cp -a ../overlay-audio-unit/JUCE .
         ./build.sh
         cd ..
@@ -260,21 +260,21 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     cp -a overlay-lv2/README.md studio-link.lv2/
     zip -r studio-link-plugin-linux studio-link.lv2
 
-    mkdir -p studio-link-live.lv2
-    cp -a overlay-lv2-live/studio-link-live.so studio-link-live.lv2/
-    cp -a overlay-lv2-live/*.ttl studio-link-live.lv2/
-    cp -a overlay-lv2-live/README.md studio-link-live.lv2/
-    zip -r studio-link-plugin-live-linux studio-link-live.lv2
+    mkdir -p studio-link-onair.lv2
+    cp -a overlay-onair-lv2/studio-link-onair.so studio-link-onair.lv2/
+    cp -a overlay-onair-lv2/*.ttl studio-link-onair.lv2/
+    cp -a overlay-onair-lv2/README.md studio-link-onair.lv2/
+    zip -r studio-link-plugin-onair-linux studio-link-onair.lv2
 
     zip -r studio-link-standalone-linux studio-link-standalone
 else
     otool -L studio-link-standalone
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
-    cp -a ~/Library/Audio/Plug-Ins/Components/StudioLinkLive.component StudioLinkLive.component
+    cp -a ~/Library/Audio/Plug-Ins/Components/StudioLinkOnAir.component StudioLinkOnAir.component
     mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app
     codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" --keychain ~/Library/Keychains/sl-build.keychain StudioLinkStandalone.app
     zip -r studio-link-plugin-osx StudioLink.component
-    zip -r studio-link-plugin-live-osx StudioLinkLive.component
+    zip -r studio-link-plugin-onair-osx StudioLinkOnAir.component
     zip -r studio-link-standalone-osx StudioLinkStandalone.app
     #security delete-keychain ~/Library/Keychains/sl-build.keychain
 fi
