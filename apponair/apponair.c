@@ -83,8 +83,8 @@ static int module_close(void)
 }
 
 
-EXPORT_SYM const struct mod_export DECL_EXPORTS(applive) = {
-	"applive",
+EXPORT_SYM const struct mod_export DECL_EXPORTS(apponair) = {
+	"apponair",
 	"application",
 	module_init,
 	module_close,

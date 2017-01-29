@@ -199,8 +199,8 @@ out:
 static int effect_init(void)
 {
 	int err;
-	err  = ausrc_register(&ausrc, "effectlive", src_alloc);
-	err |= auplay_register(&auplay, "effectlive", play_alloc);
+	err  = ausrc_register(&ausrc, "effectonair", src_alloc);
+	err |= auplay_register(&auplay, "effectonair", play_alloc);
 
 	return err;
 }
@@ -215,8 +215,8 @@ static int effect_close(void)
 }
 
 
-const struct mod_export DECL_EXPORTS(effectlive) = {
-	"effectlive",
+const struct mod_export DECL_EXPORTS(effectonair) = {
+	"effectonair",
 	"sound",
 	effect_init,
 	effect_close
