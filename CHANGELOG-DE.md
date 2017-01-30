@@ -7,6 +7,11 @@
 - **onAir** Studio Link Streaming Plugin (Audio Unit, LV2 and VST)
 
 
+### v16.12.1-beta (30.01.2017)
+
+- **Standalone** Record Funktion (FLAC) stabilität verbessert
+
+
 ### v16.12.0-beta (16.12.2016)
 
 - **Generell** Crash bug unter windows 10 gefixt

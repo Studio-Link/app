@@ -6,7 +6,9 @@
 - **Box** Changes to the [orange] hardware box
 - **Misc** Anything that is left or general.
 
-### v16.12.1-beta (xx.xx.xx)
+### v16.12.1-beta (30.01.2017)
+
+- **Standalone** Record button better stability
 
 
 ### v16.12.0-beta (16.12.2016)
