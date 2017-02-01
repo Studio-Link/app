@@ -12,7 +12,7 @@ index 6be861e..93d237f 100644
 +	if (re_snprintf(path, sz, "%s" DIR_SEP ".studio-link-plugin", buf) < 0)
 +		return ENOMEM;
 +#elif SLIVE
-+	if (re_snprintf(path, sz, "%s" DIR_SEP ".studio-link-live", buf) < 0)
++	if (re_snprintf(path, sz, "%s" DIR_SEP ".studio-link-onair", buf) < 0)
 +		return ENOMEM;
 +#else
 +	if (re_snprintf(path, sz, "%s" DIR_SEP ".studio-link", buf) < 0)
@@ -52,7 +52,7 @@ index cd6430a..93af884 100644
 +#if defined (SLPLUGIN)
 +	return "effect";
 +#elif defined (SLIVE)
-+	return "effectlive";
++	return "effectonair";
 +#elif defined (ANDROID)
  	return "opensles,nil";
  #elif defined (DARWIN)
@@ -126,7 +126,7 @@ index cd6430a..93af884 100644
 +#elif defined (SLPLUGIN)
 +	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "effect" MOD_EXT "\n");
 +#elif defined (SLIVE)
-+	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "effectlive" MOD_EXT "\n");
++	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "effectonair" MOD_EXT "\n");
  #elif defined (DARWIN)
 -	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "coreaudio" MOD_EXT "\n");
 -	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "audiounit" MOD_EXT "\n");
@@ -194,7 +194,7 @@ index cd6430a..93af884 100644
 +#endif
 +
 +#ifdef SLIVE
-+	(void)re_fprintf(f, "module_app\t\t" MOD_PRE "applive"MOD_EXT"\n");
++	(void)re_fprintf(f, "module_app\t\t" MOD_PRE "apponair"MOD_EXT"\n");
 +#else
 +	(void)re_fprintf(f, "module_app\t\t" MOD_PRE "webapp"MOD_EXT"\n");
  #endif
