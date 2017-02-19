@@ -66,6 +66,16 @@ int webapp_record_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc
 void webapp_record_set(bool active);
 
 /*
+ * routing.c
+ */
+int webapp_routing_encode_update(struct aufilt_enc_st **stp, void **ctx,
+			 const struct aufilt *af, struct aufilt_prm *prm);
+int webapp_routing_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc);
+int webapp_routing_decode_update(struct aufilt_dec_st **stp, void **ctx,
+			 const struct aufilt *af, struct aufilt_prm *prm);
+int webapp_routing_decode(struct aufilt_dec_st *st, int16_t *sampv, size_t *sampc);
+
+/*
  * account.c
  */
 int webapp_accounts_init(void);

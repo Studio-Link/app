@@ -39,6 +39,11 @@ static struct aufilt record = {
 	webapp_record_encode_update, webapp_record_encode,
 	NULL, NULL
 };
+static struct aufilt routing = {
+	LE_INIT, "webapp_routing",
+	webapp_routing_encode_update, webapp_routing_encode,
+	webapp_routing_decode_update, webapp_routing_decode
+};
 #endif
 
 static int http_sreply(struct http_conn *conn, uint16_t scode,
@@ -472,6 +477,7 @@ static int module_init(void)
 	aufilt_register(&vumeter);
 	aufilt_register(&mono);
 	aufilt_register(&record);
+	aufilt_register(&routing);
 #endif
 
 	err = http_port();
@@ -516,6 +522,7 @@ static int module_close(void)
 	aufilt_unregister(&vumeter);
 	aufilt_unregister(&mono);
 	aufilt_unregister(&record);
+	aufilt_unregister(&routing);
 #endif
 	mem_deref(httpsock);
 	mem_deref(webapp_calls);
