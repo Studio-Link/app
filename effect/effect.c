@@ -144,7 +144,7 @@ struct session* effect_session_start(void)
 	lock_alloc(&sess->plock);
 
 	list_append(&sessionl, &sess->le, sess);
-
+#if 0
 	if (0 == str_cmp(automixv, "true")) {
 		sess->run_auto_mix = true;
 		warning("auto mix enabled\n");
@@ -153,6 +153,8 @@ struct session* effect_session_start(void)
 		sess->run_auto_mix = false;
 		warning("auto mix disabled\n");
 	}
+#endif
+	sess->run_auto_mix = true;
 
 	return sess;
 }
