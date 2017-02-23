@@ -308,11 +308,7 @@ int webapp_accounts_init(void)
 
 
 	tmr_init(&tmr);
-#if defined (SLPLUGIN)
 	tmr_start(&tmr, 1000, startup, NULL);
-#else
-	startup(NULL);
-#endif
 
 	webapp_account_current();
 
