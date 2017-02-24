@@ -7,6 +7,13 @@
 - **onAir** Studio Link Streaming Plugin (Audio Unit, LV2 and VST)
 
 
+### v17.02.0-beta (xx.02.2017)
+
+- **Generell** OpenSSL 1.1.0e
+- **Plugin** Auto N-1 Mix Option entfernt (ist nun immer aktiv)
+- **onAir** Streaming Bug macOS auval und Logic gefixt
+
+
 ### v16.12.1-beta (30.01.2017)
 
 - **Standalone** Record Funktion (FLAC) stabilität verbessert
@@ -25,21 +32,6 @@
 - **Standalone** Record Funktion (FLAC) eingebaut
 
 
-### v16.04.1-beta (02.07.2016)
-
-- **Plugin** Anzahl der Tracks erhöht (6->8)
-- **Plugin Linux LV2 (Linux)** Fehlerhafte Synchronisierung der Spuren behoben
-- **Generell** Einseitiger Ausfall des Audio Signals (meistens nach 30-300 Sekunden) gefixt
-
-
-### v16.04.0-beta (23.05.2016)
-
-- **Generell** Nummernwahl durch Enter-Taste bestätigen
-- **Generell** Webinterface vereinfacht
-- **Plugin** Möglichen OSX auval crash Bug gefixt
-- **Plugin** Konflikt mit Bluetooth Bibliothek unter Linux behoben #5
-- **Standalone** Abtastrate wird nun unter OSX automatisch ausgewählt (48kHz)
-- **Standalone** MUTE Taste bei aktiven Gespräch
 
 
 [Alle Änderungen...](https://github.com/Studio-Link-v2/backend/blob/master/CHANGELOG-ARCHIVE.md)
