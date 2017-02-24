@@ -83,9 +83,6 @@ int webapp_options_init(void)
 	err = webapp_load_file(mb, filename);
 	if (err) {
 		err = odict_alloc(&options, DICT_BSIZE);
-#ifdef SLPLUGIN
-		odict_entry_add(options, "auto-mix-n-1", ODICT_STRING, "true");
-#endif
 	}
 	else {
 		err = json_decode_odict(&options, DICT_BSIZE,
@@ -96,6 +93,7 @@ int webapp_options_init(void)
 	odict_entry_del(options, "bypass");
 	odict_entry_del(options, "mono");
 	odict_entry_del(options, "record");
+	odict_entry_del(options, "auto-mix-n-1");
 
 out:
 	mem_deref(mb);
