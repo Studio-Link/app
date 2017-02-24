@@ -477,7 +477,7 @@ static int module_init(void)
 	aufilt_register(&vumeter);
 	aufilt_register(&mono);
 	aufilt_register(&record);
-	aufilt_register(&routing);
+	//aufilt_register(&routing);
 #endif
 
 	err = http_port();
@@ -522,7 +522,7 @@ static int module_close(void)
 	aufilt_unregister(&vumeter);
 	aufilt_unregister(&mono);
 	aufilt_unregister(&record);
-	aufilt_unregister(&routing);
+	//aufilt_unregister(&routing);
 #endif
 	mem_deref(httpsock);
 	mem_deref(webapp_calls);
