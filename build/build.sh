@@ -39,6 +39,8 @@ else
     sl_extra_modules="audiounit"
 fi
 
+debug="RELEASE=0"
+
 
 # Build openssl
 #-----------------------------------------------------------------------------
@@ -87,7 +89,7 @@ if [ ! -d re-$re ]; then
     # WARNING build releases with RELEASE=1, because otherwise its MEM Debug
     # statements are not THREAD SAFE! on every platform, especilly windows.
 
-    make RELEASE=1 USE_OPENSSL=1 EXTRA_CFLAGS="-I ../my_include/" libre.a
+    make $debug USE_OPENSSL=1 EXTRA_CFLAGS="-I ../my_include/" libre.a
 
     cd ..
     mkdir -p my_include/re
@@ -102,7 +104,7 @@ if [ ! -d rem-$rem ]; then
     tar -xzf rem-${rem}.tar.gz
     ln -s rem-$rem rem
     cd rem
-    make RELEASE=1 librem.a 
+    make $debug librem.a 
     cd ..
 fi
 
@@ -144,7 +146,7 @@ if [ ! -d baresip-$baresip ]; then
     cp -a ../../apponair modules/apponair
 
     # Standalone
-    make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make $debug LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
         EXTRA_CFLAGS="-I ../my_include" \
         EXTRA_LFLAGS="$sl_extra_lflags"
@@ -152,7 +154,7 @@ if [ ! -d baresip-$baresip ]; then
     cp -a baresip ../studio-link-standalone
 
     # libbaresip.a without effect plugin
-    make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make $debug LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
         EXTRA_CFLAGS="-I ../my_include" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
@@ -160,7 +162,7 @@ if [ ! -d baresip-$baresip ]; then
 
     # Effectonair Plugin
     make clean
-    make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make $debug LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop apponair effectonair" \
         EXTRA_CFLAGS="-I ../my_include -DSLIVE" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
@@ -168,7 +170,7 @@ if [ ! -d baresip-$baresip ]; then
 
     # Effect Plugin
     make clean
-    make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make $debug LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp effect" \
         EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
