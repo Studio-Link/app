@@ -16,3 +16,7 @@ This repository contains the studio link - baresip modules and build environment
 ## Build on OSX
 
 ```export TRAVIS_OS_NAME="osx"; build/build.sh```
+
+## Build for Windows on Archlinux
+
+```export BUILD_OS="windows64"; build/build_windows.sh```
