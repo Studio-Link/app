@@ -208,8 +208,9 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 
 	if (!msg)
 		goto out2;
-	if (!req)
-		return;
+	if (err)
+		goto out2;
+
 
 	mb = msg->mb;
 
@@ -238,7 +239,6 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 out:
 	mem_deref(o);
 out2:
-	req = mem_deref(req);
 	return;
 }
 
