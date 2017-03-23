@@ -1,7 +1,7 @@
 #!/bin/bash -ex
 
-version_t="v17.02.2-beta"
-version_n="17.02.2"
+version_t="v17.03.0-beta"
+version_n="17.03.0"
 
 #-----------------------------------------------------------------------------
 rem="0.4.7"
@@ -11,7 +11,7 @@ openssl="1.1.0e"
 openssl_sha256="57be8618979d80c910728cfc99369bf97b2a1abd8f366ab6ebdee8975ad3874c"
 baresip="master"
 juce="4.2.4"
-flac="1.3.1"
+flac="1.3.2"
 github_org="https://github.com/Studio-Link-v2"
 
 if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then

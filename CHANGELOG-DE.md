@@ -7,11 +7,13 @@
 - **onAir** Studio Link Streaming Plugin (Audio Unit, LV2 and VST)
 
 
-### v17.02.0-beta (xx.02.2017)
+### v17.03.0-beta (23.03.2017)
 
 - **Generell** OpenSSL 1.1.0e
+- **Standalone** Flac 1.3.2
 - **Plugin** Auto N-1 Mix Option entfernt (ist nun immer aktiv)
 - **onAir** Streaming Bug macOS auval und Logic gefixt
+- **Plugin** **onAir** Windows Crash Dumps beim deaktivieren gefixt
 
 
 ### v16.12.1-beta (30.01.2017)

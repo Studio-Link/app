@@ -1,7 +1,7 @@
 /**
  * @file webapp.c Webserver UI module
  *
- * Copyright (C) 2016 studio-link.de Sebastian Reimers
+ * Copyright (C) 2013-2017 studio-link.de Sebastian Reimers
  */
 #include <re.h>
 #include <baresip.h>
@@ -13,7 +13,7 @@
 #include "assets/fonts.h"
 #include "webapp.h"
 
-#define SLVERSION "17.02.1-beta"
+#define SLVERSION "17.03.0-beta"
 
 static struct tmr tmr;
 
