@@ -12,6 +12,7 @@ openssl_sha256="57be8618979d80c910728cfc99369bf97b2a1abd8f366ab6ebdee8975ad3874c
 baresip="master"
 github_org="https://github.com/Studio-Link-v2"
 flac="1.3.2"
+vstsdk="vstsdk367_03_03_2017_build_352"
 
 mkdir -p src
 cd src
@@ -117,8 +118,8 @@ fi
 #-----------------------------------------------------------------------------
 if [ ! -d overlay-vst ]; then
     git clone https://github.com/Studio-Link-v2/overlay-vst.git
-    wget http://www.steinberg.net/sdk_downloads/vstsdk366_27_06_2016_build_61.zip
-    unzip -q vstsdk366_27_06_2016_build_61.zip
+    wget http://www.steinberg.net/sdk_downloads/$vstsdk.zip
+    unzip -q $vstsdk.zip
     mv VST3\ SDK overlay-vst/vstsdk2.4
 fi
 
