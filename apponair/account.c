@@ -208,8 +208,9 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 
 	if (!msg)
 		goto out2;
-	if (!req)
-		return;
+	if (err)
+		goto out2;
+
 
 	mb = msg->mb;
 
@@ -238,7 +239,6 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 out:
 	mem_deref(o);
 out2:
-	req = mem_deref(req);
 	return;
 }
 
@@ -270,10 +270,6 @@ static void provisioning(void)
 
 static void startup(void *arg)
 {
-	struct le *le;
-	for (le = accs->lst.head; le; le = le->next) {
-		sip_register(le->data);
-	}
 	provisioning();
 }
 
