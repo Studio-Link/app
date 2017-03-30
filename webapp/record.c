@@ -120,8 +120,8 @@ static int openfile(struct record_enc *st)
 			filename);
 #endif
 
-	(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "outgoing-%H.flac", 
-			filename, timestamp_print, tm);
+	(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "outgoing-%H-%x.flac", 
+			filename, timestamp_print, tm, st);
 
 	system(command);
 
