@@ -7,6 +7,11 @@
 - **Misc** Anything that is left or general.
 
 
+### v17.03.1-beta (30.03.2017)
+
+- **Standalone** Add session identifier to recording filename
+
+
 ### v17.03.0-beta (23.03.2017)
 
 - **Generell** OpenSSL 1.1.0e
