@@ -7,6 +7,11 @@
 - **onAir** Studio Link Streaming Plugin (Audio Unit, LV2 and VST)
 
 
+### v17.03.1-beta (30.03.2017)
+
+- **Standalone** Der Dateiname vom Recording enthält nun eine eindeutige Sitzungskennzeichnung
+
+
 ### v17.03.0-beta (23.03.2017)
 
 - **Generell** OpenSSL 1.1.0e
