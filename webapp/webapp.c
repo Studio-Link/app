@@ -474,8 +474,8 @@ static int module_init(void)
 			" Copyright (C) 2016"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 
-	aufilt_register(&vumeter);
 	aufilt_register(&mono);
+	aufilt_register(&vumeter);
 	aufilt_register(&record);
 	//aufilt_register(&routing);
 #endif
