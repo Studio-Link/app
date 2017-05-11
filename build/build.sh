@@ -44,7 +44,7 @@ debug="RELEASE=0"
 
 # Build openssl
 #-----------------------------------------------------------------------------
-if [ ! -d openssl-${openssl} ] && [ "$TRAVIS_OS_NAME" == "osx" ]; then
+if [ ! -d openssl-${openssl} ]; then
     wget https://www.openssl.org/source/openssl-${openssl}.tar.gz
     echo "$openssl_sha256  openssl-${openssl}.tar.gz" | shasum -a 256 -c -
     tar -xzf openssl-${openssl}.tar.gz
