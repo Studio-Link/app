@@ -1,7 +1,7 @@
 #!/bin/bash -ex
 
-version_t="v17.03.1-beta"
-version_n="17.03.1"
+version_t="v17.03.2-beta"
+version_n="17.03.2"
 
 #-----------------------------------------------------------------------------
 rem="0.4.7"
@@ -26,7 +26,7 @@ echo "start build on $TRAVIS_OS_NAME"
 mkdir -p src; cd src
 mkdir -p my_include
 
-sl_extra_lflags="-L ../opus -L ../my_include "
+sl_extra_lflags="-L ../opus -L ../my_include -L ../openssl "
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     openssl_target="linux-x86_64"
@@ -44,7 +44,7 @@ debug="RELEASE=0"
 
 # Build openssl
 #-----------------------------------------------------------------------------
-if [ ! -d openssl-${openssl} ] && [ "$TRAVIS_OS_NAME" == "osx" ]; then
+if [ ! -d openssl-${openssl} ]; then
     wget https://www.openssl.org/source/openssl-${openssl}.tar.gz
     echo "$openssl_sha256  openssl-${openssl}.tar.gz" | shasum -a 256 -c -
     tar -xzf openssl-${openssl}.tar.gz
