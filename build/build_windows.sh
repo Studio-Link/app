@@ -53,10 +53,10 @@ fi
 # Download libre
 #-----------------------------------------------------------------------------
 if [ ! -d re-$re ]; then
-    wget -N "http://www.creytiv.com/pub/re-${re}.tar.gz"
-    #wget https://github.com/creytiv/re/archive/${re}.tar.gz
-    tar -xzf re-${re}.tar.gz
-    rm -f re-${re}.tar.gz
+    #wget -N "http://www.creytiv.com/pub/re-${re}.tar.gz"
+    wget -N "https://github.com/creytiv/re/archive/v${re}.tar.gz"
+    tar -xzf v${re}.tar.gz
+    rm -f v${re}.tar.gz
     ln -s re-$re re
     pushd re
     patch --ignore-whitespace -p1 < ../../build/patches/bluetooth_conflict.patch
@@ -70,8 +70,9 @@ fi
 # Download librem
 #-----------------------------------------------------------------------------
 if [ ! -d rem-$rem ]; then
-    wget -N "http://www.creytiv.com/pub/rem-${rem}.tar.gz"
-    tar -xzf rem-${rem}.tar.gz
+    #wget -N "http://www.creytiv.com/pub/rem-${rem}.tar.gz"
+    wget -N "https://github.com/creytiv/rem/archive/v${rem}.tar.gz"
+    tar -xzf v${rem}.tar.gz
     ln -s rem-$rem rem
 fi
 
