@@ -121,7 +121,7 @@ if [ ! -d overlay-vst ]; then
     git clone https://github.com/Studio-Link-v2/overlay-vst.git
     wget http://www.steinberg.net/sdk_downloads/$vstsdk.zip
     unzip -q $vstsdk.zip
-    mv VST_SDK/VST3_SDK overlay-vst/vstsdk2.4
+    mv VST_SDK/VST2_SDK overlay-vst/vstsdk2.4
 fi
 
 # Download overlay-onair-vst
