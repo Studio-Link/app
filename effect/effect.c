@@ -511,8 +511,8 @@ void effect_set_bypass(bool value)
 static int effect_init(void)
 {
 	int err;
-	err  = ausrc_register(&ausrc, "effect", src_alloc);
-	err |= auplay_register(&auplay, "effect", play_alloc);
+	err  = ausrc_register(&ausrc, "effect", src_alloc, NULL);
+	err |= auplay_register(&auplay, "effect", play_alloc, NULL);
 
 	return err;
 }

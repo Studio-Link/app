@@ -4,8 +4,8 @@ version_t="v17.03.1-beta"
 version_n="17.03.1"
 
 #-----------------------------------------------------------------------------
-rem="0.4.7"
-re="0.5.0"
+rem="0.5.1"
+re="0.5.5"
 opus="1.1.3"
 openssl="1.1.0e"
 openssl_sha256="57be8618979d80c910728cfc99369bf97b2a1abd8f366ab6ebdee8975ad3874c"
@@ -131,8 +131,8 @@ if [ ! -d baresip-$baresip ]; then
     cd baresip-$baresip;
 
     ## Add patches
-    patch -p1 < ../../build/patches/config.patch
-    patch -p1 < ../../build/patches/osx_sample_rate.patch
+    #patch -p1 < ../../build/patches/config.patch
+    #patch -p1 < ../../build/patches/osx_sample_rate.patch
     
     #fixes multiple maxaverage lines in fmtp e.g.: 
     #fmtp: stereo=1;sprop-stereo=1;maxaveragebitrate=64000;maxaveragebitrate=64000;
