@@ -199,8 +199,8 @@ out:
 static int effect_init(void)
 {
 	int err;
-	err  = ausrc_register(&ausrc, "effectonair", src_alloc);
-	err |= auplay_register(&auplay, "effectonair", play_alloc);
+	err  = ausrc_register(&ausrc, "effectonair", src_alloc, NULL);
+	err |= auplay_register(&auplay, "effectonair", play_alloc, NULL);
 
 	return err;
 }

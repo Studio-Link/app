@@ -61,7 +61,7 @@ void webapp_ws_chat(const struct websock_hdr *hdr,
 			webapp_chat_add(peer, message, true);
 			ws_send_json(WS_CHAT, webapp_messages_get());
 			select_chat_peer(peer);
-			err = message_send(uag_current(), chat_peer, message);
+			err = message_send(uag_current(), chat_peer, message, NULL, NULL);
 
 			if (err)
 				warning("message failed: %d\n", err);
