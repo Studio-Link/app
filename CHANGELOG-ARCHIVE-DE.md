@@ -6,6 +6,24 @@
 - **Generell** Allgemeine Veränderungen
 
 
+### v16.12.1-beta (30.01.2017)
+
+- **Standalone** Record Funktion (FLAC) stabilität verbessert
+
+
+### v16.12.0-beta (16.12.2016)
+
+- **Generell** Crash bug unter windows 10 gefixt
+- **Generell** OpenSSL 1.1.0c
+- **Generell** Opus 1.1.3
+- **Generell** FLAC Support hinzugefügt
+- **Generell** Baresip und re libs aktualisiert
+- **Plugin** OPUS Fehler nach mehreren neustarts gefixt
+- **onAir** Erstes Release vom neuen Plugin
+- **Standalone** Mono Button Funktion hinzugefügt
+- **Standalone** Record Funktion (FLAC) eingebaut
+
+
 ### v16.04.1-beta (02.07.2016)
 
 - **Plugin** Anzahl der Tracks erhöht (6->8)
