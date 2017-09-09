@@ -17,7 +17,7 @@ mkdir -p my_include
 sl_extra_lflags="-L ../opus -L ../my_include -L ../openssl "
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-    openssl_target="linux-x86_64"
+    openssl_target="linux-`uname -m`"
     sl_extra_modules="alsa jack"
 else
     openssl_target="darwin64-x86_64-cc"
