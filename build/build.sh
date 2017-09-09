@@ -1,18 +1,6 @@
 #!/bin/bash -ex
 
-version_t="v17.04.0-alpha"
-version_n="17.04.0"
-
-#-----------------------------------------------------------------------------
-rem="0.5.0"
-re="0.5.0"
-opus="1.1.3"
-openssl="1.1.0f"
-openssl_sha256="12f746f3f2493b2f39da7ecf63d7ee19c6ac9ec6a4fcd8c229da8a522cb12765"
-baresip="master"
-juce="4.2.4"
-flac="1.3.2"
-github_org="https://github.com/Studio-Link-v2"
+source build/versions.sh
 
 if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
     curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash
@@ -39,7 +27,6 @@ else
     sl_extra_modules="audiounit"
 fi
 
-debug="RELEASE=0"
 
 
 # Build openssl
@@ -70,6 +57,18 @@ if [ ! -d flac-${flac} ]; then
     cp -a include/share ../my_include/
     cp -a src/libFLAC/.libs/libFLAC.a ../my_include/
     cd ..
+fi
+
+
+# Build opus
+#-----------------------------------------------------------------------------
+if [ ! -d opus-$opus ]; then
+    wget -N "http://downloads.xiph.org/releases/opus/opus-${opus}.tar.gz"
+    tar -xzf opus-${opus}.tar.gz
+    cd opus-$opus; ./configure --with-pic; make; cd ..
+    mkdir opus; cp opus-$opus/.libs/libopus.a opus/
+    mkdir -p my_include/opus
+    cp opus-$opus/include/*.h my_include/opus/ 
 fi
 
 
@@ -107,18 +106,6 @@ if [ ! -d rem-$rem ]; then
     cd rem
     make $debug librem.a 
     cd ..
-fi
-
-
-# Build opus
-#-----------------------------------------------------------------------------
-if [ ! -d opus-$opus ]; then
-    wget -N "http://downloads.xiph.org/releases/opus/opus-${opus}.tar.gz"
-    tar -xzf opus-${opus}.tar.gz
-    cd opus-$opus; ./configure --with-pic; make; cd ..
-    mkdir opus; cp opus-$opus/.libs/libopus.a opus/
-    mkdir -p my_include/opus
-    cp opus-$opus/include/*.h my_include/opus/ 
 fi
 
 

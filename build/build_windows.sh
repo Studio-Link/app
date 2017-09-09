@@ -1,19 +1,6 @@
 #!/bin/bash -ex
 
-version_t="v17.04.0-alpha"
-version_n="17.04.0"
-
-#-----------------------------------------------------------------------------
-rem="0.5.0"
-re="0.5.0"
-opus="1.1.3"
-openssl="1.1.0e"
-openssl_sha256="57be8618979d80c910728cfc99369bf97b2a1abd8f366ab6ebdee8975ad3874c"
-baresip="master"
-github_org="https://github.com/Studio-Link-v2"
-flac="1.3.2"
-vstsdk="vstsdk367_03_03_2017_build_352"
-
+source build/versions.sh
 mkdir -p src
 cd src
 mkdir -p my_include

@@ -65,7 +65,7 @@ static void message_handler(const struct pl *peer, const struct pl *ctype,
 int webapp_chat_init(void)
 {
 	int err = 0;
-	err = message_init(message_handler, NULL);
+	err = message_listen(message_handler, NULL);
 	if (err)
 		return err;
 

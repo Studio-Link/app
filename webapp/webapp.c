@@ -94,11 +94,13 @@ static void http_req_handler(struct http_conn *conn,
 		ws_send_json(WS_CONTACT, webapp_contacts_get());
 		return;
 	}
+	/*
 	if (0 == pl_strcasecmp(&msg->path, "/ws_chat")) {
 		webapp_ws_handler(conn, WS_CHAT, msg, webapp_ws_chat);
 		ws_send_json(WS_CHAT, webapp_messages_get());
 		return;
 	}
+	*/
 	if (0 == pl_strcasecmp(&msg->path, "/ws_meter")) {
 		webapp_ws_handler(conn, WS_METER, msg, webapp_ws_meter);
 		return;
@@ -474,10 +476,10 @@ static int module_init(void)
 			" Copyright (C) 2016"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 
-	aufilt_register(&mono);
-	aufilt_register(&vumeter);
-	aufilt_register(&record);
-	//aufilt_register(&routing);
+	aufilt_register(baresip_aufiltl(), &mono);
+	aufilt_register(baresip_aufiltl(), &vumeter);
+	aufilt_register(baresip_aufiltl(),&record);
+	//aufilt_register(baresip_aufiltl(), &routing);
 #endif
 
 	err = http_port();
@@ -489,7 +491,7 @@ static int module_init(void)
 	webapp_accounts_init();
 	webapp_contacts_init();
 	webapp_options_init();
-	webapp_chat_init();
+	//webapp_chat_init();
 	webapp_ws_meter_init();
 
 	tmr_init(&tmr);
@@ -516,7 +518,7 @@ static int module_close(void)
 	webapp_accounts_close();
 	webapp_contacts_close();
 	webapp_options_close();
-	webapp_chat_close();
+	//webapp_chat_close();
 	webapp_ws_close();
 #ifndef SLPLUGIN
 	aufilt_unregister(&vumeter);
