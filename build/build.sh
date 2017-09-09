@@ -63,7 +63,7 @@ fi
 # Build opus
 #-----------------------------------------------------------------------------
 if [ ! -d opus-$opus ]; then
-    wget -N "http://downloads.xiph.org/releases/opus/opus-${opus}.tar.gz"
+    wget -N "https://archive.mozilla.org/pub/opus/opus-${opus}.tar.gz"
     tar -xzf opus-${opus}.tar.gz
     cd opus-$opus; ./configure --with-pic; make; cd ..
     mkdir opus; cp opus-$opus/.libs/libopus.a opus/
@@ -132,6 +132,8 @@ if [ ! -d baresip-$baresip ]; then
     cp -a ../../effect modules/effect
     cp -a ../../effectonair modules/effectonair
     cp -a ../../apponair modules/apponair
+    
+    sed -i s/SLVERSION_T/$version_t/ modules/webapp/webapp.c
 
     # Standalone
     make $debug LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \

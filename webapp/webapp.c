@@ -13,7 +13,7 @@
 #include "assets/fonts.h"
 #include "webapp.h"
 
-#define SLVERSION "17.04.0-alpha"
+#define SLVERSION "SLVERSION_T"
 
 static struct tmr tmr;
 

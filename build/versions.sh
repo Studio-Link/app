@@ -1,5 +1,7 @@
-version_t="v17.09.0-alpha"
-version_n="17.09.0"
+vmajor=17
+vminor=9; vminor_t="09"
+vpatch=0
+release="alpha"
 rem="0.5.1"
 re="0.5.5"
 opus="1.2.1"
@@ -11,3 +13,5 @@ flac="1.3.2"
 github_org="https://github.com/Studio-Link-v2"
 vstsdk="vstsdk367_03_03_2017_build_352"
 debug="RELEASE=0"
+version_t="v$vmajor.$vminor_t.$vpatch-$release"
+version_n="$vmajor.$vminor.$vpatch"
