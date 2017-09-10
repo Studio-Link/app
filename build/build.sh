@@ -19,12 +19,14 @@ sl_extra_lflags="-L ../opus -L ../my_include -L ../openssl "
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     openssl_target="linux-`uname -m`"
     sl_extra_modules="alsa jack"
+    sed_opt="-i"
 else
     openssl_target="darwin64-x86_64-cc"
     sl_extra_lflags+="-L ../openssl "
     sl_extra_lflags+="-framework SystemConfiguration "
     sl_extra_lflags+="-framework CoreFoundation"
     sl_extra_modules="audiounit"
+    sed_opt="-i ''"
 fi
 
 
@@ -133,7 +135,7 @@ if [ ! -d baresip-$baresip ]; then
     cp -a ../../effectonair modules/effectonair
     cp -a ../../apponair modules/apponair
     
-    sed -i s/SLVERSION_T/$version_t/ modules/webapp/webapp.c
+    sed $sed_opt s/SLVERSION_T/$version_t/ modules/webapp/webapp.c
 
     # Standalone
     make $debug LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
