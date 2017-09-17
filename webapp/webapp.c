@@ -11,6 +11,7 @@
 #include "assets/js.h"
 #include "assets/css.h"
 #include "assets/fonts.h"
+#include "assets/logo.h"
 #include "webapp.h"
 
 #define SLVERSION "SLVERSION_T"
@@ -169,6 +170,14 @@ static void http_req_handler(struct http_conn *conn,
 				"application/javascript",
 				(const char*)js_all_js,
 				js_all_js_len);
+
+		return;
+	}
+	if (0 == pl_strcasecmp(&msg->path, "/images/logo.svg")) {
+		http_sreply(conn, 200, "OK",
+				"image/svg+xml",
+				(const char*)images_logo_svg,
+				images_logo_svg_len);
 
 		return;
 	}

@@ -21,6 +21,7 @@ void webapp_ws_contacts(const struct websock_hdr *hdr,
 	if (!str_cmp(e->u.str, "addcontact")) {
 		webapp_contact_add(e);
 		ws_send_json(WS_CONTACT, webapp_contacts_get());
+		ws_send_json(WS_CALLS, webapp_calls);
 	}
 	else if (!str_cmp(e->u.str, "deletecontact")) {
 		char sip[100] = {0};
