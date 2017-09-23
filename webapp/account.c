@@ -7,6 +7,7 @@ static struct tmr tmr;
 static struct odict *accs = NULL;
 static char filename[256] = "";
 static struct http_req *req = NULL;
+static struct http_cli *cli = NULL;
 
 
 const struct odict* webapp_accounts_get(void) {
@@ -253,7 +254,6 @@ static void provisioning(void)
 	char url[255] = {0};
 	char host[] = "vpn.studio-link.de";
 	char path[] = "provisioning/index.php";
-	struct http_cli *cli = NULL;
 	struct config *cfg = conf_config();
 	const struct network *net = baresip_network();
 
@@ -265,7 +265,6 @@ static void provisioning(void)
 	http_request(&req, cli, "GET", url, http_resp_handler,
 			http_data_handler, NULL, NULL);
 
-	mem_deref(cli);
 }
 
 static void startup(void *arg)
@@ -326,6 +325,7 @@ void webapp_accounts_close(void)
 {
 	tmr_cancel(&tmr);
 	req = mem_deref(req);
+	cli = mem_deref(cli);
 	webapp_write_file_json(accs, filename);
 	accs = mem_deref(accs);
 	uag_current_set(NULL);
