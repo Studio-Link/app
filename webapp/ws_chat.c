@@ -2,29 +2,20 @@
 #include <baresip.h>
 #include "webapp.h"
 
-static const char *chat_peer;
 
-static void select_chat_peer(const char *user) {
-
+static void send_message(char *message)
+{
+	struct list *calls = ua_calls(uag_current());
+	struct call *call = NULL;
 	struct le *le;
-	struct pl dname, pl;
-	struct contacts *contacts = baresip_contacts();
+	int err = 0;
 
-	pl_set_str(&pl, user);
-	dname.l = pl.l;
-
-	for (le = list_head(contact_list(contacts)); le; le = le->next) {
-
-		struct contact *c = le->data;
-		dname.p = contact_addr(c)->dname.p;
-
-		if (dname.p) {
-
-			if (0 == pl_casecmp(&dname, &pl)) {
-				chat_peer = contact_str(c);
-				break;
-			}
-		}
+	for (le = list_head(calls); le; le = le->next) {
+		call = le->data;
+		warning("MESSAGE TO:%s, MESSAGE: %s\n", call_peeruri(call), message);
+		err = message_send(uag_current(), call_peeruri(call), message, NULL, NULL);
+		if (err)
+			warning("message failed: %d\n", err);
 	}
 }
 
@@ -44,27 +35,16 @@ void webapp_ws_chat(const struct websock_hdr *hdr,
 			goto out;
 
 		if (!str_cmp(e->u.str, "message")) {
-			char peer[50] = {0};
-			char message[100] = {0};
+			char message[512] = {0};
 
 			e = odict_lookup(cmd, "text");
 			if (!e)
 				goto out;
 			str_ncpy(message, e->u.str, sizeof(message));
 
-			e = odict_lookup(cmd, "peer");
-			if (!e)
-				goto out;
-			str_ncpy(peer, e->u.str, sizeof(peer));
-
-			warning("MESSAGE TO:%s, MESSAGE: %s\n", peer, message);
-			webapp_chat_add(peer, message, true);
+			webapp_chat_add(NULL, message, true);
 			ws_send_json(WS_CHAT, webapp_messages_get());
-			select_chat_peer(peer);
-			err = message_send(uag_current(), chat_peer, message);
-
-			if (err)
-				warning("message failed: %d\n", err);
+			send_message(message);
 		}
 	}
 
