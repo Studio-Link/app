@@ -2,24 +2,6 @@
 #include <baresip.h>
 #include "webapp.h"
 
-
-static void send_message(char *message)
-{
-	struct list *calls = ua_calls(uag_current());
-	struct call *call = NULL;
-	struct le *le;
-	int err = 0;
-
-	for (le = list_head(calls); le; le = le->next) {
-		call = le->data;
-		warning("MESSAGE TO:%s, MESSAGE: %s\n", call_peeruri(call), message);
-		err = message_send(uag_current(), call_peeruri(call), message, NULL, NULL);
-		if (err)
-			warning("message failed: %d\n", err);
-	}
-}
-
-
 void webapp_ws_chat(const struct websock_hdr *hdr,
 				     struct mbuf *mb, void *arg)
 {
@@ -44,7 +26,7 @@ void webapp_ws_chat(const struct websock_hdr *hdr,
 
 			webapp_chat_add(NULL, message, true);
 			ws_send_json(WS_CHAT, webapp_messages_get());
-			send_message(message);
+			webapp_chat_send(message, NULL);
 		}
 	}
 

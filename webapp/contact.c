@@ -20,7 +20,7 @@ static int contact_register(const struct odict_entry *o)
 	char buf[512] = {0};
 	char sip[100] = {0};
 	char name[50] = {0};
-	struct contacts *contacts = baresip_contacts();
+	struct contacts *mycontacts = baresip_contacts();
 
 	int err = 0;
 
@@ -58,7 +58,7 @@ static int contact_register(const struct odict_entry *o)
 
 	pl.p = buf;
 	pl.l = strlen(buf);
-	contact_add(contacts, NULL, &pl);
+	contact_add(mycontacts, NULL, &pl);
 
 	return err;
 }

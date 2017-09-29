@@ -11,6 +11,26 @@ const struct odict* webapp_messages_get(void) {
 	return (const struct odict *)messages;
 }
 
+
+int webapp_chat_send(char *message, char *exclude_peer)
+{
+	struct list *calls = ua_calls(uag_current());
+	struct call *call = NULL;
+	struct le *le;
+	int err = 0;
+
+	for (le = list_head(calls); le; le = le->next) {
+		call = le->data;
+		warning("MESSAGE TO:%s, MESSAGE: %s\n", call_peeruri(call), message);
+		err = message_send(uag_current(), call_peeruri(call), message, NULL, NULL);
+		if (err)
+			warning("message failed: %d\n", err);
+	}
+
+	return err;
+}
+
+
 int webapp_chat_add(const char *peer, const char *message, bool self)
 {
 	char time_s[256] = {0};
@@ -50,6 +70,8 @@ static void message_handler(const struct pl *peer, const struct pl *ctype,
 	(void)re_snprintf(s_peer, sizeof(s_peer), "%r", peer);
 
 	warning("message from %s: %s\n", s_peer, message);
+	
+	webapp_chat_send(message, s_peer);
 
 	struct contact *c = contact_find(contacts, s_peer);
 

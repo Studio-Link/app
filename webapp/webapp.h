@@ -110,6 +110,7 @@ char* webapp_options_getv(char *key);
 int webapp_chat_init(void);
 void webapp_chat_close(void);
 int webapp_chat_add(const char *peer, const char *message, bool self);
+int webapp_chat_send(char *message, char *exclude_peer);
 const struct odict* webapp_messages_get(void);
 
 /*
