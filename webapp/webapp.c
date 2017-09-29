@@ -323,10 +323,11 @@ int webapp_call_update(struct call *call, char *state)
 	if (!call || !state)
 		return EINVAL;
 
+#ifndef SLPLUGIN
 	if (!str_cmp(call_peeruri(call), "sip:stream@studio-link.de;transport=tls")) {
 		return err;
 	}
-
+#endif
 	err = odict_alloc(&o, DICT_BSIZE);
 	if (err)
 		return ENOMEM;
