@@ -90,7 +90,7 @@ index 960861c..122baca 100644
  			  "rtcp_enable\t\tyes\n"
  			  "rtcp_mux\t\tno\n"
 -			  "jitter_buffer_delay\t%u-%u\t\t# frames\n"
-+			  "jitter_buffer_delay\t1-5\t\t# frames\n"
++			  "jitter_buffer_delay\t2-5\t\t# frames\n"
  			  "rtp_stats\t\tno\n"
 -			  "#rtp_timeout\t\t60\n"
 +			  "##rtp_timeout\t\t60\n"
