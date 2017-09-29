@@ -1,10 +1,12 @@
 #include <re.h>
 #include <baresip.h>
 #include <string.h>
+#include <stdlib.h>
 #include "webapp.h"
 
 static struct odict *options = NULL;
 static char filename[256] = "";
+static char command[255] = {0};
 
 
 const struct odict* webapp_options_get(void)
@@ -43,6 +45,30 @@ void webapp_options_set(char *key, char *value)
 		}
 		else {
 			webapp_record_set(true);
+		}
+	}
+	if (!str_cmp(key, "onair")) {
+		static struct call *call = NULL;
+		if (!str_cmp(value, "false")) {
+			ua_hangup(uag_current(), call, 0, NULL);
+		}
+		else {
+			struct config *cfg = conf_config();
+	#if defined (DARWIN)
+			re_snprintf(command, sizeof(command), "open https://stream.studio-link.de/stream/login/%s",
+					cfg->sip.uuid);
+	#elif defined (WIN32)
+			re_snprintf(command, sizeof(command), "start https://stream.studio-link.de/stream/login/%s",
+					cfg->sip.uuid);
+	#else
+			re_snprintf(command, sizeof(command), "xdg-open https://stream.studio-link.de/stream/login/%s",
+					cfg->sip.uuid);
+	#endif
+			system(command);
+
+			ua_connect(uag_current(), &call, NULL,
+					"stream", NULL, VIDMODE_ON);
+
 		}
 	}
 #endif
@@ -94,6 +120,7 @@ int webapp_options_init(void)
 	odict_entry_del(options, "mono");
 	odict_entry_del(options, "record");
 	odict_entry_del(options, "auto-mix-n-1");
+	odict_entry_del(options, "onair");
 
 out:
 	mem_deref(mb);
