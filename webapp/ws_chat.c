@@ -17,7 +17,7 @@ void webapp_ws_chat(const struct websock_hdr *hdr,
 			goto out;
 
 		if (!str_cmp(e->u.str, "message")) {
-			char message[512] = {0};
+			char message[462] = {0};
 
 			e = odict_lookup(cmd, "text");
 			if (!e)

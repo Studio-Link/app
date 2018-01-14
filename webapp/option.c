@@ -17,10 +17,6 @@ const struct odict* webapp_options_get(void)
 
 void webapp_options_set(char *key, char *value)
 {
-	odict_entry_del(options, key);
-	odict_entry_add(options, key, ODICT_STRING, value);
-	ws_send_json(WS_OPTIONS, options);
-	webapp_write_file_json(options, filename);
 #ifdef SLPLUGIN
 	if (!str_cmp(key, "bypass")) {
 		if (!str_cmp(value, "false")) {
@@ -72,6 +68,29 @@ void webapp_options_set(char *key, char *value)
 		}
 	}
 #endif
+	if (!str_cmp(key, "raisehand")) {
+		if (!str_cmp(value, "true")) {
+			webapp_chat_send("raisehandon", NULL);
+			odict_entry_del(options, "afk");
+			odict_entry_add(options, "afk", ODICT_STRING, "false");
+		} else {
+			webapp_chat_send("raisehandoff", NULL);
+		}
+	}
+	if (!str_cmp(key, "afk")) {
+		if (!str_cmp(value, "true")) {
+			webapp_chat_send("afkon", NULL);
+			odict_entry_del(options, "raisehand");
+			odict_entry_add(options, "raisehand", ODICT_STRING, "false");
+		} else {
+			webapp_chat_send("afkoff", NULL);
+		}
+	}
+
+	odict_entry_del(options, key);
+	odict_entry_add(options, key, ODICT_STRING, value);
+	ws_send_json(WS_OPTIONS, options);
+	webapp_write_file_json(options, filename);
 }
 
 
@@ -121,6 +140,8 @@ int webapp_options_init(void)
 	odict_entry_del(options, "record");
 	odict_entry_del(options, "auto-mix-n-1");
 	odict_entry_del(options, "onair");
+	odict_entry_del(options, "raisehand");
+	odict_entry_del(options, "afk");
 
 out:
 	mem_deref(mb);

@@ -12,17 +12,42 @@ const struct odict* webapp_messages_get(void) {
 }
 
 
+static int peercmp(const char *peer1, const char *peer2) {
+	struct pl peer1_flt, peer2_flt;
+	int err;
+
+	if (!peer1)
+		return 1;
+	if (!peer2)
+		return 1;
+
+	re_regex(peer1, strlen(peer1), "sip:[-a-zA-Z0-9@.]+", &peer1_flt);
+	re_regex(peer2, strlen(peer2), "sip:[-a-zA-Z0-9@.]+", &peer2_flt);
+	err = pl_cmp(&peer1_flt, &peer2_flt);
+
+	return err;
+}
+
+
 int webapp_chat_send(char *message, char *exclude_peer)
 {
 	struct list *calls = ua_calls(uag_current());
 	struct call *call = NULL;
 	struct le *le;
+        char msg[512];
 	int err = 0;
+
 
 	for (le = list_head(calls); le; le = le->next) {
 		call = le->data;
-		warning("MESSAGE TO:%s, MESSAGE: %s\n", call_peeruri(call), message);
-		err = message_send(uag_current(), call_peeruri(call), message, NULL, NULL);
+		if (!peercmp(call_peeruri(call), exclude_peer))
+			continue;
+		if (exclude_peer) {
+			re_snprintf(msg, sizeof(msg), "%s;%s", message, exclude_peer);
+		} else {
+			re_snprintf(msg, sizeof(msg), "%s", message);
+		}
+		err = message_send(uag_current(), call_peeruri(call), msg, NULL, NULL);
 		if (err)
 			warning("message failed: %d\n", err);
 	}

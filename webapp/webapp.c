@@ -314,6 +314,25 @@ int webapp_call_delete(struct call *call)
 }
 
 
+static int json_print_handler(const char *p, size_t size, void *arg)                                
+{      
+	warning("json: %s", p);
+	return re_snprintf(arg, sizeof(arg), "%s%s", p, arg);
+}    
+
+
+static void chat_send_calls(void)
+{
+	struct re_printf pf;                   
+	char msg[1024] = {0};
+	pf.vph = json_print_handler;                
+	pf.arg = msg;
+
+	json_encode_odict(&pf, webapp_calls);
+	webapp_chat_send(msg, NULL);
+}
+
+
 int webapp_call_update(struct call *call, char *state)
 {
 	struct odict *o;
@@ -328,6 +347,7 @@ int webapp_call_update(struct call *call, char *state)
 		return err;
 	}
 #endif
+
 	err = odict_alloc(&o, DICT_BSIZE);
 	if (err)
 		return ENOMEM;
@@ -339,6 +359,7 @@ int webapp_call_update(struct call *call, char *state)
 	odict_entry_add(o, "state", ODICT_STRING, state);
 	odict_entry_add(webapp_calls, id, ODICT_OBJECT, o);
 
+	chat_send_calls();
 	ws_send_json(WS_CALLS, webapp_calls);
 	mem_deref(o);
 	return err;
