@@ -66,7 +66,7 @@ fi
 # Build opus
 #-----------------------------------------------------------------------------
 if [ ! -d opus-$opus ]; then
-    wget -N "http://downloads.xiph.org/releases/opus/opus-${opus}.tar.gz"
+    wget -N "https://archive.mozilla.org/pub/opus/opus-${opus}.tar.gz"
     tar -xzf opus-${opus}.tar.gz
     mkdir opus-$opus/build
     pushd opus-$opus/build

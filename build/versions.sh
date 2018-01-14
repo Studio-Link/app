@@ -1,12 +1,10 @@
-vmajor=17
-vminor=9; vminor_t="09"
-vpatch=0
+vmajor=17; vminor=9; vminor_t="09"; vpatch=0
 release="alpha"
 rem="0.5.1"
 re="0.5.5"
 opus="1.2.1"
-openssl="1.1.0f"
-openssl_sha256="12f746f3f2493b2f39da7ecf63d7ee19c6ac9ec6a4fcd8c229da8a522cb12765"
+openssl="1.1.0g"
+openssl_sha256="de4d501267da39310905cb6dc8c6121f7a2cad45a7707f76df828fe1b85073af"
 baresip="master"
 juce="4.2.4"
 flac="1.3.2"
