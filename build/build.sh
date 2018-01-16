@@ -127,7 +127,7 @@ if [ ! -d baresip-$baresip ]; then
     #fixes multiple maxaverage lines in fmtp e.g.: 
     #fmtp: stereo=1;sprop-stereo=1;maxaveragebitrate=64000;maxaveragebitrate=64000;
     #after multiple module reloads it crashes because fmtp is to small(256 chars)
-    patch -p1 < ../../build/patches/opus_fmtp.patch
+    #patch -p1 < ../../build/patches/opus_fmtp.patch
 
     ## Link backend modules
     cp -a ../../webapp modules/webapp
