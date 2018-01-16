@@ -47,7 +47,6 @@ arch:
             - zip
             - unzip
             - mingw-w64-binutils
-            - mingw-w64-headers-bootstrap
             - mingw-w64-gcc-base
             - mingw-w64-crt
             - mingw-w64-winpthreads
