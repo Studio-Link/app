@@ -10,7 +10,7 @@ function sl_prepare {
 function sl_get_openssl {
     wget https://www.openssl.org/source/openssl-${openssl}.tar.gz
     echo "$openssl_sha256  openssl-${openssl}.tar.gz" | \
-        /usr/bin/core_perl/shasum -a 256 -c -
+        which shasum -a 256 -c -
     tar -xzf openssl-${openssl}.tar.gz
     ln -s openssl-${openssl} openssl
 }
