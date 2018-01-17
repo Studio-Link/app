@@ -1,6 +1,8 @@
 #!/bin/bash -ex
 
 source build/versions.sh
+vminor_t=$(printf "%02d" $vminor)
+
 mkdir -p src
 cd src
 mkdir -p my_include

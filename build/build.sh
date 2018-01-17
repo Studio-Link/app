@@ -2,6 +2,8 @@
 
 source build/versions.sh
 
+vminor_t=$(printf "%02d" $vminor)
+
 if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
     curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash
     exit 0

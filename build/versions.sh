@@ -1,4 +1,4 @@
-vmajor=18; vminor=2; vminor_t="02"; vpatch=0
+vmajor=18; vminor=2; vpatch=0
 release="alpha"
 rem="0.5.2"
 re="0.5.7"
