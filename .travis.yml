@@ -5,8 +5,8 @@ os:
 osx_image: xcode6.4
 sudo: required
 before_install:
-- sudo ./build/before_install.sh $BUILD_OS
-- "./build/before_install.sh $BUILD_OS"
+- sudo ./build/before_build.sh $BUILD_OS
+- "./build/before_build.sh $BUILD_OS"
 script: "./build/build.sh $BUILD_OS"
 
 deploy:
