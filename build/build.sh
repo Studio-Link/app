@@ -1,8 +1,7 @@
 #!/bin/bash -ex
 
-source build/versions.sh
-
-vminor_t=$(printf "%02d" $vminor)
+source build/lib/versions.sh
+source build/lib/functions.sh
 
 if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
     curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash
@@ -11,10 +10,7 @@ fi
 
 # Start build
 #-----------------------------------------------------------------------------
-echo "start build on $TRAVIS_OS_NAME"
-
-mkdir -p src; cd src
-mkdir -p my_include
+sl_prepare
 
 sl_extra_lflags="-L ../opus -L ../my_include -L ../openssl "
 
@@ -36,10 +32,11 @@ fi
 # Build openssl
 #-----------------------------------------------------------------------------
 if [ ! -d openssl-${openssl} ]; then
-    wget https://www.openssl.org/source/openssl-${openssl}.tar.gz
-    echo "$openssl_sha256  openssl-${openssl}.tar.gz" | shasum -a 256 -c -
-    tar -xzf openssl-${openssl}.tar.gz
-    ln -s openssl-${openssl} openssl
+    #wget https://www.openssl.org/source/openssl-${openssl}.tar.gz
+    #echo "$openssl_sha256  openssl-${openssl}.tar.gz" | shasum -a 256 -c -
+    #tar -xzf openssl-${openssl}.tar.gz
+    #ln -s openssl-${openssl} openssl
+    sl_get_openssl
     cd openssl
     ./Configure $openssl_target no-shared
     make build_libs

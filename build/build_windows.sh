@@ -1,11 +1,9 @@
 #!/bin/bash -ex
 
 source build/versions.sh
-vminor_t=$(printf "%02d" $vminor)
+source build/lib/functions.sh
 
-mkdir -p src
-cd src
-mkdir -p my_include
+sl_prepare
 
 if [ "$BUILD_OS" == "windows32" ]; then
     _arch="i686-w64-mingw32"
