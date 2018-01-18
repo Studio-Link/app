@@ -1,5 +1,7 @@
 #!/bin/bash -ex
 
+export PATH="$PATH:/usr/bin/core_perl"
+
 source build/lib/versions.sh
 source build/lib/functions.sh
 
