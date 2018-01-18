@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-source build/versions.sh
+source build/lib/versions.sh
 source build/lib/functions.sh
 
 sl_prepare
@@ -14,19 +14,13 @@ fi
 # Download openssl
 #-----------------------------------------------------------------------------
 if [ ! -d openssl-${openssl} ]; then
-    wget https://www.openssl.org/source/openssl-${openssl}.tar.gz
-    echo "$openssl_sha256  openssl-${openssl}.tar.gz" | \
-        /usr/bin/core_perl/shasum -a 256 -c -
-    tar -xzf openssl-${openssl}.tar.gz
-    ln -s openssl-${openssl} openssl
+    sl_get_openssl
 fi
 
 # Build FLAC
 #-----------------------------------------------------------------------------
 if [ ! -d flac-${flac} ]; then
-    wget http://downloads.xiph.org/releases/flac/flac-${flac}.tar.xz
-    tar -xf flac-${flac}.tar.xz 
-    ln -s flac-${flac} flac
+    sl_get_flac
     mkdir flac/build_win
     pushd flac/build_win
     ${_arch}-configure --disable-ogg --enable-static --disable-cpplibs
@@ -35,32 +29,6 @@ if [ ! -d flac-${flac} ]; then
     cp -a flac/include/FLAC my_include/
     cp -a flac/include/share my_include/
     cp -a flac/build_win/src/libFLAC/.libs/libFLAC.a my_include/
-fi
-
-# Download libre
-#-----------------------------------------------------------------------------
-if [ ! -d re-$re ]; then
-    #wget -N "http://www.creytiv.com/pub/re-${re}.tar.gz"
-    wget -N "https://github.com/creytiv/re/archive/v${re}.tar.gz"
-    tar -xzf v${re}.tar.gz
-    rm -f v${re}.tar.gz
-    ln -s re-$re re
-    pushd re
-    patch --ignore-whitespace -p1 < ../../build/patches/bluetooth_conflict.patch
-    patch --ignore-whitespace -p1 < ../../build/patches/re_ice_bug.patch
-    patch -p1 < ../../build/patches/fix_windows_ssize_t_bug.patch
-    popd
-    mkdir -p my_include/re
-    cp -a re/include/* my_include/re/
-fi
-
-# Download librem
-#-----------------------------------------------------------------------------
-if [ ! -d rem-$rem ]; then
-    #wget -N "http://www.creytiv.com/pub/rem-${rem}.tar.gz"
-    wget -N "https://github.com/creytiv/rem/archive/v${rem}.tar.gz"
-    tar -xzf v${rem}.tar.gz
-    ln -s rem-$rem rem
 fi
 
 # Build opus
@@ -80,26 +48,24 @@ if [ ! -d opus-$opus ]; then
     cp -a opus-$opus/include/*.h opus/
 fi
 
+# Download libre
+#-----------------------------------------------------------------------------
+if [ ! -d re-$re ]; then
+    sl_get_libre
+    mkdir -p my_include/re
+    cp -a re/include/* my_include/re/
+fi
+
+# Download librem
+#-----------------------------------------------------------------------------
+if [ ! -d rem-$rem ]; then
+    sl_get_librem
+fi
 
 # Download baresip with studio link addons
 #-----------------------------------------------------------------------------
 if [ ! -d baresip-$baresip ]; then
-    wget https://github.com/Studio-Link-v2/baresip/archive/$baresip.tar.gz
-    tar -xzf $baresip.tar.gz
-    ln -s baresip-$baresip baresip
-    cp -a baresip-$baresip/include/baresip.h my_include/
-    pushd baresip-$baresip
-
-    ## Add patches
-    patch -p1 < ../../build/patches/config.patch
-    patch -p1 < ../../build/patches/osx_sample_rate.patch
-
-    ## Link backend modules
-    cp -a ../../webapp modules/webapp
-    cp -a ../../effect modules/effect
-    cp -a ../../effectonair modules/effectonair
-    cp -a ../../apponair modules/apponair
-    popd
+    sl_get_baresip
 fi
 
 # Download overlay-vst
