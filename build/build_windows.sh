@@ -5,6 +5,22 @@ source build/lib/functions.sh
 
 sl_prepare
 
+mkdir -p mingw
+pushd mingw
+mingwurl="https://github.com/Studio-Link-v2/mingw/releases/download/v18.01.0"
+wget -N $mingwurl/cloog-0.18.5-1-x86_64.pkg.tar.xz
+wget -N $mingwurl/isl-0.18-3-x86_64.pkg.tar.xz
+wget -N $mingwurl/mingw-w64-binutils-2.29-1-x86_64.pkg.tar.xz
+wget -N $mingwurl/mingw-w64-configure-0.1-1-any.pkg.tar.xz
+wget -N $mingwurl/mingw-w64-crt-5.0.3-1-any.pkg.tar.xz
+wget -N $mingwurl/mingw-w64-gcc-7.2.1+20171224-1-x86_64.pkg.tar.xz
+wget -N $mingwurl/mingw-w64-headers-5.0.3-1-any.pkg.tar.xz
+wget -N $mingwurl/mingw-w64-pkg-config-2-3-any.pkg.tar.xz
+wget -N $mingwurl/mingw-w64-winpthreads-5.0.3-1-any.pkg.tar.xz
+wget -N $mingwurl/osl-0.9.1-1-x86_64.pkg.tar.xz
+sudo pacman -U *.pkg.tar.xz
+popd
+
 if [ "$BUILD_OS" == "windows32" ]; then
     _arch="i686-w64-mingw32"
 else

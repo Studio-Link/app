@@ -47,10 +47,5 @@ arch:
             - perl
             - zip
             - unzip
-            - mingw-w64-binutils
-            - mingw-w64-gcc-base
-            - mingw-w64-crt
-            - mingw-w64-winpthreads
-            - mingw-w64-configure
         script:
             - "./build/build_windows.sh"
