@@ -29,6 +29,8 @@ else
     _arch="x86_64-w64-mingw32"
 fi
 
+unset CC
+
 # Download openssl
 #-----------------------------------------------------------------------------
 if [ ! -d openssl-${openssl} ]; then
