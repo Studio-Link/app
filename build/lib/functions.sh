@@ -1,6 +1,8 @@
 sl_prepare() {
     echo "start build on $TRAVIS_OS_NAME ($BUILD_OS)"
     vminor_t=$(printf "%02d" $vminor)
+    version_t="v$vmajor.$vminor_t.$vpatch-$release"
+    version_n="$vmajor.$vminor.$vpatch"
 
     mkdir -p src;
     pushd src
