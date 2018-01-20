@@ -58,7 +58,7 @@ fi
 # Build opus
 #-----------------------------------------------------------------------------
 if [ ! -d opus-$opus ]; then
-    wget -N "https://archive.mozilla.org/pub/opus/opus-${opus}.tar.gz"
+    wget "https://archive.mozilla.org/pub/opus/opus-${opus}.tar.gz"
     tar -xzf opus-${opus}.tar.gz
     cd opus-$opus; ./configure --with-pic; make; cd ..
     mkdir opus; cp opus-$opus/.libs/libopus.a opus/
