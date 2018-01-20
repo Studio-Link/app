@@ -2,18 +2,19 @@
 
 - **Standalone** Änderungen zur Standalone Version unter OS X, Windows und Linux
 - **Plugin** Änderungen an der Plugin Variante (Audio Unit, LV2 and VST)
+- **onAir** Studio Link Streaming Plugin (Audio Unit, LV2 and VST)
 - **Box** Modifikationen der "orangenen" Box (Software)
 - **Generell** Allgemeine Veränderungen
-- **onAir** Studio Link Streaming Plugin (Audio Unit, LV2 and VST)
 
 
-## v17.09.0-beta (xx.09.2017)
+## v18.02.0-beta (xx.02.2018)
 
-- **Generell** OpenSSL 1.1.0f
+- **Generell** OpenSSL 1.1.0g
 - **Generell** Opus 1.2.1
-- **Generell** Baresip 0.5.5
-- **Generell** re 0.5.5
-- **Generell** rem 0.5.1
+- **Generell** Baresip 0.5.7
+- **Generell** re 0.5.7
+- **Generell** rem 0.5.2
+- **Plugin** Anzahl der Spuren von 8 auf 10 erhöht
 
 
 ### v17.03.1-beta (30.03.2017)
