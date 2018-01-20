@@ -34,7 +34,7 @@ sl_get_flac() {
 
 sl_get_libre() {
     #wget -N "http://www.creytiv.com/pub/re-${re}.tar.gz"
-    wget -N "https://github.com/creytiv/re/archive/v${re}.tar.gz"
+    wget "https://github.com/creytiv/re/archive/v${re}.tar.gz"
     tar -xzf v${re}.tar.gz
     rm -f v${re}.tar.gz
     ln -s re-$re re
@@ -49,7 +49,7 @@ sl_get_libre() {
 
 sl_get_librem() {
     #wget -N "http://www.creytiv.com/pub/rem-${rem}.tar.gz"
-    wget -N "https://github.com/creytiv/rem/archive/v${rem}.tar.gz"
+    wget "https://github.com/creytiv/rem/archive/v${rem}.tar.gz"
     tar -xzf v${rem}.tar.gz
     ln -s rem-$rem rem
 }
