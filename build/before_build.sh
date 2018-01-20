@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-if [ "$1" == "linux" ]; then
+if [ "$BUILD_OS" == "linux" ]; then
     if [ "$(id -u)" == "0" ]; then
         apt-get update -qq
         apt-get install -y libasound2-dev libjack-jackd2-dev
@@ -8,7 +8,7 @@ if [ "$1" == "linux" ]; then
         tar xjf lv2-1.14.0.tar.bz2 
         pushd lv2-1.14.0 && ./waf configure && ./waf build && sudo ./waf install && popd
     fi
-elif [ "$1" == "osx" ]; then
+elif [ "$BUILD_OS" == "osx" ]; then
     if [ "$(id -u)" != "0" ]; then
 #        brew update
 #        brew install openssl
