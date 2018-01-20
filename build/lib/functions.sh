@@ -25,8 +25,8 @@ sl_get_openssl() {
 }
 
 sl_get_flac() {
-    wget http://downloads.xiph.org/releases/flac/flac-${flac}.tar.xz
-    tar -xf flac-${flac}.tar.xz
+    wget http://downloads.xiph.org/releases/flac/flac-${flac}.tar.gz
+    tar -xf flac-${flac}.tar.gz
     ln -s flac-${flac} flac
 }
 
