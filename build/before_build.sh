@@ -9,9 +9,6 @@ if [ "$BUILD_OS" == "linux" ]; then
         pushd lv2-1.14.0 && ./waf configure && ./waf build && sudo ./waf install && popd
     fi
 elif [ "$BUILD_OS" == "osx" ]; then
-    if [ "$CIRCLECI" == "true" ]; then
-        brew install wget
-    fi
     if [ "$(id -u)" != "0" ] && [ "$CIRCLECI" != "true" ]; then
 #        brew update
 #        brew install openssl

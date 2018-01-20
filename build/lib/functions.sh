@@ -1,3 +1,5 @@
+function _wget() { curl "${1}" -o $(basename "${1}") ; };
+
 sl_prepare() {
     echo "start build on $TRAVIS_OS_NAME ($BUILD_OS)"
     vminor_t=$(printf "%02d" $vminor)
@@ -7,6 +9,10 @@ sl_prepare() {
     mkdir -p src;
     pushd src
     mkdir -p my_include
+
+    if [ "$CIRCLECI" == "true" ]; then
+        alias wget='_wget'
+    fi
 
     SHASUM=$(which shasum)
 }
