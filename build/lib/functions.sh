@@ -1,5 +1,7 @@
 if [ "$CIRCLECI" == "true" ]; then
     function wget() { curl "${1}" -o $(basename "${1}") ; };
+    curl https://kent.dl.sourceforge.net/project/macpkg/XZ/5.0.7/XZ.pkg -o xz.pkg
+    sudo installer -pkg xz.pkg -target /
 fi
 
 sl_prepare() {
@@ -25,8 +27,8 @@ sl_get_openssl() {
 }
 
 sl_get_flac() {
-    wget http://downloads.xiph.org/releases/flac/flac-${flac}.tar.gz
-    tar -xf flac-${flac}.tar.gz
+    wget http://downloads.xiph.org/releases/flac/flac-${flac}.tar.xz
+    tar -xf flac-${flac}.tar.xz
     ln -s flac-${flac} flac
 }
 
