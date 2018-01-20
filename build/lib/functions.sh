@@ -1,5 +1,5 @@
 if [ "$CIRCLECI" == "true" ]; then
-    function wget() { curl "${1}" -o $(basename "${1}") ; };
+    function wget() { curl -L "${1}" -o $(basename "${1}") ; };
     curl https://kent.dl.sourceforge.net/project/macpkg/XZ/5.0.7/XZ.pkg -o xz.pkg
     sudo installer -pkg xz.pkg -target /
 fi
