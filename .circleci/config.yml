@@ -12,6 +12,7 @@ jobs:
     environment:
       BUILD_OS: osx
       TRAVIS_OS_NAME: osx
+      CIRCLECI: true
 
     steps:
       - checkout
