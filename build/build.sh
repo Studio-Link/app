@@ -28,19 +28,6 @@ else
 fi
 
 
-
-# Build openssl
-#-----------------------------------------------------------------------------
-if [ ! -d openssl-${openssl} ]; then
-    sl_get_openssl
-    cd openssl
-    ./Configure $openssl_target no-shared
-    make build_libs
-    cp -a include/openssl ../my_include/
-    cd ..
-fi
-
-
 # Build FLAC
 #-----------------------------------------------------------------------------
 if [ ! -d flac-${flac} ]; then
@@ -52,6 +39,18 @@ if [ ! -d flac-${flac} ]; then
     cp -a include/FLAC ../my_include/
     cp -a include/share ../my_include/
     cp -a src/libFLAC/.libs/libFLAC.a ../my_include/
+    cd ..
+fi
+
+
+# Build openssl
+#-----------------------------------------------------------------------------
+if [ ! -d openssl-${openssl} ]; then
+    sl_get_openssl
+    cd openssl
+    ./Configure $openssl_target no-shared
+    make build_libs
+    cp -a include/openssl ../my_include/
     cd ..
 fi
 
