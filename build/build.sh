@@ -23,6 +23,7 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     fi
     sl_extra_modules="alsa jack"
 else
+    export MACOSX_DEPLOYMENT_TARGET=10.6
     openssl_target="darwin64-x86_64-cc"
     sl_extra_lflags+="-L ../openssl "
     sl_extra_lflags+="-framework SystemConfiguration "
