@@ -15,7 +15,11 @@ sl_prepare
 sl_extra_lflags="-L ../opus -L ../my_include -L ../openssl "
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-    openssl_target="linux-`uname -m`"
+    if [ "$(uname -m)" == "x86_64" ]; then
+        openssl_target="linux-x86_64"
+    else
+        openssl_target="linux-x86"
+    fi
     sl_extra_modules="alsa jack"
     sed_opt="-i"
 else
