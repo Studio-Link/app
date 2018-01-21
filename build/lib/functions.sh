@@ -9,6 +9,7 @@ sl_prepare() {
     vminor_t=$(printf "%02d" $vminor)
     version_t="v$vmajor.$vminor_t.$vpatch-$release"
     version_n="$vmajor.$vminor.$vpatch"
+    sed_opt="-i"
 
     mkdir -p src;
     pushd src

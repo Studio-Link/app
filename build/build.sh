@@ -21,7 +21,6 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
         openssl_target="linux-x86"
     fi
     sl_extra_modules="alsa jack"
-    sed_opt="-i"
 else
     openssl_target="darwin64-x86_64-cc"
     sl_extra_lflags+="-L ../openssl "
