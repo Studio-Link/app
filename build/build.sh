@@ -53,7 +53,7 @@ fi
 if [ ! -d openssl-${openssl} ]; then
     sl_get_openssl
     cd openssl
-    ./Configure $openssl_target no-shared
+    ./config no-shared
     make build_libs
     cp -a include/openssl ../my_include/
     cd ..
