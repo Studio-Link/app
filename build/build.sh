@@ -12,7 +12,8 @@ fi
 #-----------------------------------------------------------------------------
 sl_prepare
 
-sl_extra_lflags="-L ../opus -L ../my_include -L ../openssl "
+sl_extra_lflags="-L ../opus -L ../my_include "
+sl_extra_lflags_standalone="$sl_extra_lflags -L ../openssl "
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     if [ "$(uname -m)" == "x86_64" ]; then
@@ -103,7 +104,7 @@ if [ ! -d baresip-$baresip ]; then
     make $debug LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
         EXTRA_CFLAGS="-I ../my_include" \
-        EXTRA_LFLAGS="$sl_extra_lflags"
+        EXTRA_LFLAGS="$sl_extra_lflags_standalone"
 
     cp -a baresip ../studio-link-standalone
 
