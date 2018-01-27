@@ -33,6 +33,19 @@ else
 fi
 
 
+# Build RtAudio
+#-----------------------------------------------------------------------------
+if [ ! -d rtaudio-${rtaudio} ]; then
+    sl_get_rtaudio
+    pushd rtaudio-${rtaudio}
+    ./autogen.sh
+    ./configure
+    make
+    cp -a .libs/librtaudio.a ../my_include/
+    popd
+fi
+
+
 # Build FLAC
 #-----------------------------------------------------------------------------
 if [ ! -d flac-${flac} ]; then

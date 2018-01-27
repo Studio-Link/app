@@ -31,6 +31,19 @@ fi
 
 unset CC
 
+
+# Build RtAudio
+#-----------------------------------------------------------------------------
+if [ ! -d rtaudio-${rtaudio} ]; then
+    sl_get_rtaudio
+    pushd rtaudio-${rtaudio}
+    ./autogen.sh
+    ${_arch}-configure
+    make
+    cp -a .libs/librtaudio.a ../my_include/
+    popd
+fi
+
 # Download openssl
 #-----------------------------------------------------------------------------
 if [ ! -d openssl-${openssl} ]; then

@@ -35,6 +35,13 @@ sl_get_flac() {
     ln -s flac-${flac} flac
 }
 
+sl_get_rtaudio() {
+    wget https://github.com/Studio-Link-v2/rtaudio/archive/${rtaudio}.tar.gz
+    tar -xzf ${rtaudio}.tar.gz
+    ln -s rtaudio-${rtaudio} rtaudio
+    cp -a rtaudio-${rtaudio}/rtaudio_c.h my_include/
+}
+
 sl_get_libre() {
     #wget -N "http://www.creytiv.com/pub/re-${re}.tar.gz"
     wget "https://github.com/creytiv/re/archive/v${re}.tar.gz"
