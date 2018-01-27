@@ -16,15 +16,9 @@ sl_extra_lflags="-L ../opus -L ../my_include "
 sl_extra_lflags_standalone="$sl_extra_lflags -L ../openssl "
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-    if [ "$(uname -m)" == "x86_64" ]; then
-        openssl_target="linux-x86_64"
-    else
-        openssl_target="linux-x86"
-    fi
     sl_extra_modules="alsa jack rtaudio"
 else
     export MACOSX_DEPLOYMENT_TARGET=10.6
-    openssl_target="darwin64-x86_64-cc"
     sl_extra_lflags+="-L ../openssl "
     sl_extra_lflags+="-framework SystemConfiguration "
     sl_extra_lflags+="-framework CoreFoundation"
