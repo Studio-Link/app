@@ -18,7 +18,7 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     sl_extra_modules="alsa jack rtaudio"
 else
     export MACOSX_DEPLOYMENT_TARGET=10.6
-    sl_extra_lflags+="-L ../openssl "
+    sl_extra_lflags+="-L ../openssl ../openssl/libssl.a ../openssl/libcrypto.a "
     sl_extra_lflags+="-framework SystemConfiguration "
     sl_extra_lflags+="-framework CoreFoundation"
     sl_extra_modules="audiounit rtaudio"
