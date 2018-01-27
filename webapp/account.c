@@ -207,9 +207,10 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 	char user[50] = {0};
 	char domain[50] = {0};
 
+
 	if (!msg)
-		goto out2;
-	if (!req)
+		return;
+	if (err)
 		return;
 
 	mb = msg->mb;
@@ -238,16 +239,7 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 
 out:
 	mem_deref(o);
-out2:
-	req = mem_deref(req);
-	return;
 }
-
-
-static void http_data_handler(struct mbuf *mb, void *arg)
-{
-}
-
 
 static void provisioning(void)
 {
@@ -263,8 +255,7 @@ static void provisioning(void)
 	http_client_alloc(&cli, net_dnsc(net));
 
 	http_request(&req, cli, "GET", url, http_resp_handler,
-			http_data_handler, NULL, NULL);
-
+			NULL, NULL, NULL);
 }
 
 static void startup(void *arg)
