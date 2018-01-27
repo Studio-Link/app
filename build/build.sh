@@ -13,7 +13,6 @@ fi
 sl_prepare
 
 sl_extra_lflags="-L ../opus -L ../my_include "
-sl_extra_lflags_standalone="$sl_extra_lflags -L ../openssl "
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     sl_extra_modules="alsa jack rtaudio"
@@ -119,7 +118,7 @@ if [ ! -d baresip-$baresip ]; then
     make $debug LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
         EXTRA_CFLAGS="-I ../my_include" \
-        EXTRA_LFLAGS="$sl_extra_lflags_standalone"
+        EXTRA_LFLAGS="$sl_extra_lflags -L ../openssl"
 
     cp -a baresip ../studio-link-standalone
 
