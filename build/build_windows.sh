@@ -38,8 +38,8 @@ unset CXX
 if [ ! -d rtaudio-${rtaudio} ]; then
     sl_get_rtaudio
     pushd rtaudio-${rtaudio}
-    export CPPFLAGS="-Wno-unused-function"
-    ./autogen.sh --with-wasapi --with-winmm --with-dsound --host=${_arch}
+    export CPPFLAGS="-Wno-unused-function -Wno-unused-but-set-variable"
+    ./autogen.sh --with-wasapi --with-ds --with-asio --host=${_arch}
     make
     unset CPPFLAGS
     cp -a .libs/librtaudio.a ../my_include/
