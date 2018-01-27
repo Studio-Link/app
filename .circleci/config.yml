@@ -7,7 +7,7 @@ jobs:
 
     # Specify the Xcode version to use
     macos:
-      xcode: "9.2.0"
+      xcode: "8.3.3"
 
     environment:
       BUILD_OS: osx
