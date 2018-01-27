@@ -3,7 +3,7 @@ if [ "$CIRCLECI" == "true" ]; then
     curl https://kent.dl.sourceforge.net/project/macpkg/XZ/5.0.7/XZ.pkg -o xz.pkg
     sudo installer -pkg xz.pkg -target /
     brew update
-    brew install pkg-config
+    brew install pkg-config libtool
 fi
 
 sl_prepare() {
