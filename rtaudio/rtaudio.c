@@ -46,6 +46,21 @@ int rtaudio_callback(void *out, void *in, unsigned int nframes, double stream_ti
 
 int rtaudio_callback(void *out, void *in, unsigned int nframes, double stream_time,
 		rtaudio_stream_status_t status, void *userdata) {
+
+	unsigned int samples = nframes * 2;
+	int16_t *outBuffer = (int16_t *) out;
+	int16_t *inBuffer = (int16_t *) in;
+	
+	st_play->wh(st_play->sampv, samples, st_play->arg);
+	for (uint32_t pos = 0; pos < samples; pos++) {
+		*outBuffer++ = st_play->sampv[pos];
+	}
+
+	for (uint32_t pos = 0; pos < samples; pos++) {
+		st_src->sampv[pos] = *inBuffer++;
+	}
+	st_src->rh(st_src->sampv, samples, st_src->arg);
+
 	return 0;
 }
 

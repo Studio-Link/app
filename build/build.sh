@@ -41,8 +41,8 @@ if [ ! -d rtaudio-${rtaudio} ]; then
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
         ./autogen.sh
     else
-        mkdir -p /usr/local/Library/ENV/4.3
-        ln -s $(which sed) /usr/local/Library/ENV/4.3/sed
+        sudo mkdir -p /usr/local/Library/ENV/4.3
+        sudo ln -s $(which sed) /usr/local/Library/ENV/4.3/sed
         ./autogen.sh --with-core
     fi
     make
