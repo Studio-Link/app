@@ -30,6 +30,7 @@ else
 fi
 
 unset CC
+unset CXX
 
 
 # Build RtAudio
@@ -37,8 +38,7 @@ unset CC
 if [ ! -d rtaudio-${rtaudio} ]; then
     sl_get_rtaudio
     pushd rtaudio-${rtaudio}
-    ./autogen.sh
-    ${_arch}-configure
+    ./autogen.sh --with-wasapi --with-winmm --with-dsound --host=${_arch}
     make
     cp -a .libs/librtaudio.a ../my_include/
     popd

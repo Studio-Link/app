@@ -40,6 +40,7 @@ sl_get_rtaudio() {
     tar -xzf ${rtaudio}.tar.gz
     ln -s rtaudio-${rtaudio} rtaudio
     cp -a rtaudio-${rtaudio}/rtaudio_c.h my_include/
+    rm -f ${rtaudio}.tar.gz
 }
 
 sl_get_libre() {

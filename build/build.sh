@@ -21,14 +21,14 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     else
         openssl_target="linux-x86"
     fi
-    sl_extra_modules="alsa jack"
+    sl_extra_modules="alsa jack rtaudio"
 else
     export MACOSX_DEPLOYMENT_TARGET=10.6
     openssl_target="darwin64-x86_64-cc"
     sl_extra_lflags+="-L ../openssl "
     sl_extra_lflags+="-framework SystemConfiguration "
     sl_extra_lflags+="-framework CoreFoundation"
-    sl_extra_modules="audiounit"
+    sl_extra_modules="audiounit rtaudio"
     sed_opt="-i ''"
 fi
 
@@ -38,8 +38,11 @@ fi
 if [ ! -d rtaudio-${rtaudio} ]; then
     sl_get_rtaudio
     pushd rtaudio-${rtaudio}
-    ./autogen.sh
-    ./configure
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+        ./autogen.sh
+    else
+        ./autogen.sh --with-core
+    fi
     make
     cp -a .libs/librtaudio.a ../my_include/
     popd
