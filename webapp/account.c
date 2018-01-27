@@ -69,8 +69,8 @@ static int sip_register(const struct odict_entry *o)
 		}
 	}
 
-	re_snprintf(buf, sizeof(buf), "<sip:%s:%s@%s;transport=%s>%s",
-			user, password, domain, transport, opt);
+	re_snprintf(buf, sizeof(buf), "<sip:%s@%s;transport=%s>;auth_pass=%s;%s",
+			user, domain, transport, password, opt);
 	ua_alloc(NULL, buf);
 
 	return err;
