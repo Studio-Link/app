@@ -86,6 +86,7 @@ sl_get_baresip() {
     cp -a ../../effect modules/effect
     cp -a ../../effectonair modules/effectonair
     cp -a ../../apponair modules/apponair
+    cp -a ../../rtaudio modules/rtaudio
 
     sed $sed_opt s/SLVERSION_T/$version_t/ modules/webapp/webapp.c
     popd

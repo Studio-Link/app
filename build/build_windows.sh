@@ -39,7 +39,9 @@ if [ ! -d rtaudio-${rtaudio} ]; then
     sl_get_rtaudio
     pushd rtaudio-${rtaudio}
     ./autogen.sh --with-wasapi --with-winmm --with-dsound --host=${_arch}
+    export CPPFLAGS="-Wno-unused-function"
     make
+    unset CPPFLAGS
     cp -a .libs/librtaudio.a ../my_include/
     popd
 fi

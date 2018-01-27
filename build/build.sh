@@ -41,6 +41,7 @@ if [ ! -d rtaudio-${rtaudio} ]; then
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
         ./autogen.sh
     else
+        brew install libtool
         ./autogen.sh --with-core
     fi
     make
