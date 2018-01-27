@@ -92,6 +92,9 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	(void)device;
 	int err = 0;
 
+	if (st_src)
+		return 0;
+
 	if (!stp || !as || !prm)
 		return EINVAL;
 
@@ -117,6 +120,21 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 		err = 1;
 		goto out;
 	}
+
+#if 1 
+	/* Print list of device names and native sample rates */
+	for (int i = 0; i < rtaudio_device_count(st_src->audio); i++) {
+		rtaudio_device_info_t info = rtaudio_get_device_info(st_src->audio, i);
+		if (rtaudio_error(st_src->audio) != NULL) {
+			fprintf(stderr, "error: %s\n", rtaudio_error(st_src->audio));
+			err = 1;
+			goto out;
+		}
+		printf("%c%d: %s: %d\n",
+				(info.is_default_input || info.is_default_output) ? '*' : ' ', i,
+				info.name, info.preferred_sample_rate);
+	}
+#endif
 
 	rtaudio_stream_parameters_t out_params = {
 		.device_id = rtaudio_get_default_output_device(st_src->audio),
@@ -163,12 +181,18 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 		auplay_write_h *wh, void *arg)
 {
 	int err = 0;
+
+	if (st_play)
+		return 0;
+
 	if (!stp || !ap || !prm)
 		return EINVAL;
 
 	if ((st_play = mem_zalloc(sizeof(*st_play),
 					auplay_destructor)) == NULL)
 		return ENOMEM;
+
+
 	st_play->run = false;
 	st_play->ap  = ap;
 	st_play->wh  = wh;
