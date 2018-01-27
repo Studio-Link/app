@@ -35,13 +35,13 @@ if [ ! -d rtaudio-${rtaudio} ]; then
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
         ./autogen.sh
     else
-        export CPPFLAGS="-Wno-deprecated"
+        export CXXFLAGS="-Wno-deprecated"
         sudo mkdir -p /usr/local/Library/ENV/4.3
         sudo ln -s $(which sed) /usr/local/Library/ENV/4.3/sed
         ./autogen.sh --with-core
     fi
     make
-    unset CPPFLAGS
+    unset CXXFLAGS
     cp -a .libs/librtaudio.a ../my_include/
     popd
 fi
