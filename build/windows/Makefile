@@ -36,7 +36,7 @@ LFLAGS    := -L$(SYSROOT)/lib/ \
 	-L$(PWD)/my_include
 
 # workaround for linker order (note, the order is important)
-LIBS	:= -lrem -lssl -lcrypto -lwsock32 -lws2_32 -liphlpapi -lole32 -lwinmm -luuid -lksuser -lcrypt32 -lopus -lFLAC -lrtaudio -lstdc++
+LIBS	:= -lrem -lssl -lcrypto -lwsock32 -lws2_32 -liphlpapi -lcrypt32 -lopus -lFLAC -lrtaudio -lstdc++ -lole32 -lwinmm -luuid -lksuser
 
 
 COMMON_FLAGS := CC=$(CC) \
