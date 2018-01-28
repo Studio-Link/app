@@ -7,13 +7,14 @@ This repository contains the studio link - baresip modules and build environment
 ## Build Requirements
 
 - OpenSSL
+- Libtool
 - LV2 (optional)
 - Header files for OpenSSL, ALSA and JACK
 
 ### Build Requirements on Ubuntu 16.04
 
 The needed header files are in these packages:  
-libssl-dev libasound2-dev libjack-jackd2-dev
+libssl-dev libasound2-dev libjack-jackd2-dev libtool build-essential
 
 ---
 
