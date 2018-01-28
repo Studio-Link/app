@@ -1,5 +1,5 @@
 vmajor=18; vminor=2; vpatch=0
-release="alpha4"
+release="alpha5"
 rem="0.5.2"
 re="0.5.7"
 opus="1.2.1"
