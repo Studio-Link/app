@@ -67,8 +67,10 @@ int rtaudio_callback(void *out, void *in, unsigned int nframes, double stream_ti
 
 static void ausrc_destructor(void *arg)
 {
-	rtaudio_stop_stream(st_src->audio);
-	rtaudio_close_stream(st_src->audio);
+	if (st_src->run) {
+		rtaudio_stop_stream(st_src->audio);
+		rtaudio_close_stream(st_src->audio);
+	}
 	rtaudio_destroy(st_src->audio);
 	mem_deref(st_src->sampv);
 	st_src = NULL;
@@ -101,7 +103,6 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	if ((st_src = mem_zalloc(sizeof(*st_src), ausrc_destructor)) == NULL)
 		return ENOMEM;
 
-
 	st_src->run = false;
 	st_src->as  = as;
 	st_src->rh  = rh;
@@ -111,7 +112,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	st_src->sampv = mem_alloc(10 * st_src->sampc, NULL);
 	if (!st_src->sampv) {
 		err = ENOMEM;
-		goto out2;
+		goto out;
 	}
 
 
@@ -130,7 +131,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 			err = 1;
 			goto out;
 		}
-		printf("%c%d: %s: %d\n",
+		warning("%c%d: %s: %d\n",
 				(info.is_default_input || info.is_default_output) ? '*' : ' ', i,
 				info.name, info.preferred_sample_rate);
 	}
@@ -163,13 +164,13 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	}
 
 out:
-	if (err)
-		rtaudio_destroy(st_src->audio);
-out2:
-	if (err)
+	if (err) {
+		warning("error: %s\n", rtaudio_error(st_src->audio));
 		mem_deref(st_src);
-	else
+	} else {
 		st_src->run = true;
+	}
+
 	*stp = st_src;
 
 	return err;
