@@ -1,6 +1,7 @@
 # Backend Repository
 
-[![Build Status](https://travis-ci.org/Studio-Link-v2/backend.svg)](https://travis-ci.org/Studio-Link-v2/backend)
+[![Build Status](https://travis-ci.org/Studio-Link-v2/backend.svg?branch=v18.02.x)](https://travis-ci.org/Studio-Link-v2/backend)
+[![CircleCI](https://circleci.com/gh/Studio-Link-v2/backend/tree/v18.02.x.svg?style=svg)](https://circleci.com/gh/Studio-Link-v2/backend/tree/v18.02.x)
 
 This repository contains the studio link - baresip modules and build environment
 
