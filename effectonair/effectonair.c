@@ -1,7 +1,7 @@
 /**
  * @file effectlive.c DAW EffectLive Overlay Plugin
  *
- * Copyright (C) 2016 studio-link.de
+ * Copyright (C) 2013-2018 studio-link.de
  */
 #include <stdlib.h>
 #include <string.h>

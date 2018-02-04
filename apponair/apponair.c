@@ -1,7 +1,7 @@
 /**
  * @file applive.c Init Live Session
  *
- * Copyright (C) 2016 studio-link.de Sebastian Reimers
+ * Copyright (C) 2013-2018 studio-link.de Sebastian Reimers
  */
 #include <re.h>
 #include <baresip.h>

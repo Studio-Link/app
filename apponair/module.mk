@@ -1,7 +1,7 @@
 #
 # module.mk
 #
-# Copyright (C) 2016 Studio Link
+# Copyright (C) 2013-2018 Studio Link
 #
 
 MOD		:= apponair

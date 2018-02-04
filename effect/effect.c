@@ -1,7 +1,7 @@
 /**
  * @file effect.c DAW Effect Overlay Plugin
  *
- * Copyright (C) 2016 studio-link.de
+ * Copyright (C) 2013-2018 studio-link.de
  */
 #define _DEFAULT_SOURCE 1
 #define _BSD_SOURCE 1

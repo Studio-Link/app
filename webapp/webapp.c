@@ -1,7 +1,7 @@
 /**
  * @file webapp.c Webserver UI module
  *
- * Copyright (C) 2013-2017 studio-link.de Sebastian Reimers
+ * Copyright (C) 2013-2018 studio-link.de Sebastian Reimers
  */
 #include <re.h>
 #include <baresip.h>
@@ -502,11 +502,11 @@ static int module_init(void)
 
 #ifdef SLPLUGIN
 	(void)re_fprintf(stderr, "Studio Link Webapp v%s - Effect Plugin"
-			" Copyright (C) 2016"
+			" Copyright (C) 2013-2018"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 #else
 	(void)re_fprintf(stderr, "Studio Link Webapp v%s - Standalone"
-			" Copyright (C) 2016"
+			" Copyright (C) 2013-2018"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 
 	aufilt_register(baresip_aufiltl(), &mono);
