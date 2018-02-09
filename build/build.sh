@@ -15,7 +15,7 @@ sl_prepare
 sl_extra_lflags="-L ../opus -L ../my_include "
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-    sl_extra_modules="alsa jack rtaudio"
+    sl_extra_modules="alsa rtaudio"
 else
     export MACOSX_DEPLOYMENT_TARGET=10.6
     sl_extra_lflags+="-L ../openssl ../openssl/libssl.a ../openssl/libcrypto.a "
