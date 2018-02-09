@@ -7,7 +7,7 @@
 - **Generell** Allgemeine Veränderungen
 
 
-## v18.02.0-beta (xx.02.2018)
+### v18.02.0-beta (xx.02.2018)
 
 - **Generell** OpenSSL 1.1.0g
 - **Generell** Opus 1.2.1
@@ -15,6 +15,7 @@
 - **Generell** re 0.5.7
 - **Generell** rem 0.5.2
 - **Plugin** Anzahl der Spuren von 8 auf 10 erhöht
+- **Standalone** RtAudio hinzugefügt
 
 
 ### v17.03.1-beta (30.03.2017)
@@ -31,4 +32,4 @@
 - **Plugin** **onAir** Windows Crash Dumps beim deaktivieren gefixt
 
 
-[Alle Änderungen...](https://github.com/Studio-Link-v2/backend/blob/master/CHANGELOG-ARCHIVE-DE.md)
+[Alle Änderungen...](https://github.com/Studio-Link-v2/backend/blob/v18.02.x/CHANGELOG-ARCHIVE-DE.md)
