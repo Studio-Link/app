@@ -1,5 +1,5 @@
 vmajor=18; vminor=2; vpatch=0
-vbuild="$(git rev-list HEAD --count --first-parent).$(git rev-parse --short HEAD)"
+vbuild="$(git rev-list HEAD --count).$(git rev-parse --short HEAD)"
 release="alpha-${vbuild}"
 rem="0.5.2"
 re="0.5.7"
