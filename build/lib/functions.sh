@@ -6,12 +6,17 @@ if [ "$CIRCLECI" == "true" ]; then
     brew install pkg-config libtool
 fi
 
-sl_prepare() {
-    echo "start build on $TRAVIS_OS_NAME ($BUILD_OS)"
+sl_prepare_version() {
     vminor_t=$(printf "%02d" $vminor)
     version_t="v$vmajor.$vminor_t.$vpatch-$release"
     version_n="$vmajor.$vminor.$vpatch"
+}
+
+sl_prepare() {
+    echo "start build on $TRAVIS_OS_NAME ($BUILD_OS)"
     sed_opt="-i"
+
+    sl_prepare_version
 
     mkdir -p src;
     pushd src
