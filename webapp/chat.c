@@ -58,7 +58,7 @@ int webapp_chat_send(char *message, char *exclude_peer)
 
 int webapp_chat_add(const char *peer, const char *message, bool self)
 {
-	char time_s[256] = {0};
+	char time_s[20] = {0};
 	int err = 0;
 	struct odict *o;
 
