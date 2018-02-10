@@ -35,6 +35,10 @@ struct ausrc_st {
 	rtaudio_t audio;
 };
 
+int webapp_ws_rtaudio_get_driver(void);
+int webapp_ws_rtaudio_get_input(void);
+int webapp_ws_rtaudio_get_output(void);
+
 static struct ausrc *ausrc;
 static struct auplay *auplay;
 
@@ -116,7 +120,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	}
 
 
-	st_src->audio = rtaudio_create(RTAUDIO_API_UNSPECIFIED);
+	st_src->audio = rtaudio_create(webapp_ws_rtaudio_get_driver());
 	if (rtaudio_error(st_src->audio) != NULL) { 
 		err = 1;
 		goto out;
@@ -138,13 +142,13 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 #endif
 
 	rtaudio_stream_parameters_t out_params = {
-		.device_id = rtaudio_get_default_output_device(st_src->audio),
+		.device_id = webapp_ws_rtaudio_get_output(),
 		.num_channels = 2,
 		.first_channel = 0,
 	};
 
 	rtaudio_stream_parameters_t in_params = {
-		.device_id = rtaudio_get_default_input_device(st_src->audio),
+		.device_id = webapp_ws_rtaudio_get_input(),
 		.num_channels = 2,
 		.first_channel = 0,
 	};
