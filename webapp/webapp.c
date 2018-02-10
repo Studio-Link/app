@@ -100,6 +100,11 @@ static void http_req_handler(struct http_conn *conn,
 		ws_send_json(WS_CHAT, webapp_messages_get());
 		return;
 	}
+	if (0 == pl_strcasecmp(&msg->path, "/ws_rtaudio")) {
+		webapp_ws_handler(conn, WS_RTAUDIO, msg, webapp_ws_rtaudio);
+		ws_send_json(WS_RTAUDIO, webapp_ws_rtaudio_get());
+		return;
+	}
 	if (0 == pl_strcasecmp(&msg->path, "/ws_meter")) {
 		webapp_ws_handler(conn, WS_METER, msg, webapp_ws_meter);
 		return;
@@ -532,6 +537,7 @@ static int module_init(void)
 	tmr_start(&tmr, 800, syscmd, NULL);
 #else
 	syscmd(NULL);
+	webapp_ws_rtaudio_init();
 #endif
 
 out:
@@ -552,13 +558,14 @@ static int module_close(void)
 	webapp_contacts_close();
 	webapp_options_close();
 	webapp_chat_close();
-	webapp_ws_close();
 #ifndef SLPLUGIN
+	webapp_ws_rtaudio_close();
 	aufilt_unregister(&vumeter);
 	aufilt_unregister(&mono);
 	aufilt_unregister(&record);
 	//aufilt_unregister(&routing);
 #endif
+	webapp_ws_close();
 	mem_deref(httpsock);
 	mem_deref(webapp_calls);
 	return 0;

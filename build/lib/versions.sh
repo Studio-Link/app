@@ -1,6 +1,7 @@
 vmajor=18; vminor=2; vpatch=0
 vbuild="$(git rev-list HEAD --count).$(git rev-parse --short HEAD)"
 release="alpha-${vbuild}"
+#release="beta"
 rem="0.5.2"
 re="0.5.7"
 opus="1.2.1"

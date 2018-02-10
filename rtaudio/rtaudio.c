@@ -122,7 +122,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 		goto out;
 	}
 
-#if 1 
+#if 0
 	/* Print list of device names and native sample rates */
 	for (int i = 0; i < rtaudio_device_count(st_src->audio); i++) {
 		rtaudio_device_info_t info = rtaudio_get_device_info(st_src->audio, i);

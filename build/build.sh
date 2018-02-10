@@ -32,7 +32,7 @@ if [ ! -d rtaudio-${rtaudio} ]; then
     sl_get_rtaudio
     pushd rtaudio-${rtaudio}
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-        ./autogen.sh
+        ./autogen.sh --with-alsa
     else
         export CXXFLAGS="-Wno-deprecated"
         sudo mkdir -p /usr/local/Library/ENV/4.3
