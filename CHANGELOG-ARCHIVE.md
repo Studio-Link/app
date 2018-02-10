@@ -6,6 +6,20 @@
 - **Misc** Anything that is left or general.
 
 
+### v17.03.1-beta (30.03.2017)
+
+- **Standalone** Add session identifier to recording filename
+
+
+### v17.03.0-beta (23.03.2017)
+
+- **Misc** OpenSSL 1.1.0e
+- **Standalone** Flac 1.3.2
+- **Plugin** Remove Auto N-1 Mix Option (permanent active now)
+- **onAir** Fixed Streaming Bug macOS auval and Logic
+- **Plugin** **onAir** Fixed Windows Crash Dumps
+
+
 ### v16.12.1-beta (30.01.2017)
 
 - **Standalone** Record button better stability
