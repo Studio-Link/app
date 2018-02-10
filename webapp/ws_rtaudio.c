@@ -68,7 +68,25 @@ static int ws_rtaudio_drivers(void) {
 		if(apis[i] == RTAUDIO_API_LINUX_PULSE) {
 			odict_entry_add(o, "display", ODICT_STRING, "Pulseaudio");
 		}
-		
+		if(apis[i] == RTAUDIO_API_WINDOWS_WASAPI) {
+			odict_entry_add(o, "display", ODICT_STRING, "WASAPI");
+			if (driver == -1) {
+				driver = RTAUDIO_API_WINDOWS_WASAPI;
+			}
+		}
+		if(apis[i] == RTAUDIO_API_WINDOWS_DS) {
+			odict_entry_add(o, "display", ODICT_STRING, "DirectSound");
+		}
+		if(apis[i] == RTAUDIO_API_WINDOWS_ASIO) {
+			odict_entry_add(o, "display", ODICT_STRING, "ASIO");
+		}
+		if(apis[i] == RTAUDIO_API_MACOSX_CORE) {
+			odict_entry_add(o, "display", ODICT_STRING, "Coreaudio");
+			if (driver == -1) {
+				driver = RTAUDIO_API_MACOSX_CORE;
+			}
+		}
+
 		if(apis[i] == (unsigned int)driver) {
 			odict_entry_add(o, "selected", ODICT_BOOL, true);
 		} else {
