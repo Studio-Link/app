@@ -45,16 +45,26 @@ static struct auplay *auplay;
 struct ausrc_st *st_src;
 struct auplay_st *st_play;
 
-int rtaudio_callback(void *out, void *in, unsigned int nframes, double stream_time,
-		rtaudio_stream_status_t status, void *userdata);
+int rtaudio_callback(void *out, void *in, unsigned int nframes,
+		double stream_time, rtaudio_stream_status_t status,
+		void *userdata);
 
-int rtaudio_callback(void *out, void *in, unsigned int nframes, double stream_time,
-		rtaudio_stream_status_t status, void *userdata) {
+int rtaudio_callback(void *out, void *in, unsigned int nframes,
+		double stream_time, rtaudio_stream_status_t status,
+		void *userdata) {
 
 	unsigned int samples = nframes * 2;
 	int16_t *outBuffer = (int16_t *) out;
 	int16_t *inBuffer = (int16_t *) in;
-	
+
+	if (status == RTAUDIO_STATUS_INPUT_OVERFLOW) {
+		warning("rtaudio: Buffer Overflow\n");
+	}
+
+	if (status == RTAUDIO_STATUS_OUTPUT_UNDERFLOW) {
+		warning("rtaudio: Buffer Underrun\n");
+	}
+
 	st_play->wh(st_play->sampv, samples, st_play->arg);
 	for (uint32_t pos = 0; pos < samples; pos++) {
 		*outBuffer++ = st_play->sampv[pos];
@@ -121,25 +131,10 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 
 
 	st_src->audio = rtaudio_create(webapp_ws_rtaudio_get_driver());
-	if (rtaudio_error(st_src->audio) != NULL) { 
+	if (rtaudio_error(st_src->audio) != NULL) {
 		err = 1;
 		goto out;
 	}
-
-#if 0
-	/* Print list of device names and native sample rates */
-	for (int i = 0; i < rtaudio_device_count(st_src->audio); i++) {
-		rtaudio_device_info_t info = rtaudio_get_device_info(st_src->audio, i);
-		if (rtaudio_error(st_src->audio) != NULL) {
-			fprintf(stderr, "error: %s\n", rtaudio_error(st_src->audio));
-			err = 1;
-			goto out;
-		}
-		warning("%c%d: %s: %d\n",
-				(info.is_default_input || info.is_default_output) ? '*' : ' ', i,
-				info.name, info.preferred_sample_rate);
-	}
-#endif
 
 	rtaudio_stream_parameters_t out_params = {
 		.device_id = webapp_ws_rtaudio_get_output(),
@@ -154,15 +149,16 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	};
 
 	unsigned int bufsz = 512;
-	rtaudio_open_stream(st_src->audio, &out_params, &in_params, RTAUDIO_FORMAT_SINT16,
-			48000, &bufsz, rtaudio_callback, NULL, NULL, NULL);
-	if (rtaudio_error(st_src->audio) != NULL) { 
+	rtaudio_open_stream(st_src->audio, &out_params, &in_params,
+			RTAUDIO_FORMAT_SINT16, 48000, &bufsz,
+			rtaudio_callback, NULL, NULL, NULL);
+	if (rtaudio_error(st_src->audio) != NULL) {
 		err = 1;
 		goto out;
 	}
 
 	rtaudio_start_stream(st_src->audio);
-	if (rtaudio_error(st_src->audio) != NULL) { 
+	if (rtaudio_error(st_src->audio) != NULL) {
 		err = 1;
 		goto out;
 	}
@@ -171,7 +167,8 @@ out:
 	if (err) {
 		warning("error: %s\n", rtaudio_error(st_src->audio));
 		mem_deref(st_src);
-	} else {
+	}
+	else {
 		st_src->run = true;
 	}
 
@@ -225,7 +222,8 @@ static int rtaudio_init(void)
 {
 	int err;
 	err  = ausrc_register(&ausrc, baresip_ausrcl(), "rtaudio", src_alloc);
-	err |= auplay_register(&auplay, baresip_auplayl(), "rtaudio", play_alloc);
+	err |= auplay_register(&auplay, baresip_auplayl(),
+			"rtaudio", play_alloc);
 
 	return err;
 }
