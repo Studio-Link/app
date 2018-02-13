@@ -11,7 +11,7 @@
 
 - **Generell** OpenSSL 1.1.0g
 - **Generell** Opus 1.2.1
-- **Generell** Baresip 0.5.7
+- **Generell** Baresip 0.5.8
 - **Generell** re 0.5.7
 - **Generell** rem 0.5.2
 - **Plugin** Anzahl der Spuren von 8 auf 10 erhöht

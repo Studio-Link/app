@@ -11,7 +11,7 @@
 
 - **Misc** OpenSSL 1.1.0g
 - **Misc** Opus 1.2.1
-- **Misc** Baresip 0.5.7
+- **Misc** Baresip 0.5.8
 - **Misc** re 0.5.7
 - **Misc** rem 0.5.2
 - **Plugin** Increase call limit 8 -> 10
