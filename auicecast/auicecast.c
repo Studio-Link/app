@@ -203,8 +203,8 @@ static int module_close(void)
 }
 
 
-EXPORT_SYM const struct mod_export DECL_EXPORTS(auice) = {
-	"auice",
+EXPORT_SYM const struct mod_export DECL_EXPORTS(auicecast) = {
+	"auicecast",
 	"auplay",
 	module_init,
 	module_close
