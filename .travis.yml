@@ -1,14 +1,22 @@
+sudo: required
 git:
   depth: false
+
+services:
+  - docker
+
 language: c
+
 os:
-- osx
-- linux
+  - osx
+  - linux
+
 osx_image: xcode6.4
-sudo: required
+
 before_install:
-- sudo ./build/before_build.sh
-- "./build/before_build.sh"
+  - sudo ./build/before_build.sh
+  - "./build/before_build.sh"
+
 script: "./build/build.sh"
 
 deploy:
