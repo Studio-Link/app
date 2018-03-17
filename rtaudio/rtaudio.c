@@ -56,6 +56,7 @@ int rtaudio_callback(void *out, void *in, unsigned int nframes,
 	unsigned int samples = nframes * 2;
 	int16_t *outBuffer = (int16_t *) out;
 	int16_t *inBuffer = (int16_t *) in;
+	int16_t *inBuffer2 = (int16_t *) in;
 
 	if (status == RTAUDIO_STATUS_INPUT_OVERFLOW) {
 		warning("rtaudio: Buffer Overflow\n");
@@ -65,15 +66,19 @@ int rtaudio_callback(void *out, void *in, unsigned int nframes,
 		warning("rtaudio: Buffer Underrun\n");
 	}
 
-	st_play->wh(st_play->sampv, samples, st_play->arg);
-	for (uint32_t pos = 0; pos < samples; pos++) {
-		*outBuffer++ = st_play->sampv[pos];
-	}
-
 	for (uint32_t pos = 0; pos < samples; pos++) {
 		st_src->sampv[pos] = *inBuffer++;
 	}
+
+	st_play->wh(st_play->sampv, samples, st_play->arg);
+	for (uint32_t pos = 0; pos < samples; pos++) {
+	//	*outBuffer++ = st_play->sampv[pos];
+		//with echo
+		*outBuffer++ = st_play->sampv[pos] + *inBuffer2++;
+	}
+
 	st_src->rh(st_src->sampv, samples, st_src->arg);
+
 
 	return 0;
 }
@@ -148,7 +153,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 		.first_channel = 0,
 	};
 
-	unsigned int bufsz = 512;
+	unsigned int bufsz = 256;
 	rtaudio_open_stream(st_src->audio, &out_params, &in_params,
 			RTAUDIO_FORMAT_SINT16, 48000, &bufsz,
 			rtaudio_callback, NULL, NULL, NULL);

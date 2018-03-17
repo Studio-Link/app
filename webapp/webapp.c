@@ -321,7 +321,7 @@ int webapp_call_delete(struct call *call)
 
 static int json_print_handler(const char *p, size_t size, void *arg)                                
 {      
-	warning("json: %s", p);
+	//warning("json: %s", p);
 	return re_snprintf(arg, sizeof(arg), "%s%s", p, arg);
 }    
 

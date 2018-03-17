@@ -108,29 +108,32 @@ static int ws_rtaudio_drivers(void) {
 
 static int ws_rtaudio_devices() {
 	int err;
+
 #ifndef SLPLUGIN
-	rtaudio_t audio = rtaudio_create(driver);
-	rtaudio_device_info_t info;
 	struct odict *o_in;
 	struct odict *o_out;
 	struct odict *array_in;
 	struct odict *array_out;
 	char idx[2];
+
+	rtaudio_device_info_t info;
+	rtaudio_t audio = rtaudio_create(driver);
+
 	err = odict_alloc(&array_in, DICT_BSIZE);
 	if (err)
-		return ENOMEM;
+		goto out2;
 	err = odict_alloc(&array_out, DICT_BSIZE);
 	if (err)
-		return ENOMEM;
+		goto out2;
 
 	for (int i = 0; i < rtaudio_device_count(audio); i++) {
 		(void)re_snprintf(idx, sizeof(idx), "%d", i);
 
 		info = rtaudio_get_device_info(audio, i);
 		if (rtaudio_error(audio) != NULL) {
-			fprintf(stderr, "error: %s\n", rtaudio_error(audio));
+			warning("rtaudio error: %s\n", rtaudio_error(audio));
 			err = 1;
-			goto out;
+			goto out1;
 		}
 		warning("%c%d: %s: %d\n",
 				(info.is_default_input || info.is_default_output) ? '*' : ' ', i,
@@ -141,10 +144,10 @@ static int ws_rtaudio_devices() {
 
 		err = odict_alloc(&o_in, DICT_BSIZE);
 		if (err)
-			return ENOMEM;
+			goto out1;
 		err = odict_alloc(&o_out, DICT_BSIZE);
 		if (err)
-			return ENOMEM;
+			goto out1;
 
 		if (output == -1 && info.is_default_output) {
 			output = i;
@@ -182,12 +185,15 @@ static int ws_rtaudio_devices() {
 
 	odict_entry_add(interfaces, "input", ODICT_ARRAY, array_in);
 	odict_entry_add(interfaces, "output", ODICT_ARRAY, array_out);
+
+out1:
 	mem_deref(array_in);
 	mem_deref(array_out);
-	rtaudio_destroy(audio);
 
+out2:
+	rtaudio_destroy(audio);
 #endif
-out:
+
 	return err;
 }
 
