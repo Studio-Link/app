@@ -7,9 +7,9 @@
 - **Misc** Anything that is left or general.
 
 
-### v18.02.0-beta (xx.02.2018)
+### v18.03.0-beta (xx.03.2018)
 
-- **Misc** OpenSSL 1.1.0g
+- **Misc** OpenSSL 1.1.0h
 - **Misc** Opus 1.2.1
 - **Misc** Baresip 0.5.8
 - **Misc** re 0.5.7

@@ -7,9 +7,9 @@
 - **Generell** Allgemeine Veränderungen
 
 
-### v18.02.0-beta (xx.02.2018)
+### v18.03.0-beta (xx.03.2018)
 
-- **Generell** OpenSSL 1.1.0g
+- **Generell** OpenSSL 1.1.0h
 - **Generell** Opus 1.2.1
 - **Generell** Baresip 0.5.8
 - **Generell** re 0.5.7
