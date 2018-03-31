@@ -38,6 +38,7 @@ struct ausrc_st {
 int webapp_ws_rtaudio_get_driver(void);
 int webapp_ws_rtaudio_get_input(void);
 int webapp_ws_rtaudio_get_output(void);
+int webapp_ws_rtaudio_get_monitor(void);
 
 static struct ausrc *ausrc;
 static struct auplay *auplay;
@@ -56,7 +57,8 @@ int rtaudio_callback(void *out, void *in, unsigned int nframes,
 	unsigned int samples = nframes * 2;
 	int16_t *outBuffer = (int16_t *) out;
 	int16_t *inBuffer = (int16_t *) in;
-	int16_t *inBuffer2 = (int16_t *) in;
+	int16_t *inBuffer_monitor = (int16_t *) in;
+	int monitor = webapp_ws_rtaudio_get_monitor();
 
 	if (status == RTAUDIO_STATUS_INPUT_OVERFLOW) {
 		warning("rtaudio: Buffer Overflow\n");
@@ -72,9 +74,10 @@ int rtaudio_callback(void *out, void *in, unsigned int nframes,
 
 	st_play->wh(st_play->sampv, samples, st_play->arg);
 	for (uint32_t pos = 0; pos < samples; pos++) {
-	//	*outBuffer++ = st_play->sampv[pos];
-		//with echo
-		*outBuffer++ = st_play->sampv[pos] + *inBuffer2++;
+		if (monitor)
+			*outBuffer++ = st_play->sampv[pos] + *inBuffer_monitor++;
+		else
+			*outBuffer++ = st_play->sampv[pos];
 	}
 
 	st_src->rh(st_src->sampv, samples, st_src->arg);

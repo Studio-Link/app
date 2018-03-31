@@ -13,6 +13,7 @@
 static int driver = -1;
 static int input = -1;
 static int output = -1;
+static int monitor = 0;
 static struct odict *interfaces = NULL;
 
 
@@ -40,6 +41,11 @@ int webapp_ws_rtaudio_get_output(void)
 }
 
 
+int webapp_ws_rtaudio_get_monitor(void)
+{
+	return monitor;
+}
+
 static int ws_rtaudio_drivers(void) {
 #ifndef SLPLUGIN
 	int err;
@@ -53,7 +59,7 @@ static int ws_rtaudio_drivers(void) {
 		return ENOMEM;
 
 
-	for(unsigned int i = 0; i < sizeof(apis)/sizeof(rtaudio_api_t); i++) {
+	for(unsigned int i = 0; i < sizeof(apis)/sizeof(rtaudio_api_t)-1; i++) {
 		(void)re_snprintf(idx, sizeof(idx), "%d", i);
 		err = odict_alloc(&o, DICT_BSIZE);
 		if (err)
@@ -198,6 +204,49 @@ out2:
 }
 
 
+static int ws_rtaudio_monitor(void)
+{
+	int err;
+	struct odict *o;
+	struct odict *array;
+
+	err = odict_alloc(&array, DICT_BSIZE);
+	if (err)
+		return ENOMEM;
+
+	err = odict_alloc(&o, DICT_BSIZE);
+	if (err)
+		return ENOMEM;	
+
+	odict_entry_add(o, "id", ODICT_INT, 1);
+	odict_entry_add(o, "display", ODICT_STRING, "Enabled");
+	if (monitor)
+		odict_entry_add(o, "selected", ODICT_BOOL, true);
+	else
+		odict_entry_add(o, "selected", ODICT_BOOL, false);
+	odict_entry_add(array, "1", ODICT_OBJECT, o);
+	mem_deref(o);
+
+	err = odict_alloc(&o, DICT_BSIZE);
+	if (err)
+		return ENOMEM;
+	odict_entry_add(o, "id", ODICT_INT, 0);
+	odict_entry_add(o, "display", ODICT_STRING, "Disabled");
+	odict_entry_add(o, "selected", ODICT_BOOL, true);
+	if (monitor)
+		odict_entry_add(o, "selected", ODICT_BOOL, false);
+	else
+		odict_entry_add(o, "selected", ODICT_BOOL, true);
+	odict_entry_add(array, "0", ODICT_OBJECT, o);
+	mem_deref(o);
+
+	odict_entry_add(interfaces, "monitor", ODICT_ARRAY, array);
+	mem_deref(array);
+
+	return 0;
+}
+
+
 static int webapp_ws_rtaudio_reset(void)
 {
 	int err;
@@ -214,6 +263,12 @@ static int webapp_ws_rtaudio_reset(void)
 		return err;
 
 	err = ws_rtaudio_devices();
+	if (err)
+		return err;
+
+	err = ws_rtaudio_monitor();
+	if (err)
+		return err;
 	
 	ws_send_json(WS_RTAUDIO, webapp_ws_rtaudio_get());
 
@@ -252,6 +307,12 @@ void webapp_ws_rtaudio(const struct websock_hdr *hdr,
 		output = e->u.integer;
 		goto out;
 	}
+	if (!str_cmp(e->u.str, "monitor")) {
+		e = odict_lookup(cmd, "id");
+		monitor = e->u.integer;
+		goto out;
+	}
+
 
 out:
 	webapp_ws_rtaudio_reset();
