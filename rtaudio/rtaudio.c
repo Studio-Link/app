@@ -156,7 +156,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 		.first_channel = 0,
 	};
 
-	unsigned int bufsz = 256;
+	unsigned int bufsz = 512;
 	rtaudio_open_stream(st_src->audio, &out_params, &in_params,
 			RTAUDIO_FORMAT_SINT16, 48000, &bufsz,
 			rtaudio_callback, NULL, NULL, NULL);
