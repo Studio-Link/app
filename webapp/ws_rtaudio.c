@@ -14,8 +14,15 @@ static int driver = -1;
 static int input = -1;
 static int output = -1;
 static int monitor = 0;
+static int loop = 0;
 static struct odict *interfaces = NULL;
 
+static int print_handler(const char *p, size_t size, void *arg)
+{
+	struct mbuf *mb = arg;
+
+	return mbuf_write_mem(mb, (void *)p, size);
+}
 
 const struct odict* webapp_ws_rtaudio_get(void)
 {
@@ -113,7 +120,7 @@ static int ws_rtaudio_drivers(void) {
 
 
 static int ws_rtaudio_devices() {
-	int err;
+	int err = 0;
 
 #ifndef SLPLUGIN
 	struct odict *o_in;
@@ -246,10 +253,42 @@ static int ws_rtaudio_monitor(void)
 	return 0;
 }
 
+static int ws_rtaudio_loop_stop(void)
+{
+	struct mbuf *resp = mbuf_alloc(1024);
+	struct re_printf pf = {print_handler, resp};
+
+	char stop[] = "auloop_stop";
+	cmd_process_long(baresip_commands(), stop, str_len(stop), &pf, NULL);
+
+	mem_deref(resp);
+	return 0;
+}
+
+static int ws_rtaudio_loop(void)
+{
+	struct mbuf *resp = mbuf_alloc(1024);
+	struct re_printf pf = {print_handler, resp};
+
+	char start[] = "auloop 48000 2";
+	if (loop) {
+		odict_entry_add(interfaces, "loop", ODICT_BOOL, true);
+		cmd_process_long(baresip_commands(), start, str_len(start), &pf, NULL);
+	} else {
+		odict_entry_add(interfaces, "loop", ODICT_BOOL, false);
+		ws_rtaudio_loop_stop();
+	}
+
+	mem_deref(resp);
+	return 0;
+}
+
 
 static int webapp_ws_rtaudio_reset(void)
 {
 	int err;
+	
+	ws_rtaudio_loop_stop();
 
 	if(interfaces)
 		mem_deref(interfaces);
@@ -267,6 +306,10 @@ static int webapp_ws_rtaudio_reset(void)
 		return err;
 
 	err = ws_rtaudio_monitor();
+	if (err)
+		return err;
+
+	err = ws_rtaudio_loop();
 	if (err)
 		return err;
 	
@@ -310,6 +353,11 @@ void webapp_ws_rtaudio(const struct websock_hdr *hdr,
 	if (!str_cmp(e->u.str, "monitor")) {
 		e = odict_lookup(cmd, "id");
 		monitor = e->u.integer;
+		goto out;
+	}
+	if (!str_cmp(e->u.str, "loop")) {
+		e = odict_lookup(cmd, "value");
+		loop = e->u.integer;
 		goto out;
 	}
 
