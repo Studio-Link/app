@@ -7,7 +7,7 @@
 - **Misc** Anything that is left or general.
 
 
-### v18.03.0-beta (xx.03.2018)
+### v18.xx.x-beta (xx.xx.2018)
 
 - **Misc** OpenSSL 1.1.0h
 - **Misc** Opus 1.2.1
@@ -16,6 +16,9 @@
 - **Misc** rem 0.5.2
 - **Plugin** Increase call limit 8 -> 10
 - **Standalone** Add RtAudio 
+- **Standalone** Audio Interface selection
+- **Standalone** Local Audio Test Loop
+
 
 
 [Complete Changelogs...](https://github.com/Studio-Link-v2/backend/blob/v18.02.x/CHANGELOG-ARCHIVE.md)
