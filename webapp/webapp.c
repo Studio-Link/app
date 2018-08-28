@@ -40,11 +40,6 @@ static struct aufilt record = {
 	webapp_record_encode_update, webapp_record_encode,
 	NULL, NULL
 };
-static struct aufilt routing = {
-	LE_INIT, "webapp_routing",
-	webapp_routing_encode_update, webapp_routing_encode,
-	webapp_routing_decode_update, webapp_routing_decode
-};
 #endif
 
 static int http_sreply(struct http_conn *conn, uint16_t scode,
@@ -493,7 +488,8 @@ out:
 static void syscmd(void *arg)
 {
 #ifndef SLBOX
-	system(command);
+	int err = 0;
+	err = system(command);
 #endif
 }
 
@@ -516,8 +512,7 @@ static int module_init(void)
 
 	aufilt_register(baresip_aufiltl(), &mono);
 	aufilt_register(baresip_aufiltl(), &vumeter);
-	aufilt_register(baresip_aufiltl(),&record);
-	//aufilt_register(baresip_aufiltl(), &routing);
+	aufilt_register(baresip_aufiltl(), &record);
 #endif
 
 	err = http_port();
@@ -563,7 +558,6 @@ static int module_close(void)
 	aufilt_unregister(&vumeter);
 	aufilt_unregister(&mono);
 	aufilt_unregister(&record);
-	//aufilt_unregister(&routing);
 #endif
 	webapp_ws_close();
 	mem_deref(httpsock);

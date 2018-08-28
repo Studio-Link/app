@@ -44,9 +44,11 @@ int webapp_call_update(struct call *call, char *state);
  * vumeter.c
  */
 int webapp_vu_encode_update(struct aufilt_enc_st **stp, void **ctx,
-			 const struct aufilt *af, struct aufilt_prm *prm);
+			 const struct aufilt *af, struct aufilt_prm *prm,
+			 const struct audio *au);
 int webapp_vu_decode_update(struct aufilt_dec_st **stp, void **ctx,
-			 const struct aufilt *af, struct aufilt_prm *prm);
+			 const struct aufilt *af, struct aufilt_prm *prm,
+			 const struct audio *au);
 int webapp_vu_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc);
 int webapp_vu_decode(struct aufilt_dec_st *st, int16_t *sampv, size_t *sampc);
 
@@ -54,7 +56,8 @@ int webapp_vu_decode(struct aufilt_dec_st *st, int16_t *sampv, size_t *sampc);
  * mono.c
  */
 int webapp_mono_encode_update(struct aufilt_enc_st **stp, void **ctx,
-			 const struct aufilt *af, struct aufilt_prm *prm);
+			 const struct aufilt *af, struct aufilt_prm *prm,
+			 const struct audio *au);
 int webapp_mono_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc);
 void webapp_mono_set(bool active);
 
@@ -62,19 +65,10 @@ void webapp_mono_set(bool active);
  * record.c
  */
 int webapp_record_encode_update(struct aufilt_enc_st **stp, void **ctx,
-			 const struct aufilt *af, struct aufilt_prm *prm);
+			 const struct aufilt *af, struct aufilt_prm *prm,
+			 const struct audio *au);
 int webapp_record_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc);
 void webapp_record_set(bool active);
-
-/*
- * routing.c
- */
-int webapp_routing_encode_update(struct aufilt_enc_st **stp, void **ctx,
-			 const struct aufilt *af, struct aufilt_prm *prm);
-int webapp_routing_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc);
-int webapp_routing_decode_update(struct aufilt_dec_st **stp, void **ctx,
-			 const struct aufilt *af, struct aufilt_prm *prm);
-int webapp_routing_decode(struct aufilt_dec_st *st, int16_t *sampv, size_t *sampc);
 
 /*
  * account.c

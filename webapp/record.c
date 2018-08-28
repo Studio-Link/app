@@ -123,7 +123,7 @@ static int openfile(struct record_enc *st)
 	(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "outgoing-%H-%x.flac", 
 			filename, timestamp_print, tm, st);
 
-	system(command);
+	err = system(command);
 
 	/* Basic Encoder */
 	if((st->enc = FLAC__stream_encoder_new()) == NULL) {
@@ -219,7 +219,8 @@ sleep:
 
 
 int webapp_record_encode_update(struct aufilt_enc_st **stp, void **ctx,
-			 const struct aufilt *af, struct aufilt_prm *prm)
+			 const struct aufilt *af, struct aufilt_prm *prm,
+			 const struct audio *au)
 {
 	struct record_enc *st;
 	(void)ctx;

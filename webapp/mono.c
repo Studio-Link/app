@@ -36,7 +36,8 @@ static void downsample_stereo2mono(int16_t *outv, const int16_t *inv,
 
 
 int webapp_mono_encode_update(struct aufilt_enc_st **stp, void **ctx,
-			 const struct aufilt *af, struct aufilt_prm *prm)
+			 const struct aufilt *af, struct aufilt_prm *prm,
+			 const struct audio *au)
 {
 	struct mono_enc *st;
 	(void)ctx;
