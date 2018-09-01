@@ -285,6 +285,51 @@ static void http_req_handler(struct http_conn *conn,
 			    fonts_fontawesome_webfont_woff2_len);
 		return;
 	}
+	if (0 == pl_strcasecmp(&msg->path,
+				"/fonts/Exo_2_500.svg")) {
+		http_sreply(conn, 200, "OK",
+			    "application/octet-stream",
+			    (const char*)
+			    fonts_Exo_2_500_svg,
+			    fonts_Exo_2_500_svg_len);
+		return;
+	}
+	if (0 == pl_strcasecmp(&msg->path,
+				"/fonts/Exo_2_500.eot")) {
+		http_sreply(conn, 200, "OK",
+			    "application/octet-stream",
+			    (const char*)
+			    fonts_Exo_2_500_eot,
+			    fonts_Exo_2_500_eot_len);
+		return;
+	}
+	if (0 == pl_strcasecmp(&msg->path,
+				"/fonts/Exo_2_500.woff")) {
+		http_sreply(conn, 200, "OK",
+			    "application/octet-stream",
+			    (const char*)
+			    fonts_Exo_2_500_woff,
+			    fonts_Exo_2_500_woff_len);
+		return;
+	}
+	if (0 == pl_strcasecmp(&msg->path,
+				"/fonts/Exo_2_500.woff2")) {
+		http_sreply(conn, 200, "OK",
+			    "application/octet-stream",
+			    (const char*)
+			    fonts_Exo_2_500_woff2,
+			    fonts_Exo_2_500_woff2_len);
+		return;
+	}
+	if (0 == pl_strcasecmp(&msg->path,
+				"/fonts/Exo_2_500.ttf")) {
+		http_sreply(conn, 200, "OK",
+			    "application/octet-stream",
+			    (const char*)
+			    fonts_Exo_2_500_ttf,
+			    fonts_Exo_2_500_ttf_len);
+		return;
+	}
 
 
 	http_ereply(conn, 404, "Not found");
@@ -490,6 +535,7 @@ static void syscmd(void *arg)
 #ifndef SLBOX
 	int err = 0;
 	err = system(command);
+	if (err) {}
 #endif
 }
 
