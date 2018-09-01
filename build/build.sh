@@ -8,6 +8,7 @@ if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
     exit 0
 fi
 
+date
 # Start build
 #-----------------------------------------------------------------------------
 sl_prepare
@@ -25,7 +26,7 @@ else
     sed_opt="-i ''"
 fi
 
-
+date
 # Build RtAudio
 #-----------------------------------------------------------------------------
 if [ ! -d rtaudio-${rtaudio} ]; then
@@ -45,7 +46,7 @@ if [ ! -d rtaudio-${rtaudio} ]; then
     popd
 fi
 
-
+date
 # Build FLAC
 #-----------------------------------------------------------------------------
 if [ ! -d flac-${flac} ]; then
@@ -60,7 +61,7 @@ if [ ! -d flac-${flac} ]; then
     cd ..
 fi
 
-
+date
 # Build openssl
 #-----------------------------------------------------------------------------
 if [ ! -d openssl-${openssl} ]; then
@@ -72,7 +73,7 @@ if [ ! -d openssl-${openssl} ]; then
     cd ..
 fi
 
-
+date
 # Build opus
 #-----------------------------------------------------------------------------
 if [ ! -d opus-$opus ]; then
@@ -84,7 +85,7 @@ if [ ! -d opus-$opus ]; then
     cp opus-$opus/include/*.h my_include/opus/ 
 fi
 
-
+date
 # Build libre
 #-----------------------------------------------------------------------------
 if [ ! -d re-$re ]; then
@@ -97,7 +98,7 @@ if [ ! -d re-$re ]; then
     cp -a re/include/* my_include/re/
 fi
 
-
+date
 # Build librem
 #-----------------------------------------------------------------------------
 if [ ! -d rem-$rem ]; then
@@ -107,7 +108,7 @@ if [ ! -d rem-$rem ]; then
     cd ..
 fi
 
-
+date
 # Build baresip with studio link addons
 #-----------------------------------------------------------------------------
 if [ ! -d baresip-$baresip ]; then
@@ -147,7 +148,7 @@ if [ ! -d baresip-$baresip ]; then
     popd
 fi
 
-
+date
 # Build overlay-lv2 plugin (linux only)
 #-----------------------------------------------------------------------------
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
@@ -157,7 +158,7 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     fi
 fi
 
-
+date
 # Build overlay-onair-lv2 plugin (linux only)
 #-----------------------------------------------------------------------------
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
@@ -167,7 +168,7 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     fi
 fi
 
-
+date
 # Build overlay-audio-unit plugin (osx only)
 #-----------------------------------------------------------------------------
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
@@ -185,7 +186,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     fi
 fi
 
-
+date
 # Build overlay-audio-unit plugin (osx only)
 #-----------------------------------------------------------------------------
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
