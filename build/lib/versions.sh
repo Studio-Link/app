@@ -1,4 +1,4 @@
-vmajor=18; vminor=9; vpatch=0
+vmajor=18; vminor=10; vpatch=0
 vbuild="$(git rev-list HEAD --count).$(git rev-parse --short HEAD)"
 release="alpha+${vbuild}"
 #release="beta"
