@@ -1,6 +1,6 @@
 # Backend Repository
 
-[![Build Status](https://travis-ci.org/Studio-Link/app.svg?branch=v18.x.x)](https://travis-ci.org/Studio-Link/app)
+[![Build Status](https://travis-ci.org/Studio-Link/app.svg?branch=v18.xx.x)](https://travis-ci.org/Studio-Link/app)
 
 This repository contains the studio link - baresip modules and build environment
 
