@@ -1,5 +1,5 @@
 diff --git a/src/conf.c b/src/conf.c
-index 2bb7d5a..ada61f8 100644
+index b836320..cfe3d88 100644
 --- a/src/conf.c
 +++ b/src/conf.c
 @@ -174,8 +174,17 @@ int conf_path_get(char *path, size_t sz)
@@ -21,7 +21,7 @@ index 2bb7d5a..ada61f8 100644
  
  	return 0;
  }
-@@ -330,6 +339,8 @@ int conf_configure(void)
+@@ -348,6 +357,8 @@ int conf_configure(void)
  	if (re_snprintf(file, sizeof(file), "%s/config", path) < 0)
  		return ENOMEM;
  
@@ -31,10 +31,10 @@ index 2bb7d5a..ada61f8 100644
  
  		(void)fs_mkdir(path, 0700);
 diff --git a/src/config.c b/src/config.c
-index 9186741..87b1f84 100644
+index 90e78aa..6f72888 100644
 --- a/src/config.c
 +++ b/src/config.c
-@@ -38,7 +38,7 @@ static struct config core_config = {
+@@ -39,7 +39,7 @@ static struct config core_config = {
  	/** Call config */
  	{
  		120,
@@ -43,7 +43,7 @@ index 9186741..87b1f84 100644
  	},
  
  	/** Audio */
-@@ -481,18 +481,15 @@ int config_print(struct re_printf *pf, const struct config *cfg)
+@@ -476,7 +476,12 @@ int config_print(struct re_printf *pf, const struct config *cfg)
  
  static const char *default_audio_device(void)
  {
@@ -55,21 +55,18 @@ index 9186741..87b1f84 100644
 +	return "effectonair";
 +#elif defined (ANDROID)
  	return "opensles,nil";
--#elif defined (DARWIN)
--	return "coreaudio,nil";
--#elif defined (FREEBSD)
--	return "oss,/dev/dsp";
--#elif defined (OPENBSD)
--	return "sndio,default";
--#elif defined (WIN32)
--	return "winwave,nil";
+ #elif defined (DARWIN)
+ 	return "coreaudio,default";
+@@ -487,7 +492,7 @@ static const char *default_audio_device(void)
+ #elif defined (WIN32)
+ 	return "winwave,nil";
  #else
 -	return "alsa,default";
 +	return "rtaudio,default";
  #endif
  }
  
-@@ -560,7 +557,7 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
+@@ -555,7 +560,7 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
  				"\n"
  			  "\n# SIP\n"
  			  "sip_trans_bsize\t\t128\n"
@@ -78,10 +75,10 @@ index 9186741..87b1f84 100644
  			  "#sip_certificate\tcert.pem\n"
  			  "\n"
  			  "# Call\n"
-@@ -580,10 +577,10 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
+@@ -573,10 +578,10 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
+ 			  "audio_player\t\t%s\n"
+ 			  "audio_source\t\t%s\n"
  			  "audio_alert\t\t%s\n"
- 			  "audio_srate\t\t%u-%u\n"
- 			  "audio_channels\t\t%u-%u\n"
 -			  "#ausrc_srate\t\t48000\n"
 -			  "#auplay_srate\t\t48000\n"
 -			  "#ausrc_channels\t\t0\n"
@@ -93,7 +90,7 @@ index 9186741..87b1f84 100644
  			  "#audio_txmode\t\tpoll\t\t# poll, thread\n"
  			  "audio_level\t\tno\n"
  			  "ausrc_format\t\ts16\t\t# s16, float, ..\n"
-@@ -626,13 +623,12 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
+@@ -616,13 +621,12 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
  			  "#rtp_bandwidth\t\t512-1024 # [kbit/s]\n"
  			  "rtcp_enable\t\tyes\n"
  			  "rtcp_mux\t\tno\n"
@@ -109,7 +106,7 @@ index 9186741..87b1f84 100644
  			  default_interface_print, NULL);
  
  #ifdef USE_VIDEO
-@@ -765,7 +761,7 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -755,7 +759,7 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "httpd" MOD_EXT "\n");
  
  	(void)re_fprintf(f, "\n# Audio codec Modules (in order)\n");
@@ -118,7 +115,7 @@ index 9186741..87b1f84 100644
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "silk" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "amr" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "g7221" MOD_EXT "\n");
-@@ -781,7 +777,7 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -771,7 +775,7 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "isac" MOD_EXT "\n");
  
  	(void)re_fprintf(f, "\n# Audio filter Modules (in encoding order)\n");
@@ -127,7 +124,7 @@ index 9186741..87b1f84 100644
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "sndfile" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "speex_aec" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "speex_pp" MOD_EXT "\n");
-@@ -790,9 +786,13 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -780,9 +784,13 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "\n# Audio driver Modules\n");
  #if defined (ANDROID)
  	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "opensles" MOD_EXT "\n");
@@ -143,7 +140,7 @@ index 9186741..87b1f84 100644
  #elif defined (FREEBSD)
  	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "oss" MOD_EXT "\n");
  #elif defined (OPENBSD)
-@@ -803,6 +803,7 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -793,6 +801,7 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "alsa" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "pulse" MOD_EXT "\n");
  #endif
@@ -151,7 +148,7 @@ index 9186741..87b1f84 100644
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "jack" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "portaudio" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "aubridge" MOD_EXT "\n");
-@@ -812,7 +813,7 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -802,7 +811,7 @@ int config_write_template(const char *file, const struct config *cfg)
  
  	(void)re_fprintf(f, "\n# Video codec Modules (in order)\n");
  #ifdef USE_AVCODEC
@@ -160,7 +157,7 @@ index 9186741..87b1f84 100644
  #else
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "avcodec" MOD_EXT "\n");
  #endif
-@@ -830,13 +831,13 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -820,13 +829,13 @@ int config_write_template(const char *file, const struct config *cfg)
  #if defined (DARWIN)
  
  #ifdef QTCAPTURE_RUNLOOP
@@ -177,7 +174,7 @@ index 9186741..87b1f84 100644
  
  #else
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "v4l" MOD_EXT "\n");
-@@ -852,7 +853,7 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -842,7 +851,7 @@ int config_write_template(const char *file, const struct config *cfg)
  
  	(void)re_fprintf(f, "\n# Video display modules\n");
  #ifdef DARWIN
@@ -186,7 +183,7 @@ index 9186741..87b1f84 100644
  #endif
  #ifdef LINUX
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "directfb" MOD_EXT "\n");
-@@ -885,7 +886,7 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -875,7 +884,7 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "# Temporary Modules (loaded then unloaded)\n");
  	(void)re_fprintf(f, "\n");
  	(void)re_fprintf(f, "module_tmp\t\t" MOD_PRE "uuid" MOD_EXT "\n");
@@ -195,7 +192,7 @@ index 9186741..87b1f84 100644
  	(void)re_fprintf(f, "\n");
  
  	(void)re_fprintf(f, "\n#------------------------------------"
-@@ -894,14 +895,20 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -884,14 +893,20 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "\n");
  	(void)re_fprintf(f, "module_app\t\t" MOD_PRE "auloop"MOD_EXT"\n");
  	(void)re_fprintf(f, "#module_app\t\t" MOD_PRE "b2bua"MOD_EXT"\n");
@@ -219,7 +216,7 @@ index 9186741..87b1f84 100644
  	(void)re_fprintf(f, "#module_app\t\t"  MOD_PRE "mwi"MOD_EXT"\n");
  	(void)re_fprintf(f, "#module_app\t\t" MOD_PRE "natbd"MOD_EXT"\n");
  	(void)re_fprintf(f, "#module_app\t\t" MOD_PRE "presence"MOD_EXT"\n");
-@@ -909,7 +916,7 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -899,7 +914,7 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "#module_app\t\t" MOD_PRE "mqtt" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module_app\t\t" MOD_PRE "ctrl_tcp" MOD_EXT "\n");
  #ifdef USE_VIDEO
@@ -228,7 +225,7 @@ index 9186741..87b1f84 100644
  #endif
  	(void)re_fprintf(f, "\n");
  
-@@ -917,7 +924,7 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -907,7 +922,7 @@ int config_write_template(const char *file, const struct config *cfg)
  			 "------------------------------------------\n");
  	(void)re_fprintf(f, "# Module parameters\n");
  	(void)re_fprintf(f, "\n");
@@ -237,19 +234,26 @@ index 9186741..87b1f84 100644
  	(void)re_fprintf(f, "\n");
  	(void)re_fprintf(f, "cons_listen\t\t0.0.0.0:5555\n");
  
-@@ -929,9 +936,9 @@ int config_write_template(const char *file, const struct config *cfg)
- 
+@@ -920,15 +935,15 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "\n");
  	(void)re_fprintf(f, "evdev_device\t\t/dev/input/event0\n");
--
+ 
 +#endif
  	(void)re_fprintf(f, "\n# Opus codec parameters\n");
 -	(void)re_fprintf(f, "opus_bitrate\t\t28000 # 6000-510000\n");
+-	(void)re_fprintf(f, "#opus_stereo\t\tyes\n");
 +	(void)re_fprintf(f, "opus_bitrate\t\t64000 # 6000-510000\n");
- 
++	(void)re_fprintf(f, "opus_stereo\t\tyes\n");
+ 	(void)re_fprintf(f, "#opus_sprop_stereo\tyes\n");
+ 	(void)re_fprintf(f, "#opus_cbr\t\tno\n");
+ 	(void)re_fprintf(f, "#opus_inband_fec\tno\n");
+ 	(void)re_fprintf(f, "#opus_dtx\t\tno\n");
+ 	(void)re_fprintf(f, "#opus_mirror\t\tno\n");
+-
  	(void)re_fprintf(f,
  			"\n# Selfview\n"
-@@ -940,8 +947,8 @@ int config_write_template(const char *file, const struct config *cfg)
+ 			"video_selfview\t\twindow # {window,pip}\n"
+@@ -936,8 +951,8 @@ int config_write_template(const char *file, const struct config *cfg)
  
  	(void)re_fprintf(f,
  			"\n# ICE\n"
