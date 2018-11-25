@@ -46,7 +46,7 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 		}
 		else {
 			ua_connect(uag_current(), &call, NULL,
-					e->u.str, NULL, VIDMODE_ON);
+					e->u.str, VIDMODE_OFF);
 			webapp_call_update(call, "Outgoing");
 		}
 	}
