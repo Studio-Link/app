@@ -63,7 +63,7 @@ void webapp_options_set(char *key, char *value)
 			system(command);
 
 			ua_connect(uag_current(), &call, NULL,
-					"stream", NULL, VIDMODE_ON);
+					"stream", VIDMODE_ON);
 
 		}
 	}

@@ -24,6 +24,7 @@ static int sip_register(const struct odict_entry *o)
 	char domain[50] = {0};
 	char transport[4] = "udp";
 	char opt[300] = {0};
+	struct ua *ua;
 
 	int err = 0;
 
@@ -71,7 +72,8 @@ static int sip_register(const struct odict_entry *o)
 
 	re_snprintf(buf, sizeof(buf), "<sip:%s@%s;transport=%s>;auth_pass=%s;%s",
 			user, domain, transport, password, opt);
-	ua_alloc(NULL, buf);
+	ua_alloc(&ua, buf);
+	ua_register(ua);
 
 	return err;
 }
