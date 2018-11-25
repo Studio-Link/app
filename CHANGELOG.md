@@ -9,11 +9,11 @@
 
 ### v18.xx.x-beta (xx.xx.2018)
 
-- **Misc** OpenSSL 1.1.0i
+- **Misc** OpenSSL 1.1.0j
 - **Misc** Opus 1.2.1
-- **Misc** Baresip 0.5.8
-- **Misc** re 0.5.9
-- **Misc** rem 0.5.3
+- **Misc** Baresip 0.6.0 beta
+- **Misc** re 0.6.0
+- **Misc** rem 0.6.0
 - **Plugin** Increase call limit 8 -> 10
 - **Standalone** Add RtAudio 
 - **Standalone** Audio Interface selection

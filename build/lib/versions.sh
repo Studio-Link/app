@@ -1,12 +1,12 @@
-vmajor=18; vminor=10; vpatch=0
+vmajor=18; vminor=12; vpatch=0
 vbuild="$(git rev-list HEAD --count).$(git rev-parse --short HEAD)"
 release="alpha+${vbuild}"
 #release="beta"
-rem="0.5.3"
-re="0.5.9"
+rem="0.6.0"
+re="0.6.0"
 opus="1.2.1"
-openssl="1.1.0i"
-openssl_sha256="ebbfc844a8c8cc0ea5dc10b86c9ce97f401837f3fa08c17b2cdadc118253cf99"
+openssl="1.1.0j"
+openssl_sha256="31bec6c203ce1a8e93d5994f4ed304c63ccf07676118b6634edded12ad1b3246"
 rtaudio="master"
 baresip="master"
 juce="4.3.1"
