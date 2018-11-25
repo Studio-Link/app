@@ -34,7 +34,7 @@ static void startup_call(void *arg)
 	struct call *call = NULL;
 	if (no_active_call()) {
 		ua_connect(uag_current(), &call, NULL,
-				"stream", NULL, VIDMODE_ON);
+				"stream", VIDMODE_OFF);
 	}
 	tmr_start(&tmr_call, 6000, startup_call, NULL);
 }
