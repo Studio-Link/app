@@ -223,6 +223,7 @@ fi
 #-----------------------------------------------------------------------------
 
 ./studio-link-standalone -t
+mkdir -p s3_upload/$TRAVIS_COMMIT
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     ldd studio-link-standalone
@@ -239,6 +240,8 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     zip -r studio-link-plugin-onair-linux studio-link-onair.lv2
 
     zip -r studio-link-standalone-linux studio-link-standalone
+
+    cp -a studio-link-standalone-linux.zip s3_upload/$TRAVIS_COMMIT/
 else
     otool -L studio-link-standalone
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
@@ -251,5 +254,9 @@ else
     zip -r studio-link-plugin-osx StudioLink.component
     zip -r studio-link-plugin-onair-osx StudioLinkOnAir.component
     zip -r studio-link-standalone-osx StudioLinkStandalone.app
+
+    cp -a studio-link-standalone-osx.zip s3_upload/$TRAVIS_COMMIT/
     #security delete-keychain ~/Library/Keychains/sl-build.keychain
 fi
+
+

@@ -37,10 +37,7 @@ deploy:
 
     bucket: "studio-link-artifacts"
     region: eu-central-1
-    file: 
-      - src/studio-link-standalone-$BUILD_OS.zip
-      - src/studio-link-plugin-$BUILD_OS.zip
-      - src/studio-link-plugin-onair-$BUILD_OS.zip
+    local_dir: s3_upload
     skip_cleanup: true
     on:
       all_branches: true
