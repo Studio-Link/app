@@ -37,7 +37,7 @@ deploy:
 
     bucket: "studio-link-artifacts"
     region: eu-central-1
-    local_dir: s3_upload
+    local_dir: src/s3_upload
     skip_cleanup: true
     on:
       all_branches: true
