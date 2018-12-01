@@ -50,8 +50,8 @@ sl_get_rtaudio() {
 
 sl_get_libre() {
     #wget -N "http://www.creytiv.com/pub/re-${re}.tar.gz"
-    wget "https://github.com/creytiv/re/archive/v${re}.tar.gz"
-    tar -xzf v${re}.tar.gz
+    wget "https://github.com/creytiv/re/archive/v${re}.tar.gz" -O re-${re}.tar.gz
+    tar -xzf re-${re}.tar.gz
     rm -f v${re}.tar.gz
     ln -s re-$re re
     pushd re
@@ -65,15 +65,15 @@ sl_get_libre() {
 
 sl_get_librem() {
     #wget -N "http://www.creytiv.com/pub/rem-${rem}.tar.gz"
-    wget "https://github.com/creytiv/rem/archive/v${rem}.tar.gz"
-    tar -xzf v${rem}.tar.gz
+    wget "https://github.com/creytiv/rem/archive/v${rem}.tar.gz" -O rem-${rem}.tar.gz
+    tar -xzf rem-${rem}.tar.gz
     ln -s rem-$rem rem
 }
 
 sl_get_baresip() {
     #wget https://github.com/Studio-Link-v2/baresip/archive/$baresip.tar.gz
-    wget "https://github.com/alfredh/baresip/archive/v${baresip}.tar.gz"
-    tar -xzf v${baresip}.tar.gz
+    wget "https://github.com/alfredh/baresip/archive/v${baresip}.tar.gz" -O baresip-${baresip}.tar.gz
+    tar -xzf baresip-${baresip}.tar.gz
     ln -s baresip-$baresip baresip
     cp -a baresip-$baresip/include/baresip.h my_include/
     pushd baresip-$baresip
