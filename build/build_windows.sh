@@ -132,5 +132,5 @@ zip -r studio-link-plugin-$BUILD_OS overlay-vst/studio-link.dll
 zip -r studio-link-plugin-onair-$BUILD_OS overlay-onair-vst/studio-link-onair.dll
 ls -lha
 
-mkdir -p s3_upload/$TRAVIS_COMMIT
-cp -a studio-link-standalone-$BUILD_OS.zip s3_upload/$TRAVIS_COMMIT/
+mkdir -p s3_upload/$version_t
+cp -a studio-link-standalone-$BUILD_OS.zip s3_upload/$version_t/
