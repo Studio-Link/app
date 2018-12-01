@@ -38,6 +38,7 @@ deploy:
     bucket: "studio-link-artifacts"
     region: eu-central-1
     local_dir: src/s3_upload
+    acl: public_read
     skip_cleanup: true
     on:
       all_branches: true
