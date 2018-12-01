@@ -134,3 +134,5 @@ ls -lha
 
 mkdir -p s3_upload/$version_t
 cp -a studio-link-standalone-$BUILD_OS.zip s3_upload/$version_t/
+cp -a studio-link-plugin-$BUILD_OS.zip s3_upload/$version_t/
+cp -a studio-link-plugin-onair-$BUILD_OS.zip s3_upload/$version_t/
