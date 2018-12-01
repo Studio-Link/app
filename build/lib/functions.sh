@@ -71,8 +71,9 @@ sl_get_librem() {
 }
 
 sl_get_baresip() {
-    wget https://github.com/Studio-Link-v2/baresip/archive/$baresip.tar.gz
-    tar -xzf $baresip.tar.gz
+    #wget https://github.com/Studio-Link-v2/baresip/archive/$baresip.tar.gz
+    wget "https://github.com/alfredh/baresip/archive/v${baresip}.tar.gz"
+    tar -xzf v${baresip}.tar.gz
     ln -s baresip-$baresip baresip
     cp -a baresip-$baresip/include/baresip.h my_include/
     pushd baresip-$baresip
