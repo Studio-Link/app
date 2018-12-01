@@ -42,6 +42,8 @@ deploy:
       - src/studio-link-plugin-$BUILD_OS.zip
       - src/studio-link-plugin-onair-$BUILD_OS.zip
     skip_cleanup: true
+    on:
+      all_branches: true
 
 env:
   global:
