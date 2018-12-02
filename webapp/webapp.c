@@ -548,11 +548,11 @@ static int module_init(void)
 		goto out;
 
 #ifdef SLPLUGIN
-	(void)re_fprintf(stderr, "Studio Link Webapp v%s - Effect Plugin"
+	(void)re_fprintf(stderr, "Studio Link Webapp %s - Effect Plugin"
 			" Copyright (C) 2013-2018"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 #else
-	(void)re_fprintf(stderr, "Studio Link Webapp v%s - Standalone"
+	(void)re_fprintf(stderr, "Studio Link Webapp %s - Standalone"
 			" Copyright (C) 2013-2018"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 
