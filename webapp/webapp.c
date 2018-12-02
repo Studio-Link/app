@@ -511,13 +511,13 @@ static int http_port(void)
 			sa_port(&listen));
 
 #if defined (DARWIN)
-	re_snprintf(command, sizeof(command), "open http://localhost:%s/",
+	re_snprintf(command, sizeof(command), "open http://127.0.0.1:%s/",
 			port_string);
 #elif defined (WIN32)
-	re_snprintf(command, sizeof(command), "start http://localhost:%s/",
+	re_snprintf(command, sizeof(command), "start http://127.0.0.1:%s/",
 			port_string);
 #else
-	re_snprintf(command, sizeof(command), "xdg-open http://localhost:%s/",
+	re_snprintf(command, sizeof(command), "xdg-open http://127.0.0.1:%s/",
 			port_string);
 #endif
 	info("http listening on port: %s\n", port_string);
