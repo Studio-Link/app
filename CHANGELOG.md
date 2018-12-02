@@ -14,6 +14,8 @@
 - **Misc** Baresip 0.6.0
 - **Misc** re 0.6.0
 - **Misc** rem 0.6.0
+- **Misc** #48 - Use 127.0.0.1 instead of localhost as URL opener
+- **Misc** #45 Configure fixed dns resolver list in baresip
 - **Plugin** Increase call limit 8 -> 10
 - **Standalone** Add RtAudio 
 - **Standalone** Audio Interface selection
