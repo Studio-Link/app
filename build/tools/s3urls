@@ -1,0 +1,12 @@
+#!/usr/bin/python
+
+import urllib.request
+import xml.etree.ElementTree as ET
+
+response = urllib.request.urlopen('https://s3.eu-central-1.amazonaws.com/studio-link-artifacts/')
+xml = response.read()
+root = ET.fromstring(xml)
+
+for content in root.findall('{http://s3.amazonaws.com/doc/2006-03-01/}Contents'):
+    for key in content.findall('{http://s3.amazonaws.com/doc/2006-03-01/}Key'):
+        print('https://s3.eu-central-1.amazonaws.com/studio-link-artifacts/' + key.text)
