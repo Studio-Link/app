@@ -132,7 +132,7 @@ zip -r studio-link-plugin-$BUILD_OS overlay-vst/studio-link.dll
 zip -r studio-link-plugin-onair-$BUILD_OS overlay-onair-vst/studio-link-onair.dll
 ls -lha
 
-s3_path="s3_upload/$branch/$version_t"
+s3_path="s3_upload/$TRAVIS_BRANCH/$version_t"
 mkdir -p $s3_path
 cp -a studio-link-standalone-$BUILD_OS.zip $s3_path
 cp -a studio-link-plugin-$BUILD_OS.zip $s3_path

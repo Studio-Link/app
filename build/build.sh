@@ -223,8 +223,8 @@ fi
 #-----------------------------------------------------------------------------
 
 ./studio-link-standalone -t
-s3_path="s3_upload/$branch/$version_t"
-mkdir -p s3_path
+s3_path="s3_upload/$TRAVIS_BRANCH/$version_t"
+mkdir -p $s3_path
 
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
