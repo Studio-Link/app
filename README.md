@@ -11,10 +11,10 @@ This repository contains the studio link - baresip modules and build environment
 - LV2 (optional)
 - Header files for OpenSSL, ALSA and JACK
 
-### Build Requirements on Ubuntu 16.04
+### Build Requirements on Ubuntu 16.04/18.04
 
 The needed header files are in these packages:  
-libssl-dev libasound2-dev libjack-jackd2-dev libtool build-essential
+libssl-dev libasound2-dev libjack-jackd2-dev libtool build-essential autoconf
 
 ---
 
@@ -26,6 +26,6 @@ libssl-dev libasound2-dev libjack-jackd2-dev libtool build-essential
 
 ```export TRAVIS_OS_NAME="osx"; build/build.sh```
 
-## Build for Windows on Archlinux
+## Build for Windows on Arch Linux
 
 ```export BUILD_OS="windows64"; build/build_windows.sh```
