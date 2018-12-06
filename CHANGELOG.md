@@ -10,7 +10,7 @@
 ### v18.xx.x-beta (xx.xx.2018)
 
 - **Misc** OpenSSL 1.1.0j
-- **Misc** Opus 1.2.1
+- **Misc** Opus 1.3
 - **Misc** Baresip 0.6.0
 - **Misc** re 0.6.0
 - **Misc** rem 0.6.0
