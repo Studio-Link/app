@@ -106,7 +106,10 @@ fi
 # Download overlay-vst
 #-----------------------------------------------------------------------------
 if [ ! -d overlay-vst ]; then
-    git clone https://github.com/Studio-Link-v2/overlay-vst.git
+    git clone https://github.com/Studio-Link/overlay-vst.git
+    sed -i s/SLVMAJOR/$vmajor/ overlay-vst/version.h
+    sed -i s/SLVMINOR/$vminor/ overlay-vst/version.h
+    sed -i s/SLVPATCH/$vpatch/ overlay-vst/version.h
     wget http://www.steinberg.net/sdk_downloads/$vstsdk.zip
     unzip -q $vstsdk.zip
     mv VST_SDK/VST2_SDK overlay-vst/vstsdk2.4
@@ -115,7 +118,7 @@ fi
 # Download overlay-onair-vst
 #-----------------------------------------------------------------------------
 if [ ! -d overlay-onair-vst ]; then
-    git clone https://github.com/Studio-Link-v2/overlay-onair-vst.git
+    git clone https://github.com/Studio-Link/overlay-onair-vst.git
     cp -a overlay-vst/vstsdk2.4 overlay-onair-vst/
 fi
 
