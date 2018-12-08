@@ -9,7 +9,7 @@ sl_prepare
 
 mkdir -p mingw
 pushd mingw
-mingwurl="https://github.com/Studio-Link-v2/mingw/releases/download/v18.01.0"
+mingwurl="https://github.com/Studio-Link/mingw/releases/download/v18.01.0"
 wget -N $mingwurl/cloog-0.18.5-1-x86_64.pkg.tar.xz
 wget -N $mingwurl/isl-0.18-3-x86_64.pkg.tar.xz
 wget -N $mingwurl/mingw-w64-binutils-2.29-1-x86_64.pkg.tar.xz

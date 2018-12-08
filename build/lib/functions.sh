@@ -41,7 +41,7 @@ sl_get_flac() {
 }
 
 sl_get_rtaudio() {
-    wget https://github.com/Studio-Link-v2/rtaudio/archive/${rtaudio}.tar.gz
+    wget https://github.com/Studio-Link/rtaudio/archive/${rtaudio}.tar.gz
     tar -xzf ${rtaudio}.tar.gz
     ln -s rtaudio-${rtaudio} rtaudio
     cp -a rtaudio-${rtaudio}/rtaudio_c.h my_include/
@@ -71,7 +71,7 @@ sl_get_librem() {
 }
 
 sl_get_baresip() {
-    #wget https://github.com/Studio-Link-v2/baresip/archive/$baresip.tar.gz
+    #wget https://github.com/Studio-Link/baresip/archive/$baresip.tar.gz
     wget "https://github.com/alfredh/baresip/archive/v${baresip}.tar.gz" -O baresip-${baresip}.tar.gz
     tar -xzf baresip-${baresip}.tar.gz
     ln -s baresip-$baresip baresip
