@@ -132,25 +132,6 @@ void slrtaudio_set_output(int value)
 
 void ws_meter_process(unsigned int ch, float *in, unsigned long nframes);
 
-static void downsample_stereo2mono(int16_t *outv, const int16_t *inv,
-		size_t inc)
-{
-	unsigned ratio = 2;
-	int16_t i;
-
-	while (inc >= 1) {
-
-		i = inv[0] + inv[1];
-		outv[0] = i;
-		outv[1] = i;
-
-		outv += ratio;
-		inv += ratio;
-		inc -= ratio;
-	}
-}
-
-
 int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		double stream_time, rtaudio_stream_status_t status,
 		void *userdata);
@@ -160,9 +141,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		void *userdata) {
 	unsigned int samples = nframes * 2;
 	int16_t *outBuffer = (int16_t *) out;
-	int16_t *outMonoBuffer = (int16_t *) out;
 	int16_t *inBuffer = (int16_t *) in;
-	int16_t *inBuffer_monitor = (int16_t *) in;
 	struct le *le;
 	struct le *mle;
 	struct session *sess;
@@ -178,12 +157,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 	if (status == RTAUDIO_STATUS_OUTPUT_UNDERFLOW) {
 		warning("rtaudio: Buffer Underrun\n");
 	}
-	//ws_meter_process(0, (float*)in, nframes);
-/*
-	for (uint32_t pos = 0; pos < samples; pos++) {
-		*outBuffer++ = *inBuffer_monitor++;
-	}
-*/
+	
 	for (le = sessionl.head; le; le = le->next) {
 		sess = le->data;
 
@@ -239,24 +213,6 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		*outBuffer++ = playmix[pos];
 	}
 
-#if 0
-	downsample_stereo2mono(out, out, samples);
-	for (uint32_t pos = 0; pos < samples; pos++) {
-		st_src->sampv[pos] = *inBuffer++;
-	}
-
-	st_play->wh(st_play->sampv, samples, st_play->arg);
-	for (uint32_t pos = 0; pos < samples; pos++) {
-		if (monitor)
-			*outBuffer++ = st_play->sampv[pos] +
-				*inBuffer_monitor++;
-		else
-			*outBuffer++ = st_play->sampv[pos];
-	}
-
-	st_src->rh(st_src->sampv, samples, st_src->arg);
-
-#endif
 	return 0;
 }
 

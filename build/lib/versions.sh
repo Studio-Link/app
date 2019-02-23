@@ -1,4 +1,4 @@
-vmajor=18; vminor=12; vpatch=0
+vmajor=19; vminor=2; vpatch=0
 vbuild="$(git rev-list HEAD --count).$(git rev-parse --short HEAD)"
 release="alpha-${vbuild}"
 #release="beta"
@@ -13,4 +13,4 @@ juce="4.3.1"
 flac="1.3.2"
 github_org="https://github.com/Studio-Link"
 vstsdk="vstsdk367_03_03_2017_build_352"
-debug="RELEASE=0"
+debug="RELEASE=1"
