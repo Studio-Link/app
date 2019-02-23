@@ -131,7 +131,7 @@ int webapp_ws_rtaudio_init(void);
 void webapp_ws_rtaudio_close(void);
 void webapp_ws_rtaudio(const struct websock_hdr *hdr,
 		struct mbuf *mb, void *arg);
-const struct odict* webapp_ws_rtaudio_get(void);
+void webapp_ws_rtaudio_sync(void);
 
 /*
  * websocket.c
@@ -153,3 +153,8 @@ void webapp_odict_add(struct odict *og, const struct odict_entry *e);
 int webapp_write_file(char *string, char *filename);
 int webapp_write_file_json(struct odict *json, char *filename);
 int webapp_load_file(struct mbuf *mb, char *filename);
+
+/*
+ * slrtaudio module
+ */
+const struct odict* slrtaudio_get_interfaces(void);

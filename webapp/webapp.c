@@ -1,7 +1,7 @@
 /**
  * @file webapp.c Webserver UI module
  *
- * Copyright (C) 2013-2018 studio-link.de Sebastian Reimers
+ * Copyright (C) 2013-2019 studio-link.de Sebastian Reimers
  */
 #include <re.h>
 #include <baresip.h>
@@ -97,7 +97,9 @@ static void http_req_handler(struct http_conn *conn,
 	}
 	if (0 == pl_strcasecmp(&msg->path, "/ws_rtaudio")) {
 		webapp_ws_handler(conn, WS_RTAUDIO, msg, webapp_ws_rtaudio);
-		ws_send_json(WS_RTAUDIO, webapp_ws_rtaudio_get());
+#ifndef SLPLUGIN
+		ws_send_json(WS_RTAUDIO, slrtaudio_get_interfaces());
+#endif
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path, "/ws_meter")) {
@@ -549,11 +551,11 @@ static int module_init(void)
 
 #ifdef SLPLUGIN
 	(void)re_fprintf(stderr, "Studio Link Webapp %s - Effect Plugin"
-			" Copyright (C) 2013-2018"
+			" Copyright (C) 2013-2019"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 #else
 	(void)re_fprintf(stderr, "Studio Link Webapp %s - Standalone"
-			" Copyright (C) 2013-2018"
+			" Copyright (C) 2013-2019"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 
 	aufilt_register(baresip_aufiltl(), &mono);
