@@ -31,7 +31,7 @@ index b836320..cfe3d88 100644
  
  		(void)fs_mkdir(path, 0700);
 diff --git a/src/config.c b/src/config.c
-index d2f69c9..91b9c62 100644
+index d2f69c9..3b78296 100644
 --- a/src/config.c
 +++ b/src/config.c
 @@ -39,7 +39,7 @@ static struct config core_config = {
@@ -43,7 +43,7 @@ index d2f69c9..91b9c62 100644
  	},
  
  	/** Audio */
-@@ -476,7 +476,12 @@ int config_print(struct re_printf *pf, const struct config *cfg)
+@@ -476,18 +476,23 @@ int config_print(struct re_printf *pf, const struct config *cfg)
  
  static const char *default_audio_device(void)
  {
@@ -56,13 +56,18 @@ index d2f69c9..91b9c62 100644
 +#elif defined (ANDROID)
  	return "opensles,nil";
  #elif defined (DARWIN)
- 	return "coreaudio,default";
-@@ -487,7 +492,7 @@ static const char *default_audio_device(void)
+-	return "coreaudio,default";
++	return "slrtaudio,default";
+ #elif defined (FREEBSD)
+ 	return "oss,/dev/dsp";
+ #elif defined (OPENBSD)
+ 	return "sndio,default";
  #elif defined (WIN32)
- 	return "winwave,nil";
+-	return "winwave,nil";
++	return "slrtaudio,default";
  #else
 -	return "alsa,default";
-+	return "rtaudio,default";
++	return "slrtaudio,default";
  #endif
  }
  
@@ -147,7 +152,7 @@ index d2f69c9..91b9c62 100644
  	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "alsa" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "pulse" MOD_EXT "\n");
  #endif
-+	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "rtaudio" MOD_EXT "\n");
++	(void)re_fprintf(f, "module\t\t\t" MOD_PRE "slrtaudio" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "jack" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "portaudio" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" MOD_PRE "aubridge" MOD_EXT "\n");
