@@ -7,7 +7,9 @@
 - **Generell** Allgemeine Veränderungen
 
 
-### v18.xx.x-beta (xx.xx.2018)
+### v19.02.0-alpha (xx.xx.2019)
+
+Nicht für den produktiven Einsatz getestet
 
 - **Generell** OpenSSL 1.1.0j
 - **Generell** Opus 1.3
@@ -20,7 +22,7 @@
 - **Plugin** Anzahl der Spuren von 8 auf 10 erhöht
 - **Standalone** RtAudio hinzugefügt
 - **Standalone** Auswahl Audio Interface
-- **Standalone** Lokale Audio Test Loop
+- **Standalone** Mehrspurfähig inkl. N-1
 
 
-[Alle Änderungen...](https://github.com/Studio-Link-v2/backend/blob/v18.02.x/CHANGELOG-ARCHIVE-DE.md)
+[Alle Änderungen...](https://github.com/Studio-Link/app/blob/v19.xx.x/CHANGELOG-ARCHIVE-DE.md)
