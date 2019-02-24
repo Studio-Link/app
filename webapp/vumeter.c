@@ -96,14 +96,15 @@ static void convert_float(int16_t *sampv, float *f_sampv, size_t sampc)
 
 int webapp_vu_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc)
 {
+#if 0
+	//disabled, now handled by slrtaudio
 	struct vumeter_enc *vu = (struct vumeter_enc *)st;
 
 	float f_sampv[*sampc];
 
 	convert_float(sampv, f_sampv, *sampc);
-
 	ws_meter_process(vu->ch, f_sampv, (unsigned long)*sampc);
-
+#endif
 	return 0;
 }
 

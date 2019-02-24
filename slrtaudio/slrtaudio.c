@@ -130,6 +130,23 @@ void slrtaudio_set_output(int value)
 }
 
 
+static void convert_float_mono(int16_t *sampv, float *f_sampv, size_t sampc)
+{
+	const float scaling = 1.0/32767.0f;
+	int16_t i;
+	float f;
+
+	while (sampc--) {
+		i = sampv[0] + sampv[1];
+		f = i * scaling;
+		f_sampv[0] = f;
+		f_sampv[1] = f;
+		++f_sampv;
+		++sampv;
+	}
+}
+
+
 void ws_meter_process(unsigned int ch, float *in, unsigned long nframes);
 
 int slrtaudio_callback(void *out, void *in, unsigned int nframes,
@@ -142,6 +159,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 	unsigned int samples = nframes * 2;
 	int16_t *outBuffer = (int16_t *) out;
 	int16_t *inBuffer = (int16_t *) in;
+	float vumeter[samples];
 	struct le *le;
 	struct le *mle;
 	struct session *sess;
@@ -212,6 +230,13 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 	for (uint32_t pos = 0; pos < samples; pos++) {
 		*outBuffer++ = playmix[pos];
 	}
+
+	//vumeter
+
+	convert_float_mono(inBuffer, vumeter, samples);
+
+	ws_meter_process(0, vumeter, (unsigned long)samples);
+
 
 	return 0;
 }
