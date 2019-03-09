@@ -164,8 +164,10 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 	struct le *mle;
 	struct session *sess;
 	struct auplay_st *st_play;
+	struct auplay_st *mst_play;
 	struct ausrc_st *st_src;
 	int cntplay = 0;
+	int msessplay = 0;
 
 
 	if (status == RTAUDIO_STATUS_INPUT_OVERFLOW) {
@@ -178,6 +180,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 	
 	for (le = sessionl.head; le; le = le->next) {
 		sess = le->data;
+		msessplay = 0;
 
 		if (!sess->run_play) {
 			continue;
@@ -185,6 +188,18 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 
 		st_play = sess->st_play;
 		st_play->wh(st_play->sampv, samples, st_play->arg);
+	}
+	
+	for (le = sessionl.head; le; le = le->next) {
+		sess = le->data;
+		msessplay = 0;
+
+		if (!sess->run_play) {
+			continue;
+		}
+
+		st_play = sess->st_play;
+
 		for (uint32_t pos = 0; pos < samples; pos++) {
 			if (cntplay < 1) {
 				playmix[pos] = st_play->sampv[pos];
@@ -200,10 +215,16 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 			if (!msess->run_play || msess == sess) {
 				continue;
 			}
+			mst_play = msess->st_play;
 
 			for (uint32_t pos = 0; pos < samples; pos++) {
-				sess->dstmix[pos] = st_play->sampv[pos] + sess->dstmix[pos];
+				if (msessplay < 1) {
+					sess->dstmix[pos] = mst_play->sampv[pos];
+				} else {
+					sess->dstmix[pos] = mst_play->sampv[pos] + sess->dstmix[pos];
+				}
 			}
+			msessplay++;
 		}
 		cntplay++;
 	}
