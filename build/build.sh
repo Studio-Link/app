@@ -224,12 +224,12 @@ fi
 # Testing and prepare release upload
 #-----------------------------------------------------------------------------
 
-./studio-link-standalone -t
 s3_path="s3_upload/$TRAVIS_BRANCH/$version_t"
 mkdir -p $s3_path
 
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+    ./studio-link-standalone -t
     ldd studio-link-standalone
     mkdir -p studio-link.lv2
     cp -a overlay-lv2/studio-link.so studio-link.lv2/
@@ -249,7 +249,6 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     cp -a studio-link-plugin-linux.zip $s3_path
     cp -a studio-link-plugin-onair-linux.zip $s3_path
 else
-    otool -L studio-link-standalone
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLinkOnAir.component StudioLinkOnAir.component
     mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app
