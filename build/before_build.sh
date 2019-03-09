@@ -3,7 +3,7 @@
 if [ "$BUILD_OS" == "linux" ]; then
     if [ "$(id -u)" == "0" ]; then
         apt-get update -qq
-        apt-get install -y libasound2-dev libjack-jackd2-dev libpulse-dev pulseaudio
+        apt-get install -y libasound2-dev libjack-jackd2-dev libpulse-dev pulseaudio libpulse0
         wget http://lv2plug.in/spec/lv2-1.14.0.tar.bz2
         tar xjf lv2-1.14.0.tar.bz2 
         pushd lv2-1.14.0 && ./waf configure && ./waf build && sudo ./waf install && popd
