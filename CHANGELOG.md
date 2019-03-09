@@ -11,7 +11,7 @@
 
 Not ready for production use
 
-- **Misc** OpenSSL 1.1.0j
+- **Misc** OpenSSL 1.1.1b
 - **Misc** Opus 1.3
 - **Misc** Baresip 0.6.0
 - **Misc** re 0.6.0
