@@ -417,6 +417,14 @@ static int slrtaudio_drivers(void) {
 		if (err)
 			return ENOMEM;
 
+		if(apis[i] == RTAUDIO_API_LINUX_PULSE) {
+			warning("driver detected PULSE\n");
+			if (driver == -1) {
+				driver = RTAUDIO_API_LINUX_PULSE;
+			}
+			odict_entry_add(o, "display", ODICT_STRING, "Pulseaudio");
+			detected = 1;
+		}
 		if(apis[i] == RTAUDIO_API_LINUX_ALSA) {
 			warning("driver detected ALSA\n");
 			odict_entry_add(o, "display", ODICT_STRING, "ALSA");
@@ -424,10 +432,6 @@ static int slrtaudio_drivers(void) {
 				driver = RTAUDIO_API_LINUX_ALSA;
 			}
 			detected = 1;
-		}
-		if(apis[i] == RTAUDIO_API_LINUX_PULSE) {
-			warning("driver detected PULSE\n");
-			odict_entry_add(o, "display", ODICT_STRING, "Pulseaudio");
 		}
 		if(apis[i] == RTAUDIO_API_WINDOWS_WASAPI) {
 			odict_entry_add(o, "display", ODICT_STRING, "WASAPI");

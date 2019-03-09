@@ -33,7 +33,7 @@ if [ ! -d rtaudio-${rtaudio} ]; then
     sl_get_rtaudio
     pushd rtaudio-${rtaudio}
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-        ./autogen.sh --with-alsa
+        ./autogen.sh --with-alsa --with-pulse
     else
         export CXXFLAGS="-Wno-deprecated"
         sudo mkdir -p /usr/local/Library/ENV/4.3
@@ -116,12 +116,14 @@ if [ ! -d baresip-$baresip ]; then
 
     pushd baresip-$baresip
     # Standalone
-    make $debug USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
-        MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
-        EXTRA_CFLAGS="-I ../my_include" \
-        EXTRA_LFLAGS="$sl_extra_lflags -L ../openssl"
+    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+        make $debug USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+            MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
+            EXTRA_CFLAGS="-I ../my_include" \
+            EXTRA_LFLAGS="$sl_extra_lflags -L ../openssl -lpulse-simple -lpulse"
 
-    cp -a baresip ../studio-link-standalone
+        cp -a baresip ../studio-link-standalone
+    fi
 
     # libbaresip.a without effect plugin
     make $debug USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
