@@ -6,6 +6,10 @@
 
 MOD		:= slrtaudio
 $(MOD)_SRCS	+= slrtaudio.c
-$(MOD)_LFLAGS   += -lrtaudio -lstdc++
+ifeq ($(OS),linux)
+	$(MOD)_LFLAGS   += -lrtaudio -lstdc++ -lpulse-simple -lpulse
+else
+	$(MOD)_LFLAGS   += -lrtaudio -lstdc++
+endif
 
 include mk/mod.mk

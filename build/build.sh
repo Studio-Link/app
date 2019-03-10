@@ -120,7 +120,7 @@ if [ ! -d baresip-$baresip ]; then
         make $debug USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
             MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
             EXTRA_CFLAGS="-I ../my_include" \
-            EXTRA_LFLAGS="$sl_extra_lflags -L ../openssl -lpulse-simple -lpulse"
+            EXTRA_LFLAGS="$sl_extra_lflags -L ../openssl"
 
         cp -a baresip ../studio-link-standalone
     fi
