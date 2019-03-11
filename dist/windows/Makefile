@@ -61,6 +61,7 @@ COMMON_FLAGS := CC=$(CC) \
 		USE_OPENSSL_DTLS=yes \
 		USE_OPENSSL_SRTP=yes \
 		USE_ZLIB= \
+		-j4 \
 		RELEASE=1
 
 #default:	retest baresip
@@ -107,7 +108,7 @@ openssl:
 	cd openssl && \
 		CC=$(CC) RANLIB=$(RANLIB) AR=$(AR) \
 		./Configure $(SSLARCH) no-shared no-threads && \
-		make build_libs
+		make build_libs -j4
 
 clean:
 	make distclean -C baresip

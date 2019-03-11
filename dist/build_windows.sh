@@ -7,6 +7,8 @@ source dist/lib/functions.sh
 
 sl_prepare
 
+make_opts="-j4"
+
 mkdir -p mingw
 pushd mingw
 mingwurl="https://github.com/Studio-Link/mingw/releases/download/v18.01.0"
@@ -40,7 +42,7 @@ if [ ! -d rtaudio-${rtaudio} ]; then
     pushd rtaudio-${rtaudio}
     export CPPFLAGS="-Wno-unused-function -Wno-unused-but-set-variable"
     ./autogen.sh --with-wasapi --host=${_arch}
-    make
+    make $make_opts
     unset CPPFLAGS
     cp -a .libs/librtaudio.a ../my_include/
     popd
@@ -59,7 +61,7 @@ if [ ! -d flac-${flac} ]; then
     mkdir flac/build_win
     pushd flac/build_win
     ${_arch}-configure --disable-ogg --enable-static --disable-cpplibs
-    make
+    make $make_opts
     popd
     cp -a flac/include/FLAC my_include/
     cp -a flac/include/share my_include/
@@ -77,7 +79,7 @@ if [ ! -d opus-$opus ]; then
         --enable-custom-modes \
         --disable-doc \
         --disable-extra-programs
-    make
+    make $make_opts
     popd
     mkdir opus; cp opus-$opus/build/.libs/libopus.a opus/
     cp -a opus-$opus/include/*.h opus/
