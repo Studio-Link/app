@@ -42,6 +42,7 @@ deploy:
     skip_cleanup: true
     on:
       all_branches: true
+      condition: $BUILD_OS != ccheck
 
 env:
   global:
