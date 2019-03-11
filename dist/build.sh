@@ -5,7 +5,7 @@ source dist/lib/functions.sh
 
 make_opts="-j4"
 
-if if [ "$BUILD_OS" == "ccheck" ]; then
+if [ "$BUILD_OS" == "ccheck" ]; then
     dist/tools/ccheck.py src
     exit 0
 fi
