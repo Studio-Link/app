@@ -18,8 +18,8 @@ sl_prepare() {
 
     sl_prepare_version
 
-    mkdir -p src;
-    pushd src
+    mkdir -p build;
+    pushd build
     mkdir -p my_include
 
 
