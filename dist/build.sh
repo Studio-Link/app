@@ -3,6 +3,8 @@
 source dist/lib/versions.sh
 source dist/lib/functions.sh
 
+make_opts="-j2"
+
 if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
     curl -s https://raw.githubusercontent.com/studio-link-3rdparty/arch-travis/master/arch-travis.sh | bash
     exit 0
@@ -38,7 +40,7 @@ if [ ! -d rtaudio-${rtaudio} ]; then
         sudo ln -s $(which sed) /usr/local/Library/ENV/4.3/sed
         ./autogen.sh --with-core
     fi
-    make
+    make $make_opts
     unset CXXFLAGS
     cp -a .libs/librtaudio.a ../my_include/
     popd
@@ -51,7 +53,7 @@ if [ ! -d flac-${flac} ]; then
 
     cd flac
     ./configure --disable-ogg --enable-static
-    make
+    make $make_opts
     cp -a include/FLAC ../my_include/
     cp -a include/share ../my_include/
     cp -a src/libFLAC/.libs/libFLAC.a ../my_include/
@@ -64,7 +66,7 @@ if [ ! -d openssl-${openssl} ]; then
     sl_get_openssl
     cd openssl
     ./config no-shared
-    make build_libs
+    make $make_opts build_libs
     cp -a include/openssl ../my_include/
     cd ..
 fi
@@ -87,7 +89,7 @@ if [ ! -d re-$re ]; then
 
     # WARNING build releases with RELEASE=1, because otherwise its MEM Debug
     # statements are not THREAD SAFE! on every platform, especilly windows.
-    make -C re $debug USE_OPENSSL="yes" EXTRA_CFLAGS="-I ../my_include/" libre.a
+    make -C re $make_opts $debug USE_OPENSSL="yes" EXTRA_CFLAGS="-I ../my_include/" libre.a
     mkdir -p my_include/re
     cp -a re/include/* my_include/re/
 fi
@@ -109,7 +111,7 @@ if [ ! -d baresip-$baresip ]; then
     pushd baresip-$baresip
     # Standalone
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-        make $debug USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+        make $debug $make_opts USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
             MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
             EXTRA_CFLAGS="-I ../my_include" \
             EXTRA_LFLAGS="$sl_extra_lflags -L ../openssl"
@@ -118,7 +120,7 @@ if [ ! -d baresip-$baresip ]; then
     fi
 
     # libbaresip.a without effect plugin
-    make $debug USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make $debug $make_opts USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
         EXTRA_CFLAGS="-I ../my_include" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
@@ -126,7 +128,7 @@ if [ ! -d baresip-$baresip ]; then
 
     # Effectonair Plugin
     make clean
-    make $debug USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make $debug $make_opts USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop apponair effectonair" \
         EXTRA_CFLAGS="-I ../my_include -DSLIVE" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
@@ -134,7 +136,7 @@ if [ ! -d baresip-$baresip ]; then
 
     # Effect Plugin
     make clean
-    make $debug USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make $debug $make_opts USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp effect" \
         EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
