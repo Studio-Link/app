@@ -20,12 +20,12 @@ libssl-dev libasound2-dev libjack-jackd2-dev libtool build-essential autoconf au
 
 ## Build on Linux
 
-```export TRAVIS_OS_NAME="linux"; build/build.sh```
+```export TRAVIS_OS_NAME="linux"; dist/build.sh```
 
 ## Build on macOS
 
-```export TRAVIS_OS_NAME="osx"; build/build.sh```
+```export TRAVIS_OS_NAME="osx"; dist/build.sh```
 
 ## Build for Windows on Arch Linux
 
-```export BUILD_OS="windows64"; build/build_windows.sh```
+```export BUILD_OS="windows64"; dist/build_windows.sh```

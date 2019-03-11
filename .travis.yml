@@ -14,10 +14,10 @@ os:
 osx_image: xcode7.3
 
 before_install:
-  - sudo ./build/before_build.sh
-  - "./build/before_build.sh"
+  - sudo ./dist/before_build.sh
+  - "./dist/before_build.sh"
 
-script: "./build/build.sh"
+script: "./dist/build.sh"
 
 deploy:
   - provider: releases
@@ -70,4 +70,4 @@ arch:
             - zip
             - unzip
         script:
-            - "./build/build_windows.sh"
+            - "./dist/build_windows.sh"

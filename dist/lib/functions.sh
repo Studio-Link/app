@@ -55,10 +55,10 @@ sl_get_libre() {
     rm -f v${re}.tar.gz
     ln -s re-$re re
     pushd re
-    patch --ignore-whitespace -p1 < ../../build/patches/bluetooth_conflict.patch
-    patch --ignore-whitespace -p1 < ../../build/patches/re_ice_bug.patch
+    patch --ignore-whitespace -p1 < ../../dist/patches/bluetooth_conflict.patch
+    patch --ignore-whitespace -p1 < ../../dist/patches/re_ice_bug.patch
     if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
-        patch -p1 < ../../build/patches/fix_windows_ssize_t_bug.patch
+        patch -p1 < ../../dist/patches/fix_windows_ssize_t_bug.patch
     fi
     popd
 }
@@ -79,13 +79,13 @@ sl_get_baresip() {
     pushd baresip-$baresip
 
     ## Add patches
-    patch -p1 < ../../build/patches/config.patch
-    patch -p1 < ../../build/patches/osx_sample_rate.patch
+    patch -p1 < ../../dist/patches/config.patch
+    patch -p1 < ../../dist/patches/osx_sample_rate.patch
 
     #fixes multiple maxaverage lines in fmtp e.g.: 
     #fmtp: stereo=1;sprop-stereo=1;maxaveragebitrate=64000;maxaveragebitrate=64000;
     #after multiple module reloads it crashes because fmtp is to small(256 chars)
-    #patch -p1 < ../../build/patches/opus_fmtp.patch
+    #patch -p1 < ../../dist/patches/opus_fmtp.patch
 
     ## Link backend modules
     cp -a ../../webapp modules/webapp

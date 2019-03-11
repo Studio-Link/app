@@ -1,7 +1,7 @@
 #!/bin/bash -ex
 
-source build/lib/versions.sh
-source build/lib/functions.sh
+source dist/lib/versions.sh
+source dist/lib/functions.sh
 
 if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
     curl -s https://raw.githubusercontent.com/studio-link-3rdparty/arch-travis/master/arch-travis.sh | bash

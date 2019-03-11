@@ -1,0 +1,3 @@
+#!/bin/bash
+
+dist/tools/s3urls | grep $(build/version.sh)

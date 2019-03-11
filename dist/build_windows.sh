@@ -2,8 +2,8 @@
 
 export PATH="$PATH:/usr/bin/core_perl"
 
-source build/lib/versions.sh
-source build/lib/functions.sh
+source dist/lib/versions.sh
+source dist/lib/functions.sh
 
 sl_prepare
 
@@ -125,7 +125,7 @@ fi
 # Build
 #-----------------------------------------------------------------------------
 
-cp -a ../build/windows/Makefile .
+cp -a ../dist/windows/Makefile .
 make openssl
 make
 make -C overlay-vst PREFIX=$_arch
