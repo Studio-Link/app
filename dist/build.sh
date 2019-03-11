@@ -5,6 +5,11 @@ source dist/lib/functions.sh
 
 make_opts="-j4"
 
+if if [ "$BUILD_OS" == "ccheck" ]; then
+    dist/tools/ccheck.py src
+    exit 0
+fi
+
 if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
     curl -s https://raw.githubusercontent.com/studio-link-3rdparty/arch-travis/master/arch-travis.sh | bash
     exit 0
