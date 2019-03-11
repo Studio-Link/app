@@ -88,11 +88,11 @@ sl_get_baresip() {
     #patch -p1 < ../../dist/patches/opus_fmtp.patch
 
     ## Link backend modules
-    cp -a ../../webapp modules/webapp
-    cp -a ../../effect modules/effect
-    cp -a ../../effectonair modules/effectonair
-    cp -a ../../apponair modules/apponair
-    cp -a ../../slrtaudio modules/slrtaudio
+    cp -a ../../src/modules/webapp modules/webapp
+    cp -a ../../src/modules/effect modules/effect
+    cp -a ../../src/modules/effectonair modules/effectonair
+    cp -a ../../src/modules/apponair modules/apponair
+    cp -a ../../src/modules/slrtaudio modules/slrtaudio
 
     sed $sed_opt s/SLVERSION_T/$version_t/ modules/webapp/webapp.c
     popd
