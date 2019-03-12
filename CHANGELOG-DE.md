@@ -7,11 +7,11 @@
 - **Generell** Allgemeine Veränderungen
 
 
-### v19.02.0-alpha (xx.xx.2019)
+### v19.03.0-alpha (xx.xx.2019)
 
 Nicht für den produktiven Einsatz getestet
 
-- **Generell** OpenSSL 1.1.0j
+- **Generell** OpenSSL 1.1.1b
 - **Generell** Opus 1.3
 - **Generell** Baresip 0.6.0
 - **Generell** re 0.6.0
