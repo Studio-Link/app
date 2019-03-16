@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<!-- Required meta tags -->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="/app.css">
+
+		<title>Studio Link</title>
+	</head>
+	<body>
+		<div class="container">
+			<div class="row mt-2">
+				<div class="col-12">
+					<h2 class="float-left">
+						<a href="/" class="logo">
+							<img src="/images/logo.svg" height="35px" />
+						</a>
+						<span id="variant"></span>
+					</h2>
+					<div class="float-right">
+						<a href="#" id="changelog">Changelog</a>
+						<span id="version">Default</span> | <a href="https://doku.studio-link.de" target="_blank">Help</a>
+					</div>
+				</div>
+			</div>
+			<div class="row mt-2">
+				<div class="col-md-8">
+					<div class="card mb-3">
+						<div class="card-header">
+							<div class="float-left mt-1"><b>Audio</b></div>
+							<button class="btn btn-secondary btn-sm float-left ml-2" style="margin-left: 0px" id="btn-interface">
+								<i class="fa fa-cog" aria-hidden="true"></i> Interface
+							</button>
+							<div class="btn-group ml-2" role="group">
+								<button class="btn btn-primary btn-sm float-left" id="btn-stereo" aria-pressed="true">
+									<i class="fa fa-random" aria-hidden="true"></i> Stereo
+								</button>
+								<button class="btn btn-secondary btn-sm float-left" id="btn-mono" aria-pressed="false">
+									<i class="fas fa-long-arrow-alt-right" aria-hidden="true"></i> Mono
+								</button>
+							</div>
+							<button type="button" class="btn btn-secondary btn-sm float-right" style="margin-left: 6px" id="btn-record">
+								<i class="far fa-dot-circle"></i> <b>Record</b>
+							</button>
+							<button class="btn btn-secondary btn-sm float-right" style="margin-left: 6px" id="btn-onair">
+								<i class="fa fa-rss" aria-hidden="true"></i> OnAir
+							</button>
+						</div>
+						<div id="panel-audio" class="card-body">
+							<label>Your signal level</label>
+							<div id="main-volume" class="progress">
+								<div id="microphonebar1" class="progress-bar bg-success" role="progressbar"></div>
+							</div>
+							<div class="progress d-none">
+								<div id="microphonebar2" class="progress-bar bg-success" role="progressbar"></div>
+							</div>
+							<div class="progress d-none">
+								<div id="microphonebar3" class="progress-bar bg-success" role="progressbar"></div>
+							</div>
+							<div class="progress d-none">
+								<div id="microphonebar4" class="progress-bar bg-success" role="progressbar"></div>
+							</div>
+							<div class="progress d-none">
+								<div id="microphonebar5" class="progress-bar bg-success" role="progressbar"></div>
+							</div>
+							<div class="progress d-none">
+								<div id="microphonebar6" class="progress-bar bg-success" role="progressbar"></div>
+							</div>
+							<div class="progress d-none">
+								<div id="microphonebar7" class="progress-bar bg-success" role="progressbar"></div>
+							</div>
+							<div class="progress d-none">
+								<div id="microphonebar8" class="progress-bar bg-success" role="progressbar"></div>
+							</div>
+							<div class="progress d-none">
+								<div id="microphonebar9" class="progress-bar bg-success" role="progressbar"></div>
+							</div>
+							<div class="progress d-none">
+								<div id="microphonebar10" class="progress-bar bg-success" role="progressbar"></div>
+							</div>
+						</div>
+					</div><!-- /card -->
+					<div class="card">
+						<div class="card-header">
+							<a role="button" data-toggle="collapse" href="#panel-settings"><b>More...</b></a>
+						</div>
+						<div id="panel-settings" class="card-body collapse">
+							<ul class="nav nav-tabs">
+								<li class="nav-item">
+									<a class="nav-link active" href="#">Contacts</a>
+								</li>
+								<li class="nav-item">
+									<a class="nav-link" href="#">Link</a>
+								</li>
+								<li class="nav-item">
+									<a class="nav-link" href="#">Link</a>
+								</li>
+								<li class="nav-item">
+									<a class="nav-link disabled" href="#">Disabled</a>
+								</li>
+							</ul>
+						</div>
+					</div><!-- /card -->
+				</div><!-- /col-8 -->
+				<div class="col-md-4">
+
+					<div class="card mb-1">
+						<div class="card-header"><b>Status</b>
+							<span id="sipid"></span>
+							<div id="status" class="d-none"></div>
+						</div>
+					</div><!-- /card -->
+
+					<input type="email" class="form-control" id="sipnumbercall" placeholder="Enter Partner ID" autofocus>                                                                            
+					<select id="current_uag" class="form-control d-none"></select>
+					<div class="clearfix" style="margin: 3px"></div>
+					<div class="btn-group btn-block">
+						<button id="buttoncall" type="button" class="btn btn-primary btn-lg col-xs-12">
+							<i class="fa fa-phone" aria-hidden="true" style="transform: rotate(95deg);"></i> <b>Call</b>
+						</button>
+						<button id="buttonmute" type="button" class="btn btn-secondary btn-lg col-xs-4 d-none">
+							<i class="fa fa-microphone-slash" aria-hidden="true"></i> 
+							<span class="d-none d-lg-inline">Mute</span>                                                                                  
+						</button>
+					</div>
+
+					<hr style="margin-top: 10px;margin-bottom:13px"/>
+
+					<div id="activecalls"></div>
+
+				</div><!-- /col-4 -->
+			</div><!-- /row -->
+		</div><!-- /container -->
+		<script src="/app.js"></script>
+	</body>
+</html>

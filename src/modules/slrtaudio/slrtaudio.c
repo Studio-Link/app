@@ -9,9 +9,10 @@
 #include <rem.h>
 #include <baresip.h>
 #include <rtaudio_c.h>
+#include "slrtaudio.h"
 
 enum {
-	MAX_CHANNELS = 10,
+	MAX_CHANNELS = 5,
 	DICT_BSIZE = 32,
 	MAX_LEVELS = 8,
 };
@@ -45,21 +46,13 @@ struct ausrc_st {
 static struct ausrc *ausrc;
 static struct auplay *auplay;
 
-struct session {
-	struct le le;
-	struct ausrc_st *st_src;
-	struct auplay_st *st_play;
-	bool run_src;
-	bool run_play;
-	int32_t *dstmix;
-};
 
 static rtaudio_t audio;
 static int driver = -1;
 static int input = -1;
 static int output = -1;
 static struct odict *interfaces = NULL;
-static struct list sessionl;
+struct list sessionl;
 
 static int slrtaudio_stop(void);
 static int slrtaudio_start(void);
@@ -73,8 +66,21 @@ static void sess_destruct(void *arg)
 {
 	struct session *sess = arg;
 
+	if (sess->run_record) {
+		sess->run_record = false;
+		(void)pthread_join(sess->record_thread, NULL);
+	}
+
+	if (sess->flac) {
+		FLAC__stream_encoder_finish(sess->flac);
+		FLAC__stream_encoder_delete(sess->flac);
+	}
+
+	mem_deref(sess->sampv);
+	mem_deref(sess->pcm);
+	mem_deref(sess->aubuf);
+
 	list_unlink(&sess->le);
-	warning("DESTRUCT SESSION\n");
 }
 
 
@@ -207,6 +213,9 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 				playmix[pos] = playmix[pos] + st_play->sampv[pos];
 			}
 		}
+
+		/* write remote streams to flac record buffer */
+		(void)aubuf_write_samp(sess->aubuf, st_play->sampv, samples);
 
 		//mix n-1
 		for (mle = sessionl.head; mle; mle = mle->next) {
@@ -662,11 +671,11 @@ static int slrtaudio_init(void)
 			return ENOMEM;
 
 		list_append(&sessionl, &sess->le, sess);
-		warning("construct\n");
 	}
 
 	slrtaudio_drivers();
 	slrtaudio_devices();
+	slrtaudio_record_init();
 	slrtaudio_start();
 
 	warning("slrtaudio\n");

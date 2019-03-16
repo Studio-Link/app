@@ -37,10 +37,10 @@ void webapp_options_set(char *key, char *value)
 	}
 	if (!str_cmp(key, "record")) {
 		if (!str_cmp(value, "false")) {
-			webapp_record_set(false);
+			slrtaudio_record_set(false);
 		}
 		else {
-			webapp_record_set(true);
+			slrtaudio_record_set(true);
 		}
 	}
 	if (!str_cmp(key, "onair")) {

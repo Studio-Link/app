@@ -5,7 +5,7 @@
 #
 
 MOD		:= slrtaudio
-$(MOD)_SRCS	+= slrtaudio.c
+$(MOD)_SRCS	+= slrtaudio.c record.c
 ifeq ($(OS),linux)
 	$(MOD)_LFLAGS   += -lrtaudio -lstdc++ -lpulse-simple -lpulse
 else

@@ -1,0 +1,56 @@
+$gray-900: #1e1e1e;
+$link-color: #c8c8c8; 
+$secondary: #333333;
+$progress-height: 0.6rem;
+$container-max-widths: (
+sm: 550px,
+md: 970px,
+lg: 980px,
+xl: 1140px
+);
+
+@import 'theme/variables';
+@import '~bootstrap/scss/bootstrap';
+@import 'theme/bootswatch';
+
+$fa-font-path: "/fonts";
+
+// Fontawesome
+@import '~@fortawesome/fontawesome-free/scss/fontawesome.scss';
+@import '~@fortawesome/fontawesome-free/scss/regular.scss';
+@import '~@fortawesome/fontawesome-free/scss/solid.scss';
+@import '~@fortawesome/fontawesome-free/scss/brands.scss';
+
+.card-body {
+	padding: 1rem;
+}
+
+.card-header {
+	padding: 0.5rem 1rem;
+}
+
+.progress {
+	margin-top: 5px;
+}
+
+#main-volume {
+	height: 20px;
+}
+
+.container {
+	padding-right: 10px;
+	padding-left: 10px;
+}
+
+.form-control {
+	background-color: #303030;
+	color: #fff;
+}
+
+.form-control:focus {
+	border-color: #f67e05;
+	background-color: #303030;
+	color: #fff;
+}
+
+

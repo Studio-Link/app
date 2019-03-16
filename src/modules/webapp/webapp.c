@@ -35,11 +35,6 @@ static struct aufilt mono = {
 	webapp_mono_encode_update, webapp_mono_encode,
 	NULL, NULL
 };
-static struct aufilt record = {
-	LE_INIT, "webapp_record",
-	webapp_record_encode_update, webapp_record_encode,
-	NULL, NULL
-};
 #endif
 
 static int http_sreply(struct http_conn *conn, uint16_t scode,
@@ -560,7 +555,6 @@ static int module_init(void)
 
 	aufilt_register(baresip_aufiltl(), &mono);
 	aufilt_register(baresip_aufiltl(), &vumeter);
-	aufilt_register(baresip_aufiltl(), &record);
 #endif
 
 	err = http_port();
@@ -605,7 +599,6 @@ static int module_close(void)
 	webapp_ws_rtaudio_close();
 	aufilt_unregister(&vumeter);
 	aufilt_unregister(&mono);
-	aufilt_unregister(&record);
 #endif
 	webapp_ws_close();
 	mem_deref(httpsock);
