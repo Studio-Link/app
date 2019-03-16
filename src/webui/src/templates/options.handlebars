@@ -1,0 +1,26 @@
+<table class="table table-striped">
+	<thead>
+		<th>Name</th>
+		<th>State</th>
+	</thead>
+	<tbody>
+{{#each this}}
+	<tr>
+		<td>{{@key}}</td>
+		<td>
+			<p>
+			{{#if this}}
+			<button data-option="{{@key}}" data-value="" class="btn btn-success bt-lg option-change">
+				Enabled
+			</button>
+			{{else}}
+			<button data-option="{{@key}}" data-value="true" class="btn btn-danger bt-lg option-change">
+				Disabled
+			</button>
+			{{/if}}
+			</p>
+		</td>
+	</tr>
+{{/each}}
+	</tbody>
+</table>

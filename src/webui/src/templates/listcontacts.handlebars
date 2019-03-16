@@ -1,0 +1,75 @@
+<button id="buttonaddcontact" type="button" class="btn btn-primary">
+	<i class="fa fa-user-plus" aria-hidden="true"></i> New Contact
+</button>
+<table class="table table-striped">
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>SIP</th>
+			<th>Actions</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>echo</td>
+			<td>echo@studio-link.de</td>
+			<td>
+				<p>
+				<button data-sip="echo@studio-link.de" class="btn btn-success btn-sm callcontact">
+					<span class="glyphicon glyphicon-earphone"></span> Call
+				</button>
+				</p>
+			</td>
+		</tr>
+		<tr>
+			<td>freakshow1</td>
+			<td>freakshow1@studio-link.de</td>
+			<td>
+				<p>
+				<button data-sip="freakshow1@studio-link.de" class="btn btn-success btn-sm callcontact">
+					<span class="glyphicon glyphicon-earphone"></span> Call
+				</button>
+				</p>
+			</td>
+		</tr>
+		<tr>
+			<td>freakshow2</td>
+			<td>freakshow2@studio-link.de</td>
+			<td>
+				<p>
+				<button data-sip="freakshow2@studio-link.de" class="btn btn-success btn-sm callcontact">
+					<span class="glyphicon glyphicon-earphone"></span> Call
+				</button>
+				</p>
+			</td>
+		</tr>
+		<tr>
+			<td>freakshow3</td>
+			<td>freakshow3@studio-link.de</td>
+			<td>
+				<p>
+				<button data-sip="freakshow3@studio-link.de" class="btn btn-success btn-sm callcontact">
+					<span class="glyphicon glyphicon-earphone"></span> Call
+				</button>
+				</p>
+			</td>
+		</tr>
+
+		{{#each this}}
+		<tr>
+			<td>{{name}}</td>
+			<td>{{sip}}</td>
+			<td>
+				<p>
+				<button data-sip="{{sip}}" class="btn btn-success btn-sm callcontact">
+					<span class="glyphicon glyphicon-earphone"></span> Call
+				</button>
+				<button data-sip="{{sip}}" class="btn btn-danger btn-sm delete-button deletecontact">
+					<span class="glyphicon glyphicon-remove-circle"></span> Delete
+				</button>
+				</p>
+			</td>
+		</tr>
+		{{/each}}
+	</tbody>
+</table>

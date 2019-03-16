@@ -1,0 +1,21 @@
+<div class="row"> 
+	<div class="col-sm-12"> 
+		<form id="formaddcontact" class="form-horizontal" role="form"> 
+			<input name="command" type="hidden" value="addcontact" />
+			<div class="form-group"> 
+				<label class="col-sm-4 control-label" for="user">Name</label> 
+				<div class="col-sm-4"> 
+					<input id="formaddcontact-name" name="name" type="text" placeholder="eg. user" class="form-control input-md" required autofocus>
+				</div> 
+				<div class="help-block with-errors"></div>
+			</div>
+			<div class="form-group"> 
+				<label class="col-sm-4 control-label" for="domain">SIP Address</label> 
+				<div class="col-sm-4"> 
+					<input id="formaddcontact-sip" name="sip" type="email" placeholder="eg. user@example.net" value="{{sip}}" class="form-control input-md" data-error="Not a valid sip address" required>
+				</div> 
+				<div class="help-block with-errors"></div>
+			</div>
+		</form> 
+	</div>  
+</div>

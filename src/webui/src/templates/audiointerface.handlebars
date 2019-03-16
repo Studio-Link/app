@@ -1,0 +1,64 @@
+<div class="row"> 
+	<div class="col-sm-12"> 
+		<form id="forminterface" class="form-horizontal" role="form"> 
+			<input name="command" type="hidden" value="interface" />
+
+			<div class="form-group"> 
+				<label class="col-sm-4 control-label" for="input">Driver</label> 
+				<div class="col-sm-6"> 
+					<select id="interface_driver" class="form-control">
+{{#each this.drivers}}
+						<option{{#if selected}} selected{{/if}} value="{{id}}">{{display}}</option>
+{{/each}}
+					</select>
+				</div> 
+				<div class="help-block with-errors"></div>
+			</div>
+			<div class="form-group"> 
+				<label class="col-sm-4 control-label" for="input">Input</label> 
+				<div class="col-sm-6"> 
+					<select id="interface_input" class="form-control">
+{{#each this.input}}
+						<option{{#if selected}} selected{{/if}} value="{{id}}">{{display}}</option>
+{{/each}}
+					</select>
+				</div> 
+				<div class="help-block with-errors"></div>
+			</div>
+			<div class="form-group"> 
+				<label class="col-sm-4 control-label" for="input">Output</label> 
+				<div class="col-sm-6"> 
+					<select id="interface_output" class="form-control">
+{{#each this.output}}
+						<option{{#if selected}} selected{{/if}} value="{{id}}">{{display}}</option>
+{{/each}}
+					</select>
+				</div> 
+				<div class="help-block with-errors"></div>
+			</div>
+<!--
+			<div class="form-group"> 
+				<label class="col-sm-4 control-label" for="input">Monitor</label> 
+				<div class="col-sm-6"> 
+					<select id="interface_monitor" class="form-control">
+{{#each this.monitor}}
+						<option{{#if selected}} selected{{/if}} value="{{id}}">{{display}}</option>
+{{/each}}
+					</select>
+				</div> 
+				<div class="help-block with-errors"></div>
+			</div>
+-->
+
+		</form> 
+			<div class="pull-right"> 
+			</div>
+			<div class="form-group"> 
+				<label class="col-sm-4 control-label" for="input"></label> 
+				<div class="col-sm-6"> 
+					<button class="btn btn-default" id="btn-audio-loop" style="margin-left: -5px;"><span class="glyphicon glyphicon-play"></span> Start Audio Test Loop</button>
+				</div> 
+				<div class="help-block with-errors"></div>
+			</div>
+	</div>  
+</div>

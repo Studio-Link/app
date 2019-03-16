@@ -1,0 +1,47 @@
+<ul class="chat">
+	{{#each this}}
+
+	<li class="left clearfix">
+		<div class="chat-body clearfix">
+			<div class="header">
+	{{#if self}}
+				<strong class="primary-font">Me</strong>
+	{{else}}
+				<strong class="primary-font">{{peer}}</strong>
+	{{/if}}
+				<small class="pull-right text-muted">
+					<i class="fa fa-clock-o fa-fw"></i> <span class="timestamp">{{@key}}</span>
+				</small>
+			</div>
+			<p>
+			{{message}}
+			</p>
+		</div>
+	</li>
+
+	{{/each}}
+</ul>
+
+<script>
+jQuery(document).ready(function () {
+	var elem = document.getElementById('chatmessages');
+	elem.scrollTop = elem.scrollHeight;
+
+	function addZero(i) {
+		    if (i < 10) {
+					        i = "0" + i;
+									    }
+				    return i;
+	}
+
+	$.each($('.timestamp'), function() {
+		var timestamp = $( this ).html();
+		var d = new Date(timestamp * 1000);
+		var h = addZero(d.getHours());
+		var m = addZero(d.getMinutes());
+		var s = addZero(d.getSeconds());
+		var myformat = h + ":" + m + ":" + s;
+		$( this ).html(myformat);
+	});
+});
+</script>

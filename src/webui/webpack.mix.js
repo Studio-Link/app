@@ -14,7 +14,15 @@ require('laravel-mix-copy-watched');
 
 mix.js([
 	'src/app.js', 
-	'src/websockets/test.js'
+	'src/notify.js', 
+	'src/websockets/ws_baresip.js',
+	'src/websockets/ws_calls.js'
+	/*
+	'src/websockets/ws_contacts.js',
+	'src/websockets/ws_meter.js',
+	'src/websockets/ws_options.js',
+	'src/websockets/ws_rtaudio.js',
+	'src/websockets/ws_sipchat.js'*/
 ], 'dist/app.js');
 
 mix.sass('src/app.scss', 'dist/')

@@ -1,0 +1,21 @@
+{{#each this}}
+<div class="panel panel-default" style="margin-bottom: 5px">
+	<div class="panel-heading panel-heading-sm"><b>Active Call {{inc @index}}</b>
+					<button data-key="{{mysip peer}}" class="btn btn-success btn-xs addcontactshort {{contacthide}}" style="margin-top: -2px;">
+						<span class="fa fa-user-plus" aria-hidden="true"></span> <span class="hidden-sm hidden-md">Add Contact</span>
+					</button>
+		<div class="pull-right">
+					<span class="label label-primary hidden-sm">{{state}}</span>
+					<button data-key="{{@key}}" class="btn btn-danger btn-xs hangup" style="margin-top: -2px;">
+						<span class="glyphicon glyphicon-phone-alt"></span> <span class="hidden-sm hidden-md">End Call</span>
+					</button>
+		</div>
+	</div>
+	<div class="panel-body">
+		ID: {{mysip peer}}
+		<div id="headphonesbar{{inc @index}}" class="progress progress-sm"></div>
+		<i id="raisinghand{{inc @index}}" class="fa fa-hand-paper-o hide" style="font-size:20px" aria-hidden="true"></i>
+		<i id="afk{{inc @index}}" class="fa fa-bath hide" style="font-size:20px" aria-hidden="true"></i>
+	</div>
+</div>
+{{/each}}

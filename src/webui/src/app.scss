@@ -53,4 +53,12 @@ $fa-font-path: "/fonts";
 	color: #fff;
 }
 
+.form-control:disabled, .form-control[readonly] {
+	background-color: #444444;
+	border-color: #444444;
+	color: #fff;
+}
 
+a:hover {
+	text-decoration: none;
+}

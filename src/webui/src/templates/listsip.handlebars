@@ -1,0 +1,34 @@
+<button id="buttonaddsip" type="button" class="btn btn-primary">
+	<span class="glyphicon glyphicon-plus-sign"></span> New Account
+</button>
+<table class="table table-striped">
+	<thead>
+		<tr>
+			<th>Account</th>
+			<th>Status</th>
+			<th>Actions</th>
+		</tr>
+	</thead>
+	<tbody>
+		{{#each this}}
+		<tr>
+			<td>{{user}}@{{domain}}</td>
+			{{#if status}}
+				<td><span class="label label-success">Online</span></td>
+			{{else}}
+				<td><span class="label label-danger">Offline</span></td>
+			{{/if}}
+			<td>
+				<p>
+				<button data-user="{{user}}" data-domain="{{domain}}" class="btn btn-default btn-sm editsip">
+					<span style="font-size:1.2em;" class="glyphicon glyphicon-edit"></span>
+				</button>
+				<button data-user="{{user}}" data-domain="{{domain}}" class="btn btn-danger btn-sm delete-button deletesip">
+					<span style="font-size:1.2em;" class="glyphicon glyphicon-remove-circle"></span>
+				</button>
+				</p>
+			</td>
+		</tr>
+		{{/each}}
+	</tbody>
+</table>

@@ -108,12 +108,16 @@
 				<div class="col-md-4">
 
 					<div class="card mb-1">
-						<div class="card-header"><b>Status</b>
-							<span id="sipid"></span>
-							<div id="status" class="d-none"></div>
-						</div>
+						<div class="card-header">
+							<span id="sipstatus"><b>Status</b></span>
+						</div> 
+						<div class="card-body">
+							<ul class="list-unstyled" style="margin-bottom: 0px">
+								<li>Your ID:</li>
+								<li><span id="sipid"></span></li>
+							</ul>
+						</div> 
 					</div><!-- /card -->
-
 					<input type="email" class="form-control" id="sipnumbercall" placeholder="Enter Partner ID" autofocus>                                                                            
 					<select id="current_uag" class="form-control d-none"></select>
 					<div class="clearfix" style="margin: 3px"></div>
