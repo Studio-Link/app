@@ -135,8 +135,8 @@ $(function () {
 					}
 				}
 			}
-
-			$( "#activecalls" ).html(Handlebars.templates.activecalls(msg));
+			var activecalls = require("../templates/activecalls.handlebars");
+			$( "#activecalls" ).html(activecalls(msg));
 			RefreshEventListener();
 		}
 	};
