@@ -28,14 +28,14 @@ $(function () {
 
 	function rainbow(db) {
 		if (db > 90) {
-			return "progress-bar-danger";
+			return "bg-danger";
 		} else if (db > 65) {
-			return "progress-bar-warning";
+			return "bg-warning";
 		}
-		return "progress-bar-success";
+		return "bg-success";
 	}
 
-	var ws_meter = new WebSocket('ws://'+location.host+'/ws_meter');
+	var ws_meter = new WebSocket('ws://'+window.ws_host+'/ws_meter');
 
 	ws_meter.onmessage = function (event) {
 		
@@ -68,52 +68,52 @@ $(function () {
 		var head12 = iec_scale(parseFloat(peaks[23])) * 100;
 		
 		if (peaks[2] != "inf") {
-			$("#microphonebar2").removeClass("hide");
-			$("#headphonesbar2").removeClass("hide");
+			$("#microphonebar2").removeClass("d-none");
+			$("#headphonesbar2").removeClass("d-none");
 		}
 		
 		if (peaks[4] != "inf") {
-			$("#microphonebar3").removeClass("hide");
-			$("#headphonesbar3").removeClass("hide");
+			$("#microphonebar3").removeClass("d-none");
+			$("#headphonesbar3").removeClass("d-none");
 		}
 		
 		if (peaks[6] != "inf") {
-			$("#microphonebar4").removeClass("hide");
-			$("#headphonesbar4").removeClass("hide");
+			$("#microphonebar4").removeClass("d-none");
+			$("#headphonesbar4").removeClass("d-none");
 		}
 		
 		if (peaks[8] != "inf") {
-			$("#microphonebar5").removeClass("hide");
-			$("#headphonesbar5").removeClass("hide");
+			$("#microphonebar5").removeClass("d-none");
+			$("#headphonesbar5").removeClass("d-none");
 		}
 		
 		if (peaks[10] != "inf") {
-			$("#microphonebar6").removeClass("hide");
-			$("#headphonesbar6").removeClass("hide");
+			$("#microphonebar6").removeClass("d-none");
+			$("#headphonesbar6").removeClass("d-none");
 		}
 		if (peaks[12] != "inf") {
-			$("#microphonebar7").removeClass("hide");
-			$("#headphonesbar7").removeClass("hide");
+			$("#microphonebar7").removeClass("d-none");
+			$("#headphonesbar7").removeClass("d-none");
 		}
 		if (peaks[14] != "inf") {
-			$("#microphonebar8").removeClass("hide");
-			$("#headphonesbar8").removeClass("hide");
+			$("#microphonebar8").removeClass("d-none");
+			$("#headphonesbar8").removeClass("d-none");
 		}
 		if (peaks[16] != "inf") {
-			$("#microphonebar9").removeClass("hide");
-			$("#headphonesbar9").removeClass("hide");
+			$("#microphonebar9").removeClass("d-none");
+			$("#headphonesbar9").removeClass("d-none");
 		}
 		if (peaks[18] != "inf") {
-			$("#microphonebar10").removeClass("hide");
-			$("#headphonesbar10").removeClass("hide");
+			$("#microphonebar10").removeClass("d-none");
+			$("#headphonesbar10").removeClass("d-none");
 		}
 		if (peaks[20] != "inf") {
-			$("#microphonebar11").removeClass("hide");
-			$("#headphonesbar11").removeClass("hide");
+			$("#microphonebar11").removeClass("d-none");
+			$("#headphonesbar11").removeClass("d-none");
 		}
 		if (peaks[22] != "inf") {
-			$("#microphonebar12").removeClass("hide");
-			$("#headphonesbar12").removeClass("hide");
+			$("#microphonebar12").removeClass("d-none");
+			$("#headphonesbar12").removeClass("d-none");
 		}
 
 		$("#microphonebar1").html('<div class="progress-bar '+rainbow(mic1)+'" style="width: '+mic1+'%"> <span class="sr-only">'+mic1+'% Complete (success)</span></div>');
@@ -126,8 +126,6 @@ $(function () {
 		$("#microphonebar8").html('<div class="progress-bar '+rainbow(mic8)+'" style="width: '+mic8+'%"> <span class="sr-only">'+mic8+'% Complete (success)</span></div>');
 		$("#microphonebar9").html('<div class="progress-bar '+rainbow(mic9)+'" style="width: '+mic9+'%"> <span class="sr-only">'+mic9+'% Complete (success)</span></div>');
 		$("#microphonebar10").html('<div class="progress-bar '+rainbow(mic10)+'" style="width: '+mic10+'%"> <span class="sr-only">'+mic10+'% Complete (success)</span></div>');
-		$("#microphonebar11").html('<div class="progress-bar '+rainbow(mic11)+'" style="width: '+mic11+'%"> <span class="sr-only">'+mic11+'% Complete (success)</span></div>');
-		$("#microphonebar12").html('<div class="progress-bar '+rainbow(mic12)+'" style="width: '+mic12+'%"> <span class="sr-only">'+mic12+'% Complete (success)</span></div>');
 
 		$("#headphonesbar1").html('<div class="progress-bar '+rainbow(head1)+'" style="width: '+head1+'%"> <span class="sr-only">'+head1+'% Complete (success)</span></div>');
 		$("#headphonesbar2").html('<div class="progress-bar '+rainbow(head2)+'" style="width: '+head2+'%"> <span class="sr-only">'+head2+'% Complete (success)</span></div>');
@@ -139,8 +137,5 @@ $(function () {
 		$("#headphonesbar8").html('<div class="progress-bar '+rainbow(head8)+'" style="width: '+head8+'%"> <span class="sr-only">'+head8+'% Complete (success)</span></div>');
 		$("#headphonesbar9").html('<div class="progress-bar '+rainbow(head9)+'" style="width: '+head9+'%"> <span class="sr-only">'+head9+'% Complete (success)</span></div>');
 		$("#headphonesbar10").html('<div class="progress-bar '+rainbow(head10)+'" style="width: '+head10+'%"> <span class="sr-only">'+head10+'% Complete (success)</span></div>');
-		$("#headphonesbar11").html('<div class="progress-bar '+rainbow(head11)+'" style="width: '+head11+'%"> <span class="sr-only">'+head11+'% Complete (success)</span></div>');
-		$("#headphonesbar12").html('<div class="progress-bar '+rainbow(head12)+'" style="width: '+head12+'%"> <span class="sr-only">'+head12+'% Complete (success)</span></div>');
-
 	};
 });
