@@ -62,6 +62,15 @@ void webapp_ws_rtaudio_sync(void);
 
 static int32_t *playmix;
 
+static bool mono = false;
+
+
+void slrtaudio_mono_set(bool active)
+{
+	mono = active;
+}
+
+
 static void sess_destruct(void *arg)
 {
 	struct session *sess = arg;
@@ -74,6 +83,7 @@ static void sess_destruct(void *arg)
 	if (sess->flac) {
 		FLAC__stream_encoder_finish(sess->flac);
 		FLAC__stream_encoder_delete(sess->flac);
+		sess->flac = NULL;
 	}
 
 	mem_deref(sess->sampv);
@@ -84,7 +94,6 @@ static void sess_destruct(void *arg)
 }
 
 
-const struct odict* slrtaudio_get_interfaces(void);
 const struct odict* slrtaudio_get_interfaces(void)
 {
 	return (const struct odict *)interfaces;
@@ -112,7 +121,6 @@ static int slrtaudio_reset(void)
 }
 
 
-void slrtaudio_set_driver(int value);
 void slrtaudio_set_driver(int value)
 {
 	driver = value;
@@ -120,7 +128,6 @@ void slrtaudio_set_driver(int value)
 }
 
 
-void slrtaudio_set_input(int value);
 void slrtaudio_set_input(int value)
 {
 	input = value;
@@ -128,7 +135,6 @@ void slrtaudio_set_input(int value)
 }
 
 
-void slrtaudio_set_output(int value);
 void slrtaudio_set_output(int value)
 {
 	output = value;
@@ -153,11 +159,24 @@ static void convert_float_mono(int16_t *sampv, float *f_sampv, size_t sampc)
 }
 
 
-void ws_meter_process(unsigned int ch, float *in, unsigned long nframes);
+static void downsample_stereo2mono(int16_t *outv, const int16_t *inv,
+		size_t inc)
+{
+	unsigned ratio = 2;
+	int16_t i;
 
-int slrtaudio_callback(void *out, void *in, unsigned int nframes,
-		double stream_time, rtaudio_stream_status_t status,
-		void *userdata);
+	while (inc >= 1) {
+
+		i = inv[0] + inv[1];
+		outv[0] = i;
+		outv[1] = i;
+
+		outv += ratio;
+		inv += ratio;
+		inc -= ratio;
+	}
+}
+
 
 int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		double stream_time, rtaudio_stream_status_t status,
@@ -182,6 +201,10 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 
 	if (status == RTAUDIO_STATUS_OUTPUT_UNDERFLOW) {
 		warning("rtaudio: Buffer Underrun\n");
+	}
+
+	if (mono) {
+		downsample_stereo2mono(inBuffer, inBuffer, samples);
 	}
 	
 	for (le = sessionl.head; le; le = le->next) {

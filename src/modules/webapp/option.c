@@ -29,10 +29,10 @@ void webapp_options_set(char *key, char *value)
 #else
 	if (!str_cmp(key, "mono")) {
 		if (!str_cmp(value, "false")) {
-			webapp_mono_set(false);
+			slrtaudio_mono_set(false);
 		}
 		else {
-			webapp_mono_set(true);
+			slrtaudio_mono_set(true);
 		}
 	}
 	if (!str_cmp(key, "record")) {

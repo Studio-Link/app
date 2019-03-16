@@ -53,15 +53,6 @@ int webapp_vu_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc);
 int webapp_vu_decode(struct aufilt_dec_st *st, int16_t *sampv, size_t *sampc);
 
 /*
- * mono.c
- */
-int webapp_mono_encode_update(struct aufilt_enc_st **stp, void **ctx,
-			 const struct aufilt *af, struct aufilt_prm *prm,
-			 const struct audio *au);
-int webapp_mono_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc);
-void webapp_mono_set(bool active);
-
-/*
  * account.c
  */
 int webapp_accounts_init(void);
@@ -150,3 +141,4 @@ int webapp_load_file(struct mbuf *mb, char *filename);
  */
 const struct odict* slrtaudio_get_interfaces(void);
 void slrtaudio_record_set(bool active);
+void slrtaudio_mono_set(bool active);
