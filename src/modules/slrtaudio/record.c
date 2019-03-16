@@ -86,9 +86,13 @@ static int openfile(struct session *sess)
 	re_snprintf(command, sizeof(command), "xdg-open %s",
 			filename);
 #endif
-
-	(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "remote-%H-%x.flac", 
-			filename, timestamp_print, tm, sess);
+	if (sess->local) {
+		(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "local-%H-%x.flac", 
+				filename, timestamp_print, tm, sess);
+	} else {
+		(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "remote-%H-%x.flac", 
+				filename, timestamp_print, tm, sess);
+	}
 
 	//err = system(command);
 

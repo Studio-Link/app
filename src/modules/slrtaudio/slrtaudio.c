@@ -12,7 +12,7 @@
 #include "slrtaudio.h"
 
 enum {
-	MAX_CHANNELS = 5,
+	MAX_REMOTE_CHANNELS = 5,
 	DICT_BSIZE = 32,
 	MAX_LEVELS = 8,
 };
@@ -188,7 +188,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		sess = le->data;
 		msessplay = 0;
 
-		if (!sess->run_play) {
+		if (!sess->run_play || sess->local) {
 			continue;
 		}
 
@@ -200,7 +200,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		sess = le->data;
 		msessplay = 0;
 
-		if (!sess->run_play) {
+		if (!sess->run_play || sess->local) {
 			continue;
 		}
 
@@ -221,7 +221,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		for (mle = sessionl.head; mle; mle = mle->next) {
 			struct session *msess = mle->data;
 
-			if (!msess->run_play || msess == sess) {
+			if (!msess->run_play || msess == sess || sess->local) {
 				continue;
 			}
 			mst_play = msess->st_play;
@@ -240,7 +240,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 
 	for (le = sessionl.head; le; le = le->next) {
 		sess = le->data;
-		if (sess->run_src) {
+		if (sess->run_src && !sess->local) {
 			st_src = sess->st_src;
 
 			for (uint32_t pos = 0; pos < samples; pos++) {
@@ -248,6 +248,11 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 			}
 
 			st_src->rh(st_src->sampv, samples, st_src->arg);
+		}
+
+		if (sess->local) {
+			/* write local audio to flac record buffer */
+			(void)aubuf_write_samp(sess->aubuf, inBuffer, samples);
 		}
 	}
 
@@ -313,7 +318,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	for (le = sessionl.head; le; le = le->next) {
 		struct session *sess = le->data;
 
-		if (!sess->run_src) {
+		if (!sess->run_src && !sess->local) {
 			sess->st_src = mem_zalloc(sizeof(*st_src),
 					ausrc_destructor);
 			if (!sess->st_src)
@@ -367,7 +372,7 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 	for (le = sessionl.head; le; le = le->next) {
 		struct session *sess = le->data;
 
-		if (!sess->run_play) {
+		if (!sess->run_play && !sess->local) {
 			sess->st_play = mem_zalloc(sizeof(*st_play),
 					auplay_destructor);
 
@@ -665,11 +670,19 @@ static int slrtaudio_init(void)
 	if (!playmix)
 		return ENOMEM;
 
-	for (uint32_t cnt = 0; cnt < MAX_CHANNELS; cnt++) {
+
+	sess = mem_zalloc(sizeof(*sess), sess_destruct);
+	if (!sess)
+		return ENOMEM;
+	sess->local = true;
+	list_append(&sessionl, &sess->le, sess);
+
+	for (uint32_t cnt = 0; cnt < MAX_REMOTE_CHANNELS; cnt++) {
 		sess = mem_zalloc(sizeof(*sess), sess_destruct);
 		if (!sess)
 			return ENOMEM;
 
+		sess->local = false;
 		list_append(&sessionl, &sess->le, sess);
 	}
 

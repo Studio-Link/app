@@ -5,6 +5,7 @@ struct session {
 	struct le le;
 	struct ausrc_st *st_src;
 	struct auplay_st *st_play;
+	bool local;
 	bool run_src;
 	bool run_play;
 	bool run_record;
