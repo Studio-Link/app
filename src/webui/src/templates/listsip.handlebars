@@ -14,17 +14,15 @@
 		<tr>
 			<td>{{user}}@{{domain}}</td>
 			{{#if status}}
-				<td><span class="label label-success">Online</span></td>
+				<td><span class="badge badge-success">Online</span></td>
 			{{else}}
-				<td><span class="label label-danger">Offline</span></td>
+				<td><span class="badge badge-danger">Offline</span></td>
 			{{/if}}
 			<td>
 				<p>
-				<button data-user="{{user}}" data-domain="{{domain}}" class="btn btn-default btn-sm editsip">
-					<span style="font-size:1.2em;" class="glyphicon glyphicon-edit"></span>
-				</button>
+				<button data-user="{{user}}" data-domain="{{domain}}" class="btn btn-primary btn-sm editsip"><i class="fas fa-edit"></i></button>
 				<button data-user="{{user}}" data-domain="{{domain}}" class="btn btn-danger btn-sm delete-button deletesip">
-					<span style="font-size:1.2em;" class="glyphicon glyphicon-remove-circle"></span>
+					<i class="fas fa-trash-alt"></i>
 				</button>
 				</p>
 			</td>

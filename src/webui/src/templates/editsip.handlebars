@@ -1,27 +1,18 @@
 <div class="row"> 
 	<div class="col-sm-12"> 
-		<form id="formeditsip" class="form-horizontal" role="form"> 
+		<form id="formeditsip"> 
 			<input name="command" type="hidden" value="addsip" />
 			<div class="form-group"> 
-				<label class="col-sm-4 control-label" for="user">Username</label> 
-				<div class="col-sm-4"> 
-					<input id="user" name="user" type="text" placeholder="Username" value="{{user}}" class="form-control input-md" required autofocus>
-				</div> 
-				<div class="help-block with-errors"></div>
+				<label for="user">Username</label> 
+					<input id="user" name="user" type="text" placeholder="Username" value="{{user}}" class="form-control" required autofocus>
 			</div>
 			<div class="form-group"> 
-				<label class="col-sm-4 control-label" for="domain">Domain</label> 
-				<div class="col-sm-4"> 
-					<input id="domain" name="domain" type="text" placeholder="Domain" value="{{domain}}" class="form-control input-md" required>
-				</div> 
-				<div class="help-block with-errors"></div>
+				<label for="domain">Domain</label> 
+					<input id="domain" name="domain" type="text" placeholder="Domain" value="{{domain}}" class="form-control" required>
 			</div>
 			<div class="form-group"> 
-				<label class="col-sm-4 control-label" for="password">Password</label> 
-				<div class="col-sm-4"> 
-					<input id="password" name="password" type="password" class="form-control input-md">
-				</div> 
-				<div class="help-block with-errors"></div>
+				<label for="password">Password</label> 
+					<input id="password" name="password" type="password" class="form-control">
 			</div>
 		</form> 
 	</div>  

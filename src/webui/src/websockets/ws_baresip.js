@@ -9,12 +9,13 @@ $(function () {
 	}
 
 	function RefreshEventListener() {
-				
+		var addsip = require("../templates/addsip.handlebars");
+		var editsip = require("../templates/editsip.handlebars");
 
 		$( "#buttonaddsip" ).on( "click", function() {
 			bootbox.dialog({
 				title: "Add SIP Account",
-				message: Handlebars.templates.addsip(),
+				message: addsip(),
 				buttons: {
 					close: {
 						label: 'Cancel',
@@ -26,7 +27,7 @@ $(function () {
 						label: "Save",
 						className: "btn-success",
 						callback: function () {
-							if (form_validate('formaddsip')) {
+							if ($("#formaddsip").parsley().validate()) {
 								ws_baresip.send(JSON.stringify($('#formaddsip').serializeObject()));
 							} else {
 								return false;
@@ -36,7 +37,15 @@ $(function () {
 				}
 			}
 			);
+			$("#formaddsip").parsley({
+				errorClass: 'is-invalid text-danger',
+				successClass: 'is-valid', // Comment this option if you don't want the field to become green when valid. Recommended in Google material design to prevent too many hints for user experience. Only report when a field is wrong.
+				errorsWrapper: '<span class="form-text text-danger"></span>',
+				errorTemplate: '<span></span>',
+				trigger: 'change'
+			});
 		});
+
 
 		$( ".deletesip" ).on( "click", function() {
 			ws_baresip_delete_sip($(this).attr('data-user'), $(this).attr('data-domain'));
@@ -44,17 +53,16 @@ $(function () {
 
 		$( ".editsip" ).on( "click", function() {
 			var sip_account_edit = {};
-			for(index in ws_baresip_sip_accounts) {
-				user = ws_baresip_sip_accounts[index]["user"];
-				domain = ws_baresip_sip_accounts[index]["domain"];
+			for(var index in ws_baresip_sip_accounts) {
+				var user = ws_baresip_sip_accounts[index]["user"];
+				var domain = ws_baresip_sip_accounts[index]["domain"];
 				if (domain == $(this).attr('data-domain') && user == $(this).attr('data-user')) {
 					sip_account_edit = ws_baresip_sip_accounts[index];
 				}
 			}
-			ws_baresip_sip_accounts
 			bootbox.dialog({
 				title: "Edit SIP Account",
-				message: Handlebars.templates.editsip(sip_account_edit),
+				message: editsip(sip_account_edit),
 				buttons: {
 					close: {
 						label: 'Cancel',
@@ -66,9 +74,9 @@ $(function () {
 						label: "Save",
 						className: "btn-success",
 						callback: function () {
-							if (form_validate('formeditsip')) {
+							if ($("#formeditsip").parsley().validate()) {
 								ws_baresip_delete_sip(sip_account_edit['user'], sip_account_edit['domain']);
-								sip_account_edit_form = $('#formeditsip').serializeObject();
+								var sip_account_edit_form = $('#formeditsip').serializeObject();
 								if (sip_account_edit_form['password'] == "") {
 									delete sip_account_edit_form['password'];
 								}
@@ -82,6 +90,7 @@ $(function () {
 				}
 			}
 			);
+			$("#formeditsip").parsley();
 		});
 	}
 
