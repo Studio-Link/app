@@ -28,7 +28,8 @@ mix.js([
 mix.sass('src/app.scss', 'dist/')
    .copyWatched('src/index.html', 'dist/')
    .copyDirectory('src/images', 'dist/images')
-   .copy('node_modules/@fortawesome/fontawesome-free/webfonts', 'dist/fonts');
+   .copy('node_modules/@fortawesome/fontawesome-free/webfonts', 'dist/fonts')
+   .copy('src/fonts/*', 'dist/fonts');
 
 
 mix.webpackConfig({

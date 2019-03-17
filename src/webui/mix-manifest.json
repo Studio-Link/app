@@ -1,5 +1,10 @@
 {
     "/dist/app.js": "/dist/app.js",
     "/dist/app.css": "/dist/app.css",
-    "/dist/index.html": "/dist/index.html"
+    "/dist/index.html": "/dist/index.html",
+    "/dist/fonts/Exo_2_500.eot": "/dist/fonts/Exo_2_500.eot",
+    "/dist/fonts/Exo_2_500.svg": "/dist/fonts/Exo_2_500.svg",
+    "/dist/fonts/Exo_2_500.ttf": "/dist/fonts/Exo_2_500.ttf",
+    "/dist/fonts/Exo_2_500.woff": "/dist/fonts/Exo_2_500.woff",
+    "/dist/fonts/Exo_2_500.woff2": "/dist/fonts/Exo_2_500.woff2"
 }
