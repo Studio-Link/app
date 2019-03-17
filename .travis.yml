@@ -73,5 +73,7 @@ arch:
             - perl
             - zip
             - unzip
+            - vim
+            - npm
         script:
             - "./dist/build_windows.sh"
