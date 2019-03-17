@@ -68,12 +68,20 @@ $(function () {
 
 
 
-	$( "#changelog" ).on( "click", function() {
-		bootbox.alert({
-			message: changelog,
-			size: 'large'
-		}
-		);
-	});
 
+
+	$.get( "/version", function( data ) {
+		version = data;
+		version_int = parseInt(version.replace(/[^0-9]+/g, ""));
+
+		$( "#version" ).html( "<a href=\"#\" id=\"changelog\">" +
+			version + "</a>" );
+		$( "#changelog" ).on( "click", function() {
+			bootbox.alert({
+				message: changelog(),
+				size: 'large'
+			}
+			);
+		});
+	});
 });
