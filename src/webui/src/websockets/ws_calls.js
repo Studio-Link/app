@@ -122,15 +122,11 @@ $(function () {
 				}
 
 				if (established_calls) {
-					if ($( "#buttonmute" ).hasClass("hide")) {
-						$( "#buttoncall" ).removeClass("col-xs-12");
-						$( "#buttoncall" ).addClass("col-xs-8");
+					if ($( "#buttonmute" ).hasClass("d-none")) {
 						$( "#buttonmute" ).removeClass("d-none");
 					}
 				} else {
-					if (!$( "#buttonmute" ).hasClass("hide")) {
-						$( "#buttoncall" ).removeClass("col-xs-8");
-						$( "#buttoncall" ).addClass("col-xs-12");
+					if (!$( "#buttonmute" ).hasClass("d-none")) {
 						$( "#buttonmute" ).addClass("d-none");
 					}
 				}

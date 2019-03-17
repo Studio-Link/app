@@ -65,23 +65,25 @@
 					</div><!-- /card -->
 					<div class="card">
 						<div class="card-header">
-							<a role="button" data-toggle="collapse" href="#panel-settings"><b>More...</b></a>
+							<a role="button" data-toggle="collapse" href="#card-settings"><b>More...</b></a>
 						</div>
-						<div id="panel-settings" class="card-body collapse">
-							<ul class="nav nav-tabs">
+						<div id="card-settings" class="card-body collapse">
+							<ul class="nav nav-tabs mb-2" id="panel-settings" role="tablist">
 								<li class="nav-item">
-									<a class="nav-link active" href="#">Contacts</a>
+									<a class="nav-link active" id="contacts-tab" data-toggle="tab" href="#contacts" role="tab" aria-controls="contacts" aria-selected="true">
+										<i class="fas fa-address-book" aria-hidden="true"></i> Contacts
+									</a>
 								</li>
 								<li class="nav-item">
-									<a class="nav-link" href="#">Link</a>
-								</li>
-								<li class="nav-item">
-									<a class="nav-link" href="#">Link</a>
-								</li>
-								<li class="nav-item">
-									<a class="nav-link disabled" href="#">Disabled</a>
+									<a class="nav-link" id="sip-account-tab" data-toggle="tab" href="#accounts" role="tab" aria-controls="sip-accounts" aria-selected="false">
+										<i class="fas fa-phone-square" aria-hidden="true"></i> SIP Accounts
+									</a>
 								</li>
 							</ul>
+							<div class="tab-content" id="card-settings-content">
+								<div class="tab-pane fade show active" id="contacts" role="tabpanel" aria-labelledby="contacts-tab"></div>
+								<div class="tab-pane fade" id="accounts" role="tabpanel" aria-labelledby="sip-account-tab"></div>
+							</div>
 						</div>
 					</div><!-- /card -->
 				</div><!-- /col-8 -->
@@ -102,10 +104,10 @@
 					<select id="current_uag" class="form-control d-none"></select>
 					<div class="clearfix" style="margin: 3px"></div>
 					<div class="btn-group btn-block">
-						<button id="buttoncall" type="button" class="btn btn-primary btn-lg col-xs-12">
+						<button id="buttoncall" type="button" class="btn btn-primary btn-lg">
 							<i class="fa fa-phone" aria-hidden="true" style="transform: rotate(95deg);"></i> <b>Call</b>
 						</button>
-						<button id="buttonmute" type="button" class="btn btn-secondary btn-lg col-xs-4 d-none">
+						<button id="buttonmute" type="button" class="btn btn-secondary btn-lg d-none">
 							<i class="fa fa-microphone-slash" aria-hidden="true"></i> 
 							<span class="d-none d-lg-inline">Mute</span>                                                                                  
 						</button>
