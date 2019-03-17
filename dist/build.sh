@@ -19,6 +19,7 @@ fi
 # Start build
 #-----------------------------------------------------------------------------
 sl_prepare
+sl_build_webui&
 
 sl_extra_lflags="-L ../opus -L ../my_include "
 
@@ -99,6 +100,10 @@ if [ ! -d re-$re ]; then
     mkdir -p my_include/re
     cp -a re/include/* my_include/re/
 fi
+
+# Wait for background process
+#-----------------------------------------------------------------------------
+wait
 
 # Build librem
 #-----------------------------------------------------------------------------
