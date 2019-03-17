@@ -1,6 +1,6 @@
 'use strict';
 $(function () {
-	var ws_options = new WebSocket('ws://'+location.host+'/ws_options');
+	var ws_options = new WebSocket('ws://'+window.ws_host+'/ws_options');
 
 	var bypass = false;
 	var mono = false;
@@ -9,31 +9,33 @@ $(function () {
 	var raisehand = false;
 	var afk = false;
 
+	var hoptions = require("../templates/options.handlebars");
+
 	function RefreshBypass() {
 		if (bypass) {
-			$("#btn-bypass").removeClass("btn-default");
+			$("#btn-bypass").removeClass("btn-secondary");
 			$("#btn-bypass").addClass("btn-danger");
 		} else {
 			$("#btn-bypass").removeClass("btn-danger");
-			$("#btn-bypass").addClass("btn-default");
+			$("#btn-bypass").addClass("btn-secondary");
 		}
 	}
 
 	function RefreshMono() {
 		if (mono) {
-			$("#btn-mono").removeClass("btn-default");
+			$("#btn-mono").removeClass("btn-secondary");
 			$("#btn-mono").addClass("btn-primary");
 
 			$("#btn-stereo").removeClass("btn-primary");
-			$("#btn-stereo").addClass("btn-default");
+			$("#btn-stereo").addClass("btn-secondary");
 
 			$("#btn-stereo").attr("aria-pressed", false);
 			$("#btn-mono").attr("aria-pressed", true);
 		} else {
 			$("#btn-mono").removeClass("btn-primary");
-			$("#btn-mono").addClass("btn-default");
+			$("#btn-mono").addClass("btn-secondary");
 
-			$("#btn-stereo").removeClass("btn-default");
+			$("#btn-stereo").removeClass("btn-secondary");
 			$("#btn-stereo").addClass("btn-primary");
 
 			$("#btn-stereo").attr("aria-pressed", true);
@@ -43,41 +45,41 @@ $(function () {
 
 	function RefreshRecord() {
 		if (record) {
-			$("#btn-record").removeClass("btn-default");
+			$("#btn-record").removeClass("btn-secondary");
 			$("#btn-record").addClass("btn-danger");
 		} else {
 			$("#btn-record").removeClass("btn-danger");
-			$("#btn-record").addClass("btn-default");
+			$("#btn-record").addClass("btn-secondary");
 		}
 	}
 
 	function RefreshOnair() {
 		if (onair) {
-			$("#btn-onair").removeClass("btn-default");
+			$("#btn-onair").removeClass("btn-secondary");
 			$("#btn-onair").addClass("btn-danger");
 		} else {
 			$("#btn-onair").removeClass("btn-danger");
-			$("#btn-onair").addClass("btn-default");
+			$("#btn-onair").addClass("btn-secondary");
 		}
 	}
 
 	function RefreshRaisehand() {
 		if (raisehand) {
-			$("#btn-raise-hand").removeClass("btn-default");
+			$("#btn-raise-hand").removeClass("btn-secondary");
 			$("#btn-raise-hand").addClass("btn-danger");
 		} else {
 			$("#btn-raise-hand").removeClass("btn-danger");
-			$("#btn-raise-hand").addClass("btn-default");
+			$("#btn-raise-hand").addClass("btn-secondary");
 		}
 	}
 
 	function RefreshAFK() {
 		if (afk) {
-			$("#btn-afk").removeClass("btn-default");
+			$("#btn-afk").removeClass("btn-secondary");
 			$("#btn-afk").addClass("btn-danger");
 		} else {
 			$("#btn-afk").removeClass("btn-danger");
-			$("#btn-afk").addClass("btn-default");
+			$("#btn-afk").addClass("btn-secondary");
 		}
 	}
 
@@ -146,7 +148,7 @@ $(function () {
 		delete msg.raisehand;
 		delete msg.afk;
 
-		$( "#options" ).html(Handlebars.templates.options(msg));
+		$( "#options" ).html(hoptions(msg));
 
 		RefreshEventListener();
 	};

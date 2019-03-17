@@ -1,21 +1,3 @@
-require('bootstrap');
-
-var $ = require('jquery');
-window.jQuery = $;
-window.$ = $;
-
-import Parsley from 'parsleyjs'
-
-var bootbox = require('bootbox');
-window.bootbox = bootbox;
-
-var marked = require('marked');
-window.marked = marked;
-
-
-//window.ws_host = location.host;
-window.ws_host = "127.0.0.1:39963";
-var swvariant;
 
 var Handlebars = require('handlebars/runtime');
 
@@ -67,7 +49,7 @@ $(function () {
 
 
 	$.get( "/swvariant", function( data ) {
-		swvariant = data;
+		var swvariant = data;
 
 		if (swvariant == "plugin") {
 			$("#btn-bypass").removeClass("d-none");
@@ -79,7 +61,7 @@ $(function () {
 			$("#btn-stereo").removeClass("d-none");
 			$("#btn-record").removeClass("d-none");
 			$("#btn-onair").removeClass("d-none");
-			//ws_rtaudio_init();
+			ws_rtaudio_init();
 		}
 		window.swvariant = swvariant;
 	});

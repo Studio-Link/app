@@ -1,8 +1,9 @@
 'use strict';
 var audio_config = {};
 
-function ws_rtaudio_init() {
-	var ws_rtaudio = new WebSocket('ws://'+location.host+'/ws_rtaudio');
+window.ws_rtaudio_init = function() {
+	var ws_rtaudio = new WebSocket('ws://'+window.ws_host+'/ws_rtaudio');
+	var audiointerface = require("../templates/audiointerface.handlebars");
 
 	function RefreshEventListener() {
 		$( "#interface_driver" ).on( "change", function() {
@@ -44,14 +45,14 @@ function ws_rtaudio_init() {
 	ws_rtaudio.onmessage = function (message) {
 		audio_config = JSON.parse(message.data);
 		console.log(audio_config);
-		$( ".bootbox-body" ).html(Handlebars.templates.audiointerface(audio_config));
+		$( ".bootbox-body" ).html(audiointerface(audio_config));
 		RefreshEventListener();
 	};
 
 	$( "#btn-interface" ).on( "click", function() {
 		bootbox.dialog({
 			title: "Change audio device",
-			message: Handlebars.templates.audiointerface(audio_config),
+			message: audiointerface(audio_config),
 			buttons: {
 				close: {
 					label: 'Close',
