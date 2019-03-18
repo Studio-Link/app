@@ -19,7 +19,7 @@ fi
 # Start build
 #-----------------------------------------------------------------------------
 sl_prepare
-sl_build_webui&
+sl_build_webui
 
 sl_extra_lflags="-L ../opus -L ../my_include "
 
