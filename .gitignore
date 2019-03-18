@@ -2,3 +2,4 @@
 .vscode
 /src/webui/node_modules
 /src/webui/dist
+/src/webui/headers

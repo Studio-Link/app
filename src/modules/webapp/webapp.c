@@ -130,8 +130,8 @@ static void http_req_handler(struct http_conn *conn,
 	if (0 == pl_strcasecmp(&msg->path, "/")) {
 		http_sreply(conn, 200, "OK",
 				"text/html",
-				(const char*)index_min_html,
-				index_min_html_len);
+				(const char*)dist_index_html,
+				dist_index_html_len);
 
 		return;
 	}
@@ -155,126 +155,117 @@ static void http_req_handler(struct http_conn *conn,
 				strlen(value));
 		return;
 	}
-	if (0 == pl_strcasecmp(&msg->path, "/js/all.js")) {
+	if (0 == pl_strcasecmp(&msg->path, "/app.js")) {
 		http_sreply(conn, 200, "OK",
 				"application/javascript",
-				(const char*)js_all_js,
-				js_all_js_len);
+				(const char*)dist_app_js,
+				dist_app_js_len);
 
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path, "/images/logo.svg")) {
 		http_sreply(conn, 200, "OK",
 				"image/svg+xml",
-				(const char*)images_logo_svg,
-				images_logo_svg_len);
+				(const char*)dist_images_logo_svg,
+				dist_images_logo_svg_len);
 
 		return;
 	}
-	if (0 == pl_strcasecmp(&msg->path, "/css/all.css")) {
+	if (0 == pl_strcasecmp(&msg->path, "/app.css")) {
 		http_sreply(conn, 200, "OK",
 				"text/css",
-				(const char*)css_all_css,
-				css_all_css_len);
+				(const char*)dist_app_css,
+				dist_app_css_len);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
-				"/fonts/glyphicons-halflings-regular.eot")) {
+				"/fonts/fa-regular-400.eot")) {
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
 			    (const char*)
-			    fonts_glyphicons_halflings_regular_eot,
-			    fonts_glyphicons_halflings_regular_eot_len);
+			    dist_fonts_fa_regular_400_eot,
+			    dist_fonts_fa_regular_400_eot_len);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
-				"/fonts/glyphicons-halflings-regular.svg")) {
+				"/fonts/fa-regular-400.svg")) {
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
 			    (const char*)
-			    fonts_glyphicons_halflings_regular_svg,
-			    fonts_glyphicons_halflings_regular_svg_len);
+			    dist_fonts_fa_regular_400_svg,
+			    dist_fonts_fa_regular_400_svg_len);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
-				"/fonts/glyphicons-halflings-regular.ttf")) {
+				"/fonts/fa-regular-400.ttf")) {
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
 			    (const char*)
-			    fonts_glyphicons_halflings_regular_ttf,
-			    fonts_glyphicons_halflings_regular_ttf_len);
+			    dist_fonts_fa_regular_400_ttf,
+			    dist_fonts_fa_regular_400_ttf_len);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
-				"/fonts/glyphicons-halflings-regular.woff")) {
+				"/fonts/fa-regular-400.woff")) {
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
 			    (const char*)
-			    fonts_glyphicons_halflings_regular_woff,
-			    fonts_glyphicons_halflings_regular_woff_len);
+			    dist_fonts_fa_regular_400_woff,
+			    dist_fonts_fa_regular_400_woff_len);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
-				"/fonts/glyphicons-halflings-regular.woff2")) {
+				"/fonts/fa-regular-400.woff2")) {
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
 			    (const char*)
-			    fonts_glyphicons_halflings_regular_woff2,
-			    fonts_glyphicons_halflings_regular_woff2_len);
+			    dist_fonts_fa_regular_400_woff2,
+			    dist_fonts_fa_regular_400_woff2_len);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
-				"/fonts/FontAwesome.otf")) {
+				"/fonts/fa-solid-900.eot")) {
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
 			    (const char*)
-			    fonts_FontAwesome_otf,
-			    fonts_FontAwesome_otf_len);
+			    dist_fonts_fa_solid_900_eot,
+			    dist_fonts_fa_solid_900_eot_len);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
-				"/fonts/fontawesome-webfont.eot")) {
+				"/fonts/fa-solid-900.svg")) {
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
 			    (const char*)
-			    fonts_fontawesome_webfont_eot,
-			    fonts_fontawesome_webfont_eot_len);
+			    dist_fonts_fa_solid_900_svg,
+			    dist_fonts_fa_solid_900_svg_len);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
-				"/fonts/fontawesome-webfont.svg")) {
+				"/fonts/fa-solid-900.ttf")) {
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
 			    (const char*)
-			    fonts_fontawesome_webfont_svg,
-			    fonts_fontawesome_webfont_svg_len);
+			    dist_fonts_fa_solid_900_ttf,
+			    dist_fonts_fa_solid_900_ttf_len);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
-				"/fonts/fontawesome-webfont.ttf")) {
+				"/fonts/fa-solid-900.woff")) {
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
 			    (const char*)
-			    fonts_fontawesome_webfont_ttf,
-			    fonts_fontawesome_webfont_ttf_len);
+			    dist_fonts_fa_solid_900_woff,
+			    dist_fonts_fa_solid_900_woff_len);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
-				"/fonts/fontawesome-webfont.woff")) {
+				"/fonts/fa-solid-900.woff2")) {
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
 			    (const char*)
-			    fonts_fontawesome_webfont_woff,
-			    fonts_fontawesome_webfont_woff_len);
-		return;
-	}
-	if (0 == pl_strcasecmp(&msg->path,
-				"/fonts/fontawesome-webfont.woff2")) {
-		http_sreply(conn, 200, "OK",
-			    "application/octet-stream",
-			    (const char*)
-			    fonts_fontawesome_webfont_woff2,
-			    fonts_fontawesome_webfont_woff2_len);
+			    dist_fonts_fa_solid_900_woff2,
+			    dist_fonts_fa_solid_900_woff2_len);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
@@ -282,8 +273,8 @@ static void http_req_handler(struct http_conn *conn,
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
 			    (const char*)
-			    fonts_Exo_2_500_svg,
-			    fonts_Exo_2_500_svg_len);
+			    dist_fonts_Exo_2_500_svg,
+			    dist_fonts_Exo_2_500_svg_len);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
@@ -291,8 +282,8 @@ static void http_req_handler(struct http_conn *conn,
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
 			    (const char*)
-			    fonts_Exo_2_500_eot,
-			    fonts_Exo_2_500_eot_len);
+			    dist_fonts_Exo_2_500_eot,
+			    dist_fonts_Exo_2_500_eot_len);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
@@ -300,8 +291,8 @@ static void http_req_handler(struct http_conn *conn,
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
 			    (const char*)
-			    fonts_Exo_2_500_woff,
-			    fonts_Exo_2_500_woff_len);
+			    dist_fonts_Exo_2_500_woff,
+			    dist_fonts_Exo_2_500_woff_len);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
@@ -309,8 +300,8 @@ static void http_req_handler(struct http_conn *conn,
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
 			    (const char*)
-			    fonts_Exo_2_500_woff2,
-			    fonts_Exo_2_500_woff2_len);
+			    dist_fonts_Exo_2_500_woff2,
+			    dist_fonts_Exo_2_500_woff2_len);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
@@ -318,8 +309,8 @@ static void http_req_handler(struct http_conn *conn,
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
 			    (const char*)
-			    fonts_Exo_2_500_ttf,
-			    fonts_Exo_2_500_ttf_len);
+			    dist_fonts_Exo_2_500_ttf,
+			    dist_fonts_Exo_2_500_ttf_len);
 		return;
 	}
 
