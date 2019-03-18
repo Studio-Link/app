@@ -21,7 +21,8 @@ mix.js([
 	'src/websockets/ws_calls.js',
 	'src/websockets/ws_meter.js',
 	'src/websockets/ws_contacts.js',
-	'src/websockets/ws_options.js'
+	'src/websockets/ws_options.js',
+	'src/onboarding.js'
 	/*
 	'src/websockets/ws_sipchat.js'*/
 ], 'dist/app.js');
