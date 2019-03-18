@@ -461,6 +461,7 @@ static int http_port(void)
 	struct sa listen;
 	int port = 0;
 	char port_string[10];
+	char bind[256] = "127.0.0.1";
 	int err = 0;
 
 	mb = mbuf_alloc(20);
@@ -480,10 +481,19 @@ static int http_port(void)
 		port = 0;
 	}
 	else {
-		port = atoi((char *)mb->buf);
+		char *str = (char *)mb->buf;
+		char *tmp = strchr(str, ':');
+		if(tmp) {
+			*tmp = 0;
+			strcpy(bind, str);
+			tmp++;
+		} else {
+			tmp = (char *)mb->buf;
+		}
+		port = atoi(tmp);
 	}
 
-	err = sa_set_str(&srv, "127.0.0.1", port);
+	err = sa_set_str(&srv, bind, port);
 
 	err |= http_listen(&httpsock, &srv, http_req_handler, NULL);
 	if (err)
