@@ -37,8 +37,8 @@ sl_build_webui() {
     xxd -i dist/app.css > headers/css.h
     xxd -i dist/app.js > headers/js.h
     xxd -i dist/images/logo.svg > headers/logo.h
-    rm ../../modules/webapp/assets/*.h
-    cp -a headers/*.h ../../modules/webapp/assets/
+    rm ../../src/modules/webapp/assets/*.h
+    cp -a headers/*.h ../../src/modules/webapp/assets/
     popd
 }
 
