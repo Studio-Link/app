@@ -22,6 +22,7 @@ extern struct list sessionl;
 void slrtaudio_record_init(void); 
 void slrtaudio_record_set(bool active);
 void slrtaudio_mono_set(bool active);
+void slrtaudio_mute_set(bool active);
 const struct odict* slrtaudio_get_interfaces(void);
 void slrtaudio_set_driver(int value);
 void slrtaudio_set_input(int value);

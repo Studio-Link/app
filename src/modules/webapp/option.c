@@ -43,6 +43,14 @@ void webapp_options_set(char *key, char *value)
 			slrtaudio_record_set(true);
 		}
 	}
+	if (!str_cmp(key, "mute")) {
+		if (!str_cmp(value, "false")) {
+			slrtaudio_mute_set(false);
+		}
+		else {
+			slrtaudio_mute_set(true);
+		}
+	}
 	if (!str_cmp(key, "onair")) {
 		static struct call *call = NULL;
 		if (!str_cmp(value, "false")) {
@@ -142,6 +150,7 @@ int webapp_options_init(void)
 	odict_entry_del(options, "onair");
 	odict_entry_del(options, "raisehand");
 	odict_entry_del(options, "afk");
+	odict_entry_del(options, "mute");
 
 out:
 	mem_deref(mb);

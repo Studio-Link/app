@@ -83,16 +83,6 @@ $(function () {
 		} else if (msg.callback == "CLOSED") {
 			bootbox.hideAll();
 			$.notify("Call closed: " + msg.message, "warn");
-		} else if (msg.callback == "MUTED") {
-			if ($( "#buttonmute" ).hasClass("btn-primary")) {
-				$( "#buttonmute" ).removeClass("btn-primary");
-				$( "#buttonmute" ).addClass("btn-danger");
-			}
-		} else if (msg.callback == "UNMUTED") {
-			if ($( "#buttonmute" ).hasClass("btn-danger")) {
-				$( "#buttonmute" ).removeClass("btn-danger");
-				$( "#buttonmute" ).addClass("btn-primary");
-			}
 		} else {
 			if (swvariant == "standalone") {
 				for (var key in msg) {
@@ -122,12 +112,12 @@ $(function () {
 				}
 
 				if (established_calls) {
-					if ($( "#buttonmute" ).hasClass("d-none")) {
-						$( "#buttonmute" ).removeClass("d-none");
+					if ($( "#btn-mute" ).hasClass("d-none")) {
+						$( "#btn-mute" ).removeClass("d-none");
 					}
 				} else {
-					if (!$( "#buttonmute" ).hasClass("d-none")) {
-						$( "#buttonmute" ).addClass("d-none");
+					if (!$( "#btn-mute" ).hasClass("d-none")) {
+						$( "#btn-mute" ).addClass("d-none");
 					}
 				}
 			}
@@ -136,11 +126,6 @@ $(function () {
 			RefreshEventListener();
 		}
 	};
-
-	$( "#buttonmute" ).on( "click", function() {
-		ws_calls.send('{"command": "buttonmute", "key": ""}');
-	});
-
 
 	RefreshEventListener();
 });

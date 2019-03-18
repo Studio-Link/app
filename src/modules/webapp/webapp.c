@@ -99,7 +99,6 @@ static void http_req_handler(struct http_conn *conn,
 	if (0 == pl_strcasecmp(&msg->path, "/ws_calls")) {
 		webapp_ws_handler(conn, WS_CALLS, msg, webapp_ws_calls);
 		ws_send_json(WS_CALLS, webapp_calls);
-		webapp_ws_call_mute_send();
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path, "/ws_options")) {

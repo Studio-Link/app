@@ -63,11 +63,18 @@ void webapp_ws_rtaudio_sync(void);
 static int32_t *playmix;
 
 static bool mono = false;
+static bool mute = false;
 
 
 void slrtaudio_mono_set(bool active)
 {
 	mono = active;
+}
+
+
+void slrtaudio_mute_set(bool active)
+{
+	mute = active;
 }
 
 
@@ -205,6 +212,12 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 
 	if (mono) {
 		downsample_stereo2mono(inBuffer, inBuffer, samples);
+	}
+
+	if (mute) {
+		for (uint32_t pos = 0; pos < samples; pos++) {
+			inBuffer[pos] = 0;
+		}
 	}
 	
 	for (le = sessionl.head; le; le = le->next) {

@@ -97,7 +97,6 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 		struct mbuf *mb, void *arg);
 void webapp_ws_calls(const struct websock_hdr *hdr,
 		struct mbuf *mb, void *arg);
-void webapp_ws_call_mute_send(void);
 void webapp_ws_contacts(const struct websock_hdr *hdr,
 		struct mbuf *mb, void *arg);
 void webapp_ws_chat(const struct websock_hdr *hdr,
@@ -142,3 +141,4 @@ int webapp_load_file(struct mbuf *mb, char *filename);
 const struct odict* slrtaudio_get_interfaces(void);
 void slrtaudio_record_set(bool active);
 void slrtaudio_mono_set(bool active);
+void slrtaudio_mute_set(bool active);

@@ -8,6 +8,7 @@ $(function () {
 	var onair = false;
 	var raisehand = false;
 	var afk = false;
+	var mute = false;
 
 	var hoptions = require("../templates/options.handlebars");
 
@@ -53,6 +54,7 @@ $(function () {
 		}
 	}
 
+
 	function RefreshOnair() {
 		if (onair) {
 			$("#btn-onair").removeClass("btn-secondary");
@@ -88,6 +90,16 @@ $(function () {
 			ws_options.send('{"key": "'+$(this).attr('data-option')+'", "value": "'+$(this).attr('data-value')+'"}');
 		});
 
+	}
+
+	function RefreshMute() {
+		if (mute) {
+			$("#btn-mute").removeClass("btn-secondary");
+			$("#btn-mute").addClass("btn-danger");
+		} else {
+			$("#btn-mute").removeClass("btn-danger");
+			$("#btn-mute").addClass("btn-secondary");
+		}
 	}
 
 	ws_options.onmessage = function (message) {
@@ -140,6 +152,14 @@ $(function () {
 			}
 			RefreshAFK();
 		}
+		if (msg.mute) {
+			if (msg.mute == "true") {
+				mute = true;
+			} else {
+				mute = false;
+			}
+			RefreshMute();
+		}
 
 		delete msg.bypass;
 		delete msg.mono;
@@ -147,6 +167,7 @@ $(function () {
 		delete msg.onair;
 		delete msg.raisehand;
 		delete msg.afk;
+		delete msg.mute;
 
 		$( "#options" ).html(hoptions(msg));
 
@@ -206,5 +227,14 @@ $(function () {
 		}
 
 		ws_options.send('{"key": "afk", "value": "'+afk+'"}');
+	});
+	$( "#btn-mute" ).on( "click", function() {
+		if (mute) {
+			mute = false;
+		} else {
+			mute = true;
+		}
+
+		ws_options.send('{"key": "mute", "value": "'+mute+'"}');
 	});
 });
