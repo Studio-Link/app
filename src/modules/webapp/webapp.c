@@ -461,6 +461,7 @@ static int http_port(void)
 	int port = 0;
 	char port_string[10];
 	char bind[256] = "127.0.0.1";
+	char file_contents[256];
 	int err = 0;
 
 	mb = mbuf_alloc(20);
@@ -512,9 +513,10 @@ static int http_port(void)
 	re_snprintf(command, sizeof(command), "xdg-open http://127.0.0.1:%s/",
 			port_string);
 #endif
-	info("http listening on port: %s\n", port_string);
+	info("http listening on ip: %s port: %s\n", bind, port_string);
 
-	webapp_write_file(port_string, filename);
+	re_snprintf(file_contents, sizeof(file_contents), "%s:%s", bind, port_string);
+	webapp_write_file(file_contents, filename);
 
 out:
 	mem_deref(mb);
