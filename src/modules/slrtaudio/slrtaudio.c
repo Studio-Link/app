@@ -626,7 +626,12 @@ static int slrtaudio_start(void)
 {
 	int err = 0;
 	char errmsg[512];
+
+#if defined (DARWIN)
+	unsigned int bufsz = 2048; 
+#else
 	unsigned int bufsz = 1024; 
+#endif
 
 	audio = rtaudio_create(driver);
 	if (rtaudio_error(audio) != NULL) {
