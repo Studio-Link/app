@@ -562,7 +562,7 @@ static int module_init(void)
 	webapp_accounts_init();
 	webapp_contacts_init();
 	webapp_options_init();
-	webapp_chat_init();
+	//webapp_chat_init();
 	webapp_ws_meter_init();
 
 	tmr_init(&tmr);
@@ -590,7 +590,7 @@ static int module_close(void)
 	webapp_accounts_close();
 	webapp_contacts_close();
 	webapp_options_close();
-	webapp_chat_close();
+	//webapp_chat_close();
 #ifndef SLPLUGIN
 	webapp_ws_rtaudio_close();
 	aufilt_unregister(&vumeter);
