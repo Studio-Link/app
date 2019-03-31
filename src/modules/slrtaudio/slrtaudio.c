@@ -651,9 +651,16 @@ static int slrtaudio_start(void)
 		.flags = RTAUDIO_FLAGS_SCHEDULE_REALTIME + RTAUDIO_FLAGS_MINIMIZE_LATENCY,
 	};
 
+#ifdef LINUX
 	rtaudio_open_stream(audio, &out_params, &in_params,
 			RTAUDIO_FORMAT_SINT16, 48000, &bufsz,
 			slrtaudio_callback, NULL, &options, NULL);
+#else
+	rtaudio_open_stream(audio, &out_params, &in_params,
+			RTAUDIO_FORMAT_SINT16, 48000, &bufsz,
+			slrtaudio_callback, NULL, NULL, NULL);
+#endif
+
 	if (rtaudio_error(audio) != NULL) {
 		err = EINVAL;
 		goto out;
