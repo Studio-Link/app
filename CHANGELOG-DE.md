@@ -7,9 +7,7 @@
 - **Generell** Allgemeine Veränderungen
 
 
-### v19.03.0-alpha (xx.xx.2019)
-
-Nicht für den produktiven Einsatz getestet
+### v19.03.0-alpha (31.03.2019)
 
 - **Generell** OpenSSL 1.1.1b
 - **Generell** Opus 1.3
@@ -23,6 +21,7 @@ Nicht für den produktiven Einsatz getestet
 - **Standalone** RtAudio hinzugefügt
 - **Standalone** Auswahl Audio Interface
 - **Standalone** Mehrspurfähig inkl. N-1
+- **Standalone** Mehrspuraufnahme - max. Spuren
 
 
 [Alle Änderungen...](https://github.com/Studio-Link/app/blob/v19.xx.x/CHANGELOG-ARCHIVE-DE.md)

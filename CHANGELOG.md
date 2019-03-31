@@ -7,9 +7,7 @@
 - **Misc** Anything that is left or general.
 
 
-### v19.03.0-alpha (xx.xx.2019)
-
-Not ready for production use
+### v19.03.0-alpha (31.03.2019)
 
 - **Misc** OpenSSL 1.1.1b
 - **Misc** Opus 1.3
@@ -23,6 +21,7 @@ Not ready for production use
 - **Standalone** Add RtAudio 
 - **Standalone** Audio Interface selection
 - **Standalone** Multitrack Feature incl. N-1
+- **Standalone** Multitrack Recording (max. 5 Remot Tracks)
 
 
 

@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-npm run prod
+npm run dev
 rm dist/fonts/fa-brands* || true
 #rm dist/fonts/*.svg || true
 mkdir -p headers
