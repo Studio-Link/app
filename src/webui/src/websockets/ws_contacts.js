@@ -2,6 +2,7 @@
 
 window.ws_contacts_list = {};
 var ws_contacts = new WebSocket('ws://'+window.ws_host+'/ws_contacts');
+window.ws_contacts = ws_contacts;
 var addcontact = require('../templates/addcontact.handlebars');
 var listcontacts = require('../templates/listcontacts.handlebars');
 

@@ -2,6 +2,7 @@
 $(function () {
 
 	function RefreshEventListener() {
+		var addcontact = require("../templates/addcontact.handlebars");
 		$( ".hangup" ).on( "click", function() {
 			ws_calls.send('{"command": "hangup", "key": "'+
 				$(this).attr('data-key')+'"}');
@@ -11,7 +12,7 @@ $(function () {
 		$( ".addcontactshort" ).on( "click", function() {                             
 			bootbox.dialog({       
 				title: "Add Contact",                                          
-				message: Handlebars.templates.addcontact({sip: $(this).attr('data-key')}),          
+				message: addcontact({sip: $(this).attr('data-key')}),          
 				buttons: {     
 					close: {                                               
 						label: 'Cancel',                               
@@ -23,8 +24,8 @@ $(function () {
 						label: "Save",                                 
 						className: "btn-success btn-formaddcontact",                      
 						callback: function () {                        
-							if (form_validate('formaddcontact')) { 
-								ws_contacts.send(JSON.stringify($('#formaddcontact').serializeObject()));                                                     
+							if ($("#formaddcontact").parsley().validate()) { 
+								window.ws_contacts.send(JSON.stringify($('#formaddcontact').serializeObject()));                                                     
 							} else {                               
 								return false;                  
 							}                                      
