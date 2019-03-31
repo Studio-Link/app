@@ -299,7 +299,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 	}
 	
 	for (uint32_t pos = 0; pos < samples; pos++) {
-		*outBuffer++ = playmix[pos];
+		outBuffer[pos] = playmix[pos];
 	}
 
 	//vumeter
@@ -627,11 +627,7 @@ static int slrtaudio_start(void)
 	int err = 0;
 	char errmsg[512];
 
-#if defined (DARWIN)
-	unsigned int bufsz = 2048; 
-#else
 	unsigned int bufsz = 1024; 
-#endif
 
 	audio = rtaudio_create(driver);
 	if (rtaudio_error(audio) != NULL) {
