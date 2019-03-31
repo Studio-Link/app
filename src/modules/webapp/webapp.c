@@ -187,15 +187,6 @@ static void http_req_handler(struct http_conn *conn,
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
-				"/fonts/fa-regular-400.svg")) {
-		http_sreply(conn, 200, "OK",
-			    "application/octet-stream",
-			    (const char*)
-			    dist_fonts_fa_regular_400_svg,
-			    dist_fonts_fa_regular_400_svg_len);
-		return;
-	}
-	if (0 == pl_strcasecmp(&msg->path,
 				"/fonts/fa-regular-400.ttf")) {
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
@@ -232,15 +223,6 @@ static void http_req_handler(struct http_conn *conn,
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
-				"/fonts/fa-solid-900.svg")) {
-		http_sreply(conn, 200, "OK",
-			    "application/octet-stream",
-			    (const char*)
-			    dist_fonts_fa_solid_900_svg,
-			    dist_fonts_fa_solid_900_svg_len);
-		return;
-	}
-	if (0 == pl_strcasecmp(&msg->path,
 				"/fonts/fa-solid-900.ttf")) {
 		http_sreply(conn, 200, "OK",
 			    "application/octet-stream",
@@ -265,15 +247,6 @@ static void http_req_handler(struct http_conn *conn,
 			    (const char*)
 			    dist_fonts_fa_solid_900_woff2,
 			    dist_fonts_fa_solid_900_woff2_len);
-		return;
-	}
-	if (0 == pl_strcasecmp(&msg->path,
-				"/fonts/Exo_2_500.svg")) {
-		http_sreply(conn, 200, "OK",
-			    "application/octet-stream",
-			    (const char*)
-			    dist_fonts_Exo_2_500_svg,
-			    dist_fonts_Exo_2_500_svg_len);
 		return;
 	}
 	if (0 == pl_strcasecmp(&msg->path,
