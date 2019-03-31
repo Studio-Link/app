@@ -2,7 +2,7 @@
 
 npm run dev
 rm dist/fonts/fa-brands* || true
-#rm dist/fonts/*.svg || true
+rm dist/fonts/*.svg || true
 mkdir -p headers
 xxd -i dist/index.html > headers/index_html.h
 find dist/fonts -type f | xargs -I{} xxd -i {} > headers/fonts.h

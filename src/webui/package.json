@@ -15,7 +15,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@fortawesome/fontawesome-free": "^5.7.2",
+    "@fortawesome/fontawesome-free": "^5.8.1",
     "bootbox": "^5.0.1",
     "bootstrap": "^4.3.1",
     "cross-env": "^5.2.0",
@@ -25,13 +25,13 @@
     "laravel-mix": "^4.0.15",
     "laravel-mix-copy-watched": "^2.0.1",
     "marked": "^0.6.1",
-    "parsleyjs": "^2.8.1",
+    "parsleyjs": "^2.8.2",
     "popper.js": "^1.12",
     "resolve-url-loader": "2.3.2",
     "sass": "^1.17.2",
     "sass-loader": "7.*",
-    "shepherd.js": "^2.4.0",
-    "vue-template-compiler": "^2.6.9"
+    "shepherd.js": "^2.5.0",
+    "vue-template-compiler": "^2.6.10"
   },
   "dependencies": {}
 }
