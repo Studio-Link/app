@@ -7,6 +7,11 @@
 - **Generell** Allgemeine Veränderungen
 
 
+### v19.03.1-alpha (xx.04.2019)
+
+- **Generell** SVG Fonts entfernt - kleinere Pakete
+
+
 ### v19.03.0-alpha (31.03.2019)
 
 - **Generell** OpenSSL 1.1.1b

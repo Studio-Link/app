@@ -7,6 +7,11 @@
 - **Misc** Anything that is left or general.
 
 
+### v19.03.1-beta (xx.04.2019)
+
+- **Misc** Cleanup svg fonts - smaller packages
+
+
 ### v19.03.0-alpha (31.03.2019)
 
 - **Misc** OpenSSL 1.1.1b
@@ -21,7 +26,7 @@
 - **Standalone** Add RtAudio 
 - **Standalone** Audio Interface selection
 - **Standalone** Multitrack Feature incl. N-1
-- **Standalone** Multitrack Recording (max. 5 Remot Tracks)
+- **Standalone** Multitrack Recording (max. 5 Remote Tracks)
 
 
 
