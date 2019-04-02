@@ -54,6 +54,7 @@ void webapp_options_set(char *key, char *value)
 	if (!str_cmp(key, "onair")) {
 		static struct call *call = NULL;
 		if (!str_cmp(value, "false")) {
+			call = webapp_get_call("sip:stream@studio-link.de");
 			ua_hangup(uag_current(), call, 0, NULL);
 		}
 		else {
@@ -71,8 +72,7 @@ void webapp_options_set(char *key, char *value)
 			system(command);
 
 			ua_connect(uag_current(), &call, NULL,
-					"stream", VIDMODE_ON);
-
+					"stream@studio-link.de", VIDMODE_OFF);
 		}
 	}
 #endif

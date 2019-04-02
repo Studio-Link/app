@@ -105,3 +105,21 @@ int webapp_load_file(struct mbuf *mb, char *filename)
 
 	return err;
 }
+
+
+struct call* webapp_get_call(char *sid)
+{
+	struct list *calls = ua_calls(uag_current());
+	struct call *call = NULL;
+	struct le *le;
+	char id[64] = {0};
+
+	for (le = list_head(calls); le; le = le->next) {
+		call = le->data;
+		re_snprintf(id, sizeof(id), "%x", call);
+		if (!str_cmp(id, sid))
+			return call;
+	}
+
+	return NULL;
+}
