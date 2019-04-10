@@ -446,7 +446,7 @@ static int http_port(void)
 		goto out;
 
 	if (re_snprintf(filename, sizeof(filename),
-				"%s/http_port", path) < 0)
+				"%s/http_listen", path) < 0)
 		return ENOMEM;
 
 	err = webapp_load_file(mb, filename);
