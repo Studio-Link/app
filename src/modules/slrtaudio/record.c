@@ -110,7 +110,7 @@ static int openfile(struct session *sess)
 	ok &= FLAC__stream_encoder_set_total_samples_estimate(sess->flac, 0);
 
 	/* METADATA */
-	if(ok) {
+	if (ok) {
 		if(
 			(metadata[0] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT)) == NULL ||
 			(metadata[1] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING)) == NULL ||
@@ -130,16 +130,14 @@ static int openfile(struct session *sess)
 	}
 
 	/* initialize encoder */
-	if(ok) {
+	if (ok) {
 		init_status = FLAC__stream_encoder_init_file(sess->flac, filename, NULL, NULL);
 		if(init_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
 			warning("FLAC ERROR: initializing encoder: %s\n", 
-					FLAC__StreamEncoderInitStatusString[init_status]);
+				FLAC__StreamEncoderInitStatusString[init_status]);
 			ok = false;
 		}
 	}
-
-	
 
 	return 0;
 }
@@ -151,7 +149,8 @@ static void *record_thread(void *arg)
 	FLAC__bool ok = true;
 	unsigned i;
 	int ret;
-	
+	FLAC__StreamEncoderState encstate;
+
 	while (sess->run_record) {
 		ret = aubuf_get_samp(sess->aubuf, PTIME, sess->sampv, SAMPC);
 		if (ret) {
@@ -163,23 +162,28 @@ static void *record_thread(void *arg)
 				openfile(sess);
 			}
 
-			for(i = 0; i < SAMPC; i++) {
+			for (i = 0; i < SAMPC; i++) {
 				sess->pcm[i] = (FLAC__int32)sess->sampv[i];
 			}
 
-			ok = FLAC__stream_encoder_process_interleaved(sess->flac, sess->pcm, SAMPC/2);
-			if (!ok) {
-				warning("FLAC ENCODE ERROR: %s\n", 
-						FLAC__StreamEncoderStateString[FLAC__stream_encoder_get_state(sess->flac)]);
-			}
+			ok = FLAC__stream_encoder_process_interleaved(
+					sess->flac, sess->pcm, SAMPC/2);
 
-		} else {
+		}
+		else {
 			if (sess->flac) {
 				FLAC__stream_encoder_finish(sess->flac);
 				FLAC__stream_encoder_delete(sess->flac);
 
 				sess->flac = NULL;
 			}
+		}
+
+		if (!ok) {
+			encstate = FLAC__stream_encoder_get_state(sess->flac);
+			warning("FLAC ENCODE ERROR: %s\n",
+				FLAC__StreamEncoderStateString[encstate]);
+			ok = true;
 		}
 sleep:
 		sys_msleep(5);
@@ -200,6 +204,7 @@ void slrtaudio_record_init(void) {
 		sess->sampv = mem_zalloc(10 * 1920, NULL);
 		aubuf_alloc(&sess->aubuf, 1920 * 10, 1920 * 50);
 		sess->run_record = true;
-		pthread_create(&sess->record_thread, NULL, record_thread, sess);
+		pthread_create(&sess->record_thread, NULL,
+			       record_thread, sess);
 	}
 }
