@@ -59,6 +59,17 @@ tour.addStep('stereo-call-step', {
 	]
 });
 
+tour.on('cancel', function() {
+	localStorage.setItem('slonboarding', 'completed');
+});
+
+tour.on('complete', function() {
+	localStorage.setItem('slonboarding', 'completed');
+});
+
 $(function () {
-	tour.start();
+	var onboarding = localStorage.getItem('slonboarding');
+	if (onboarding != 'completed' ) {
+		tour.start();
+	}
 });
