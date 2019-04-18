@@ -76,6 +76,11 @@ static int openfile(struct session *sess)
 	
 	fs_mkdir(filename, 0700);
 
+	(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "studio-link" DIR_SEP "%H", 
+			buf, timestamp_print, tm);
+	
+	fs_mkdir(filename, 0700);
+
 #if defined (DARWIN)
 	re_snprintf(command, sizeof(command), "open %s",
 			filename);
@@ -87,12 +92,12 @@ static int openfile(struct session *sess)
 			filename);
 #endif
 	if (sess->local) {
-		(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "local-%H-%x.flac", 
-				filename, timestamp_print, tm, sess);
+		(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "local-%x.flac", 
+				filename, sess);
 		err = system(command);
 	} else {
-		(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "remote-%H-%x.flac", 
-				filename, timestamp_print, tm, sess);
+		(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "remote-%x.flac", 
+				filename, sess);
 	}
 
 
