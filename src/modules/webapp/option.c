@@ -144,7 +144,6 @@ int webapp_options_init(void)
 	if (err)
 		goto out;
 	odict_entry_del(options, "bypass");
-	odict_entry_del(options, "mono");
 	odict_entry_del(options, "record");
 	odict_entry_del(options, "auto-mix-n-1");
 	odict_entry_del(options, "onair");
