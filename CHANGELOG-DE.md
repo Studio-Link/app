@@ -9,7 +9,7 @@
 ### v19.04.0-beta (20.04.2019)
 
 - **Standalone** Onboarding wird nach dem ersten Durchlauf bzw. durch das überspringen deaktiviert
-- **Standalone** Die Aufnamen werden nun in einem Unterordner gespeichert
+- **Standalone** Die Aufnahmen werden nun in einem Unterordner gespeichert
 - **Standalone** Die Mono/Stereo Einstellung bleibt beim Neustart erhalten
 - **Standalone** UTF-8 Support für macOS Audiogeräte
 
