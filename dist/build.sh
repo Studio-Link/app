@@ -42,7 +42,7 @@ if [ ! -d rtaudio-${rtaudio} ]; then
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
         ./autogen.sh --with-alsa --with-pulse
     else
-        export CXXFLAGS="-Wno-deprecated"
+        export CXXFLAGS="-Wno-deprecated -DUNICODE"
         sudo mkdir -p /usr/local/Library/ENV/4.3
         sudo ln -s $(which sed) /usr/local/Library/ENV/4.3/sed
         ./autogen.sh --with-core
