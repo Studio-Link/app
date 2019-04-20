@@ -6,10 +6,19 @@
 - **Box** Modifikationen der "orangenen" Box (Software)
 - **Generell** Allgemeine Veränderungen
 
+### v19.04.0-beta (20.04.2019)
 
-### v19.03.1-alpha (xx.04.2019)
+- **Standalone** Onboarding wird nach dem ersten Durchlauf bzw. durch das überspringen deaktiviert
+- **Standalone** Die Aufnamen werden nun in einem Unterordner gespeichert
+- **Standalone** Die Mono/Stereo Einstellung bleibt beim Neustart erhalten
+- **Standalone** UTF-8 Support für macOS Audiogeräte
+
+
+### v19.03.1-alpha (04.04.2019)
 
 - **Generell** SVG Fonts entfernt - kleinere Pakete
+- **Standalone** OnAir stürzte ab wenn kein anderer Call aktiv war 
+- **Standalone** Alte Studio Link Standalone Versionen funktionierten nach dem ausführen nicht mehr 
 
 
 ### v19.03.0-alpha (31.03.2019)
