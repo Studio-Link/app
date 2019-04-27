@@ -49,7 +49,7 @@ static int openfile(struct session *sess)
 	time_t tnow = time(0);
 	struct tm *tm = localtime(&tnow);
 	FLAC__bool ok = true;
-	FLAC__StreamMetadata *metadata[2];
+	FLAC__StreamMetadata *meta[2];
 	FLAC__StreamEncoderInitStatus init_status;
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
 	int err;
@@ -71,14 +71,15 @@ static int openfile(struct session *sess)
 #endif
 
 
-	(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "studio-link", 
-			buf, timestamp_print, tm);
-	
+	(void)re_snprintf(filename, sizeof(filename), "%s"
+			DIR_SEP "studio-link", buf, timestamp_print, tm);
+
 	fs_mkdir(filename, 0700);
 
-	(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "studio-link" DIR_SEP "%H", 
-			buf, timestamp_print, tm);
-	
+	(void)re_snprintf(filename, sizeof(filename), "%s"
+			DIR_SEP "studio-link"
+			DIR_SEP "%H", buf, timestamp_print, tm);
+
 	fs_mkdir(filename, 0700);
 
 #if defined (DARWIN)
@@ -92,19 +93,20 @@ static int openfile(struct session *sess)
 			filename);
 #endif
 	if (sess->local) {
-		(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "local-%x.flac", 
-				filename, sess);
+		(void)re_snprintf(filename, sizeof(filename), "%s"
+				DIR_SEP "local-%x.flac", filename, sess);
 		err = system(command);
-	} else {
-		(void)re_snprintf(filename, sizeof(filename), "%s" DIR_SEP "remote-%x.flac", 
-				filename, sess);
+	}
+	else {
+		(void)re_snprintf(filename, sizeof(filename), "%s"
+				DIR_SEP "remote-%x.flac", filename, sess);
 	}
 
 
 	/* Basic Encoder */
 	if((sess->flac = FLAC__stream_encoder_new()) == NULL) {
-		warning("ERROR: allocating FLAC encoder\n");
-		return 1;
+		error_msg("ERROR: allocating FLAC encoder\n");
+		return ENOMEM;
 	}
 
 	ok &= FLAC__stream_encoder_set_verify(sess->flac, true);
@@ -114,34 +116,42 @@ static int openfile(struct session *sess)
 	ok &= FLAC__stream_encoder_set_sample_rate(sess->flac, 48000);
 	ok &= FLAC__stream_encoder_set_total_samples_estimate(sess->flac, 0);
 
-	/* METADATA */
-	if (ok) {
-		if(
-			(metadata[0] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT)) == NULL ||
-			(metadata[1] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING)) == NULL ||
-			/* there are many tag (vorbiscomment) functions but these are convenient for this particular use: */
-			!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, "ARTIST", "STUDIO LINK") ||
-			!FLAC__metadata_object_vorbiscomment_append_comment(metadata[0], entry, /*copy=*/false) || /* copy=false: let metadata object take control of entry's allocated       string */
-			!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, "YEAR", "2017") ||
-			!FLAC__metadata_object_vorbiscomment_append_comment(metadata[0], entry, /*copy=*/false)
-		) {
-			warning("FLAC METADATA ERROR: out of memory or tag error\n");
-			ok = false;
-		}
-
-		metadata[1]->length = 1234; /* set the padding length */
-
-		ok = FLAC__stream_encoder_set_metadata(sess->flac, metadata, 2);
+	if (!ok) {
+		error_msg("Error: FLAC__stream_encoder_set\n");
+		return EINVAL;
 	}
 
-	/* initialize encoder */
-	if (ok) {
-		init_status = FLAC__stream_encoder_init_file(sess->flac, filename, NULL, NULL);
-		if(init_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
-			warning("FLAC ERROR: initializing encoder: %s\n", 
-				FLAC__StreamEncoderInitStatusString[init_status]);
-			ok = false;
-		}
+	/* METADATA */
+	meta[0] = FLAC__metadata_object_new(
+			FLAC__METADATA_TYPE_VORBIS_COMMENT);
+	meta[1] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING);
+
+	ok = FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(
+			&entry, "ENCODED_BY", "STUDIO LINK");
+
+	ok &= FLAC__metadata_object_vorbiscomment_append_comment(
+			meta[0], entry, /*copy=*/false);
+
+	if (!ok) {
+		error_msg("FLAC METADATA ERROR: out of memory or tag error\n");
+		return ENOMEM;
+	}
+
+	meta[1]->length = 1234; /* padding length */
+
+	ok = FLAC__stream_encoder_set_metadata(sess->flac, meta, 2);
+
+	if (!ok) {
+		error_msg("Error: FLAC__stream_encoder_set_metadata\n");
+		return ENOMEM;
+	}
+
+	init_status = FLAC__stream_encoder_init_file(sess->flac, filename,
+						     NULL, NULL);
+
+	if (init_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
+		error_msg("FLAC ERROR: initializing encoder: %s\n",
+			  FLAC__StreamEncoderInitStatusString[init_status]);
 	}
 
 	return 0;
@@ -164,7 +174,11 @@ static void *record_thread(void *arg)
 
 		if (record) {
 			if (!sess->flac) {
-				openfile(sess);
+				ret = openfile(sess);
+				if (ret) {
+					error_msg("FLAC open file error\n");
+					return NULL;
+				}
 			}
 
 			for (i = 0; i < SAMPC; i++) {
