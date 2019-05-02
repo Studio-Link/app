@@ -23,6 +23,7 @@ enum webapp_call_state webapp_call_status = WS_CALL_OFF;
 static char webapp_call_json[150] = {0};
 struct odict *webapp_calls = NULL;
 static char command[100] = {0};
+static bool auto_answer = false;
 
 #ifndef SLPLUGIN
 static struct aufilt vumeter = {
@@ -373,14 +374,19 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 	switch (ev) {
 		case UA_EVENT_CALL_INCOMING:
 			ua_event_current_set(ua);
-			re_snprintf(webapp_call_json, sizeof(webapp_call_json),
-					"{ \"callback\": \"INCOMING\",\
-					\"peeruri\": \"%s\",\
-					\"key\": \"%x\" }",
-					call_peeruri(call), call);
-			webapp_call_update(call, "Incoming");
-			ws_send_all(WS_CALLS, webapp_call_json);
-			webapp_call_status = WS_CALL_RINGING;
+			if(!auto_answer) {
+				re_snprintf(webapp_call_json, sizeof(webapp_call_json),
+						"{ \"callback\": \"INCOMING\",\
+						\"peeruri\": \"%s\",\
+						\"key\": \"%x\" }",
+						call_peeruri(call), call);
+				webapp_call_update(call, "Incoming");
+				ws_send_all(WS_CALLS, webapp_call_json);
+				webapp_call_status = WS_CALL_RINGING;
+			} else {
+				debug("auto answering call\n");
+				ua_answer(uag_current(), call);
+			}
 			break;
 
 		case UA_EVENT_CALL_ESTABLISHED:
@@ -446,7 +452,7 @@ static int http_port(void)
 		goto out;
 
 	if (re_snprintf(filename, sizeof(filename),
-				"%s/http_listen", path) < 0)
+				"%s/webapp.conf", path) < 0)
 		return ENOMEM;
 
 	err = webapp_load_file(mb, filename);
@@ -455,15 +461,26 @@ static int http_port(void)
 	}
 	else {
 		char *str = (char *)mb->buf;
-		char *tmp = strchr(str, ':');
-		if(tmp) {
-			*tmp = 0;
-			strcpy(bind, str);
-			tmp++;
-		} else {
-			tmp = (char *)mb->buf;
-		}
-		port = atoi(tmp);
+		char *p, *temp;
+		p = strtok_r(str, "\n", &temp);
+		do {
+			char *tok_temp;
+			char *tok = strtok_r(p, " ", &tok_temp);
+			char *val = strtok_r(NULL, " ", &tok_temp);
+			if(tok && val) {
+				if(!strcasecmp(tok, "http_listen")) {
+					char *tmp = strchr(val, ':');
+					if(tmp) {
+						*tmp = 0;
+						strcpy(bind, val);
+						tmp++;
+					}
+					port = atoi(tmp);
+				} else if(!strcasecmp(tok, "auto_answer")) {
+					auto_answer=atoi(val);
+				}
+			}
+		} while ((p = strtok_r(NULL, "\n", &temp)) != NULL);
 	}
 
 	err = sa_set_str(&srv, bind, port);
@@ -488,7 +505,7 @@ static int http_port(void)
 #endif
 	info("http listening on ip: %s port: %s\n", bind, port_string);
 
-	re_snprintf(file_contents, sizeof(file_contents), "%s:%s", bind, port_string);
+	re_snprintf(file_contents, sizeof(file_contents), "http_listen %s:%s\nauto_answer %d\n", bind, port_string, auto_answer);
 	webapp_write_file(file_contents, filename);
 
 out:
