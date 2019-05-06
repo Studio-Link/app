@@ -11,6 +11,16 @@ if [ "$BUILD_OS" == "ccheck" ]; then
     exit 0
 fi
 
+if [ "$BUILD_OS" == "linuxarm" ]; then
+    pwd
+    git clone https://github.com/raspberrypi/tools rpi-tools
+    export PATH=$PATH:$HOME/rpi-tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
+    export ARCH=arm
+    export CCPREFIX=$HOME/rpi-tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-
+    export CC=arm-linux-gnueabihf-gcc
+    export RPI_CROSS_COMPILE=true
+fi
+
 if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
     curl -s https://raw.githubusercontent.com/studio-link-3rdparty/arch-travis/master/arch-travis.sh | bash
     exit 0
