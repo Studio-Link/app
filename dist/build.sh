@@ -12,8 +12,7 @@ if [ "$BUILD_OS" == "ccheck" ]; then
 fi
 
 if [ "$BUILD_OS" == "linuxarm" ]; then
-    pwd
-    git clone https://github.com/raspberrypi/tools rpi-tools
+    git clone https://github.com/raspberrypi/tools $HOME/rpi-tools
     export PATH=$PATH:$HOME/rpi-tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
     export ARCH=arm
     export CCPREFIX=$HOME/rpi-tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-
