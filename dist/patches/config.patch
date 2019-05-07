@@ -59,7 +59,7 @@ diff -ru a/src/config.c b/src/config.c
  	{
  		120,
 -		4
-+		10
++		15
  	},
  
  	/** Audio */

@@ -51,6 +51,7 @@ env:
     - BUILD_OS="windows64"
     - BUILD_OS="windows32"
     - BUILD_OS="linux"         
+    - BUILD_OS="linuxarm"         
     - BUILD_OS="osx"
     - BUILD_OS="ccheck"
 
@@ -62,6 +63,8 @@ matrix:
             env: BUILD_OS="windows64"
           - os: osx          
             env: BUILD_OS="linux"         
+          - os: osx          
+            env: BUILD_OS="linuxarm"         
           - os: osx          
             env: BUILD_OS="ccheck"         
           - os: linux          
