@@ -92,12 +92,13 @@ sl_get_baresip() {
     wget "https://github.com/alfredh/baresip/archive/v${baresip}.tar.gz" -O baresip-${baresip}.tar.gz
     tar -xzf baresip-${baresip}.tar.gz
     ln -s baresip-$baresip baresip
-    cp -a baresip-$baresip/include/baresip.h my_include/
     pushd baresip-$baresip
 
     ## Add patches
     patch -p1 < ../../dist/patches/config.patch
     patch -p1 < ../../dist/patches/osx_sample_rate.patch
+
+    cp -a baresip-$baresip/include/baresip.h my_include/
 
     #fixes multiple maxaverage lines in fmtp e.g.: 
     #fmtp: stereo=1;sprop-stereo=1;maxaveragebitrate=64000;maxaveragebitrate=64000;
