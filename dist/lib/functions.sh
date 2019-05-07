@@ -98,7 +98,7 @@ sl_get_baresip() {
     patch -p1 < ../../dist/patches/config.patch
     patch -p1 < ../../dist/patches/osx_sample_rate.patch
 
-    cp -a baresip-$baresip/include/baresip.h my_include/
+    cp -a include/baresip.h ../my_include/
 
     #fixes multiple maxaverage lines in fmtp e.g.: 
     #fmtp: stereo=1;sprop-stereo=1;maxaveragebitrate=64000;maxaveragebitrate=64000;
