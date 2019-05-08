@@ -463,24 +463,26 @@ static int http_port(void)
 		char *str = (char *)mb->buf;
 		char *p, *temp;
 		p = strtok_r(str, "\n", &temp);
-		do {
-			char *tok_temp;
-			char *tok = strtok_r(p, " ", &tok_temp);
-			char *val = strtok_r(NULL, " ", &tok_temp);
-			if(tok && val) {
-				if(!strcasecmp(tok, "http_listen")) {
-					char *tmp = strchr(val, ':');
-					if(tmp) {
-						*tmp = 0;
-						strcpy(bind, val);
-						tmp++;
+		if(p) {
+			do {
+				char *tok_temp;
+				char *tok = strtok_r(p, " ", &tok_temp);
+				char *val = strtok_r(NULL, " ", &tok_temp);
+				if(tok && val) {
+					if(!strcasecmp(tok, "http_listen")) {
+						char *tmp = strchr(val, ':');
+						if(tmp) {
+							*tmp = 0;
+							strcpy(bind, val);
+							tmp++;
+						}
+						port = atoi(tmp);
+					} else if(!strcasecmp(tok, "auto_answer")) {
+						auto_answer=atoi(val);
 					}
-					port = atoi(tmp);
-				} else if(!strcasecmp(tok, "auto_answer")) {
-					auto_answer=atoi(val);
 				}
-			}
-		} while ((p = strtok_r(NULL, "\n", &temp)) != NULL);
+			} while ((p = strtok_r(NULL, "\n", &temp)) != NULL);
+		}
 	}
 
 	err = sa_set_str(&srv, bind, port);
