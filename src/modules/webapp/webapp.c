@@ -23,7 +23,6 @@ enum webapp_call_state webapp_call_status = WS_CALL_OFF;
 static char webapp_call_json[150] = {0};
 struct odict *webapp_calls = NULL;
 static char command[100] = {0};
-static bool auto_answer = false;
 
 #ifndef SLPLUGIN
 static struct aufilt vumeter = {
@@ -374,19 +373,14 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 	switch (ev) {
 		case UA_EVENT_CALL_INCOMING:
 			ua_event_current_set(ua);
-			if(!auto_answer) {
-				re_snprintf(webapp_call_json, sizeof(webapp_call_json),
-						"{ \"callback\": \"INCOMING\",\
-						\"peeruri\": \"%s\",\
-						\"key\": \"%x\" }",
-						call_peeruri(call), call);
-				webapp_call_update(call, "Incoming");
-				ws_send_all(WS_CALLS, webapp_call_json);
-				webapp_call_status = WS_CALL_RINGING;
-			} else {
-				debug("auto answering call\n");
-				ua_answer(uag_current(), call);
-			}
+			re_snprintf(webapp_call_json, sizeof(webapp_call_json),
+					"{ \"callback\": \"INCOMING\",\
+					\"peeruri\": \"%s\",\
+					\"key\": \"%x\" }",
+					call_peeruri(call), call);
+			webapp_call_update(call, "Incoming");
+			ws_send_all(WS_CALLS, webapp_call_json);
+			webapp_call_status = WS_CALL_RINGING;
 			break;
 
 		case UA_EVENT_CALL_ESTABLISHED:
@@ -452,7 +446,7 @@ static int http_port(void)
 		goto out;
 
 	if (re_snprintf(filename, sizeof(filename),
-				"%s/webapp.conf", path) < 0)
+				"%s/http_listen", path) < 0)
 		return ENOMEM;
 
 	err = webapp_load_file(mb, filename);
@@ -507,7 +501,7 @@ static int http_port(void)
 #endif
 	info("http listening on ip: %s port: %s\n", bind, port_string);
 
-	re_snprintf(file_contents, sizeof(file_contents), "http_listen %s:%s\nauto_answer %d\n", bind, port_string, auto_answer);
+	re_snprintf(file_contents, sizeof(file_contents), "%s:%s", bind, port_string);
 	webapp_write_file(file_contents, filename);
 
 out:
