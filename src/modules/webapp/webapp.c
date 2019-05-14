@@ -495,7 +495,7 @@ static int http_port(void)
 				char *tok = my_strtok_r(p, " ", &tok_temp);
 				char *val = my_strtok_r(NULL, " ", &tok_temp);
 				if(tok && val) {
-					if(!strcasecmp(tok, "http_listen")) {
+					if(!str_cmp(tok, "http_listen")) {
 						char *tmp = strchr(val, ':');
 						if(tmp) {
 							*tmp = 0;
@@ -503,7 +503,7 @@ static int http_port(void)
 							tmp++;
 						}
 						port = atoi(tmp);
-					} else if(!strcasecmp(tok, "auto_answer")) {
+					} else if(!str_cmp(tok, "auto_answer")) {
 						auto_answer=atoi(val);
 					}
 				}
