@@ -429,6 +429,32 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 	}
 }
 
+static char * my_strtok_r (char *s, const char *delim, char **save_ptr)
+{
+	char *end;
+	if (s == NULL)
+		s = *save_ptr;
+	if (*s == '\0') {
+		*save_ptr = s;
+		return NULL;
+	}
+	/* Scan leading delimiters.  */
+	s += strspn (s, delim);
+	if (*s == '\0') {
+		*save_ptr = s;
+		return NULL;
+	}
+	/* Find the end of the token.  */
+	end = s + strcspn (s, delim);
+	if (*end == '\0') {
+		*save_ptr = end;
+		return s;
+	}
+	/* Terminate the token and make *SAVE_PTR point past it.  */
+	*end = '\0';
+	*save_ptr = end + 1;
+	return s;
+}
 
 static int http_port(void)
 {
@@ -462,12 +488,12 @@ static int http_port(void)
 	else {
 		char *str = (char *)mb->buf;
 		char *p, *temp;
-		p = strtok_r(str, "\n", &temp);
+		p = my_strtok_r(str, "\n", &temp);
 		if(p) {
 			do {
 				char *tok_temp;
-				char *tok = strtok_r(p, " ", &tok_temp);
-				char *val = strtok_r(NULL, " ", &tok_temp);
+				char *tok = my_strtok_r(p, " ", &tok_temp);
+				char *val = my_strtok_r(NULL, " ", &tok_temp);
 				if(tok && val) {
 					if(!strcasecmp(tok, "http_listen")) {
 						char *tmp = strchr(val, ':');
@@ -481,7 +507,7 @@ static int http_port(void)
 						auto_answer=atoi(val);
 					}
 				}
-			} while ((p = strtok_r(NULL, "\n", &temp)) != NULL);
+			} while ((p = my_strtok_r(NULL, "\n", &temp)) != NULL);
 		}
 	}
 
