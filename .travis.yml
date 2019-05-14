@@ -51,9 +51,9 @@ env:
     - BUILD_OS="windows64"
     - BUILD_OS="windows32"
     - BUILD_OS="linux"         
-    - BUILD_OS="linuxarm"         
     - BUILD_OS="osx"
     - BUILD_OS="ccheck"
+#   - BUILD_OS="linuxarm"         
 
 matrix:              
         exclude:            
