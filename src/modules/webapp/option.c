@@ -151,6 +151,8 @@ int webapp_options_init(void)
 	odict_entry_del(options, "afk");
 	odict_entry_del(options, "mute");
 
+	webapp_options_set("mono", webapp_options_getv("mono"));
+
 out:
 	mem_deref(mb);
 	return err;
