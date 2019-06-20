@@ -19,12 +19,16 @@ before_install:
 
 jobs:
   include:
+    - stage: test
+      name: "Build App"
+      script: "./dist/build.sh"
     - stage: webui
       script: "./dist/build_webui.sh"
       env:
-        - WEBUI="true"
-    - stage: app
-      script: "./dist/build.sh"
+        - BUILD_OS="linux"
+stages:
+  - webui
+  - test
 
 deploy:
   - provider: releases
@@ -74,12 +78,6 @@ matrix:
             env: BUILD_OS="linuxarm"         
           - os: osx          
             env: BUILD_OS="ccheck"         
-          - os: osx          
-            env: WEBUI="true"
-          - os: linux        
-            env: WEBUI="true" BUILD_OS="windows64"
-          - os: linux        
-            env: WEBUI="true" BUILD_OS="windows32"
           - os: linux          
             env: BUILD_OS="osx"
 
