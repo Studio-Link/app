@@ -6,7 +6,7 @@ source dist/lib/versions.sh
 source dist/lib/functions.sh
 
 sl_prepare
-sl_build_webui&
+#sl_build_webui&
 
 make_opts="-j4"
 
@@ -85,10 +85,6 @@ if [ ! -d opus-$opus ]; then
     mkdir opus; cp opus-$opus/build/.libs/libopus.a opus/
     cp -a opus-$opus/include/*.h opus/
 fi
-
-# Wait for background processes
-#-----------------------------------------------------------------------------
-wait
 
 # Download libre
 #-----------------------------------------------------------------------------
