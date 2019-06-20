@@ -12,7 +12,7 @@
 #include "slrtaudio.h"
 
 enum {
-	MAX_REMOTE_CHANNELS = 11,
+	MAX_REMOTE_CHANNELS = 6,
 	DICT_BSIZE = 32,
 	MAX_LEVELS = 8,
 };
