@@ -128,6 +128,8 @@ fi
 # Build
 #-----------------------------------------------------------------------------
 
+sl_get_webui
+
 cp -a ../dist/windows/Makefile .
 make openssl
 make

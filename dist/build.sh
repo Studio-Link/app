@@ -121,6 +121,7 @@ fi
 # Build baresip with studio link addons
 #-----------------------------------------------------------------------------
 if [ ! -d baresip-$baresip ]; then
+    sl_get_webui
     sl_get_baresip
 
     pushd baresip-$baresip

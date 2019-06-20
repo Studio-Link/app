@@ -26,6 +26,12 @@ sl_prepare() {
     SHASUM=$(which shasum)
 }
 
+sl_get_webui() {
+    s3_path="$TRAVIS_BRANCH/$version_t"
+    wget https://s3.eu-central-1.amazonaws.com/studio-link-artifacts/$s3_path/webui.zip
+    unzip webui.zip
+}
+
 sl_build_webui() {
     cp -a ../src/webui .
     pushd webui
