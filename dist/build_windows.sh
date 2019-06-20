@@ -6,7 +6,6 @@ source dist/lib/versions.sh
 source dist/lib/functions.sh
 
 sl_prepare
-#sl_build_webui&
 
 make_opts="-j4"
 
@@ -128,7 +127,6 @@ fi
 # Build
 #-----------------------------------------------------------------------------
 
-sl_get_webui
 
 cp -a ../dist/windows/Makefile .
 make openssl

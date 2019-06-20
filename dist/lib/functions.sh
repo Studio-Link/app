@@ -94,6 +94,7 @@ sl_get_librem() {
 }
 
 sl_get_baresip() {
+    sl_get_webui
     #wget https://github.com/Studio-Link/baresip/archive/$baresip.tar.gz
     wget "https://github.com/alfredh/baresip/archive/v${baresip}.tar.gz" -O baresip-${baresip}.tar.gz
     tar -xzf baresip-${baresip}.tar.gz
@@ -117,6 +118,7 @@ sl_get_baresip() {
     cp -a ../../src/modules/effectonair modules/effectonair
     cp -a ../../src/modules/apponair modules/apponair
     cp -a ../../src/modules/slrtaudio modules/slrtaudio
+
 
     sed $sed_opt s/SLVERSION_T/$version_t/ modules/webapp/webapp.c
     popd
