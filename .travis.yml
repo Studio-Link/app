@@ -8,8 +8,8 @@ services:
 language: c
 
 os:
-  - osx
   - linux
+  - osx
 
 osx_image: xcode7.3
 
@@ -17,11 +17,10 @@ before_install:
   - sudo ./dist/before_build.sh
   - "./dist/before_build.sh"
 
+script: "./dist/build.sh"
+
 jobs:
   include:
-    - stage: test
-      name: "Build App"
-      script: "./dist/build.sh"
     - stage: webui
       script: "./dist/build_webui.sh"
       env:
