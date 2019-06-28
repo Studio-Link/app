@@ -158,6 +158,7 @@ static int openfile(struct session *sess)
 }
 
 
+void webapp_options_set(char *key, char *value);
 static void *record_thread(void *arg)
 {
 	struct session *sess = arg;
@@ -177,7 +178,8 @@ static void *record_thread(void *arg)
 				ret = openfile(sess);
 				if (ret) {
 					error_msg("FLAC open file error\n");
-					return NULL;
+					webapp_options_set("record", "false");
+					continue;
 				}
 			}
 
