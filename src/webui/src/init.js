@@ -1,4 +1,5 @@
 require('bootstrap');
+require('./icons');
 
 var $ = require('jquery');
 window.jQuery = $;

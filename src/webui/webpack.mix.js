@@ -1,5 +1,6 @@
 let mix = require('laravel-mix');
 require('laravel-mix-copy-watched');
+require('laravel-mix-purgecss');
 
 /*
  |--------------------------------------------------------------------------
@@ -23,16 +24,16 @@ mix.js([
 	'src/websockets/ws_contacts.js',
 	'src/websockets/ws_options.js',
 	'src/onboarding.js'
-	/*
-	'src/websockets/ws_sipchat.js'*/
 ], 'dist/app.js');
 
 mix.sass('src/app.scss', 'dist/')
+   .purgeCss({
+		enabled: mix.inProduction(),
+		folders: ['src', 'node_modules/bootbox/dist'],
+		extensions: ['html', 'js', 'handlebars', 'vue'],
+   })
    .copyWatched('src/index.html', 'dist/')
-   .copyDirectory('src/images', 'dist/images')
-   .copy('node_modules/@fortawesome/fontawesome-free/webfonts', 'dist/fonts')
-   .copy('src/fonts/*', 'dist/fonts');
-
+   .copyDirectory('src/images', 'dist/images');
 
 mix.webpackConfig({
 	module: {
