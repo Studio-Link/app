@@ -10,7 +10,6 @@
 #include "assets/index_html.h"
 #include "assets/js.h"
 #include "assets/css.h"
-#include "assets/fonts.h"
 #include "assets/logo.h"
 #include "webapp.h"
 
