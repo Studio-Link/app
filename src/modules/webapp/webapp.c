@@ -377,7 +377,7 @@ static int http_port(void)
 	}
 	else {
 		char *str = (char *)mb->buf;
-		char *p, *temp;
+		char *p, *temp = {0};
 		p = my_strtok_r(str, "\n", &temp);
 		if(p) {
 			do {
