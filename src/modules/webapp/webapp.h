@@ -49,8 +49,8 @@ int webapp_vu_encode_update(struct aufilt_enc_st **stp, void **ctx,
 int webapp_vu_decode_update(struct aufilt_dec_st **stp, void **ctx,
 			 const struct aufilt *af, struct aufilt_prm *prm,
 			 const struct audio *au);
-int webapp_vu_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc);
-int webapp_vu_decode(struct aufilt_dec_st *st, int16_t *sampv, size_t *sampc);
+int webapp_vu_encode(struct aufilt_enc_st *st, void *sampv, size_t *sampc);
+int webapp_vu_decode(struct aufilt_dec_st *st, void *sampv, size_t *sampc);
 
 /*
  * account.c

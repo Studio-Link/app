@@ -94,7 +94,7 @@ static void convert_float(int16_t *sampv, float *f_sampv, size_t sampc)
 
 }
 
-int webapp_vu_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc)
+int webapp_vu_encode(struct aufilt_enc_st *st, void *sampv, size_t *sampc)
 {
 #if 0
 	//disabled, now handled by slrtaudio
@@ -109,7 +109,7 @@ int webapp_vu_encode(struct aufilt_enc_st *st, int16_t *sampv, size_t *sampc)
 }
 
 
-int webapp_vu_decode(struct aufilt_dec_st *st, int16_t *sampv, size_t *sampc)
+int webapp_vu_decode(struct aufilt_dec_st *st, void *sampv, size_t *sampc)
 {
 	struct vumeter_dec *vu = (struct vumeter_dec *)st;
 	float f_sampv[*sampc];
