@@ -114,7 +114,7 @@ int webapp_chat_init(void)
 {
 	int err = 0;
 	err = message_listen(&message_lsnr, baresip_message(),
-			message_handler, NULL);
+			message_handler);
 
 	if (err)
 		return err;
