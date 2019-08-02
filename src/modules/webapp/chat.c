@@ -5,7 +5,6 @@
 #include "webapp.h"
 
 static struct odict *messages = NULL;
-static struct message_lsnr *message_lsnr;
 
 const struct odict* webapp_messages_get(void) {
 	return (const struct odict *)messages;
@@ -79,8 +78,8 @@ int webapp_chat_add(const char *peer, const char *message, bool self)
 	return err;
 }
 
-
-static void message_handler(const struct pl *peer, const struct pl *ctype,
+static void message_handler(struct ua *ua, const struct pl *peer,
+		const struct pl *ctype,
 		struct mbuf *body, void *arg)
 {
 	(void)ctype;
@@ -113,8 +112,8 @@ static void message_handler(const struct pl *peer, const struct pl *ctype,
 int webapp_chat_init(void)
 {
 	int err = 0;
-	err = message_listen(&message_lsnr, baresip_message(),
-			message_handler);
+	err = message_listen(baresip_message(),
+			message_handler, NULL);
 
 	if (err)
 		return err;
@@ -127,6 +126,6 @@ int webapp_chat_init(void)
 
 void webapp_chat_close(void)
 {
-	message_lsnr = mem_deref(message_lsnr);
+	message_unlisten(baresip_message(), message_handler);
 	mem_deref(messages);
 }
