@@ -106,7 +106,7 @@ void webapp_account_delete(char *user, char *domain)
 
 		if (!str_cmp(o_user, user) && !str_cmp(o_domain, domain)) {
 			odict_entry_del(accs, o->key);
-			snprintf(aor, sizeof(aor), "sip:%s@%s", user, domain);
+			re_snprintf(aor, sizeof(aor), "sip:%s@%s", user, domain);
 			mem_deref(uag_find_aor(aor));
 			uag_current_set(NULL);
 			webapp_write_file_json(accs, filename);
@@ -138,7 +138,7 @@ void webapp_account_status(const char *aor, bool status)
 		if (!e)
 			continue;
 		str_ncpy(domain, e->u.str, sizeof(domain));
-		snprintf(aor_find, sizeof(aor_find), "sip:%s@%s", user,
+		re_snprintf(aor_find, sizeof(aor_find), "sip:%s@%s", user,
 				domain);
 
 		if (!str_cmp(aor_find, aor)) {
@@ -187,7 +187,7 @@ void webapp_account_current(void)
 			continue;
 		str_ncpy(o_domain, e->u.str, sizeof(o_domain));
 
-		snprintf(aor_find, sizeof(aor_find), "sip:%s@%s", o_user,
+		re_snprintf(aor_find, sizeof(aor_find), "sip:%s@%s", o_user,
 				o_domain);
 
 		if (odict_lookup(eg->u.odict, "current"))

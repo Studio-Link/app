@@ -17,6 +17,7 @@ const struct odict* webapp_options_get(void)
 
 void webapp_options_set(char *key, char *value)
 {
+	int err = 0;
 #ifdef SLPLUGIN
 	if (!str_cmp(key, "bypass")) {
 		if (!str_cmp(value, "false")) {
@@ -69,7 +70,9 @@ void webapp_options_set(char *key, char *value)
 			re_snprintf(command, sizeof(command), "xdg-open https://stream.studio-link.de/stream/login/%s",
 					cfg->sip.uuid);
 	#endif
-			system(command);
+			err = system(command);
+
+			if (err) {};
 
 			ua_connect(uag_current(), &call, NULL,
 					"stream@studio-link.de", VIDMODE_OFF);
