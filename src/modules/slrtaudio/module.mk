@@ -11,5 +11,6 @@ ifeq ($(OS),linux)
 else
 	$(MOD)_LFLAGS   += -lrtaudio -lstdc++
 endif
+$(MOD)_CFLAGS   += -Wno-aggregate-return
 
 include mk/mod.mk
