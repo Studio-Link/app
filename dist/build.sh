@@ -38,7 +38,7 @@ else
     sl_extra_lflags+="-L ../openssl ../openssl/libssl.a ../openssl/libcrypto.a "
     sl_extra_lflags+="-framework SystemConfiguration "
     sl_extra_lflags+="-framework CoreFoundation"
-    sl_extra_modules="audiounit slrtaudio"
+    sl_extra_modules="slrtaudio"
     sed_opt="-i ''"
 fi
 
