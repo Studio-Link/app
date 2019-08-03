@@ -7,6 +7,12 @@
 - **Misc** Anything that is left or general.
 
 
+### v19.xx.0-beta (xx.xx.2019)
+
+- **Misc** Baresip 0.6.3
+- **Misc** OpenSSL 1.1.1c
+
+
 ### v19.04.0-beta (20.04.2019)
 
 - **Standalone** Onboarding is disabled after first pass or by skipping
