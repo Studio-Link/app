@@ -10,7 +10,7 @@
 #include "assets/index_html.h"
 #include "assets/js.h"
 #include "assets/css.h"
-#include "assets/logo.h"
+#include "assets/images.h"
 #include "webapp.h"
 
 #define SLVERSION "SLVERSION_T"
@@ -162,14 +162,25 @@ static void http_req_handler(struct http_conn *conn,
 
 		return;
 	}
+#ifdef SLPLUGIN
 	if (0 == pl_strcasecmp(&msg->path, "/images/logo.svg")) {
 		http_sreply(conn, 200, "OK",
 				"image/svg+xml",
-				(const char*)dist_images_logo_svg,
-				dist_images_logo_svg_len);
+				(const char*)dist_images_logo_plugin_svg,
+				dist_images_logo_plugin_svg_len);
 
 		return;
 	}
+#else
+	if (0 == pl_strcasecmp(&msg->path, "/images/logo.svg")) {
+		http_sreply(conn, 200, "OK",
+				"image/svg+xml",
+				(const char*)dist_images_logo_standalone_svg,
+				dist_images_logo_standalone_svg_len);
+
+		return;
+	}
+#endif
 	if (0 == pl_strcasecmp(&msg->path, "/app.css")) {
 		http_sreply(conn, 200, "OK",
 				"text/css",

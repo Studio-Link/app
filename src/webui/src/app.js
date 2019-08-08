@@ -53,9 +53,7 @@ $(function () {
 
 		if (swvariant == "plugin") {
 			$("#btn-bypass").removeClass("d-none");
-			$("#variant").html("Plug-in");
 		} else {
-			$("#variant").html("Standalone");
 			$("#btn-interface").removeClass("d-none");
 			$("#btn-mono").removeClass("d-none");
 			$("#btn-stereo").removeClass("d-none");
