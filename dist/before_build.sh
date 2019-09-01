@@ -13,12 +13,12 @@ elif [ "$BUILD_OS" == "osx" ]; then
 #        brew update
 #        brew install openssl
         security create-keychain -p travis sl-build.keychain
-        security import ./dist/keychain/apple.cer -k ~/Library/Keychains/sl-build.keychain -T /usr/bin/codesign
-        security import ./dist/keychain/cert.cer -k ~/Library/Keychains/sl-build.keychain -T /usr/bin/codesign
+        security import ./dist/keychain/apple.cer -k ~/Library/Keychains/sl-build.keychain -A
+        security import ./dist/keychain/cert.cer -k ~/Library/Keychains/sl-build.keychain -A
         security import ./dist/keychain/key.p12 -k ~/Library/Keychains/sl-build.keychain -P $KEY_PASSWORD -A
         security list-keychains -s ~/Library/Keychains/sl-build.keychain
         security unlock-keychain -p $KEY_PASSWORD ~/Library/Keychains/sl-build.keychain
-
         security set-keychain-settings ~/Library/Keychains/sl-build.keychain
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $KEY_PASSWORD sl-build.keychain
     fi
 fi
