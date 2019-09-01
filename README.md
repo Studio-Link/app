@@ -1,6 +1,6 @@
 # Backend Repository
 
-[![Build Status](https://travis-ci.org/Studio-Link/app.svg?branch=v18.xx.x)](https://travis-ci.org/Studio-Link/app)
+[![Build Status](https://travis-ci.org/Studio-Link/app.svg?branch=v19.xx.x)](https://travis-ci.org/Studio-Link/app)
 
 This repository contains the studio link - baresip modules and build environment
 
@@ -21,6 +21,11 @@ autoconf automake libpulse0 libpulse-dev xxd
 And current nodejs/npm (Node.js v10.x v11.x or v12.x):
 
 https://github.com/nodesource/distributions/blob/master/README.md
+
+### Build Requirements on macOS 10.14
+
+Install /usr/include Header File with:
+/Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg
 
 ---
 
