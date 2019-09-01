@@ -19,7 +19,6 @@ elif [ "$BUILD_OS" == "osx" ]; then
         security list-keychains -s ~/Library/Keychains/sl-build.keychain
         security unlock-keychain -p $KEY_PASSWORD ~/Library/Keychains/sl-build.keychain
 
-        # Increase default timeout 5min
-        security set-keychain-settings -t 3600 -l ~/Library/Keychains/sl-build.keychain
+        security set-keychain-settings ~/Library/Keychains/sl-build.keychain
     fi
 fi

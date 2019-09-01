@@ -257,7 +257,7 @@ else
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLinkOnAir.component StudioLinkOnAir.component
     mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app
     if [ "$CIRCLECI" != "true" ]; then
-    codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" --keychain ~/Library/Keychains/sl-build.keychain StudioLinkStandalone.app
+    codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkStandalone.app
     fi
     sed $sed_opt s/ITSR:\ StudioLinkOnAir/StudioLinkOnAir\ \(ITSR\)/ StudioLinkOnAir.component/Contents/Info.plist # Reaper 5.70 Fix
     zip -r studio-link-plugin-osx StudioLink.component
