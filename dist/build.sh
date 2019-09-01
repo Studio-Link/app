@@ -34,7 +34,7 @@ sl_extra_lflags="-L ../opus -L ../my_include "
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     sl_extra_modules="alsa slrtaudio"
 else
-    export MACOSX_DEPLOYMENT_TARGET=10.6
+    export MACOSX_DEPLOYMENT_TARGET=10.9
     sl_extra_lflags+="-L ../openssl ../openssl/libssl.a ../openssl/libcrypto.a "
     sl_extra_lflags+="-framework SystemConfiguration "
     sl_extra_lflags+="-framework CoreFoundation"
@@ -185,16 +185,15 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
             $github_org/overlay-audio-unit.git overlay-audio-unit
         cd overlay-audio-unit
         sed -i '' s/SLVERSION_N/$version_n/ StudioLink/StudioLink.jucer
-        wget https://github.com/julianstorer/JUCE/archive/$juce.tar.gz
-        tar -xzf $juce.tar.gz
-        rm -Rf JUCE
-        mv JUCE-$juce JUCE
+        #wget https://github.com/julianstorer/JUCE/archive/$juce.tar.gz
+        wget https://d30pueezughrda.cloudfront.net/juce/juce-$juce-osx.zip
+        unzip juce-$juce-osx.zip
         ./build.sh
         cd ..
     fi
 fi
 
-# Build overlay-audio-unit plugin (osx only)
+# Build overlay-onair-au plugin (osx only)
 #-----------------------------------------------------------------------------
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     if [ ! -d overlay-onair-au ]; then
