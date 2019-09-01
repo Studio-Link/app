@@ -201,7 +201,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
             $github_org/overlay-onair-au.git overlay-onair-au
         cd overlay-onair-au
         sed -i '' s/SLVERSION_N/$version_n/ StudioLinkOnAir/StudioLinkOnAir.jucer
-        cp -a ../overlay-audio-unit/JUCE .
+        mv ../overlay-audio-unit/JUCE .
         ./build.sh
         cd ..
     fi
