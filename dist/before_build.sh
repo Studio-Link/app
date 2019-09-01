@@ -19,6 +19,6 @@ elif [ "$BUILD_OS" == "osx" ]; then
         security list-keychains -s ~/Library/Keychains/sl-build.keychain
         security unlock-keychain -p $KEY_PASSWORD ~/Library/Keychains/sl-build.keychain
         security set-keychain-settings ~/Library/Keychains/sl-build.keychain
-        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $KEY_PASSWORD sl-build.keychain
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k travis sl-build.keychain
     fi
 fi
