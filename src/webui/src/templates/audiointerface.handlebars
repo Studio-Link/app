@@ -1,33 +1,45 @@
-<div class="row"> 
-	<div class="col-sm-12"> 
-		<form id="forminterface"> 
+<div class="row">
+	<div class="col-sm-12">
+		<form id="forminterface">
 			<input name="command" type="hidden" value="interface" />
 
-			<div class="form-group"> 
-				<label for="input">Driver</label> 
-					<select id="interface_driver" class="form-control">
-{{#each this.drivers}}
-						<option{{#if selected}} selected{{/if}} value="{{id}}">{{display}}</option>
-{{/each}}
-					</select>
+			<div class="form-group">
+				<label for="interface_driver">Driver</label>
+				<select id="interface_driver" class="form-control">
+					{{#each this.drivers}}
+					<option{{#if selected}} selected{{/if}} value="{{id}}">{{display}}</option>
+					{{/each}}
+				</select>
 			</div>
-			<div class="form-group"> 
-				<label for="input">Input</label> 
-					<select id="interface_input" class="form-control">
-{{#each this.input}}
-						<option{{#if selected}} selected{{/if}} value="{{id}}">{{display}}</option>
-{{/each}}
-					</select>
+			<div class="form-group">
+				<label for="interface_input">Input</label>
+				<select id="interface_input" class="form-control">
+					{{#each this.input}}
+					<option{{#if selected}} selected{{/if}} value="{{id}}">{{display}}</option>
+					{{/each}}
+				</select>
 			</div>
-			<div class="form-group"> 
-				<label for="input">Output</label> 
-					<select id="interface_output" class="form-control">
-{{#each this.output}}
-						<option{{#if selected}} selected{{/if}} value="{{id}}">{{display}}</option>
-{{/each}}
-					</select>
+			<div class="form-group">
+				<label for="first_input_channel">Input Channel</label>
+				<select id="first_input_channel" class="form-control">
+				{{#each this.input}}
+				{{#if selected}}
+					{{#times channels}}
+					<option {{myselect first_input_channel @index}} value="{{@index}}">{{@index}}</option>
+					{{/times}}
+				{{/if}}
+				{{/each}}
+				</select>
 			</div>
-<!--
+			<div class="form-group">
+				<label for="interface_output">Output</label>
+				<select id="interface_output" class="form-control">
+					{{#each this.output}}
+					<option{{#if selected}} selected{{/if}} value="{{id}}">{{display}}</option>
+					{{/each}}
+				</select>
+			</div>
+			<!--
 			<div class="form-group"> 
 				<label class="col-sm-4 control-label" for="input">Monitor</label> 
 				<div class="col-sm-6"> 
@@ -39,8 +51,8 @@
 				</div> 
 				<div class="help-block with-errors"></div>
 			</div>
--->
+			-->
 
-		</form> 
-	</div>  
+		</form>
+	</div>
 </div>

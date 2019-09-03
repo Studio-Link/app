@@ -14,6 +14,10 @@ window.ws_rtaudio_init = function() {
 			ws_rtaudio.send('{"command": "input", "id": '+
 				parseInt($( "#interface_input" ).val())+'}');
 		});
+		$( "#first_input_channel" ).on( "change", function() {
+			ws_rtaudio.send('{"command": "first_input_channel", "id": '+
+				parseInt($( "#first_input_channel" ).val())+'}');
+		});
 		$( "#interface_output" ).on( "change", function() {
 			ws_rtaudio.send('{"command": "output", "id": '+
 				parseInt($( "#interface_output" ).val())+'}');

@@ -41,7 +41,7 @@ tour.addStep('test-call-step', {
 		}
 	]
 });
-
+/*
 tour.addStep('stereo-call-step', {
 	text: 'If you hear your own voice only on one side, select <b>Mono</b>',
 	attachTo: '#btn-mono bottom',
@@ -58,6 +58,7 @@ tour.addStep('stereo-call-step', {
 		}
 	]
 });
+*/
 
 tour.on('cancel', function() {
 	localStorage.setItem('slonboarding', 'completed');

@@ -11,6 +11,7 @@
 
 void slrtaudio_set_driver(int value);
 void slrtaudio_set_input(int value);
+void slrtaudio_set_first_input_channel(int value);
 void slrtaudio_set_output(int value);
 
 
@@ -49,6 +50,12 @@ void webapp_ws_rtaudio(const struct websock_hdr *hdr,
 	if (!str_cmp(e->u.str, "input")) {
 		e = odict_lookup(cmd, "id");
 		slrtaudio_set_input(e->u.integer);
+		goto out;
+	}
+
+	if (!str_cmp(e->u.str, "first_input_channel")) {
+		e = odict_lookup(cmd, "id");
+		slrtaudio_set_first_input_channel(e->u.integer);
 		goto out;
 	}
 

@@ -50,6 +50,7 @@ static struct auplay *auplay;
 static rtaudio_t audio;
 static int driver = -1;
 static int input = -1;
+static int first_input_channel = 0;
 static int output = -1;
 static struct odict *interfaces = NULL;
 struct list sessionl;
@@ -142,6 +143,13 @@ void slrtaudio_set_input(int value)
 }
 
 
+void slrtaudio_set_first_input_channel(int value)
+{
+	first_input_channel = value;
+	warning("set first_input_channel %i\n", value);
+}
+
+
 void slrtaudio_set_output(int value)
 {
 	output = value;
@@ -166,17 +174,14 @@ static void convert_float_mono(int16_t *sampv, float *f_sampv, size_t sampc)
 }
 
 
-static void downsample_stereo2mono(int16_t *outv, const int16_t *inv,
+static void downsample_first_ch_to_mono(int16_t *outv, const int16_t *inv,
 		size_t inc)
 {
 	unsigned ratio = 2;
-	int16_t i;
 
 	while (inc >= 1) {
-
-		i = inv[0] + inv[1];
-		outv[0] = i;
-		outv[1] = i;
+		outv[0] = inv[first_input_channel];
+		outv[1] = inv[first_input_channel];
 
 		outv += ratio;
 		inv += ratio;
@@ -210,9 +215,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		warning("rtaudio: Buffer Underrun\n");
 	}
 
-	if (mono) {
-		downsample_stereo2mono(inBuffer, inBuffer, samples);
-	}
+	downsample_first_ch_to_mono(inBuffer, inBuffer, samples);
 
 	if (mute) {
 		for (uint32_t pos = 0; pos < samples; pos++) {
@@ -599,6 +602,8 @@ static int slrtaudio_devices(void) {
 				odict_entry_add(o_in, "selected", ODICT_BOOL, false);
 			}
 			odict_entry_add(o_in, "id", ODICT_INT, i);
+			odict_entry_add(o_in, "channels", ODICT_INT, info.input_channels);
+			odict_entry_add(o_in, "first_input_channel", ODICT_INT, first_input_channel);
 			odict_entry_add(o_in, "display", ODICT_STRING, info.name);
 			odict_entry_add(array_in, idx, ODICT_OBJECT, o_in);
 		}
