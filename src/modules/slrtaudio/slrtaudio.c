@@ -146,7 +146,7 @@ void slrtaudio_set_input(int value)
 void slrtaudio_set_first_input_channel(int value)
 {
 	first_input_channel = value;
-	warning("set first_input_channel %i\n", value);
+	slrtaudio_reset();
 }
 
 
