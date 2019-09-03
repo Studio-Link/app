@@ -50,6 +50,7 @@ static struct auplay *auplay;
 static rtaudio_t audio;
 static int driver = -1;
 static int input = -1;
+static int input_channels = 2;
 static int first_input_channel = 0;
 static int output = -1;
 static struct odict *interfaces = NULL;
@@ -598,6 +599,7 @@ static int slrtaudio_devices(void) {
 		if (info.input_channels > 0) {
 			if (input == i) {
 				odict_entry_add(o_in, "selected", ODICT_BOOL, true);
+				input_channels = info.input_channels;
 			} else {
 				odict_entry_add(o_in, "selected", ODICT_BOOL, false);
 			}
@@ -648,7 +650,7 @@ static int slrtaudio_start(void)
 
 	rtaudio_stream_parameters_t in_params = {
 		.device_id = input,
-		.num_channels = 2,
+		.num_channels = input_channels,
 		.first_channel = 0,
 	};
 
