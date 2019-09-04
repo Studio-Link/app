@@ -1,9 +1,9 @@
-vmajor=19; vminor=8; vpatch=0
+vmajor=19; vminor=9; vpatch=0
 vbuild="$(git rev-list HEAD --count).$(git rev-parse --short HEAD)"
-release="beta-${vbuild}"
+release="alpha-${vbuild}"
 #release="beta"
 baresip="0.6.3"
-re="0.6.0"
+re="0.6.1"
 rem="0.6.0"
 opus="1.3.1"
 openssl="1.1.1c"
