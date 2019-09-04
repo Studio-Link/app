@@ -52,6 +52,7 @@ static int driver = -1;
 static int input = -1;
 static int input_channels = 2;
 static int first_input_channel = 0;
+static int preferred_sample_rate;
 static int output = -1;
 static struct odict *interfaces = NULL;
 struct list sessionl;
@@ -600,6 +601,7 @@ static int slrtaudio_devices(void) {
 			if (input == i) {
 				odict_entry_add(o_in, "selected", ODICT_BOOL, true);
 				input_channels = info.input_channels;
+				preferred_sample_rate = info.preferred_sample_rate;
 			} else {
 				odict_entry_add(o_in, "selected", ODICT_BOOL, false);
 			}
@@ -658,13 +660,17 @@ static int slrtaudio_start(void)
 		.flags = RTAUDIO_FLAGS_SCHEDULE_REALTIME + RTAUDIO_FLAGS_MINIMIZE_LATENCY,
 	};
 
+	if (preferred_sample_rate != 48000) {
+		warning("start samplerate conversion!\n");
+	}
+
 #ifdef LINUX
 	rtaudio_open_stream(audio, &out_params, &in_params,
-			RTAUDIO_FORMAT_SINT16, 48000, &bufsz,
+			RTAUDIO_FORMAT_SINT16, preferred_sample_rate, &bufsz,
 			slrtaudio_callback, NULL, &options, NULL);
 #else
 	rtaudio_open_stream(audio, &out_params, &in_params,
-			RTAUDIO_FORMAT_SINT16, 48000, &bufsz,
+			RTAUDIO_FORMAT_SINT16, preferred_sample_rate, &bufsz,
 			slrtaudio_callback, NULL, NULL, NULL);
 #endif
 
