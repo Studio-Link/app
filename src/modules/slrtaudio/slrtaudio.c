@@ -237,7 +237,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		src_data_in.data_out = inBufferOutFloat;
 		src_data_in.input_frames = nframes;
 		src_data_in.output_frames = BUFFER_LEN / 2;
-		src_data_in.src_ratio = 1.088435374; /** 48000/44100 */
+		src_data_in.src_ratio = 48000 / (double)preferred_sample_rate; /** 48000/44100 = 1.088435374 */
 		src_data_in.end_of_input = 0;
 
 		if ((error = src_process(src_state_in, &src_data_in)) != 0)
@@ -378,7 +378,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		src_data_out.data_out = outBufferInFloat;
 		src_data_out.input_frames = samples / 2;
 		src_data_out.output_frames = nframes;
-		src_data_out.src_ratio = 0.91875;
+		src_data_out.src_ratio = (double)preferred_sample_rate / 48000;
 		src_data_out.end_of_input = 0;
 
 		if (!src_state_out)
@@ -779,13 +779,14 @@ static int slrtaudio_start(void)
 		.flags = RTAUDIO_FLAGS_SCHEDULE_REALTIME + RTAUDIO_FLAGS_MINIMIZE_LATENCY,
 	};
 
-	/** Initialize the sample rate converter. */
+	/** Initialize the sample rate converter for input */
 	if ((src_state_in = src_new(SRC_SINC_FASTEST, input_channels, &error)) == NULL)
 	{
 		warning("Samplerate::src_new failed : %s.\n", src_strerror(error));
 		return 1;
 	};
-	/** Initialize the sample rate converter. */
+
+	/** Initialize the sample rate converter for output */
 	if ((src_state_out = src_new(SRC_SINC_FASTEST, input_channels, &error)) == NULL)
 	{
 		warning("Samplerate::src_new failed : %s.\n", src_strerror(error));
