@@ -45,6 +45,8 @@ if [ ! -d libsamplerate ]; then
     make
     cp -a ./src/.libs/libsamplerate.a ../my_include/
     cp -a ./src/samplerate.h ../my_include/
+
+    ls -lha ../my_include/
     popd
 fi
 
