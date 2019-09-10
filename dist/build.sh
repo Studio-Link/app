@@ -45,7 +45,7 @@ fi
 # Build libsamplerate
 #-----------------------------------------------------------------------------
 if [ ! -d libsamplerate ]; then
-    git clone git@github.com:studio-link-3rdparty/libsamplerate.git
+    git clone https://github.com/studio-link-3rdparty/libsamplerate.git
     pushd libsamplerate
     ./autogen.sh
     ./configure

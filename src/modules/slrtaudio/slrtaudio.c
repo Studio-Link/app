@@ -780,13 +780,13 @@ static int slrtaudio_start(void)
 	};
 
 	/** Initialize the sample rate converter. */
-	if ((src_state_in = src_new(SRC_SINC_MEDIUM_QUALITY, input_channels, &error)) == NULL)
+	if ((src_state_in = src_new(SRC_SINC_FASTEST, input_channels, &error)) == NULL)
 	{
 		warning("Samplerate::src_new failed : %s.\n", src_strerror(error));
 		return 1;
 	};
 	/** Initialize the sample rate converter. */
-	if ((src_state_out = src_new(SRC_SINC_MEDIUM_QUALITY, input_channels, &error)) == NULL)
+	if ((src_state_out = src_new(SRC_SINC_FASTEST, input_channels, &error)) == NULL)
 	{
 		warning("Samplerate::src_new failed : %s.\n", src_strerror(error));
 		return 1;
