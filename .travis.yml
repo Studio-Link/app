@@ -11,6 +11,7 @@ os:
   - linux
   - osx
 
+dist: xenial
 osx_image: xcode8.3
 
 before_install:
