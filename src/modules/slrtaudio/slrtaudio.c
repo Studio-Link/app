@@ -12,7 +12,7 @@
 #include <samplerate.h>
 #include "slrtaudio.h"
 
-#define BUFFER_LEN 3840 /** 48000hz*2ch*(20/1000)ms*2 */
+#define BUFFER_LEN 1920 /** 48000hz*2ch*(20/1000)ms */
 
 enum
 {
@@ -61,6 +61,8 @@ static int preferred_sample_rate;
 static int output = -1;
 static struct odict *interfaces = NULL;
 struct list sessionl;
+static SRC_STATE *src_state_in;
+static SRC_STATE *src_state_out;
 
 static int slrtaudio_stop(void);
 static int slrtaudio_start(void);
@@ -156,18 +158,14 @@ void slrtaudio_set_output(int value)
 	slrtaudio_reset();
 }
 
-static void convert_float_mono(int16_t *sampv, float *f_sampv, size_t sampc)
+static void convert_float(int16_t *sampv, float *f_sampv, size_t sampc)
 {
 	const float scaling = 1.0 / 32767.0f;
-	int16_t i;
-	float f;
 
 	while (sampc--)
 	{
-		i = sampv[0] + sampv[1];
-		f = i * scaling;
-		f_sampv[0] = f;
-		f_sampv[1] = f;
+		f_sampv[0] = sampv[0] * scaling;
+		//f_sampv[1] = sampv[1] * scaling;
 		++f_sampv;
 		++sampv;
 	}
@@ -196,9 +194,12 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 	unsigned int samples = nframes * 2;
 	int16_t *outBuffer = (int16_t *)out;
 	int16_t *inBufferTmp = (int16_t *)in;
-	float inBufferFloat[samples];
-	float inBufferOutFloat[BUFFER_LEN];
 	int16_t inBuffer[BUFFER_LEN];
+	int16_t outBufferTmp[BUFFER_LEN];
+	float inBufferFloat[BUFFER_LEN];
+	float inBufferOutFloat[BUFFER_LEN];
+	float outBufferFloat[BUFFER_LEN];
+	float outBufferInFloat[BUFFER_LEN];
 	struct le *le;
 	struct le *mle;
 	struct session *sess;
@@ -207,9 +208,8 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 	struct ausrc_st *st_src;
 	int cntplay = 0, msessplay = 0, error = 0;
 
-	SRC_STATE *src_state;
-	SRC_DATA src_data;
-
+	SRC_DATA src_data_in;
+	SRC_DATA src_data_out;
 
 	if (status == RTAUDIO_STATUS_INPUT_OVERFLOW)
 	{
@@ -221,47 +221,43 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		warning("rtaudio: Buffer Underrun\n");
 	}
 
-	//downsample_first_ch_to_mono(inBufferTmp, inBufferTmp, samples);
+	downsample_first_ch_to_mono(inBufferTmp, inBufferTmp, samples);
 
 	/** vumeter */
-	convert_float_mono(inBufferTmp, inBufferFloat, samples);
+	convert_float(inBufferTmp, inBufferFloat, samples);
 	ws_meter_process(0, inBufferFloat, (unsigned long)samples);
 
-	/**<-- Samplerate */
-	src_data.data_in = inBufferFloat;
-	src_data.data_out = inBufferOutFloat;
-	src_data.input_frames = nframes;
-	src_data.output_frames = BUFFER_LEN/2;
-	src_data.src_ratio = 1.08;
-	src_data.end_of_input = 1;
-
+	/**<-- Input Samplerate conversion */
 	if (preferred_sample_rate != 48000)
 	{
-		/** Initialize the sample rate converter. */
-		if ((src_state = src_new(SRC_SINC_MEDIUM_QUALITY, input_channels, &error)) == NULL)
-		{
-			warning("Samplerate::src_new failed : %s.\n", src_strerror(error));
+		if (!src_state_in)
 			return 1;
-		};
 
-		if ((error = src_process(src_state, &src_data)) != 0)
+		src_data_in.data_in = inBufferFloat;
+		src_data_in.data_out = inBufferOutFloat;
+		src_data_in.input_frames = nframes;
+		src_data_in.output_frames = BUFFER_LEN / 2;
+		src_data_in.src_ratio = 1.088435374; /** 48000/44100 */
+		src_data_in.end_of_input = 0;
+
+		if ((error = src_process(src_state_in, &src_data_in)) != 0)
 		{
-			warning("Samplerate::src_process : returned error : %s\n", src_strerror(error));
+			warning("Samplerate::src_process_in : returned error : %s\n", src_strerror(error));
 			return 1;
 		};
-		warning("channels %d, %d\n", src_data.input_frames_used, src_data.output_frames_gen);
-		samples = src_data.output_frames_gen*2;
+		//warning("channels %d, %d\n", src_data_in.input_frames_used, src_data_in.output_frames_gen);
+		samples = src_data_in.output_frames_gen * 2;
 		auconv_to_s16(inBuffer, AUFMT_FLOAT, inBufferOutFloat, samples);
-		src_state = src_delete(src_state);
-		warning("channels %d, %d\n", src_data.input_frames_used, src_data.output_frames_gen);
-	} else {
+		//warning("channels %d, %d\n", src_data.input_frames_used, src_data.output_frames_gen);
+	}
+	else
+	{
 		for (uint16_t pos = 0; pos < samples; pos++)
 		{
 			inBuffer[pos] = inBufferTmp[pos];
 		}
 	}
-
-	/** Samplerate -->*/
+	/** Input Samplerate conversion -->*/
 
 	if (mute)
 	{
@@ -297,7 +293,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 
 		st_play = sess->st_play;
 
-		for (uint32_t pos = 0; pos < samples; pos++)
+		for (uint16_t pos = 0; pos < samples; pos++)
 		{
 			if (cntplay < 1)
 			{
@@ -323,7 +319,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 			}
 			mst_play = msess->st_play;
 
-			for (uint32_t pos = 0; pos < samples; pos++)
+			for (uint16_t pos = 0; pos < samples; pos++)
 			{
 				if (msessplay < 1)
 				{
@@ -346,7 +342,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		{
 			st_src = sess->st_src;
 
-			for (uint32_t pos = 0; pos < samples; pos++)
+			for (uint16_t pos = 0; pos < samples; pos++)
 			{
 				st_src->sampv[pos] = inBuffer[pos] + sess->dstmix[pos];
 			}
@@ -363,15 +359,47 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 
 	if (!cntplay)
 	{
-		for (uint32_t pos = 0; pos < samples; pos++)
+		for (uint16_t pos = 0; pos < samples; pos++)
 		{
 			playmix[pos] = 0;
 		}
 	}
 
-	for (uint32_t pos = 0; pos < samples; pos++)
+	if (preferred_sample_rate != 48000)
 	{
-		outBuffer[pos] = playmix[pos];
+		for (uint16_t pos = 0; pos < samples; pos++)
+		{
+			outBufferTmp[pos] = playmix[pos];
+		}
+
+		convert_float(outBufferTmp, outBufferFloat, samples);
+
+		src_data_out.data_in = outBufferFloat;
+		src_data_out.data_out = outBufferInFloat;
+		src_data_out.input_frames = samples / 2;
+		src_data_out.output_frames = nframes;
+		src_data_out.src_ratio = 0.91875;
+		src_data_out.end_of_input = 0;
+
+		if (!src_state_out)
+			return 1;
+
+		if ((error = src_process(src_state_out, &src_data_out)) != 0)
+		{
+			warning("Samplerate::src_process_out : returned error : %s\n", src_strerror(error));
+			return 1;
+		};
+		//warning("out channels %d, %d\n", src_data_out.input_frames_used, src_data_out.output_frames_gen);
+		samples = src_data_out.output_frames_gen * 2;
+		auconv_to_s16(outBuffer, AUFMT_FLOAT, outBufferInFloat, samples);
+		//warning("channels %d, %d\n", src_data.input_frames_used, src_data.output_frames_gen);
+	}
+	else
+	{
+		for (uint16_t pos = 0; pos < nframes * 2; pos++)
+		{
+			outBuffer[pos] = playmix[pos];
+		}
 	}
 
 	return 0;
@@ -724,8 +752,9 @@ static int slrtaudio_start(void)
 {
 	int err = 0;
 	char errmsg[512];
+	int error = 0;
 
-	unsigned int bufsz = 1024;
+	unsigned int bufsz = preferred_sample_rate * 20 / 1000;
 
 	audio = rtaudio_create(driver);
 	if (rtaudio_error(audio) != NULL)
@@ -748,6 +777,19 @@ static int slrtaudio_start(void)
 
 	rtaudio_stream_options_t options = {
 		.flags = RTAUDIO_FLAGS_SCHEDULE_REALTIME + RTAUDIO_FLAGS_MINIMIZE_LATENCY,
+	};
+
+	/** Initialize the sample rate converter. */
+	if ((src_state_in = src_new(SRC_SINC_MEDIUM_QUALITY, input_channels, &error)) == NULL)
+	{
+		warning("Samplerate::src_new failed : %s.\n", src_strerror(error));
+		return 1;
+	};
+	/** Initialize the sample rate converter. */
+	if ((src_state_out = src_new(SRC_SINC_MEDIUM_QUALITY, input_channels, &error)) == NULL)
+	{
+		warning("Samplerate::src_new failed : %s.\n", src_strerror(error));
+		return 1;
 	};
 
 #ifdef LINUX
@@ -794,6 +836,12 @@ static int slrtaudio_stop(void)
 		rtaudio_destroy(audio);
 		audio = NULL;
 	}
+
+	if (src_state_in)
+		src_state_in = src_delete(src_state_in);
+
+	if (src_state_out)
+		src_state_out = src_delete(src_state_out);
 
 	return 0;
 }
