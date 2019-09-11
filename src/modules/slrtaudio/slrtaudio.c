@@ -165,16 +165,14 @@ static void convert_float(int16_t *sampv, float *f_sampv, size_t sampc)
 	while (sampc--)
 	{
 		f_sampv[0] = sampv[0] * scaling;
-		//f_sampv[1] = sampv[1] * scaling;
 		++f_sampv;
 		++sampv;
 	}
 }
 
-static void downsample_first_ch_to_mono(int16_t *outv, const int16_t *inv,
-										size_t inc)
+static void downsample_first_ch(int16_t *outv, const int16_t *inv, size_t inc)
 {
-	unsigned ratio = 2;
+	unsigned ratio = input_channels;
 
 	while (inc >= 1)
 	{
@@ -193,7 +191,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 {
 	unsigned int samples = nframes * 2;
 	int16_t *outBuffer = (int16_t *)out;
-	int16_t *inBufferTmp = (int16_t *)in;
+	int16_t inBufferTmp[BUFFER_LEN];
 	int16_t inBuffer[BUFFER_LEN];
 	int16_t outBufferTmp[BUFFER_LEN];
 	float inBufferFloat[BUFFER_LEN];
@@ -221,7 +219,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		warning("rtaudio: Buffer Underrun\n");
 	}
 
-	downsample_first_ch_to_mono(inBufferTmp, inBufferTmp, samples);
+	downsample_first_ch(inBufferTmp, in, nframes);
 
 	/** vumeter */
 	convert_float(inBufferTmp, inBufferFloat, samples);
