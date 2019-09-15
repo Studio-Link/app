@@ -12,7 +12,7 @@
 #include <samplerate.h>
 #include "slrtaudio.h"
 
-#define BUFFER_LEN 3840 /** 48000hz*2ch*(40/1000)ms */
+#define BUFFER_LEN 7680 /** 48000hz*2ch*80ms */
 
 enum
 {
@@ -775,8 +775,8 @@ static int slrtaudio_start(void)
 	char errmsg[512];
 	int error = 0;
 
-	unsigned int bufsz_in = preferred_sample_rate_in * 10 / 1000;
-	unsigned int bufsz_out = preferred_sample_rate_out * 10 / 1000;
+	unsigned int bufsz_in = preferred_sample_rate_in * 20 / 1000;
+	unsigned int bufsz_out = preferred_sample_rate_out * 20 / 1000;
 
 
 	audio_in = rtaudio_create(driver);
