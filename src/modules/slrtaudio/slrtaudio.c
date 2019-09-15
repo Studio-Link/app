@@ -179,7 +179,7 @@ static void downsample_first_ch(int16_t *outv, const int16_t *inv, size_t inc)
 		outv[0] = inv[first_input_channel];
 		outv[1] = inv[first_input_channel];
 
-		outv += ratio;
+		outv += 2;
 		inv += ratio;
 		inc -= ratio;
 	}
@@ -219,7 +219,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		warning("rtaudio: Buffer Underrun\n");
 	}
 
-	downsample_first_ch(inBufferTmp, in, nframes);
+	downsample_first_ch(inBufferTmp, in, nframes * input_channels);
 
 	/** vumeter */
 	convert_float(inBufferTmp, inBufferFloat, samples);
@@ -752,7 +752,7 @@ static int slrtaudio_start(void)
 	char errmsg[512];
 	int error = 0;
 
-	unsigned int bufsz = preferred_sample_rate * 20 / 1000;
+	unsigned int bufsz = 512;
 
 	audio = rtaudio_create(driver);
 	if (rtaudio_error(audio) != NULL)
@@ -778,14 +778,14 @@ static int slrtaudio_start(void)
 	};
 
 	/** Initialize the sample rate converter for input */
-	if ((src_state_in = src_new(SRC_SINC_FASTEST, input_channels, &error)) == NULL)
+	if ((src_state_in = src_new(SRC_SINC_FASTEST, 2, &error)) == NULL)
 	{
 		warning("Samplerate::src_new failed : %s.\n", src_strerror(error));
 		return 1;
 	};
 
 	/** Initialize the sample rate converter for output */
-	if ((src_state_out = src_new(SRC_SINC_FASTEST, input_channels, &error)) == NULL)
+	if ((src_state_out = src_new(SRC_SINC_FASTEST, 2, &error)) == NULL)
 	{
 		warning("Samplerate::src_new failed : %s.\n", src_strerror(error));
 		return 1;
