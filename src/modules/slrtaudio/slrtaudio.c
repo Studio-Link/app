@@ -12,7 +12,7 @@
 #include <samplerate.h>
 #include "slrtaudio.h"
 
-#define BUFFER_LEN 1920 /** 48000hz*2ch*(20/1000)ms */
+#define BUFFER_LEN 3840 /** 48000hz*2ch*(40/1000)ms */
 
 enum
 {
@@ -221,6 +221,14 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 
 	downsample_first_ch(inBufferTmp, in, nframes * input_channels);
 
+	if (mute)
+	{
+		for (uint16_t pos = 0; pos < in_samples; pos++)
+		{
+			inBufferTmp[pos] = 0;
+		}
+	}
+
 	/** vumeter */
 	convert_float(inBufferTmp, inBufferFloat, in_samples);
 	ws_meter_process(0, inBufferFloat, (unsigned long)in_samples);
@@ -243,7 +251,7 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 			warning("Samplerate::src_process_in : returned error : %s\n", src_strerror(error));
 			return 1;
 		};
-		//warning("channels %d, %d\n", src_data_in.input_frames_used, src_data_in.output_frames_gen);
+		//warning("in channels %d, %d\n", src_data_in.input_frames_used, src_data_in.output_frames_gen);
 		samples = src_data_in.output_frames_gen * 2;
 		auconv_to_s16(inBuffer, AUFMT_FLOAT, inBufferOutFloat, samples);
 		//warning("channels %d, %d\n", src_data.input_frames_used, src_data.output_frames_gen);
@@ -258,13 +266,6 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 	}
 	/** Input Samplerate conversion -->*/
 
-	if (mute)
-	{
-		for (uint16_t pos = 0; pos < samples; pos++)
-		{
-			inBuffer[pos] = 0;
-		}
-	}
 
 	for (le = sessionl.head; le; le = le->next)
 	{
@@ -380,7 +381,7 @@ int slrtaudio_callback_out(void *out, void *in, unsigned int nframes,
 	SRC_DATA src_data_out;
 	int error;
 
-	lock_read_get(rtaudio_lock);	
+	lock_write_get(rtaudio_lock);	
 
 	if (preferred_sample_rate_out != 48000)
 	{
@@ -407,8 +408,7 @@ int slrtaudio_callback_out(void *out, void *in, unsigned int nframes,
 			return 1;
 		};
 		//warning("out channels %d, %d\n", src_data_out.input_frames_used, src_data_out.output_frames_gen);
-		samples = src_data_out.output_frames_gen * 2;
-		auconv_to_s16(outBuffer, AUFMT_FLOAT, outBufferInFloat, samples);
+		auconv_to_s16(outBuffer, AUFMT_FLOAT, outBufferInFloat, src_data_out.output_frames_gen * 2);
 		//warning("channels %d, %d\n", src_data.input_frames_used, src_data.output_frames_gen);
 	}
 	else
@@ -775,7 +775,8 @@ static int slrtaudio_start(void)
 	char errmsg[512];
 	int error = 0;
 
-	unsigned int bufsz = 512;
+	unsigned int bufsz_in = preferred_sample_rate_in * 10 / 1000;
+	unsigned int bufsz_out = preferred_sample_rate_out * 10 / 1000;
 
 
 	audio_in = rtaudio_create(driver);
@@ -826,17 +827,17 @@ static int slrtaudio_start(void)
 
 #ifdef LINUX
 	rtaudio_open_stream(audio_in, NULL, &in_params,
-						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_in, &bufsz,
+						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_in, &bufsz_in,
 						slrtaudio_callback_in, NULL, &options, NULL);
 	rtaudio_open_stream(audio_out, &out_params, NULL,
-						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_out, &bufsz,
+						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_out, &bufsz_out,
 						slrtaudio_callback_out, NULL, &options, NULL);
 #else
 	rtaudio_open_stream(audio_in, NULL, &in_params,
-						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_in, &bufsz,
+						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_in, &bufsz_in,
 						slrtaudio_callback_in, NULL, NULL, NULL);
 	rtaudio_open_stream(audio_out, &out_params, NULL,
-						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_out, &bufsz,
+						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_out, &bufsz_out,
 						slrtaudio_callback_out, NULL, NULL, NULL);
 #endif
 	if (rtaudio_error(audio_in) != NULL)
