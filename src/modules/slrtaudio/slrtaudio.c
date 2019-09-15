@@ -52,17 +52,21 @@ struct ausrc_st
 static struct ausrc *ausrc;
 static struct auplay *auplay;
 
-static rtaudio_t audio;
+static rtaudio_t audio_in;
+static rtaudio_t audio_out;
 static int driver = -1;
 static int input = -1;
 static int input_channels = 2;
 static int first_input_channel = 0;
-static int preferred_sample_rate;
+static int preferred_sample_rate_in;
+static int preferred_sample_rate_out;
 static int output = -1;
 static struct odict *interfaces = NULL;
 struct list sessionl;
 static SRC_STATE *src_state_in;
 static SRC_STATE *src_state_out;
+static unsigned int samples = 0;
+static struct lock *rtaudio_lock;
 
 static int slrtaudio_stop(void);
 static int slrtaudio_start(void);
@@ -185,19 +189,15 @@ static void downsample_first_ch(int16_t *outv, const int16_t *inv, size_t inc)
 	}
 }
 
-int slrtaudio_callback(void *out, void *in, unsigned int nframes,
+int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 					   double stream_time, rtaudio_stream_status_t status,
 					   void *userdata)
 {
-	unsigned int samples = nframes * 2;
-	int16_t *outBuffer = (int16_t *)out;
+	unsigned int in_samples = nframes * 2;
 	int16_t inBufferTmp[BUFFER_LEN];
 	int16_t inBuffer[BUFFER_LEN];
-	int16_t outBufferTmp[BUFFER_LEN];
 	float inBufferFloat[BUFFER_LEN];
 	float inBufferOutFloat[BUFFER_LEN];
-	float outBufferFloat[BUFFER_LEN];
-	float outBufferInFloat[BUFFER_LEN];
 	struct le *le;
 	struct le *mle;
 	struct session *sess;
@@ -207,7 +207,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 	int cntplay = 0, msessplay = 0, error = 0;
 
 	SRC_DATA src_data_in;
-	SRC_DATA src_data_out;
+	lock_write_get(rtaudio_lock);
 
 	if (status == RTAUDIO_STATUS_INPUT_OVERFLOW)
 	{
@@ -222,11 +222,11 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 	downsample_first_ch(inBufferTmp, in, nframes * input_channels);
 
 	/** vumeter */
-	convert_float(inBufferTmp, inBufferFloat, samples);
-	ws_meter_process(0, inBufferFloat, (unsigned long)samples);
+	convert_float(inBufferTmp, inBufferFloat, in_samples);
+	ws_meter_process(0, inBufferFloat, (unsigned long)in_samples);
 
 	/**<-- Input Samplerate conversion */
-	if (preferred_sample_rate != 48000)
+	if (preferred_sample_rate_in != 48000)
 	{
 		if (!src_state_in)
 			return 1;
@@ -235,7 +235,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		src_data_in.data_out = inBufferOutFloat;
 		src_data_in.input_frames = nframes;
 		src_data_in.output_frames = BUFFER_LEN / 2;
-		src_data_in.src_ratio = 48000 / (double)preferred_sample_rate; /** 48000/44100 = 1.088435374 */
+		src_data_in.src_ratio = 48000 / (double)preferred_sample_rate_in; /** 48000/44100 = 1.088435374 */
 		src_data_in.end_of_input = 0;
 
 		if ((error = src_process(src_state_in, &src_data_in)) != 0)
@@ -250,6 +250,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 	}
 	else
 	{
+		samples = nframes * 2;
 		for (uint16_t pos = 0; pos < samples; pos++)
 		{
 			inBuffer[pos] = inBufferTmp[pos];
@@ -363,7 +364,25 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		}
 	}
 
-	if (preferred_sample_rate != 48000)
+	lock_rel(rtaudio_lock);
+	return 0;
+}
+
+
+int slrtaudio_callback_out(void *out, void *in, unsigned int nframes,
+					   double stream_time, rtaudio_stream_status_t status,
+					   void *userdata)
+{
+	float outBufferFloat[BUFFER_LEN];
+	float outBufferInFloat[BUFFER_LEN];
+	int16_t *outBuffer = (int16_t *)out;
+	int16_t outBufferTmp[BUFFER_LEN];
+	SRC_DATA src_data_out;
+	int error;
+
+	lock_read_get(rtaudio_lock);	
+
+	if (preferred_sample_rate_out != 48000)
 	{
 		for (uint16_t pos = 0; pos < samples; pos++)
 		{
@@ -376,7 +395,7 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		src_data_out.data_out = outBufferInFloat;
 		src_data_out.input_frames = samples / 2;
 		src_data_out.output_frames = nframes;
-		src_data_out.src_ratio = (double)preferred_sample_rate / 48000;
+		src_data_out.src_ratio = (double)preferred_sample_rate_out / 48000;
 		src_data_out.end_of_input = 0;
 
 		if (!src_state_out)
@@ -400,8 +419,10 @@ int slrtaudio_callback(void *out, void *in, unsigned int nframes,
 		}
 	}
 
+	lock_rel(rtaudio_lock);
 	return 0;
 }
+
 
 static void ausrc_destructor(void *arg)
 {
@@ -641,8 +662,9 @@ static int slrtaudio_devices(void)
 	struct odict *array_in;
 	struct odict *array_out;
 	char idx[2];
-
+	rtaudio_t audio;
 	rtaudio_device_info_t info;
+
 	audio = rtaudio_create(driver);
 
 	err = odict_alloc(&array_in, DICT_BSIZE);
@@ -698,6 +720,7 @@ static int slrtaudio_devices(void)
 		{
 			if (output == i)
 			{
+				preferred_sample_rate_out = info.preferred_sample_rate;
 				odict_entry_add(o_out, "selected", ODICT_BOOL, true);
 			}
 			else
@@ -715,7 +738,7 @@ static int slrtaudio_devices(void)
 			{
 				odict_entry_add(o_in, "selected", ODICT_BOOL, true);
 				input_channels = info.input_channels;
-				preferred_sample_rate = info.preferred_sample_rate;
+				preferred_sample_rate_in = info.preferred_sample_rate;
 			}
 			else
 			{
@@ -754,8 +777,16 @@ static int slrtaudio_start(void)
 
 	unsigned int bufsz = 512;
 
-	audio = rtaudio_create(driver);
-	if (rtaudio_error(audio) != NULL)
+
+	audio_in = rtaudio_create(driver);
+	if (rtaudio_error(audio_in) != NULL)
+	{
+		err = ENODEV;
+		goto out;
+	}
+
+	audio_out = rtaudio_create(driver);
+	if (rtaudio_error(audio_out) != NULL)
 	{
 		err = ENODEV;
 		goto out;
@@ -791,24 +822,44 @@ static int slrtaudio_start(void)
 		return 1;
 	};
 
-#ifdef LINUX
-	rtaudio_open_stream(audio, &out_params, &in_params,
-						RTAUDIO_FORMAT_SINT16, preferred_sample_rate, &bufsz,
-						slrtaudio_callback, NULL, &options, NULL);
-#else
-	rtaudio_open_stream(audio, &out_params, &in_params,
-						RTAUDIO_FORMAT_SINT16, preferred_sample_rate, &bufsz,
-						slrtaudio_callback, NULL, NULL, NULL);
-#endif
+	warning("samplerates %d %d\n",preferred_sample_rate_in, preferred_sample_rate_out);
 
-	if (rtaudio_error(audio) != NULL)
+#ifdef LINUX
+	rtaudio_open_stream(audio_in, NULL, &in_params,
+						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_in, &bufsz,
+						slrtaudio_callback_in, NULL, &options, NULL);
+	rtaudio_open_stream(audio_out, &out_params, NULL,
+						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_out, &bufsz,
+						slrtaudio_callback_out, NULL, &options, NULL);
+#else
+	rtaudio_open_stream(audio_in, NULL, &in_params,
+						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_in, &bufsz,
+						slrtaudio_callback_in, NULL, NULL, NULL);
+	rtaudio_open_stream(audio_out, &out_params, NULL,
+						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_out, &bufsz,
+						slrtaudio_callback_out, NULL, NULL, NULL);
+#endif
+	if (rtaudio_error(audio_in) != NULL)
 	{
 		err = EINVAL;
 		goto out;
 	}
 
-	rtaudio_start_stream(audio);
-	if (rtaudio_error(audio) != NULL)
+	if (rtaudio_error(audio_out) != NULL)
+	{
+		err = EINVAL;
+		goto out;
+	}
+
+
+	rtaudio_start_stream(audio_in);
+	if (rtaudio_error(audio_in) != NULL)
+	{
+		err = EINVAL;
+		goto out;
+	}
+	rtaudio_start_stream(audio_out);
+	if (rtaudio_error(audio_out) != NULL)
 	{
 		err = EINVAL;
 		goto out;
@@ -818,7 +869,10 @@ out:
 	if (err)
 	{
 		re_snprintf(errmsg, sizeof(errmsg), "%s",
-					rtaudio_error(audio));
+					rtaudio_error(audio_in));
+		warning("error: %s\n", errmsg);
+		re_snprintf(errmsg, sizeof(errmsg), "%s",
+					rtaudio_error(audio_out));
 		warning("error: %s\n", errmsg);
 		/**	webapp_ws_rtaudio_set_err(errmsg);*/
 	}
@@ -828,13 +882,21 @@ out:
 
 static int slrtaudio_stop(void)
 {
-	if (audio)
+	if (audio_in)
 	{
-		rtaudio_stop_stream(audio);
-		rtaudio_close_stream(audio);
-		rtaudio_destroy(audio);
-		audio = NULL;
+		rtaudio_stop_stream(audio_in);
+		rtaudio_close_stream(audio_in);
+		rtaudio_destroy(audio_in);
+		audio_in = NULL;
 	}
+	if (audio_out)
+	{
+		rtaudio_stop_stream(audio_out);
+		rtaudio_close_stream(audio_out);
+		rtaudio_destroy(audio_out);
+		audio_out = NULL;
+	}
+
 
 	if (src_state_in)
 		src_state_in = src_delete(src_state_in);
@@ -849,6 +911,8 @@ static int slrtaudio_init(void)
 {
 	int err;
 	struct session *sess;
+
+	lock_alloc(&rtaudio_lock);
 
 	err = ausrc_register(&ausrc, baresip_ausrcl(), "slrtaudio", src_alloc);
 	err |= auplay_register(&auplay, baresip_auplayl(),
@@ -895,6 +959,7 @@ static int slrtaudio_close(void)
 
 	slrtaudio_stop();
 
+	rtaudio_lock = mem_deref(rtaudio_lock);
 	ausrc = mem_deref(ausrc);
 	auplay = mem_deref(auplay);
 	interfaces = mem_deref(interfaces);
