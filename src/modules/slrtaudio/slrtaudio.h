@@ -28,7 +28,10 @@ void slrtaudio_set_driver(int value);
 void slrtaudio_set_input(int value);
 void slrtaudio_set_first_input_channel(int value);
 void slrtaudio_set_output(int value);
-int slrtaudio_callback(void *out, void *in, unsigned int nframes,
+int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
+		double stream_time, rtaudio_stream_status_t status,
+		void *userdata);
+int slrtaudio_callback_out(void *out, void *in, unsigned int nframes,
 		double stream_time, rtaudio_stream_status_t status,
 		void *userdata);
 

@@ -366,6 +366,11 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 	}
 
 	lock_rel(rtaudio_lock);
+
+#ifdef LINUX
+	slrtaudio_callback_out(out, in, nframes, stream_time, status, userdata);
+#endif
+
 	return 0;
 }
 
@@ -776,7 +781,9 @@ static int slrtaudio_start(void)
 	int error = 0;
 
 	unsigned int bufsz_in = preferred_sample_rate_in * 20 / 1000;
+#ifndef LINUX
 	unsigned int bufsz_out = preferred_sample_rate_out * 20 / 1000;
+#endif
 
 
 	audio_in = rtaudio_create(driver);
@@ -826,12 +833,9 @@ static int slrtaudio_start(void)
 	warning("samplerates %d %d\n",preferred_sample_rate_in, preferred_sample_rate_out);
 
 #ifdef LINUX
-	rtaudio_open_stream(audio_in, NULL, &in_params,
+	rtaudio_open_stream(audio_in, &out_params, &in_params,
 						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_in, &bufsz_in,
 						slrtaudio_callback_in, NULL, &options, NULL);
-	rtaudio_open_stream(audio_out, &out_params, NULL,
-						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_out, &bufsz_out,
-						slrtaudio_callback_out, NULL, &options, NULL);
 #else
 	rtaudio_open_stream(audio_in, NULL, &in_params,
 						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_in, &bufsz_in,
@@ -859,13 +863,14 @@ static int slrtaudio_start(void)
 		err = EINVAL;
 		goto out;
 	}
+#ifndef LINUX
 	rtaudio_start_stream(audio_out);
 	if (rtaudio_error(audio_out) != NULL)
 	{
 		err = EINVAL;
 		goto out;
 	}
-
+#endif
 out:
 	if (err)
 	{
