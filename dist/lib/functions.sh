@@ -64,6 +64,12 @@ sl_get_flac() {
 sl_get_rtaudio() {
     wget https://github.com/Studio-Link/rtaudio/archive/${rtaudio}.tar.gz
     tar -xzf ${rtaudio}.tar.gz
+    wget https://github.com/Studio-Link/rtaudio/compare/master...coreaudio.diff
+    wget https://github.com/Studio-Link/rtaudio/compare/master...pulseaudio.diff
+    pushd rtaudio-${rtaudio}
+    patch --ignore-whitespace -p1 < ../master...pulseaudio.diff
+    patch --ignore-whitespace -p1 < ../master...coreaudio.diff
+    popd
     ln -s rtaudio-${rtaudio} rtaudio
     cp -a rtaudio-${rtaudio}/rtaudio_c.h my_include/
     rm -f ${rtaudio}.tar.gz
