@@ -29,7 +29,7 @@ mix.js([
 mix.sass('src/app.scss', 'dist/')
    .purgeCss({
 		enabled: mix.inProduction(),
-		folders: ['src', 'node_modules/bootbox/dist'],
+		folders: ['src', 'node_modules/bootbox/dist', 'node_modules/shepherd.js/dist'],
 		extensions: ['html', 'js', 'handlebars', 'vue'],
    })
    .copyWatched('src/index.html', 'dist/')

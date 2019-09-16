@@ -66,10 +66,12 @@ $(function() {
     var swvariant = data;
 
     if (swvariant == "standalone") {
-      $("#btn-interface").removeClass("d-none");
       $("#btn-record").removeClass("d-none");
       $("#btn-onair").removeClass("d-none");
       ws_rtaudio_init();
+    }
+    if (swvariant == "plugin") {
+      $("#btn-interface").addClass("d-none");
     }
     window.swvariant = swvariant;
   });
