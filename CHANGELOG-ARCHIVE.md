@@ -6,6 +6,30 @@
 - **Misc** Anything that is left or general.
 
 
+### v19.03.1-alpha (04.04.2019)
+
+- **Misc** Cleanup svg fonts - smaller packages
+- **Standalone** Fix OnAir segfaults with no other call active
+- **Standalone** Old Studio Link Standalone versions didn't work anymore after execution
+
+
+### v19.03.0-alpha (31.03.2019)
+
+- **Misc** OpenSSL 1.1.1b
+- **Misc** Opus 1.3
+- **Misc** Baresip 0.6.0
+- **Misc** re 0.6.0
+- **Misc** rem 0.6.0
+- **Misc** #48 - Use 127.0.0.1 instead of localhost as URL opener
+- **Misc** #45 - Configure fixed dns resolver list in baresip
+- **Misc** Small GUI improvements (new logo etc.)
+- **Plugin** Increase call limit 8 -> 10
+- **Standalone** Add RtAudio 
+- **Standalone** Audio Interface selection
+- **Standalone** Multitrack Feature incl. N-1
+- **Standalone** Multitrack Recording (max. 5 Remote Tracks)
+
+
 ### v17.03.1-beta (30.03.2017)
 
 - **Standalone** Add session identifier to recording filename
