@@ -1,0 +1,15 @@
+diff --git a/src/sip/auth.c b/src/sip/auth.c
+index 1357cad1..21e9c3c1 100644
+--- a/src/sip/auth.c
++++ b/src/sip/auth.c
+@@ -161,7 +161,9 @@ static bool auth_handler(const struct sip_hdr *hdr, const struct sip_msg *msg,
+ 			goto out;
+ 	}
+ 	else {
+-		if (!pl_isset(&ch.stale) || pl_strcasecmp(&ch.stale, "true")) {
++		/* error if first auth attempt fails */
++		if ((!pl_isset(&ch.stale) ||
++		     pl_strcasecmp(&ch.stale, "true")) && (realm->nc == 2)) {
+ 			err = EAUTH;
+ 			goto out;
+ 		}
