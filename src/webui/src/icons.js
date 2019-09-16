@@ -11,6 +11,8 @@ import { faUserPlus } from '@fortawesome/free-solid-svg-icons/faUserPlus'
 import { faAddressBook } from '@fortawesome/free-solid-svg-icons/faAddressBook'
 import { faPhoneSquare } from '@fortawesome/free-solid-svg-icons/faPhoneSquare'
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons/faPlusCircle'
+import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit'
+import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt'
 
 
 // We are only using the user-astronaut icon
@@ -26,6 +28,8 @@ library.add(faUserPlus)
 library.add(faAddressBook)
 library.add(faPhoneSquare)
 library.add(faPlusCircle)
+library.add(faEdit)
+library.add(faTrashAlt)
 
 // Replace any existing <i> tags with <svg> and set up a MutationObserver to
 // continue doing this as the DOM changes.

@@ -65,12 +65,8 @@ $(function() {
   $.get("/swvariant", function(data) {
     var swvariant = data;
 
-    if (swvariant == "plugin") {
-      $("#btn-bypass").removeClass("d-none");
-    } else {
+    if (swvariant == "standalone") {
       $("#btn-interface").removeClass("d-none");
-      $("#btn-mono").removeClass("d-none");
-      $("#btn-stereo").removeClass("d-none");
       $("#btn-record").removeClass("d-none");
       $("#btn-onair").removeClass("d-none");
       ws_rtaudio_init();
