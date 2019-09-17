@@ -248,6 +248,11 @@ mkdir -p $s3_path
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     ./studio-link-standalone -t
     ldd studio-link-standalone
+
+    strip -g studio-link-standalone
+    strip -g overlay-lv2/studio-link.so
+    strip -g overlay-onair-lv2/studio-link-onair.so
+
     mkdir -p studio-link.lv2
     cp -a overlay-lv2/studio-link.so studio-link.lv2/
     cp -a overlay-lv2/*.ttl studio-link.lv2/

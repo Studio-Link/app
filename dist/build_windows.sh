@@ -149,6 +149,11 @@ make openssl
 make
 make -C overlay-vst PREFIX=$_arch
 make -C overlay-onair-vst PREFIX=$_arch
+
+$_arch-strip -g studio-link-standalone.exe
+$_arch-strip -g overlay-vst/studio-link.dll
+$_arch-strip -g overlay-onair-vst/studio-link-onair.dll
+
 zip -r studio-link-standalone-$BUILD_OS studio-link-standalone.exe
 zip -r studio-link-plugin-$BUILD_OS overlay-vst/studio-link.dll
 zip -r studio-link-plugin-onair-$BUILD_OS overlay-onair-vst/studio-link-onair.dll
