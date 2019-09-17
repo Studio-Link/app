@@ -1,4 +1,4 @@
-### v19.09.0-beta (xx.09.2019)
+### v19.09.0-beta (17.09.2019)
 
 - **Misc** Baresip 0.6.3
 - **Misc** OpenSSL 1.1.1c
