@@ -27,6 +27,7 @@
 					{{#times channels}}
 					<option {{myselect first_input_channel @index}} value="{{@index}}">{{@index}}</option>
 					{{/times}}
+					<option {{myselect first_input_channel 99}} value="99">Mix</option>
 				{{/if}}
 				{{/each}}
 				</select>

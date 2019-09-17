@@ -177,6 +177,26 @@ static void convert_float(int16_t *sampv, float *f_sampv, size_t sampc)
 static void downsample_first_ch(int16_t *outv, const int16_t *inv, size_t inc)
 {
 	unsigned ratio = input_channels;
+	int16_t mix = 0;
+
+	/** Mix Channels */
+	if (first_input_channel == 99) {
+		while (inc >= 1)
+		{
+			mix = 0;
+			for (uint16_t ch = 0; ch < input_channels; ch++)
+			{
+				mix += inv[ch]; 
+			}
+			outv[0] = mix;
+			outv[1] = mix;
+
+			outv += 2;
+			inv += ratio;
+			inc -= ratio;
+		}
+		return;
+	}
 
 	while (inc >= 1)
 	{
