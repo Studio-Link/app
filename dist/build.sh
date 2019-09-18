@@ -42,73 +42,6 @@ else
     sed_opt="-i ''"
 fi
 
-# Build libsamplerate
-#-----------------------------------------------------------------------------
-if [ ! -d libsamplerate ]; then
-    git clone https://github.com/studio-link-3rdparty/libsamplerate.git
-    pushd libsamplerate
-    ./autogen.sh
-    ./configure
-    make
-    cp -a ./src/.libs/libsamplerate.a ../my_include/
-    cp -a ./src/samplerate.h ../my_include/
-    popd
-fi
-
-# Build RtAudio
-#-----------------------------------------------------------------------------
-if [ ! -d rtaudio-${rtaudio} ]; then
-    sl_get_rtaudio
-    pushd rtaudio-${rtaudio}
-    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
-        ./autogen.sh --with-alsa --with-pulse
-    else
-        export CXXFLAGS="-Wno-deprecated -DUNICODE"
-        sudo mkdir -p /usr/local/Library/ENV/4.3
-        sudo ln -s $(which sed) /usr/local/Library/ENV/4.3/sed
-        ./autogen.sh --with-core
-    fi
-    make $make_opts
-    unset CXXFLAGS
-    cp -a .libs/librtaudio.a ../my_include/
-    popd
-fi
-
-# Build FLAC
-#-----------------------------------------------------------------------------
-if [ ! -d flac-${flac} ]; then
-    sl_get_flac
-
-    cd flac
-    ./configure --disable-ogg --enable-static
-    make $make_opts
-    cp -a include/FLAC ../my_include/
-    cp -a include/share ../my_include/
-    cp -a src/libFLAC/.libs/libFLAC.a ../my_include/
-    cd ..
-fi
-
-# Build openssl
-#-----------------------------------------------------------------------------
-if [ ! -d openssl-${openssl} ]; then
-    sl_get_openssl
-    cd openssl
-    ./config no-shared
-    make $make_opts build_libs
-    cp -a include/openssl ../my_include/
-    cd ..
-fi
-
-# Build opus
-#-----------------------------------------------------------------------------
-if [ ! -d opus-$opus ]; then
-    wget "https://archive.mozilla.org/pub/opus/opus-${opus}.tar.gz"
-    tar -xzf opus-${opus}.tar.gz
-    cd opus-$opus; ./configure --with-pic; make; cd ..
-    mkdir opus; cp opus-$opus/.libs/libopus.a opus/
-    mkdir -p my_include/opus
-    cp opus-$opus/include/*.h my_include/opus/ 
-fi
 
 # Build libre
 #-----------------------------------------------------------------------------
@@ -249,9 +182,9 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     ./studio-link-standalone -t
     ldd studio-link-standalone
 
-    strip -g studio-link-standalone
-    strip -g overlay-lv2/studio-link.so
-    strip -g overlay-onair-lv2/studio-link-onair.so
+    strip --strip-all studio-link-standalone
+    strip --strip-all overlay-lv2/studio-link.so
+    strip --strip-all overlay-onair-lv2/studio-link-onair.so
 
     mkdir -p studio-link.lv2
     cp -a overlay-lv2/studio-link.so studio-link.lv2/
