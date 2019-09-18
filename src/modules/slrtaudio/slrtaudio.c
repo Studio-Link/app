@@ -52,14 +52,14 @@ struct ausrc_st
 static struct ausrc *ausrc;
 static struct auplay *auplay;
 
-static rtaudio_t audio_in;
-static rtaudio_t audio_out;
+static rtaudio_t audio_in = NULL;
+static rtaudio_t audio_out = NULL;
 static int driver = -1;
 static int input = -1;
 static int input_channels = 2;
 static int first_input_channel = 0;
-static int preferred_sample_rate_in;
-static int preferred_sample_rate_out;
+static int preferred_sample_rate_in = 0;
+static int preferred_sample_rate_out = 0;
 static int output = -1;
 static struct odict *interfaces = NULL;
 struct list sessionl;
@@ -67,6 +67,7 @@ static SRC_STATE *src_state_in;
 static SRC_STATE *src_state_out;
 static unsigned int samples = 0;
 static struct lock *rtaudio_lock;
+static bool mismatch_samplerates = false;
 
 static int slrtaudio_stop(void);
 static int slrtaudio_start(void);
@@ -387,9 +388,8 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 
 	lock_rel(rtaudio_lock);
 
-#ifdef LINUX
-	slrtaudio_callback_out(out, in, nframes, stream_time, status, userdata);
-#endif
+	if (!mismatch_samplerates)
+		slrtaudio_callback_out(out, in, nframes, stream_time, status, userdata);
 
 	return 0;
 }
@@ -801,10 +801,10 @@ static int slrtaudio_start(void)
 	int error = 0;
 
 	unsigned int bufsz_in = preferred_sample_rate_in * 20 / 1000;
-#ifndef LINUX
 	unsigned int bufsz_out = preferred_sample_rate_out * 20 / 1000;
-#endif
 
+	if (preferred_sample_rate_in != preferred_sample_rate_out)
+		mismatch_samplerates = true;
 
 	audio_in = rtaudio_create(driver);
 	if (rtaudio_error(audio_in) != NULL)
@@ -813,11 +813,13 @@ static int slrtaudio_start(void)
 		goto out;
 	}
 
-	audio_out = rtaudio_create(driver);
-	if (rtaudio_error(audio_out) != NULL)
-	{
-		err = ENODEV;
-		goto out;
+	if (mismatch_samplerates) {
+		audio_out = rtaudio_create(driver);
+		if (rtaudio_error(audio_out) != NULL)
+		{
+			err = ENODEV;
+			goto out;
+		}
 	}
 
 	rtaudio_stream_parameters_t out_params = {
@@ -852,45 +854,57 @@ static int slrtaudio_start(void)
 
 	warning("samplerates %d %d\n",preferred_sample_rate_in, preferred_sample_rate_out);
 
-#ifdef LINUX
-	rtaudio_open_stream(audio_in, &out_params, &in_params,
-						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_in, &bufsz_in,
-						slrtaudio_callback_in, NULL, &options, NULL);
-#else
-	rtaudio_open_stream(audio_in, NULL, &in_params,
-						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_in, &bufsz_in,
-						slrtaudio_callback_in, NULL, NULL, NULL);
-	rtaudio_open_stream(audio_out, &out_params, NULL,
-						RTAUDIO_FORMAT_SINT16, preferred_sample_rate_out, &bufsz_out,
-						slrtaudio_callback_out, NULL, NULL, NULL);
-#endif
-	if (rtaudio_error(audio_in) != NULL)
-	{
-		err = EINVAL;
-		goto out;
+	if (mismatch_samplerates) {
+		rtaudio_open_stream(audio_in, NULL, &in_params,
+				RTAUDIO_FORMAT_SINT16, preferred_sample_rate_in, &bufsz_in,
+				slrtaudio_callback_in, NULL, NULL, NULL);
+		if (rtaudio_error(audio_in) != NULL)
+		{
+			err = EINVAL;
+			goto out;
+		}
+
+		rtaudio_open_stream(audio_out, &out_params, NULL,
+				RTAUDIO_FORMAT_SINT16, preferred_sample_rate_out, &bufsz_out,
+				slrtaudio_callback_out, NULL, NULL, NULL);
+		if (rtaudio_error(audio_out) != NULL)
+		{
+			err = EINVAL;
+			goto out;
+		}
+
+		rtaudio_start_stream(audio_in);
+		if (rtaudio_error(audio_in) != NULL)
+		{
+			err = EINVAL;
+			goto out;
+		}
+
+		rtaudio_start_stream(audio_out);
+		if (rtaudio_error(audio_out) != NULL)
+		{
+			err = EINVAL;
+			goto out;
+		}
+	} 
+	else {
+		rtaudio_open_stream(audio_in, &out_params, &in_params,
+				RTAUDIO_FORMAT_SINT16, preferred_sample_rate_in, &bufsz_in,
+				slrtaudio_callback_in, NULL, &options, NULL);
+		if (rtaudio_error(audio_in) != NULL)
+		{
+			err = EINVAL;
+			goto out;
+		}
+
+		rtaudio_start_stream(audio_in);
+		if (rtaudio_error(audio_in) != NULL)
+		{
+			err = EINVAL;
+			goto out;
+		}
 	}
 
-	if (rtaudio_error(audio_out) != NULL)
-	{
-		err = EINVAL;
-		goto out;
-	}
-
-
-	rtaudio_start_stream(audio_in);
-	if (rtaudio_error(audio_in) != NULL)
-	{
-		err = EINVAL;
-		goto out;
-	}
-#ifndef LINUX
-	rtaudio_start_stream(audio_out);
-	if (rtaudio_error(audio_out) != NULL)
-	{
-		err = EINVAL;
-		goto out;
-	}
-#endif
 out:
 	if (err)
 	{
