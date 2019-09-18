@@ -245,9 +245,9 @@ index 1563c6c..52ff8bd 100644
  			  "\n# Network\n"
  			  "net_prefer_ipv6\t\tno\n"
 -			  "#dns_server\t\t10.0.0.1:53\n"
++			  "dns_server\t\t1.1.1.1:53\n"
 +			  "dns_server\t\t74.82.42.42:53\n"
 +			  "dns_server\t\t9.9.9.10:53\n"
-+			  "dns_server\t\t1.1.1.1:53\n"
  			  "#net_interface\t\t%H\n",
 -			  cfg->avt.jbuf_del.min, cfg->avt.jbuf_del.max,
  			  default_interface_print, NULL);
