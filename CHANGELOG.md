@@ -1,3 +1,8 @@
+
+### v19.09.1-beta (xx.xx.2019)
+
+- **Standalone** Add option to mix input channels
+
 ### v19.09.0-beta (17.09.2019)
 
 - **Misc** Baresip 0.6.3

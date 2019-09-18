@@ -1,3 +1,9 @@
+
+### v19.09.1-beta (xx.xx.2019)
+
+- **Standalone** Mix Option für Eingangskanäle hinzugefügt
+
+
 ### v19.09.0-beta (17.09.2019)
 
 - **Generell** Baresip 0.6.3
