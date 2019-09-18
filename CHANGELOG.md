@@ -2,6 +2,7 @@
 ### v19.09.1-beta (xx.xx.2019)
 
 - **Standalone** Add option to mix input channels
+- **Misc** Prefer 1.1.1.1 nameserver
 
 ### v19.09.0-beta (17.09.2019)
 
