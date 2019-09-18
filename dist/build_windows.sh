@@ -35,72 +35,6 @@ unset CC
 unset CXX
 
 
-# Build libsamplerate
-#-----------------------------------------------------------------------------
-if [ ! -d libsamplerate ]; then
-    git clone https://github.com/studio-link-3rdparty/libsamplerate.git
-    pushd libsamplerate
-    ./autogen.sh
-    ./configure --host=${_arch}
-    make
-    cp -a ./src/.libs/libsamplerate.a ../my_include/
-    cp -a ./src/samplerate.h ../my_include/
-
-    ls -lha ../my_include/
-    popd
-fi
-
-
-# Build RtAudio
-#-----------------------------------------------------------------------------
-if [ ! -d rtaudio-${rtaudio} ]; then
-    sl_get_rtaudio
-    pushd rtaudio-${rtaudio}
-    export CPPFLAGS="-Wno-unused-function -Wno-unused-but-set-variable"
-    ./autogen.sh --with-wasapi --host=${_arch}
-    make $make_opts
-    unset CPPFLAGS
-    cp -a .libs/librtaudio.a ../my_include/
-    popd
-fi
-
-# Download openssl
-#-----------------------------------------------------------------------------
-if [ ! -d openssl-${openssl} ]; then
-    sl_get_openssl
-fi
-
-# Build FLAC
-#-----------------------------------------------------------------------------
-if [ ! -d flac-${flac} ]; then
-    sl_get_flac
-    mkdir flac/build_win
-    pushd flac/build_win
-    ${_arch}-configure --disable-ogg --enable-static --disable-cpplibs
-    make $make_opts
-    popd
-    cp -a flac/include/FLAC my_include/
-    cp -a flac/include/share my_include/
-    cp -a flac/build_win/src/libFLAC/.libs/libFLAC.a my_include/
-fi
-
-# Build opus
-#-----------------------------------------------------------------------------
-if [ ! -d opus-$opus ]; then
-    wget -N "https://archive.mozilla.org/pub/opus/opus-${opus}.tar.gz"
-    tar -xzf opus-${opus}.tar.gz
-    mkdir opus-$opus/build
-    pushd opus-$opus/build
-    ${_arch}-configure \
-        --enable-custom-modes \
-        --disable-doc \
-        --disable-extra-programs
-    make $make_opts
-    popd
-    mkdir opus; cp opus-$opus/build/.libs/libopus.a opus/
-    cp -a opus-$opus/include/*.h opus/
-fi
-
 # Download libre
 #-----------------------------------------------------------------------------
 if [ ! -d re-$re ]; then
@@ -145,14 +79,13 @@ fi
 
 
 cp -a ../dist/windows/Makefile .
-make openssl
 make
 make -C overlay-vst PREFIX=$_arch
 make -C overlay-onair-vst PREFIX=$_arch
 
-$_arch-strip -g studio-link-standalone.exe
-$_arch-strip -g overlay-vst/studio-link.dll
-$_arch-strip -g overlay-onair-vst/studio-link-onair.dll
+$_arch-strip --strip-all studio-link-standalone.exe
+$_arch-strip --strip-all overlay-vst/studio-link.dll
+$_arch-strip --strip-all overlay-onair-vst/studio-link-onair.dll
 
 zip -r studio-link-standalone-$BUILD_OS studio-link-standalone.exe
 zip -r studio-link-plugin-$BUILD_OS overlay-vst/studio-link.dll
