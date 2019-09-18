@@ -1,8 +1,9 @@
 
-### v19.09.1-beta (xx.xx.2019)
+### v19.09.1-beta (18.09.2019)
 
 - **Standalone** Add option to mix input channels
 - **Misc** Prefer 1.1.1.1 nameserver
+- **Misc** Flac 1.3.3
 
 ### v19.09.0-beta (17.09.2019)
 
