@@ -57,6 +57,7 @@ static rtaudio_t audio_out = NULL;
 static int driver = -1;
 static int input = -1;
 static int input_channels = 2;
+static int output_channels = 2;
 static int first_input_channel = 0;
 static int preferred_sample_rate_in = 0;
 static int preferred_sample_rate_out = 0;
@@ -717,12 +718,6 @@ static int slrtaudio_devices(void)
 		if (!info.probed)
 			continue;
 
-		warning("%c%d: %s: %d\n",
-				info.is_default_input ? '*' : ' ', i,
-				info.name, info.preferred_sample_rate);
-		warning("%c%d: %s: %d\n",
-				info.is_default_output ? '*' : ' ', i,
-				info.name, info.preferred_sample_rate);
 
 		err = odict_alloc(&o_in, DICT_BSIZE);
 		if (err)
@@ -743,10 +738,17 @@ static int slrtaudio_devices(void)
 
 		if (info.output_channels > 0)
 		{
+			warning("slrtaudio: device out %c%d: %s: %d (ch %d)\n",
+					info.is_default_output ? '*' : ' ', i,
+					info.name, info.preferred_sample_rate,
+					info.output_channels);
 			if (output == i)
 			{
 				preferred_sample_rate_out = info.preferred_sample_rate;
 				odict_entry_add(o_out, "selected", ODICT_BOOL, true);
+				output_channels = info.output_channels;
+				warning("slrtaudio output: %s (%dhz/%dch)\n", info.name, 
+						preferred_sample_rate_out, output_channels);
 			}
 			else
 			{
@@ -759,11 +761,17 @@ static int slrtaudio_devices(void)
 
 		if (info.input_channels > 0)
 		{
+			warning("slrtaudio: device in %c%d: %s: %d (ch %d)\n",
+					info.is_default_input ? '*' : ' ', i,
+					info.name, info.preferred_sample_rate,
+					info.input_channels);
 			if (input == i)
 			{
 				odict_entry_add(o_in, "selected", ODICT_BOOL, true);
 				input_channels = info.input_channels;
 				preferred_sample_rate_in = info.preferred_sample_rate;
+				warning("slrtaudio input: %s (%dhz/%dch)\n", info.name, 
+						preferred_sample_rate_in, input_channels);
 			}
 			else
 			{
@@ -852,7 +860,8 @@ static int slrtaudio_start(void)
 		return 1;
 	};
 
-	warning("samplerates %d %d\n",preferred_sample_rate_in, preferred_sample_rate_out);
+	warning("samplerate/ch: in %d/%d out %d/%d\n",preferred_sample_rate_in,
+			input_channels, preferred_sample_rate_out, output_channels);
 
 	if (mismatch_samplerates) {
 		rtaudio_open_stream(audio_in, NULL, &in_params,
