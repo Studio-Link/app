@@ -31,16 +31,6 @@ stages:
   - test
 
 deploy:
-  - provider: releases
-    api_key:
-      secure: R7Qo1n7SPn0lumai6BssUVXInVoS3ZylraT0OJOeJpN9iLE4iri4p4unrJV7PiVetxsscGYQ0ijnTG2q0DymjiD0eKNBaMmx5os5mvi1x7VBDtAW1Ki53N/S4EQMF0JKEbeKzuW0Jsp21wGEv3ZDpdq2u8Bf+M1+qEpYz0t8FU8gtFLIrpfszUqv9L+wOcnEwepiZUGRD1czfM7lJ39bkOC5gSaskekcydk3qECzdlZdh4e4vnlI9ymNOvDiaPtBiXgDVBhq4QVCuOy696k2NKD9cpeLLblgxSYDTphQAfLZn93CQ0Knx3wr8YImVJA6qtprPuoPLgS3HWZW0uxVdLqKTsqIH6YbSbjK6Awg1xJhiWJMwK2oDC1EU6+RgeaV7x3KbmT7prJiZQGfhp5mWIxoGvXabLrwh17JInWYyq8+CS3xDdTEykQmZYsAEW6CR96Ie4YnrK9YjwE+PVwUiwyiGhKzdato4br9lKs6nrZpXwydYUvWqNfNeaQtFjiHSkb6Gac2Dj7PliWnScm/qq9imaq/Riz9L/X6Gogw9CFSVdf8pM932Jgl65dIf99BMJT4uBCcWddCpEgKa8/RMRDLp38GiJQbw6CSQUVs4zHBtT2PbiurCp5TBmrRvwOYOAfcbPoTJ+lx9nAG4pULHW2HdXBkC0hRSuTUZOFu/G8=
-    file: 
-      - build/studio-link-standalone-$BUILD_OS.zip
-      - build/studio-link-plugin-$BUILD_OS.zip
-      - build/studio-link-plugin-onair-$BUILD_OS.zip
-    skip_cleanup: true
-    on:
-      tags: true
   - provider: s3
     access_key_id: "AKIAJ3CDJMCPJXIU5TTA"
     secret_access_key:
