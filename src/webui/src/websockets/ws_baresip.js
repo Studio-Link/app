@@ -106,6 +106,31 @@ $(function () {
 	};
 
 	ws_baresip.onmessage = function (message) {
+		if (message.data == "update") {
+			bootbox.dialog({
+				title: "Update available",
+				message: "Please update",
+				buttons: {
+					close: {
+						label: 'Cancel',
+						callback: function() {
+							return true;
+						}
+					},
+					download: {
+						label: "Download",
+						className: "btn-success",
+						callback: function () {
+							window.open("https://doku.studio-link.de");
+							return false;
+						}
+					}
+				}
+			}
+			);
+			return;
+		}
+
 		var msg = JSON.parse(message.data);
 		var listsip = require("../templates/listsip.handlebars");
 		var currentlist = require("../templates/currentlist.handlebars");

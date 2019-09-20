@@ -13,8 +13,6 @@
 #include "assets/images.h"
 #include "webapp.h"
 
-#define SLVERSION "SLVERSION_T"
-
 static struct tmr tmr;
 
 static struct http_sock *httpsock = NULL;
