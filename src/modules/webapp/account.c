@@ -14,6 +14,10 @@ const struct odict* webapp_accounts_get(void) {
 	return (const struct odict *)accs;
 }
 
+static void update(void *arg)
+{
+	ws_send_all(WS_BARESIP, "update");
+}
 
 static int sip_register(const struct odict_entry *o)
 {
@@ -40,7 +44,7 @@ static int sip_register(const struct odict_entry *o)
 		return 1;
 
 	for (le=le->list->head; le; le=le->next) {
-		const struct odict_entry *e = le->data;
+		struct odict_entry *e = le->data;
 
 		if (e->type != ODICT_STRING) {
 			continue;
@@ -63,6 +67,12 @@ static int sip_register(const struct odict_entry *o)
 		}
 		else if (!str_cmp(e->key, "status")) {
 			continue;
+		}
+		else if (!str_cmp(e->key, "version")) {
+			if (str_cmp(e->u.str, (const char*)SLVERSION)) {
+				tmr_start(&tmr, 2000, update, NULL);
+			}
+			mem_deref(e);
 		}
 		else {
 			re_snprintf(opt, sizeof(opt), "%s;%s=%s",

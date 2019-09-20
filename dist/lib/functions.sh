@@ -93,6 +93,6 @@ sl_get_baresip() {
     cp -a ../../src/modules/slrtaudio modules/slrtaudio
 
 
-    sed $sed_opt s/SLVERSION_T/$version_t/ modules/webapp/webapp.c
+    sed $sed_opt s/SLVERSION_T/$version_t/ modules/webapp/webapp.h
     popd
 }

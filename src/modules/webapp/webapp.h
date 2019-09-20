@@ -1,3 +1,5 @@
+#define SLVERSION "SLVERSION_T"
+
 #ifdef SLPLUGIN
 /*
  * effect/effect.c
@@ -39,6 +41,8 @@ struct odict *webapp_calls;
 
 int webapp_call_delete(struct call *call);
 int webapp_call_update(struct call *call, char *state);
+
+int webapp_update(bool status);
 
 /*
  * vumeter.c
