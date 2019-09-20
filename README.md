@@ -31,7 +31,21 @@ Install /usr/include Header File with:
 
 ## Build on Linux
 
-```export TRAVIS_OS_NAME="linux"; dist/build.sh```
+### 3rdparty
+
+```
+git clone https://github.com/Studio-Link/3rdparty.git
+cd 3rdparty
+export TRAVIS_OS_NAME="linux"; dist/build.sh
+cd ..
+```
+
+### app
+```
+git clone https://github.com/Studio-Link/app.git
+cd app
+export TRAVIS_OS_NAME="linux"; dist/build.sh
+```
 
 ## Build on macOS
 
