@@ -174,7 +174,7 @@ fi
 # Testing and prepare release upload
 #-----------------------------------------------------------------------------
 
-s3_path="s3_upload/$TRAVIS_BRANCH/$version_t/$BUILD_OS/"
+s3_path="s3_upload/$TRAVIS_BRANCH/$version_t/$BUILD_OS"
 mkdir -p $s3_path
 
 
@@ -186,7 +186,9 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     strip --strip-all overlay-lv2/studio-link.so
     strip --strip-all overlay-onair-lv2/studio-link-onair.so
 
+    chmod +x studio-link-standalone 
     mv studio-link-standalone studio-link-standalone-$version_tc
+    tar -cvzf studio-link-standalone-$version_tc.tar.gz studio-link-standalone-$version_tc
 
     mkdir -p studio-link.lv2
     cp -a overlay-lv2/studio-link.so studio-link.lv2/
@@ -200,7 +202,7 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     cp -a overlay-onair-lv2/README.md studio-link-onair.lv2/
     zip -r studio-link-plugin-onair-linux studio-link-onair.lv2
 
-    cp -a studio-link-standalone-$version_tc $s3_path
+    cp -a studio-link-standalone-$version_tc.tar.gz $s3_path
     cp -a studio-link-plugin-linux.zip $s3_path
     cp -a studio-link-plugin-onair-linux.zip $s3_path
 else
@@ -213,13 +215,9 @@ else
     sed $sed_opt s/ITSR:\ StudioLinkOnAir/StudioLinkOnAir\ \(ITSR\)/ StudioLinkOnAir.component/Contents/Info.plist # Reaper 5.70 Fix
     zip -r studio-link-plugin-osx StudioLink.component
     zip -r studio-link-plugin-onair-osx StudioLinkOnAir.component
-    zip -r studio-link-standalone-$version_tc StudioLinkStandalone.app
+    zip -r studio-link-standalone StudioLinkStandalone.app
 
-    cp -a studio-link-standalone-$version_tc.zip $s3_path
+    cp -a studio-link-standalone.zip $s3_path/studio-link-standalone-$version_tc.zip
     cp -a studio-link-plugin-osx.zip $s3_path
     cp -a studio-link-plugin-onair-osx.zip $s3_path
-    
-    #security delete-keychain ~/Library/Keychains/sl-build.keychain
 fi
-
-
