@@ -25,7 +25,7 @@ jobs:
     - stage: webui
       script: "./dist/build_webui.sh"
       env:
-        - BUILD_OS="linux"
+        - BUILD_OS="webui"
 stages:
   - webui
   - test

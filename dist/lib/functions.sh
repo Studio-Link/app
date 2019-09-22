@@ -21,13 +21,15 @@ sl_prepare() {
 
     SHASUM=$(which shasum)
 
-    #Get 3rdparty prebuilds
-    if [ -f ../../3rdparty/build/$BUILD_OS.zip ]; then
-        cp ../../3rdparty/build/$BUILD_OS.zip $BUILD_OS.zip
-    else
-        wget https://github.com/Studio-Link/3rdparty/releases/download/${sl3rdparty}/$BUILD_OS.zip
+    if [ $BUILD_OS != "webui" ]; then
+        #Get 3rdparty prebuilds
+        if [ -f ../../3rdparty/build/$BUILD_OS.zip ]; then
+            cp ../../3rdparty/build/$BUILD_OS.zip $BUILD_OS.zip
+        else
+            wget https://github.com/Studio-Link/3rdparty/releases/download/${sl3rdparty}/$BUILD_OS.zip
+        fi
+        unzip $BUILD_OS.zip
     fi
-    unzip $BUILD_OS.zip
 }
 
 sl_get_webui() {
