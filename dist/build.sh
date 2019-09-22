@@ -31,13 +31,13 @@ sl_prepare
 
 sl_extra_lflags="-L ../opus -L ../my_include "
 
-if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+if [ "$BUILD_OS" == "linux" ]; then
     sl_extra_modules="alsa slrtaudio"
 fi
-if [ "$TRAVIS_OS_NAME" == "linuxjack" ]; then
+if [ "$BUILD_OS" == "linuxjack" ]; then
     sl_extra_modules="jack alsa slrtaudio"
 fi
-if [ "$TRAVIS_OS_NAME" == "osx" ]; then 
+if [ "$BUILD_OS" == "osx" ]; then 
     export MACOSX_DEPLOYMENT_TARGET=10.9
     sl_extra_lflags+="-L ../openssl ../openssl/libssl.a ../openssl/libcrypto.a "
     sl_extra_lflags+="-framework SystemConfiguration "
