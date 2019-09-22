@@ -33,7 +33,11 @@ sl_extra_lflags="-L ../opus -L ../my_include "
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     sl_extra_modules="alsa slrtaudio"
-else
+fi
+if [ "$TRAVIS_OS_NAME" == "linuxjack" ]; then
+    sl_extra_modules="jack alsa slrtaudio"
+fi
+if [ "$TRAVIS_OS_NAME" == "osx" ]; then 
     export MACOSX_DEPLOYMENT_TARGET=10.9
     sl_extra_lflags+="-L ../openssl ../openssl/libssl.a ../openssl/libcrypto.a "
     sl_extra_lflags+="-framework SystemConfiguration "
@@ -71,7 +75,7 @@ if [ ! -d baresip-$baresip ]; then
 
     pushd baresip-$baresip
     # Standalone
-    if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+    if [ "$TRAVIS_OS_NAME" == "linux" ] || [ "$TRAVIS_OS_NAME" == "linuxjack" ]; then
         make $debug $make_opts USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
             MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
             EXTRA_CFLAGS="-I ../my_include" \
@@ -177,6 +181,18 @@ fi
 s3_path="s3_upload/$TRAVIS_BRANCH/$version_t/$BUILD_OS"
 mkdir -p $s3_path
 
+if [ "$TRAVIS_OS_NAME" == "linuxjack" ]; then
+    ./studio-link-standalone -t
+    ldd studio-link-standalone
+
+    strip --strip-all studio-link-standalone
+
+    chmod +x studio-link-standalone
+    mv studio-link-standalone studio-link-standalone-$version_tc
+    tar -cvzf studio-link-standalone-$version_tc.tar.gz studio-link-standalone-$version_tc
+
+    cp -a studio-link-standalone-$version_tc.tar.gz $s3_path
+fi
 
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     ./studio-link-standalone -t
@@ -205,7 +221,9 @@ if [ "$TRAVIS_OS_NAME" == "linux" ]; then
     cp -a studio-link-standalone-$version_tc.tar.gz $s3_path
     cp -a studio-link-plugin-linux.zip $s3_path
     cp -a studio-link-plugin-onair-linux.zip $s3_path
-else
+fi
+
+if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLinkOnAir.component StudioLinkOnAir.component
     mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app

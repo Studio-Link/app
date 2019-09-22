@@ -29,7 +29,7 @@ Install /usr/include Header File with:
 
 ---
 
-## Build on Linux
+## Build on Linux - alsa/pulseaudio
 
 ### 3rdparty
 
@@ -45,6 +45,24 @@ cd ..
 git clone https://github.com/Studio-Link/app.git
 cd app
 export TRAVIS_OS_NAME="linux"; dist/build.sh
+```
+
+## Build on Linux - alsa/pulseaudio/jack
+
+### 3rdparty
+
+```
+git clone https://github.com/Studio-Link/3rdparty.git
+cd 3rdparty
+export TRAVIS_OS_NAME="linuxjack"; dist/build.sh
+cd ..
+```
+
+### app
+```
+git clone https://github.com/Studio-Link/app.git
+cd app
+export TRAVIS_OS_NAME="linuxjack"; dist/build.sh
 ```
 
 ## Build on macOS
