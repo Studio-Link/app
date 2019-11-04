@@ -71,7 +71,7 @@ matrix:
           - os: linux          
             env: BUILD_OS="osx"
 
-arch:
+archlinux:
         packages:
             - wget
             - perl
