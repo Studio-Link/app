@@ -43,7 +43,7 @@ sl_get_webui() {
 sl_build_webui() {
     cp -a ../src/webui .
     pushd webui
-    npm install
+    npm ci
     npm run prod
     mkdir -p headers
     xxd -i dist/index.html > headers/index_html.h
