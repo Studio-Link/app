@@ -261,8 +261,8 @@ static void provisioning(void)
 	struct config *cfg = conf_config();
 	const struct network *net = baresip_network();
 
-	re_snprintf(url, sizeof(url), "https://%s/%s?uuid=%s",
-			host, path, cfg->sip.uuid);
+	re_snprintf(url, sizeof(url), "https://%s/%s?uuid=%s&version=%s",
+			host, path, cfg->sip.uuid, SLVERSION);
 
 	http_client_alloc(&cli, net_dnsc(net));
 
