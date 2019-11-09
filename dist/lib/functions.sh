@@ -20,7 +20,9 @@ sl_prepare() {
 
 
     SHASUM=$(which shasum)
+}
 
+sl_3rdparty() {
     #Get 3rdparty prebuilds
     if [ -f ../../3rdparty/build/$BUILD_OS.zip ]; then
         cp ../../3rdparty/build/$BUILD_OS.zip $BUILD_OS.zip

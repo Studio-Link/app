@@ -29,6 +29,7 @@ fi
 # Start build
 #-----------------------------------------------------------------------------
 sl_prepare
+sl_3rdparty
 
 sl_extra_lflags="-L ../opus -L ../my_include "
 
