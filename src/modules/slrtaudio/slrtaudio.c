@@ -12,7 +12,7 @@
 #include <samplerate.h>
 #include "slrtaudio.h"
 
-#define BUFFER_LEN 11520 /** 48000hz*2ch*80ms */
+#define BUFFER_LEN 21520 /** 48000hz*2ch*80ms */
 
 enum
 {
