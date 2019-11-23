@@ -69,6 +69,8 @@ static int sip_register(const struct odict_entry *o)
 			continue;
 		}
 		else if (!str_cmp(e->key, "version")) {
+			/* Version Check disabled */
+			continue;
 			if (str_cmp(e->u.str, (const char*)SLVERSION)) {
 				tmr_start(&tmr, 2000, update, NULL);
 			}
