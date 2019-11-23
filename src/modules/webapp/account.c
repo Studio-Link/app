@@ -72,7 +72,6 @@ static int sip_register(const struct odict_entry *o)
 			if (str_cmp(e->u.str, (const char*)SLVERSION)) {
 				tmr_start(&tmr, 2000, update, NULL);
 			}
-			mem_deref(e);
 		}
 		else {
 			re_snprintf(opt, sizeof(opt), "%s;%s=%s",
