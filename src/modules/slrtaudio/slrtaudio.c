@@ -265,6 +265,8 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 	ws_meter_process(0, slrtaudio->inBufferFloat,
 			(unsigned long)in_samples);
 
+	samples = nframes * 2;
+
 	/**<-- Input Samplerate conversion */
 	if (preferred_sample_rate_in != 48000)
 	{
@@ -292,7 +294,6 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 				samples);
 	}
 	/** Input Samplerate conversion -->*/
-
 
 	for (le = sessionl.head; le; le = le->next)
 	{
@@ -850,8 +851,13 @@ static int slrtaudio_start(void)
 	unsigned int bufsz_in = preferred_sample_rate_in * 20 / 1000;
 	unsigned int bufsz_out = preferred_sample_rate_out * 20 / 1000;
 
+#ifdef DARWIN
+	/* workaround for buffer underrun on macos */
+	mismatch_samplerates = true;
+#else
 	if (preferred_sample_rate_in != preferred_sample_rate_out)
 		mismatch_samplerates = true;
+#endif
 
 	audio_in = rtaudio_create(driver);
 	if (rtaudio_error(audio_in) != NULL)
