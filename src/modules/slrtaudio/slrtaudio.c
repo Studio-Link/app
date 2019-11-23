@@ -12,7 +12,7 @@
 #include <samplerate.h>
 #include "slrtaudio.h"
 
-#define BUFFER_LEN 7680 /** 48000hz*2ch*80ms */
+#define BUFFER_LEN 7680 /* max buffer_len = 192kHz*2ch*20ms */
 
 enum
 {
@@ -93,15 +93,18 @@ static int32_t *playmix;
 static bool mono = false;
 static bool mute = false;
 
+
 void slrtaudio_mono_set(bool active)
 {
 	mono = active;
 }
 
+
 void slrtaudio_mute_set(bool active)
 {
 	mute = active;
 }
+
 
 static void sess_destruct(void *arg)
 {
@@ -127,10 +130,12 @@ static void sess_destruct(void *arg)
 	list_unlink(&sess->le);
 }
 
+
 const struct odict *slrtaudio_get_interfaces(void)
 {
 	return (const struct odict *)interfaces;
 }
+
 
 static int slrtaudio_reset(void)
 {
@@ -152,11 +157,13 @@ static int slrtaudio_reset(void)
 	return err;
 }
 
+
 void slrtaudio_set_driver(int value)
 {
 	driver = value;
 	slrtaudio_reset();
 }
+
 
 void slrtaudio_set_input(int value)
 {
@@ -164,17 +171,20 @@ void slrtaudio_set_input(int value)
 	slrtaudio_reset();
 }
 
+
 void slrtaudio_set_first_input_channel(int value)
 {
 	first_input_channel = value;
 	slrtaudio_reset();
 }
 
+
 void slrtaudio_set_output(int value)
 {
 	output = value;
 	slrtaudio_reset();
 }
+
 
 static void convert_float(int16_t *sampv, float *f_sampv, size_t sampc)
 {
@@ -187,6 +197,7 @@ static void convert_float(int16_t *sampv, float *f_sampv, size_t sampc)
 		++sampv;
 	}
 }
+
 
 static void downsample_first_ch(int16_t *outv, const int16_t *inv, size_t inc)
 {
@@ -222,6 +233,7 @@ static void downsample_first_ch(int16_t *outv, const int16_t *inv, size_t inc)
 		inc -= ratio;
 	}
 }
+
 
 int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 			double stream_time, rtaudio_stream_status_t status,
@@ -474,6 +486,7 @@ static void ausrc_destructor(void *arg)
 	mem_deref(st->sampv);
 }
 
+
 static void auplay_destructor(void *arg)
 {
 	struct auplay_st *st = arg;
@@ -483,6 +496,7 @@ static void auplay_destructor(void *arg)
 	sys_msleep(20);
 	mem_deref(st->sampv);
 }
+
 
 static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 		struct media_ctx **ctx,
@@ -543,6 +557,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	return err;
 }
 
+
 static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 		struct auplay_prm *prm, const char *device,
 		auplay_write_h *wh, void *arg)
@@ -600,6 +615,7 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 
 	return err;
 }
+
 
 static int slrtaudio_drivers(void)
 {
@@ -696,6 +712,7 @@ static int slrtaudio_drivers(void)
 
 	return 0;
 }
+
 
 static int slrtaudio_devices(void)
 {
@@ -834,6 +851,7 @@ out2:
 	return err;
 }
 
+
 static int slrtaudio_start(void)
 {
 	char errmsg[512];
@@ -848,6 +866,7 @@ static int slrtaudio_start(void)
 	slrtaudio->outBufferFloat = mem_zalloc(BUFFER_LEN, NULL);
 	slrtaudio->outBufferInFloat = mem_zalloc(BUFFER_LEN, NULL);
 
+	/* calculate 20ms buffersize/nframes  */
 	unsigned int bufsz_in = preferred_sample_rate_in * 20 / 1000;
 	unsigned int bufsz_out = preferred_sample_rate_out * 20 / 1000;
 
@@ -984,6 +1003,7 @@ out:
 	return err;
 }
 
+
 static int slrtaudio_stop(void)
 {
 	if (audio_in)
@@ -1019,6 +1039,7 @@ static int slrtaudio_stop(void)
 
 	return 0;
 }
+
 
 static int slrtaudio_init(void)
 {
@@ -1065,6 +1086,7 @@ static int slrtaudio_init(void)
 	return err;
 }
 
+
 static int slrtaudio_close(void)
 {
 	struct le *le;
@@ -1088,6 +1110,7 @@ static int slrtaudio_close(void)
 
 	return 0;
 }
+
 
 const struct mod_export DECL_EXPORTS(slrtaudio) = {
 	"slrtaudio",
