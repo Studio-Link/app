@@ -4,6 +4,10 @@
 
 This repository contains the studio link - baresip modules and build environment
 
+## Usage
+
+Pleas use the prebuilt binarys at https://doku.studio-link.de/standalone/installation-standalone.html
+
 ## Build Requirements
 
 - OpenSSL
@@ -31,17 +35,13 @@ Install /usr/include Header File with:
 
 ## Build on Linux
 
-### 3rdparty
-
-```
+```bash
+mdkir studio-link
+cd studio-link
 git clone https://github.com/Studio-Link/3rdparty.git
 cd 3rdparty
 export TRAVIS_OS_NAME="linux"; dist/build.sh
 cd ..
-```
-
-### app
-```
 git clone https://github.com/Studio-Link/app.git
 cd app
 export TRAVIS_OS_NAME="linux"; dist/build.sh
@@ -49,8 +49,28 @@ export TRAVIS_OS_NAME="linux"; dist/build.sh
 
 ## Build on macOS
 
-```export TRAVIS_OS_NAME="osx"; dist/build.sh```
+```bash
+mdkir studio-link
+cd studio-link
+git clone https://github.com/Studio-Link/3rdparty.git
+cd 3rdparty
+export TRAVIS_OS_NAME="linux"; dist/build.sh
+cd ..
+git clone https://github.com/Studio-Link/app.git
+cd app
+export TRAVIS_OS_NAME="osx"; dist/build.sh
+```
 
 ## Build for Windows on Arch Linux (only)
 
-```export BUILD_OS="windows64"; dist/build_windows.sh```
+```bash
+mdkir studio-link
+cd studio-link
+git clone https://github.com/Studio-Link/3rdparty.git
+cd 3rdparty
+export TRAVIS_OS_NAME="linux"; dist/build.sh
+cd ..
+git clone https://github.com/Studio-Link/app.git
+cd app
+export BUILD_OS="windows64"; dist/build_windows.sh
+```
