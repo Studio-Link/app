@@ -23,8 +23,6 @@ Please use the prebuilt binarys at https://doku.studio-link.de/standalone/instal
 - macOS 64Bit
 - Linux 64Bit
 
----
-
 ## Development
 
 ### Build Requirements
@@ -72,7 +70,7 @@ mdkir studio-link
 cd studio-link
 git clone https://github.com/Studio-Link/3rdparty.git
 cd 3rdparty
-export TRAVIS_OS_NAME="linux"; dist/build.sh
+export TRAVIS_OS_NAME="osx"; dist/build.sh
 cd ..
 git clone https://github.com/Studio-Link/app.git
 cd app
@@ -86,11 +84,11 @@ mdkir studio-link
 cd studio-link
 git clone https://github.com/Studio-Link/3rdparty.git
 cd 3rdparty
-export TRAVIS_OS_NAME="linux"; dist/build.sh
+export TRAVIS_OS_NAME="windows64"; dist/build.sh
 cd ..
 git clone https://github.com/Studio-Link/app.git
 cd app
-export BUILD_OS="windows64"; dist/build_windows.sh
+export TRAVIS_OS_NAME="windows64"; dist/build_windows.sh
 ```
 
 ## License
