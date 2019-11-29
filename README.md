@@ -1,14 +1,33 @@
-# Backend Repository
+# Studio Link
 
+<p align="center">
+	<a href="https://studio-link.de" target="_blank">
+		<img src="https://studio-link.de/assets/webbanner/sl_button-234x60@3x.png">
+	</a>
+</p>
+<p align="center">
 [![Build Status](https://travis-ci.org/Studio-Link/app.svg?branch=v19.xx.x)](https://travis-ci.org/Studio-Link/app)
+</p>
 
-This repository contains the studio link - baresip modules and build environment
+## About Studio Link
+
+Studio Link is a SIP application to create high quality Audio over IP (AoIP) connections.
 
 ## Usage
 
-Pleas use the prebuilt binarys at https://doku.studio-link.de/standalone/installation-standalone.html
+Please use the prebuilt binarys at https://doku.studio-link.de/standalone/installation-standalone.html
 
-## Build Requirements
+## Supported Platforms
+
+- Windows 64Bit
+- macOS 64Bit
+- Linux 64Bit
+
+---
+
+## Development
+
+### Build Requirements
 
 - OpenSSL
 - Libtool
@@ -31,9 +50,8 @@ https://github.com/nodesource/distributions/blob/master/README.md
 Install /usr/include Header File with:
 /Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg
 
----
 
-## Build on Linux
+### Build on Linux
 
 ```bash
 mdkir studio-link
@@ -47,7 +65,7 @@ cd app
 export TRAVIS_OS_NAME="linux"; dist/build.sh
 ```
 
-## Build on macOS
+### Build on macOS
 
 ```bash
 mdkir studio-link
@@ -61,7 +79,7 @@ cd app
 export TRAVIS_OS_NAME="osx"; dist/build.sh
 ```
 
-## Build for Windows on Arch Linux (only)
+### Build for Windows on Arch Linux (only)
 
 ```bash
 mdkir studio-link
@@ -74,3 +92,7 @@ git clone https://github.com/Studio-Link/app.git
 cd app
 export BUILD_OS="windows64"; dist/build_windows.sh
 ```
+
+## License
+
+The Studio Link Apps are open-sourced software licensed under the [MIT license](LICENSE).
