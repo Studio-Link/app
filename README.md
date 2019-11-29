@@ -25,7 +25,7 @@ Please use the prebuilt binarys at https://doku.studio-link.de/standalone/instal
 
 ## Changelog
 
-See [Changelog.md](Changelog.md)
+See [CHANGELOG.md](CHANGELOG.md)
 
 
 ## Development
