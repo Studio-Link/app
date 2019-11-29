@@ -1,6 +1,5 @@
 # Changelog
 
-
 ## [Unreleased]
 
 ### Added
@@ -12,7 +11,8 @@
 
 ### Changed
 
-- **Standalone** only start separate RTAUDIO instances if samplerate mismatches
+- **Standalone** only start separate RTAUDIO instances if samplerate mismatches.
+  Linux and Windows only (macOS produces buffer underruns)
 - **Misc** Prefer 1.1.1.1 nameserver
 - **Misc** Flac 1.3.3
 
@@ -21,14 +21,14 @@
 - **Misc** 32 bit Support
 
 
-## [v19.09.0-beta] - 17.09.2019
+## [v19.09.0-beta] - 2019-09-17
 
 - **Misc** Baresip 0.6.3
 - **Misc** OpenSSL 1.1.1c
 - **Standalone** Automatic samplerate and channel conversion
 
 
-## [v19.04.0-beta] - 20.04.2019
+## v19.04.0-beta - 2019-04-20
 
 - **Standalone** Onboarding is disabled after first pass or by skipping
 - **Standalone** The recordings are now stored in a subfolder
@@ -47,7 +47,7 @@
 - **Fixed** for any bug fixes
 - **Security** in case of vulnerabilities
 
-## Category
+## Labels
 
 - **Standalone** Changes to the standalone OS X, Windows and Linux Version
 - **Plugin** Changes to the effect plugins (Audio Unit, LV2 and VST)
