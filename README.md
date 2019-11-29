@@ -23,6 +23,11 @@ Please use the prebuilt binarys at https://doku.studio-link.de/standalone/instal
 - macOS 64Bit
 - Linux 64Bit
 
+## Changelog
+
+See [Changelog.md](Changelog.md)
+
+
 ## Development
 
 ### Build Requirements
