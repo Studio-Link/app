@@ -989,14 +989,15 @@ static int slrtaudio_start(void)
 	}
 
 out:
-	if (err)
-	{
+	if (err) {
 		re_snprintf(errmsg, sizeof(errmsg), "%s",
 					rtaudio_error(audio_in));
 		warning("error: %s\n", errmsg);
-		re_snprintf(errmsg, sizeof(errmsg), "%s",
+		if (audio_out) {
+			re_snprintf(errmsg, sizeof(errmsg), "%s",
 					rtaudio_error(audio_out));
-		warning("error: %s\n", errmsg);
+			warning("error: %s\n", errmsg);
+		}
 		/**	webapp_ws_rtaudio_set_err(errmsg);*/
 	}
 
