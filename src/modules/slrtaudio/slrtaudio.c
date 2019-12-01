@@ -161,6 +161,8 @@ static int slrtaudio_reset(void)
 void slrtaudio_set_driver(int value)
 {
 	driver = value;
+	output = -1;
+	input = -1;
 	slrtaudio_reset();
 }
 
@@ -969,6 +971,7 @@ static int slrtaudio_start(void)
 		}
 	}
 	else {
+		warning("START STREAM: %i/%i \n", input, output);
 		rtaudio_open_stream(audio_in, &out_params,
 				&in_params, RTAUDIO_FORMAT_SINT16,
 				preferred_sample_rate_in, &bufsz_in,
@@ -1117,4 +1120,5 @@ const struct mod_export DECL_EXPORTS(slrtaudio) = {
 	"slrtaudio",
 	"sound",
 	slrtaudio_init,
-	slrtaudio_close};
+	slrtaudio_close
+};
