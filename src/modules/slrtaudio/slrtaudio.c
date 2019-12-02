@@ -237,6 +237,28 @@ static void downsample_first_ch(int16_t *outv, const int16_t *inv, size_t inc)
 }
 
 
+static void convert_out_channels(int16_t *outv, const int16_t *inv, size_t inc)
+{
+	while (inc >= 1)
+	{
+		outv[0] = inv[0];
+		outv[1] = inv[1];
+
+		outv += 2;
+
+		for (uint16_t ch = 0; ch < output_channels - 2; ch++)
+		{
+			outv += 1;
+		}
+
+		inv += 2;
+		inc -= 2;
+	}
+
+
+}
+
+
 int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 			double stream_time, rtaudio_stream_status_t status,
 			void *userdata)
@@ -461,16 +483,33 @@ int slrtaudio_callback_out(void *out, void *in, unsigned int nframes,
 				"returned error : %s\n", src_strerror(error));
 			return 1;
 		};
-		auconv_to_s16(outBuffer, AUFMT_FLOAT,
-				slrtaudio->outBufferInFloat,
-				src_data_out.output_frames_gen * 2);
+		if (output_channels > 2) {
+			auconv_to_s16(slrtaudio->outBufferTmp, AUFMT_FLOAT,
+					slrtaudio->outBufferInFloat,
+					src_data_out.output_frames_gen * 2);
+		} else {
+			auconv_to_s16(outBuffer, AUFMT_FLOAT,
+					slrtaudio->outBufferInFloat,
+					src_data_out.output_frames_gen * 2);
+		}
 	}
 	else
 	{
-		for (uint16_t pos = 0; pos < nframes * 2; pos++)
-		{
-			outBuffer[pos] = playmix[pos];
+		if (output_channels > 2) {
+			for (uint16_t pos = 0; pos < nframes * 2; pos++)
+			{
+				slrtaudio->outBufferTmp[pos] = playmix[pos];
+			}
+		} else {
+			for (uint16_t pos = 0; pos < nframes * 2; pos++)
+			{
+				outBuffer[pos] = playmix[pos];
+			}
 		}
+	}
+
+	if (output_channels > 2) {
+		convert_out_channels(outBuffer, slrtaudio->outBufferTmp, nframes * 2);
 	}
 
 	lock_rel(rtaudio_lock);
@@ -898,7 +937,7 @@ static int slrtaudio_start(void)
 
 	rtaudio_stream_parameters_t out_params = {
 		.device_id = output,
-		.num_channels = 2,
+		.num_channels = output_channels,
 		.first_channel = 0,
 	};
 
