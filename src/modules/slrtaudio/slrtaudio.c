@@ -829,7 +829,8 @@ static int slrtaudio_devices(void)
 			odict_entry_add(o_in, "channels", ODICT_INT,
 					(int64_t)info.input_channels);
 			odict_entry_add(o_in, "first_input_channel",
-					ODICT_INT, (int64_t)first_input_channel);
+					ODICT_INT,
+					(int64_t)first_input_channel);
 			odict_entry_add(o_in, "display", ODICT_STRING,
 					info.name);
 			odict_entry_add(array_in, idx, ODICT_OBJECT, o_in);
