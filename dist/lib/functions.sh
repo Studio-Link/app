@@ -29,6 +29,7 @@ sl_3rdparty() {
     else
         wget https://github.com/Studio-Link/3rdparty/releases/download/${sl3rdparty}/$BUILD_OS.zip
     fi
+    unzip $BUILD_OS.zip
 }
 
 sl_get_webui() {
