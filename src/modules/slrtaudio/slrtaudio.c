@@ -742,7 +742,7 @@ static int slrtaudio_drivers(void)
 
 		if (detected)
 		{
-			odict_entry_add(o, "id", ODICT_INT, apis[i]);
+			odict_entry_add(o, "id", ODICT_INT, (int64_t)apis[i]);
 			odict_entry_add(array, idx, ODICT_OBJECT, o);
 		}
 
@@ -835,7 +835,7 @@ static int slrtaudio_devices(void)
 				odict_entry_add(o_out, "selected",
 						ODICT_BOOL, false);
 			}
-			odict_entry_add(o_out, "id", ODICT_INT, i);
+			odict_entry_add(o_out, "id", ODICT_INT, (int64_t)i);
 			odict_entry_add(o_out, "display", ODICT_STRING,
 					info.name);
 			odict_entry_add(array_out, idx, ODICT_OBJECT, o_out);
@@ -864,11 +864,12 @@ static int slrtaudio_devices(void)
 				odict_entry_add(o_in, "selected",
 						ODICT_BOOL, false);
 			}
-			odict_entry_add(o_in, "id", ODICT_INT, i);
+			odict_entry_add(o_in, "id", ODICT_INT, (int64_t)i);
 			odict_entry_add(o_in, "channels", ODICT_INT,
-					info.input_channels);
+					(int64_t)info.input_channels);
 			odict_entry_add(o_in, "first_input_channel",
-					ODICT_INT, first_input_channel);
+					ODICT_INT,
+					(int64_t)first_input_channel);
 			odict_entry_add(o_in, "display", ODICT_STRING,
 					info.name);
 			odict_entry_add(array_in, idx, ODICT_OBJECT, o_in);
