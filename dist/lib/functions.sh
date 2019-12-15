@@ -20,15 +20,14 @@ sl_prepare() {
 
 
     SHASUM=$(which shasum)
+}
 
-    if [ $BUILD_OS != "webui" ]; then
-        #Get 3rdparty prebuilds
-        if [ -f ../../3rdparty/build/$BUILD_OS.zip ]; then
-            cp ../../3rdparty/build/$BUILD_OS.zip $BUILD_OS.zip
-        else
-            wget https://github.com/Studio-Link/3rdparty/releases/download/${sl3rdparty}/$BUILD_OS.zip
-        fi
-        unzip $BUILD_OS.zip
+sl_3rdparty() {
+    #Get 3rdparty prebuilds
+    if [ -f ../../3rdparty/build/$BUILD_OS.zip ]; then
+        cp ../../3rdparty/build/$BUILD_OS.zip $BUILD_OS.zip
+    else
+        wget https://github.com/Studio-Link/3rdparty/releases/download/${sl3rdparty}/$BUILD_OS.zip
     fi
 }
 
@@ -43,7 +42,7 @@ sl_get_webui() {
 sl_build_webui() {
     cp -a ../src/webui .
     pushd webui
-    npm install
+    npm ci
     npm run prod
     mkdir -p headers
     xxd -i dist/index.html > headers/index_html.h

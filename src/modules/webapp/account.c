@@ -69,10 +69,11 @@ static int sip_register(const struct odict_entry *o)
 			continue;
 		}
 		else if (!str_cmp(e->key, "version")) {
+			/* Version Check disabled */
+			continue;
 			if (str_cmp(e->u.str, (const char*)SLVERSION)) {
 				tmr_start(&tmr, 2000, update, NULL);
 			}
-			mem_deref(e);
 		}
 		else {
 			re_snprintf(opt, sizeof(opt), "%s;%s=%s",
@@ -261,8 +262,8 @@ static void provisioning(void)
 	struct config *cfg = conf_config();
 	const struct network *net = baresip_network();
 
-	re_snprintf(url, sizeof(url), "https://%s/%s?uuid=%s",
-			host, path, cfg->sip.uuid);
+	re_snprintf(url, sizeof(url), "https://%s/%s?uuid=%s&version=%s",
+			host, path, cfg->sip.uuid, SLVERSION);
 
 	http_client_alloc(&cli, net_dnsc(net));
 

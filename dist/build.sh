@@ -8,6 +8,7 @@ make_opts="-j4"
 if [ "$BUILD_OS" == "ccheck" ]; then
     #dist/tools/ccheck.py src/modules/webapp
     dist/tools/ccheck.py src/modules/slrtaudio/record.c
+    dist/tools/ccheck.py src/modules/slrtaudio/
     exit 0
 fi
 
@@ -22,12 +23,14 @@ fi
 
 if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
     curl -s https://raw.githubusercontent.com/studio-link-3rdparty/arch-travis/master/arch-travis.sh | bash
+    #curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash
     exit 0
 fi
 
 # Start build
 #-----------------------------------------------------------------------------
 sl_prepare
+sl_3rdparty
 
 sl_extra_lflags="-L ../opus -L ../my_include "
 

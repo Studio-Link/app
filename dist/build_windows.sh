@@ -6,6 +6,7 @@ source dist/lib/versions.sh
 source dist/lib/functions.sh
 
 sl_prepare
+sl_3rdparty
 
 make_opts="-j4"
 

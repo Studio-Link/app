@@ -1,11 +1,11 @@
-vmajor=19; vminor=9; vpatch=1
+vmajor=19; vminor=12; vpatch=0
 vbuild="$(git rev-list HEAD --count).$(git rev-parse --short HEAD)"
-release="beta-${vbuild}"
+release="alpha-${vbuild}"
 #release="beta"
 baresip="0.6.3"
 re="0.6.1"
 rem="0.6.0"
-sl3rdparty="v19.09.2"
+sl3rdparty="v19.11.3"
 overlay="v19.09.0"
 juce="5.4.4"
 github_org="https://github.com/Studio-Link"

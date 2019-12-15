@@ -14,8 +14,6 @@ import { faPlusCircle } from '@fortawesome/free-solid-svg-icons/faPlusCircle'
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit'
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt'
 
-
-// We are only using the user-astronaut icon
 library.add(faCog)
 library.add(faRandom)
 library.add(faLongArrowAltRight)
