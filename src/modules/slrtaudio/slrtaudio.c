@@ -793,7 +793,6 @@ static int slrtaudio_devices(void)
 		if (!info.probed)
 			continue;
 
-
 		err = odict_alloc(&o_in, DICT_BSIZE);
 		if (err)
 			goto out1;
@@ -801,18 +800,14 @@ static int slrtaudio_devices(void)
 		if (err)
 			goto out1;
 
-		if (output == -1 && info.is_default_output)
-		{
-			output = i;
-		}
 
-		if (input == -1 && info.is_default_input)
-		{
-			input = i;
-		}
 
 		if (info.output_channels > 0)
 		{
+			if (output == -1)
+			{
+				output = i;
+			}
 			warning("slrtaudio: device out %c%d: %s: %d (ch %d)\n",
 					info.is_default_output ? '*' : ' ', i,
 					info.name, info.preferred_sample_rate,
@@ -843,6 +838,10 @@ static int slrtaudio_devices(void)
 
 		if (info.input_channels > 0)
 		{
+			if (input == -1)
+			{
+				input = i;
+			}
 			warning("slrtaudio: device in %c%d: %s: %d (ch %d)\n",
 					info.is_default_input ? '*' : ' ', i,
 					info.name, info.preferred_sample_rate,
@@ -916,6 +915,7 @@ static int slrtaudio_start(void)
 	/* workaround for buffer underrun on macos */
 	mismatch_samplerates = true;
 #else
+	mismatch_samplerates = false;
 	if (preferred_sample_rate_in != preferred_sample_rate_out)
 		mismatch_samplerates = true;
 #endif
@@ -976,6 +976,7 @@ static int slrtaudio_start(void)
 			output_channels);
 
 	if (mismatch_samplerates) {
+		warning("MISMATCH START STREAM: %i/%i \n", input, output);
 		rtaudio_open_stream(audio_in, NULL,
 				&in_params, RTAUDIO_FORMAT_SINT16,
 				preferred_sample_rate_in, &bufsz_in,
@@ -1031,6 +1032,7 @@ static int slrtaudio_start(void)
 		}
 	}
 
+	warning("START END \n");
 out:
 	if (err) {
 		re_snprintf(errmsg, sizeof(errmsg), "%s",
