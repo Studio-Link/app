@@ -487,7 +487,9 @@ int slrtaudio_callback_out(void *out, void *in, unsigned int nframes,
 			auconv_to_s16(slrtaudio->outBufferTmp, AUFMT_FLOAT,
 					slrtaudio->outBufferInFloat,
 					src_data_out.output_frames_gen * 2);
-		} else {
+		}
+		else
+		{
 			auconv_to_s16(outBuffer, AUFMT_FLOAT,
 					slrtaudio->outBufferInFloat,
 					src_data_out.output_frames_gen * 2);
@@ -500,7 +502,9 @@ int slrtaudio_callback_out(void *out, void *in, unsigned int nframes,
 			{
 				slrtaudio->outBufferTmp[pos] = playmix[pos];
 			}
-		} else {
+		}
+		else
+		{
 			for (uint16_t pos = 0; pos < nframes * 2; pos++)
 			{
 				outBuffer[pos] = playmix[pos];
@@ -509,7 +513,8 @@ int slrtaudio_callback_out(void *out, void *in, unsigned int nframes,
 	}
 
 	if (output_channels > 2) {
-		convert_out_channels(outBuffer, slrtaudio->outBufferTmp, nframes * 2);
+		convert_out_channels(outBuffer, slrtaudio->outBufferTmp,
+					nframes * 2);
 	}
 
 	lock_rel(rtaudio_lock);
@@ -799,8 +804,6 @@ static int slrtaudio_devices(void)
 		err = odict_alloc(&o_out, DICT_BSIZE);
 		if (err)
 			goto out1;
-
-
 
 		if (info.output_channels > 0)
 		{
