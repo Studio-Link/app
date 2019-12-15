@@ -675,7 +675,7 @@ static int slrtaudio_drivers(void)
 	if (err)
 		return ENOMEM;
 
-	for (unsigned int i = 0; i < sizeof(apis) / sizeof(rtaudio_api_t); i++)
+	for (unsigned int i = 0; i < rtaudio_get_num_compiled_apis(); i++)
 	{
 		(void)re_snprintf(idx, sizeof(idx), "%d", i);
 		int detected = 0;
@@ -703,6 +703,12 @@ static int slrtaudio_drivers(void)
 			{
 				driver = RTAUDIO_API_LINUX_ALSA;
 			}
+			detected = 1;
+		}
+		if (apis[i] == RTAUDIO_API_UNIX_JACK)
+		{
+			warning("driver detected JACK\n");
+			odict_entry_add(o, "display", ODICT_STRING, "JACK");
 			detected = 1;
 		}
 		if (apis[i] == RTAUDIO_API_WINDOWS_WASAPI)
