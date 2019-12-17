@@ -27,7 +27,7 @@
     "laravel-mix": "^4.1.4",
     "laravel-mix-copy-watched": "^2.2.2",
     "laravel-mix-purgecss": "^4.2.0",
-    "marked": "^0.7.0",
+    "marked": "^0.8.0",
     "parsleyjs": "^2.9.2",
     "popper.js": "^1.16.0",
     "resolve-url-loader": "2.3.2",
