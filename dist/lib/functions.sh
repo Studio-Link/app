@@ -96,6 +96,8 @@ sl_get_baresip() {
     #patch -p1 < ../../dist/patches/opus_fmtp.patch
 
     ## Link backend modules
+    rm -Rf modules/g722
+    cp -a ../../src/modules/g722 modules/g722
     cp -a ../../src/modules/webapp modules/webapp
     cp -a ../../src/modules/effect modules/effect
     cp -a ../../src/modules/effectonair modules/effectonair

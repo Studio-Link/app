@@ -49,6 +49,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     sed_opt="-i ''"
 fi
 
+sl_extra_modules="$sl_extra_modules g722"
 
 # Build libre
 #-----------------------------------------------------------------------------
