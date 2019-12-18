@@ -29,8 +29,9 @@ mix.js([
 mix.sass('src/app.scss', 'dist/')
    .purgeCss({
 		enabled: mix.inProduction(),
-		folders: ['src', 'node_modules/bootbox/dist', 'node_modules/shepherd.js/dist'],
+		folders: ['src', 'node_modules/bootbox/dist', 'node_modules/shepherd.js'],
 		extensions: ['html', 'js', 'handlebars', 'vue'],
+	   	whitelistPatterns: [/shepherd-.*/],
    })
    .copyWatched('src/index.html', 'dist/')
    .copyDirectory('src/images', 'dist/images');

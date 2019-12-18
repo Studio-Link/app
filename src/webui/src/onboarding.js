@@ -4,14 +4,20 @@ const tour = new Shepherd.Tour({
 	defaultStepOptions: {
 		classes: 'shadow-md bg-purple-dark',
 		scrollTo: true,
-		tippyOptions: {
-			zIndex: 10
-		}
-	}
+
+	},
 });
-tour.addStep('audio-interface-step', {
+tour.addStep({
+	id: 'audio-interface-step',
 	text: 'Select your Audio Interface',
-	attachTo: '#btn-interface bottom',
+	attachTo: {
+		element: '#btn-interface',
+		on: 'bottom',
+		 offset: '100px',
+	},
+	tetherOptions:{
+		offset: '-15px 0'
+	},
 	buttons: [
 		{
 			text: 'Skip Tour',
@@ -25,9 +31,16 @@ tour.addStep('audio-interface-step', {
 		}
 	]
 });
-tour.addStep('test-call-step', {
-	text: 'Enter <b>echo@studio-link.de</b> and press <b>Call</b>',
-	attachTo: '#sipnumbercall left',
+tour.addStep({
+	id: 'test-call-step',
+	text: 'Enter <b>echo</b> and press <b>Call</b>',
+	attachTo: {
+		element: '#sipnumbercall',
+		on: 'left'
+	},
+	tetherOptions:{
+		offset: '0 15px'
+	},
 	buttons: [
 		{
 			text: 'Skip Tour',
@@ -70,7 +83,7 @@ tour.on('complete', function() {
 
 $(function () {
 	var onboarding = localStorage.getItem('slonboarding');
-	if (onboarding != 'completed' ) {
+	if (onboarding != 'completed1' ) {
 		tour.start();
 	}
 });
