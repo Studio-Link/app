@@ -9,57 +9,61 @@ import QtQuick.Controls.Material.impl 2.13
  * qtquickcontrols2/src/imports/controls/material/Button.qml
  */
 
-Item {
-    Button {
-        id: control
-        text: "A Special Button"
-        property bool hover: false
+Button {
+    id: control
+    text: "Button"
+    property bool hover: false
 
-        background: Rectangle {
-            implicitWidth: 64
-            implicitHeight: control.Material.buttonHeight
+    background: Rectangle {
+        implicitWidth: 64
+        implicitHeight: control.Material.buttonHeight
 
-            radius: 2
-            color: !control.enabled ? control.Material.buttonDisabledColor :
-                                      control.highlighted ? control.Material.highlightedButtonColor : control.hover ? control.Material.highlightedRippleColor : control.Material.buttonColor
+        radius: 2
+        color: !control.enabled ? control.Material.buttonDisabledColor :
+                                  control.highlighted ? control.Material.highlightedButtonColor : control.hover ? "#888" : control.Material.buttonColor
 
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
 
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-
-                onPressed: {
-                    control.highlighted = true
-                }
-
-                onReleased: {
-                    control.highlighted = false
-                }
-
-                onEntered: {
-                    control.hover = true
-                }
-
-                onExited: {
-                    control.hover = false
-                }
+            onPressed: {
+                control.highlighted = true
             }
 
-            PaddedRectangle {
-                y: parent.height - 4
-                width: parent.width
-                height: 4
-                radius: 2
-                topPadding: -2
-                clip: true
-                visible: control.checkable && (!control.highlighted || control.flat)
-                color: control.checked && control.enabled ? control.Material.accentColor : control.Material.secondaryTextColor
+            onReleased: {
+                control.highlighted = false
             }
-            layer.enabled: control.enabled && control.Material.buttonColor.a > 0
-            layer.effect: ElevationEffect {
-                elevation: control.Material.elevation
+
+            onEntered: {
+                control.hover = true
+            }
+
+            onExited: {
+                control.hover = false
             }
         }
 
+        PaddedRectangle {
+            y: parent.height - 4
+            width: parent.width
+            height: 4
+            radius: 2
+            topPadding: -2
+            clip: true
+            visible: control.checkable && (!control.highlighted || control.flat)
+            color: control.checked && control.enabled ? control.Material.accentColor : control.Material.secondaryTextColor
+        }
+        layer.enabled: control.enabled && control.Material.buttonColor.a > 0
+        layer.effect: ElevationEffect {
+            elevation: control.Material.elevation
+        }
     }
+
 }
+
+
+/*##^##
+Designer {
+    D{i:0;autoSize:true;height:480;width:640}
+}
+##^##*/

@@ -3,5 +3,10 @@
         <file>main.qml</file>
         <file>qtquickcontrols2.conf</file>
         <file>slcomponents/Button.qml</file>
+        <file>StatusCall.qml</file>
+        <file>StatusCallForm.ui.qml</file>
+        <file>images/logo_standalone.svg</file>
+        <file>Header.qml</file>
+        <file>images/cog-solid.svg</file>
     </qresource>
 </RCC>
