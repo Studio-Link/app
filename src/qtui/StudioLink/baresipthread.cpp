@@ -1,7 +1,7 @@
-#include "mythread.h"
+#include "baresipthread.h"
 #include <QDebug>
 
-void MyThread::run()
+void BaresipThread::run()
 {
     libre_init();
 
@@ -14,7 +14,7 @@ void MyThread::run()
     re_main(NULL);
 }
 
-void MyThread::quit()
+void BaresipThread::quit()
 {
     ua_stop_all(false);
     sys_msleep(800);

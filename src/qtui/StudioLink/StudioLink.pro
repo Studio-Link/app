@@ -19,8 +19,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        main.cpp \
-        mythread.cpp
+        baresipthread.cpp \
+        main.cpp
 
 INCLUDEPATH += ../../../build/my_include
 LIBS += ../../../build/my_include/libbaresip_standalone.a ../../../build/re/libre.a ../../../build/rem/librem.a
@@ -45,5 +45,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    mythread.h
+    baresipthread.h
 

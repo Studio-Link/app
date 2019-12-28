@@ -1,11 +1,11 @@
-#ifndef MYTHREAD_H
-#define MYTHREAD_H
+#ifndef BARESIPTHREAD_H
+#define BARESIPTHREAD_H
 #include <QThread>
 #include <QString>
 #include "re/re.h"
 #include "baresip.h"
 
-class MyThread : public QThread
+class BaresipThread : public QThread
 {
 public:
     // overriding the QThread's run() method
@@ -13,4 +13,4 @@ public:
     void quit();
 };
 
-#endif // MYTHREAD_H
+#endif // BARESIPTHREAD_H
