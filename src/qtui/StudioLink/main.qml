@@ -11,7 +11,7 @@ ApplicationWindow {
     height: 480
     minimumWidth: 700
     minimumHeight: 450
-    title: qsTr("Studio Link")
+    title: qsTr("Studio Link - Standalone")
 
     property int tabIndex: 0
 
@@ -35,15 +35,8 @@ ApplicationWindow {
             ComboBox {
                 id: comboBox
                 model: ["First", "Second", "Third"]
-                displayText: "Eingang: " + currentText
+                displayText: "Input: " + currentText
                 width: 200
-            }
-
-            Rectangle {
-                id: rectangle
-                width: 100
-                height: 100
-
             }
         }
 
@@ -146,6 +139,35 @@ ApplicationWindow {
                 text: ""
                 anchors.left: parent.left
                 anchors.leftMargin: 200
+                anchors.top: parent.top
+                anchors.topMargin: -10
+                icon.source: "images/cog-solid.svg"
+                icon.color: "#ddd"
+                onClicked: popup.open()
+
+                ToolTip.text: qsTr("Configure Audio-Interface")
+                ToolTip.visible: hovered
+
+            }
+
+
+            RoundButton {
+                id: roundButton2
+                text: ""
+                anchors.left: parent.left
+                anchors.leftMargin: 240
+                anchors.top: parent.top
+                anchors.topMargin: -10
+                icon.source: "images/cog-solid.svg"
+                icon.color: "#ddd"
+                onClicked: popup.open()
+            }
+
+            RoundButton {
+                id: roundButton3
+                text: ""
+                anchors.left: parent.left
+                anchors.leftMargin: 280
                 anchors.top: parent.top
                 anchors.topMargin: -10
                 icon.source: "images/cog-solid.svg"

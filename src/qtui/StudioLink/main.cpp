@@ -1,9 +1,14 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QOperatingSystemVersion>
+#ifdef SL_BARESIP_BACKEND
+#include "mythread.h"
+#endif
 
 int main(int argc, char *argv[])
 {
+    int err = 0;
+
     //Angle workaround on windows 8 and older
     if (QOperatingSystemVersion::current() <= QOperatingSystemVersion::Windows8)
     {
@@ -23,6 +28,11 @@ int main(int argc, char *argv[])
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
     engine.load(url);
-
-    return app.exec();
+#ifdef SL_BARESIP_BACKEND
+    MyThread thread;
+    thread.start();
+#endif
+    err = app.exec();
+    thread.quit();
+    return err;
 }

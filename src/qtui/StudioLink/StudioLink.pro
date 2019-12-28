@@ -1,6 +1,8 @@
 QT += quick
+QT += svg
 
 CONFIG += c++11
+CONFIG += static
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -8,13 +10,23 @@ CONFIG += c++11
 # deprecated API to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
+# Add this to your BUILD_STEPS to activate static BACKEND:
+# qmake DEFINES += SL_BARESIP_BACKEND
+
 # You can also make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        main.cpp
+        main.cpp \
+        mythread.cpp
+
+INCLUDEPATH += ../../../build/my_include
+LIBS += ../../../build/my_include/libbaresip_standalone.a ../../../build/re/libre.a ../../../build/rem/librem.a
+LIBS += ../../../build/opus/libopus.a ../../../build/my_include/libFLAC.a ../../../build/my_include/librtaudio.a
+LIBS += ../../../build/openssl/libssl.a ../../../build/openssl/libcrypto.a ../../../build/my_include/libsamplerate.a
+LIBS += -lm -lz -ldl -lresolv -ljack -lasound -lpulse-simple -lpulse
 
 RESOURCES += qml.qrc
 
@@ -31,3 +43,7 @@ QML_DESIGNER_IMPORT_PATH =
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+HEADERS += \
+    mythread.h
+
