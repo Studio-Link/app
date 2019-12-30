@@ -126,6 +126,7 @@ static void sess_destruct(void *arg)
 	mem_deref(sess->sampv);
 	mem_deref(sess->pcm);
 	mem_deref(sess->aubuf);
+	mem_deref(sess->vumeter);
 
 	list_unlink(&sess->le);
 }
@@ -373,7 +374,12 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 		/* write remote streams to flac record buffer */
 		(void)aubuf_write_samp(sess->aubuf, st_play->sampv, samples);
 
-		/** mix n-1 */
+		/* vumeter */
+		convert_float(st_play->sampv,
+			     sess->vumeter, samples);
+		ws_meter_process(sess->ch+1, sess->vumeter, (unsigned long)samples);
+
+		/* mix n-1 */
 		for (mle = sessionl.head; mle; mle = mle->next)
 		{
 			struct session *msess = mle->data;
@@ -1126,8 +1132,10 @@ static int slrtaudio_init(void)
 		sess = mem_zalloc(sizeof(*sess), sess_destruct);
 		if (!sess)
 			return ENOMEM;
+		sess->vumeter = mem_zalloc(BUFFER_LEN, NULL);
 
 		sess->local = false;
+		sess->ch = cnt * 2;
 		list_append(&sessionl, &sess->le, sess);
 	}
 

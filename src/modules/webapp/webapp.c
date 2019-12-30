@@ -22,7 +22,7 @@ struct odict *webapp_calls = NULL;
 static char command[100] = {0};
 static bool auto_answer = false;
 
-#ifndef SLPLUGIN
+#if 0
 static struct aufilt vumeter = {
 	LE_INIT, "webapp_vumeter",
 	webapp_vu_encode_update, webapp_vu_encode,
@@ -209,6 +209,8 @@ int webapp_call_delete(struct call *call)
 
 	re_snprintf(id, sizeof(id), "%x", call);
 	odict_entry_del(webapp_calls, id);
+
+	warning("delete call %x\n", call);
 
 	return err;
 }
@@ -467,7 +469,7 @@ static int module_init(void)
 			" Copyright (C) 2013-2019"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 
-	aufilt_register(baresip_aufiltl(), &vumeter);
+//	aufilt_register(baresip_aufiltl(), &vumeter);
 #endif
 
 	err = http_port();
@@ -510,7 +512,7 @@ static int module_close(void)
 	//webapp_chat_close();
 #ifndef SLPLUGIN
 	webapp_ws_rtaudio_close();
-	aufilt_unregister(&vumeter);
+	//aufilt_unregister(&vumeter);
 #endif
 	webapp_ws_close();
 	mem_deref(httpsock);
