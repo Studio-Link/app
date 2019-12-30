@@ -22,14 +22,6 @@ struct odict *webapp_calls = NULL;
 static char command[100] = {0};
 static bool auto_answer = false;
 
-#if 0
-static struct aufilt vumeter = {
-	LE_INIT, "webapp_vumeter",
-	webapp_vu_encode_update, webapp_vu_encode,
-	webapp_vu_decode_update, webapp_vu_decode
-};
-#endif
-
 static int http_sreply(struct http_conn *conn, uint16_t scode,
 		const char *reason, const char *ctype,
 		const char *fmt, size_t size)
@@ -241,6 +233,8 @@ int webapp_call_update(struct call *call, char *state)
 	char id[64] = {0};
 	int err = 0;
 
+	return err;
+
 	if (!call || !state)
 		return EINVAL;
 
@@ -262,6 +256,45 @@ int webapp_call_update(struct call *call, char *state)
 	odict_entry_add(webapp_calls, id, ODICT_OBJECT, o);
 
 	chat_send_calls();
+	ws_send_json(WS_CALLS, webapp_calls);
+	mem_deref(o);
+	return err;
+}
+
+
+struct list* sl_sessions(void);
+static int webapp_sessions_init(void)
+{
+	struct list *tsession;
+	struct session *sess;
+	struct le *le;
+	struct odict *o;
+	char id[64] = {0};
+	int err = 0;
+
+	err = odict_alloc(&o, DICT_BSIZE);
+	if (err)
+		return ENOMEM;
+
+	tsession = sl_sessions();
+
+	for (le = tsession->head; le; le = le->next) {
+		sess = le->data;
+
+		if (sess->local)
+			continue;
+
+		warning("session channel: %d\n", sess->ch);
+
+
+		re_snprintf(id, sizeof(id), "%x", sess);
+
+		odict_entry_del(webapp_calls, id);
+		odict_entry_add(o, "peer", ODICT_STRING, "Empty");
+		odict_entry_add(o, "state", ODICT_STRING, "Empty");
+		odict_entry_add(webapp_calls, id, ODICT_OBJECT, o);
+	}
+
 	ws_send_json(WS_CALLS, webapp_calls);
 	mem_deref(o);
 	return err;
@@ -447,7 +480,7 @@ static void syscmd(void *arg)
 {
 #ifndef SLBOX
 	int err = 0;
-	err = system(command);
+	//err = system(command);
 	if (err) {}
 #endif
 }
@@ -468,13 +501,13 @@ static int module_init(void)
 	(void)re_fprintf(stderr, "Studio Link Webapp %s - Standalone"
 			" Copyright (C) 2013-2019"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
-
-//	aufilt_register(baresip_aufiltl(), &vumeter);
 #endif
 
 	err = http_port();
 	if (err)
 		goto out;
+
+	webapp_sessions_init();
 
 	uag_event_register(ua_event_handler, NULL);
 	webapp_ws_init();
@@ -512,7 +545,6 @@ static int module_close(void)
 	//webapp_chat_close();
 #ifndef SLPLUGIN
 	webapp_ws_rtaudio_close();
-	//aufilt_unregister(&vumeter);
 #endif
 	webapp_ws_close();
 	mem_deref(httpsock);

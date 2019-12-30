@@ -105,6 +105,11 @@ void slrtaudio_mute_set(bool active)
 	mute = active;
 }
 
+struct list* sl_sessions(void);
+struct list* sl_sessions(void)
+{
+	return &sessionl;
+}
 
 static void sess_destruct(void *arg)
 {
@@ -1135,7 +1140,9 @@ static int slrtaudio_init(void)
 		sess->vumeter = mem_zalloc(BUFFER_LEN, NULL);
 
 		sess->local = false;
-		sess->ch = cnt * 2;
+		sess->ch = cnt * 2 + 1; /* +1 ch offset from local */
+		sess->call = NULL;
+
 		list_append(&sessionl, &sess->le, sess);
 	}
 
@@ -1144,7 +1151,7 @@ static int slrtaudio_init(void)
 	slrtaudio_record_init();
 	slrtaudio_start();
 
-	warning("slrtaudio\n");
+	warning("slrtaudio ready\n");
 
 	return err;
 }

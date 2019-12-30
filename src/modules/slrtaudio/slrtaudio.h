@@ -18,6 +18,7 @@ struct session {
 	FLAC__int32 *pcm;
 	uint8_t ch;
 	float *vumeter;
+	struct call *call;
 };
 
 extern struct list sessionl;
