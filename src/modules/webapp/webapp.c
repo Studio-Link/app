@@ -192,6 +192,29 @@ static void ua_event_current_set(struct ua *ua)
 
 struct list* sl_sessions(void);
 
+int webapp_session_stop_stream(void)
+{
+	struct list *tsession;
+	struct session *sess;
+	struct le *le;
+	int err = 0;
+
+	tsession = sl_sessions();
+
+	for (le = tsession->head; le; le = le->next) {
+		sess = le->data;
+
+		if (sess->stream) {
+			ua_hangup(uag_current(), sess->call, 0, NULL);
+			sess->call = NULL;
+
+			return err;
+		}
+	}
+
+	return err;
+}
+
 int webapp_session_delete(char * const sess_id, struct call *call)
 {
 	char id[64] = {0};
@@ -232,7 +255,6 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 				break;
 			}
 		}
-
 	}
 
 	return err;
@@ -249,17 +271,25 @@ int webapp_call_update(struct call *call, char *state)
 	int err = 0;
 	bool new = true; 
 
-#ifndef SLPLUGIN
-	if (!str_cmp(call_peeruri(call), "sip:stream@studio-link.de;transport=tls")) {
-		return err;
-	}
-#endif
 
 	err = odict_alloc(&o, DICT_BSIZE);
 	if (err)
 		return ENOMEM;
 
 	tsession = sl_sessions();
+
+#ifndef SLPLUGIN
+	if (!str_cmp(call_peeruri(call), "sip:stream@studio-link.de;transport=tls")) {
+		for (le = tsession->head; le; le = le->next) {
+			sess = le->data;
+
+			if (sess->stream) {
+				sess->call = call;
+				return err;
+			}
+		}
+	}
+#endif
 
 	for (le = tsession->head; le; le = le->next) {
 		sess = le->data;

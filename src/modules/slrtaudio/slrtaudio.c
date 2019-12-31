@@ -380,9 +380,11 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 		(void)aubuf_write_samp(sess->aubuf, st_play->sampv, samples);
 
 		/* vumeter */
-		convert_float(st_play->sampv,
-			     sess->vumeter, samples);
-		ws_meter_process(sess->ch, sess->vumeter, (unsigned long)samples);
+		if (!sess->stream) {
+			convert_float(st_play->sampv,
+					sess->vumeter, samples);
+			ws_meter_process(sess->ch, sess->vumeter, (unsigned long)samples);
+		}
 
 		/* mix n-1 */
 		for (mle = sessionl.head; mle; mle = mle->next)
@@ -1131,6 +1133,7 @@ static int slrtaudio_init(void)
 	if (!sess)
 		return ENOMEM;
 	sess->local = true;
+	sess->stream = false;
 	list_append(&sessionl, &sess->le, sess);
 
 	for (uint32_t cnt = 0; cnt < MAX_REMOTE_CHANNELS; cnt++)
@@ -1141,11 +1144,20 @@ static int slrtaudio_init(void)
 		sess->vumeter = mem_zalloc(BUFFER_LEN, NULL);
 
 		sess->local = false;
+		sess->stream = false;
 		sess->ch = cnt * 2 + 1;
 		sess->call = NULL;
 
 		list_append(&sessionl, &sess->le, sess);
 	}
+
+	sess = mem_zalloc(sizeof(*sess), sess_destruct);
+	if (!sess)
+		return ENOMEM;
+	sess->local = false;
+	sess->stream = true;
+	sess->call = NULL;
+	list_append(&sessionl, &sess->le, sess);
 
 	slrtaudio_drivers();
 	slrtaudio_devices();

@@ -7,6 +7,7 @@ struct session {
 	struct ausrc_st *st_src;
 	struct auplay_st *st_play;
 	bool local;
+	bool stream;
 	bool run_src;
 	bool run_play;
 	bool run_record;

@@ -45,6 +45,7 @@ struct odict *webapp_calls;
 
 int webapp_session_delete(char * const sess_id, struct call *call);
 int webapp_call_update(struct call *call, char *state);
+int webapp_session_stop_stream(void);
 
 int webapp_update(bool status);
 
@@ -158,6 +159,7 @@ struct session {
 	struct ausrc_st *st_src;
 	struct auplay_st *st_play;
 	bool local;
+	bool stream;
 	bool run_src;
 	bool run_play;
 	bool run_record;
