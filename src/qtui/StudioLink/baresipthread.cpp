@@ -1,6 +1,6 @@
 #include "baresipthread.h"
 #include <QDebug>
-
+#ifdef SL_BARESIP_BACKEND
 void BaresipThread::run()
 {
     libre_init();
@@ -25,3 +25,4 @@ void BaresipThread::quit()
     mod_close();
     libre_close();
 }
+#endif

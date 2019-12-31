@@ -21,12 +21,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         baresipthread.cpp \
         main.cpp
-
-INCLUDEPATH += ../../../build/my_include
-LIBS += ../../../build/my_include/libbaresip_standalone.a ../../../build/re/libre.a ../../../build/rem/librem.a
-LIBS += ../../../build/opus/libopus.a ../../../build/my_include/libFLAC.a ../../../build/my_include/librtaudio.a
-LIBS += ../../../build/openssl/libssl.a ../../../build/openssl/libcrypto.a ../../../build/my_include/libsamplerate.a
-LIBS += -lm -lz -ldl -lresolv -ljack -lasound -lpulse-simple -lpulse
+SL_BARESIP_BACKEND {
+    INCLUDEPATH += ../../../build/my_include
+    LIBS += ../../../build/my_include/libbaresip_standalone.a ../../../build/re/libre.a ../../../build/rem/librem.a
+    LIBS += ../../../build/opus/libopus.a ../../../build/my_include/libFLAC.a ../../../build/my_include/librtaudio.a
+    LIBS += ../../../build/openssl/libssl.a ../../../build/openssl/libcrypto.a ../../../build/my_include/libsamplerate.a
+    LIBS += -lm -lz -ldl -lresolv -ljack -lasound -lpulse-simple -lpulse
+}
 
 RESOURCES += qml.qrc
 
