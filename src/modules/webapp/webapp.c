@@ -16,7 +16,6 @@
 static struct tmr tmr;
 
 static struct http_sock *httpsock = NULL;
-enum webapp_call_state webapp_call_status = WS_CALL_OFF;
 static char webapp_call_json[150] = {0};
 struct odict *webapp_calls = NULL;
 static char command[100] = {0};
@@ -191,79 +190,56 @@ static void ua_event_current_set(struct ua *ua)
 }
 
 
-int webapp_call_delete(struct call *call)
+struct list* sl_sessions(void);
+
+int webapp_session_delete(char * const sess_id, struct call *call)
 {
 	char id[64] = {0};
 	int err = 0;
+	struct list *tsession;
+	struct session *sess;
+	struct le *le;
 
-	if (!call)
+	if (!sess_id && !call)
 		return EINVAL;
 
-	re_snprintf(id, sizeof(id), "%x", call);
-	odict_entry_del(webapp_calls, id);
+	tsession = sl_sessions();
 
-	warning("delete call %x\n", call);
+	for (le = tsession->head; le; le = le->next) {
+		sess = le->data;
+
+		if (sess->local)
+			continue;
+
+		re_snprintf(id, sizeof(id), "%x", sess);
+
+		if (sess_id) {
+			if (!str_cmp(id, sess_id)) {
+				ua_hangup(uag_current(), sess->call, 0, NULL);
+				sess->call = NULL;
+				odict_entry_del(webapp_calls, id);
+				warning("delete session id/channel: %s/%d\n",
+						id, sess->ch);
+				break;
+			}
+		}
+		if (call) {
+			if (sess->call == call) {
+				sess->call = NULL;
+				odict_entry_del(webapp_calls, id);
+				warning("delete session id/channel: %s/%d\n",
+						id, sess->ch);
+				break;
+			}
+		}
+
+	}
 
 	return err;
-}
-
-
-static int json_print_handler(const char *p, size_t size, void *arg)                                
-{      
-	//warning("json: %s", p);
-	return re_snprintf(arg, sizeof(arg), "%s%s", p, arg);
-}    
-
-
-static void chat_send_calls(void)
-{
-	struct re_printf pf;                   
-	char msg[1024] = {0};
-	pf.vph = json_print_handler;                
-	pf.arg = msg;
-
-	json_encode_odict(&pf, webapp_calls);
-	webapp_chat_send(msg, NULL);
 }
 
 
 int webapp_call_update(struct call *call, char *state)
-{
-	struct odict *o;
-	char id[64] = {0};
-	int err = 0;
-
-	return err;
-
-	if (!call || !state)
-		return EINVAL;
-
-#ifndef SLPLUGIN
-	if (!str_cmp(call_peeruri(call), "sip:stream@studio-link.de;transport=tls")) {
-		return err;
-	}
-#endif
-
-	err = odict_alloc(&o, DICT_BSIZE);
-	if (err)
-		return ENOMEM;
-
-	re_snprintf(id, sizeof(id), "%x", call);
-
-	odict_entry_del(webapp_calls, id);
-	odict_entry_add(o, "peer", ODICT_STRING, call_peeruri(call));
-	odict_entry_add(o, "state", ODICT_STRING, state);
-	odict_entry_add(webapp_calls, id, ODICT_OBJECT, o);
-
-	chat_send_calls();
-	ws_send_json(WS_CALLS, webapp_calls);
-	mem_deref(o);
-	return err;
-}
-
-
-struct list* sl_sessions(void);
-static int webapp_sessions_init(void)
 {
 	struct list *tsession;
 	struct session *sess;
@@ -271,6 +247,13 @@ static int webapp_sessions_init(void)
 	struct odict *o;
 	char id[64] = {0};
 	int err = 0;
+	bool new = true; 
+
+#ifndef SLPLUGIN
+	if (!str_cmp(call_peeruri(call), "sip:stream@studio-link.de;transport=tls")) {
+		return err;
+	}
+#endif
 
 	err = odict_alloc(&o, DICT_BSIZE);
 	if (err)
@@ -284,14 +267,34 @@ static int webapp_sessions_init(void)
 		if (sess->local)
 			continue;
 
-		warning("session channel: %d\n", sess->ch);
+		if (sess->call == call) {
+			new = false;
+			warning("session update: %d\n", sess->ch);
+		}
+	}
+
+	for (le = tsession->head; le; le = le->next) {
+		sess = le->data;
+
+		if (sess->local)
+			continue;
+
+		if (new && !sess->call) {
+			sess->call = call;
+			new = false;
+		}
+
+		if (sess->call != call)
+			continue;
 
 
 		re_snprintf(id, sizeof(id), "%x", sess);
+		warning("session id/channel: %s/%d/%d\n", id, sess->ch, new);
 
 		odict_entry_del(webapp_calls, id);
-		odict_entry_add(o, "peer", ODICT_STRING, "Empty");
-		odict_entry_add(o, "state", ODICT_STRING, "Empty");
+		odict_entry_add(o, "peer", ODICT_STRING, call_peeruri(call));
+		odict_entry_add(o, "state", ODICT_STRING, state);
+		odict_entry_add(o, "ch", ODICT_INT, (int64_t)sess->ch);
 		odict_entry_add(webapp_calls, id, ODICT_OBJECT, o);
 	}
 
@@ -316,7 +319,6 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 						call_peeruri(call), call);
 				webapp_call_update(call, "Incoming");
 				ws_send_all(WS_CALLS, webapp_call_json);
-				webapp_call_status = WS_CALL_RINGING;
 			} else {
 				debug("auto answering call\n");
 				ua_answer(uag_current(), call);
@@ -326,7 +328,6 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 		case UA_EVENT_CALL_ESTABLISHED:
 			ua_event_current_set(ua);
 			webapp_call_update(call, "Established");
-			webapp_call_status = WS_CALL_ON;
 			break;
 
 		case UA_EVENT_CALL_CLOSED:
@@ -334,10 +335,9 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			re_snprintf(webapp_call_json, sizeof(webapp_call_json),
 					"{ \"callback\": \"CLOSED\",\
 					\"message\": \"%s\" }", prm);
-			webapp_call_delete(call);
+			webapp_session_delete(NULL, call);
 			ws_send_all(WS_CALLS, webapp_call_json);
 			ws_send_json(WS_CALLS, webapp_calls);
-			webapp_call_status = WS_CALL_OFF;
 			break;
 
 		case UA_EVENT_REGISTER_OK:
@@ -506,8 +506,6 @@ static int module_init(void)
 	err = http_port();
 	if (err)
 		goto out;
-
-	webapp_sessions_init();
 
 	uag_event_register(ua_event_handler, NULL);
 	webapp_ws_init();

@@ -382,7 +382,7 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 		/* vumeter */
 		convert_float(st_play->sampv,
 			     sess->vumeter, samples);
-		ws_meter_process(sess->ch+1, sess->vumeter, (unsigned long)samples);
+		ws_meter_process(sess->ch, sess->vumeter, (unsigned long)samples);
 
 		/* mix n-1 */
 		for (mle = sessionl.head; mle; mle = mle->next)
@@ -563,6 +563,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	(void)ctx;
 	(void)errh;
 	(void)device;
+
 	int err = 0;
 	struct ausrc_st *st_src = NULL;
 	struct le *le;
@@ -574,7 +575,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	{
 		struct session *sess = le->data;
 
-		if (!sess->run_src && !sess->local)
+		if (!sess->run_src && !sess->local && sess->call)		
 		{
 			sess->st_src = mem_zalloc(sizeof(*st_src),
 					ausrc_destructor);
@@ -632,7 +633,7 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 	{
 		struct session *sess = le->data;
 
-		if (!sess->run_play && !sess->local)
+		if (!sess->run_play && !sess->local && sess->call)
 		{
 			sess->st_play = mem_zalloc(sizeof(*st_play),
 					auplay_destructor);
@@ -1140,7 +1141,7 @@ static int slrtaudio_init(void)
 		sess->vumeter = mem_zalloc(BUFFER_LEN, NULL);
 
 		sess->local = false;
-		sess->ch = cnt * 2 + 1; /* +1 ch offset from local */
+		sess->ch = cnt * 2 + 1;
 		sess->call = NULL;
 
 		list_append(&sessionl, &sess->le, sess);
