@@ -131,6 +131,19 @@ if [ "$BUILD_OS" == "linux" ]; then
     fi
 fi
 
+# Build Reaper Linux overlay-vst
+#-----------------------------------------------------------------------------
+if [ "$BUILD_OS" == "linux" ]; then
+    if [ ! -d overlay-vst ]; then
+        sl_get_overlay-vst
+        pushd overlay-vst
+        rm Makefile
+        mv Makefile.linux Makefile
+        make
+        popd
+    fi
+fi
+
 # Build overlay-audio-unit plugin (osx only)
 #-----------------------------------------------------------------------------
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
@@ -225,6 +238,8 @@ if [ "$BUILD_OS" == "linux" ]; then
     cp -a studio-link-standalone-$version_tc.tar.gz $s3_path
     cp -a studio-link-plugin-linux.zip $s3_path
     cp -a studio-link-plugin-onair-linux.zip $s3_path
+    mkdir $s3_path/vst
+    cp -a overlay-vst/studio-link.so $s3_path/vst/
 fi
 
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then

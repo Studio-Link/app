@@ -40,6 +40,21 @@ sl_get_webui() {
     cp -a webui/headers/*.h ../src/modules/webapp/assets/
 }
 
+sl_get_overlay-vst() {
+    git clone https://github.com/Studio-Link/overlay-vst.git
+    sed -i s/SLVMAJOR/$vmajor/ overlay-vst/version.h
+    sed -i s/SLVMINOR/$vminor/ overlay-vst/version.h
+    sed -i s/SLVPATCH/$vpatch/ overlay-vst/version.h
+    wget http://www.steinberg.net/sdk_downloads/$vstsdk.zip
+    unzip -q $vstsdk.zip
+    mv VST_SDK/VST2_SDK overlay-vst/vstsdk2.4
+    if [ "$BUILD_OS" == "linux" ]; then
+        pushd overlay-vst/vstsdk2.4
+        patch --ignore-whitespace -p1 < ../vst2_linux.patch
+        popd
+    fi
+}
+
 sl_build_webui() {
     cp -a ../src/webui .
     pushd webui
