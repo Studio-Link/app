@@ -94,6 +94,6 @@ ls -lha
 
 s3_path="s3_upload/$TRAVIS_BRANCH/$version_t/$BUILD_OS"
 mkdir -p $s3_path
-cp -a studio-link-standalone.exe $s3_path/studio-link-standalone-$version_tc.exe
+cp -a studio-link-standalone.exe $s3_path/studio-link-standalone-$version_t.exe
 cp -a studio-link-plugin-$BUILD_OS.zip $s3_path
 cp -a studio-link-plugin-onair-$BUILD_OS.zip $s3_path

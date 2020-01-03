@@ -242,8 +242,8 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     zip -r studio-link-standalone StudioLinkStandalone.app
     zip -r studio-link-standalone-hardened StudioLinkStandaloneHardened.app
 
-    cp -a studio-link-standalone.zip $s3_path/studio-link-standalone-$version_tc.zip
-    cp -a studio-link-standalone-hardened.zip $s3_path/studio-link-standalone-hardened-$version_tc.zip
+    cp -a studio-link-standalone.zip $s3_path/studio-link-standalone-$version_t.zip
+    cp -a studio-link-standalone-hardened.zip $s3_path/studio-link-standalone-hardened-$version_t.zip
     cp -a studio-link-plugin-osx.zip $s3_path
     cp -a studio-link-plugin-onair-osx.zip $s3_path
 fi
