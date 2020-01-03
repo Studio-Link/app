@@ -8,6 +8,7 @@
 - **Misc** Update check
 - **Standalone** Experimental ASIO support on Windows
 - **Standalone** Experimental JACK support on Linux
+- **Plugin** Linux VST
 
 ### Changed
 
