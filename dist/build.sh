@@ -231,15 +231,17 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLinkOnAir.component StudioLinkOnAir.component
     mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app
-    if [ "$CIRCLECI" != "true" ]; then
+    cp -a StudioLinkStandalone.app StudioLinkStandaloneHardened.app
     codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkStandalone.app
-    fi
+    codesign --options runtime -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkStandaloneHardened.app
     sed $sed_opt s/ITSR:\ StudioLinkOnAir/StudioLinkOnAir\ \(ITSR\)/ StudioLinkOnAir.component/Contents/Info.plist # Reaper 5.70 Fix
     zip -r studio-link-plugin-osx StudioLink.component
     zip -r studio-link-plugin-onair-osx StudioLinkOnAir.component
     zip -r studio-link-standalone StudioLinkStandalone.app
+    zip -r studio-link-standalone-hardened StudioLinkStandaloneHardened.app
 
     cp -a studio-link-standalone.zip $s3_path/studio-link-standalone-$version_tc.zip
+    cp -a studio-link-standalone-hardened.zip $s3_path/studio-link-standalone-hardened-$version_tc.zip
     cp -a studio-link-plugin-osx.zip $s3_path
     cp -a studio-link-plugin-onair-osx.zip $s3_path
 fi
