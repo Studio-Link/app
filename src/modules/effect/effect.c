@@ -1,7 +1,7 @@
 /**
  * @file effect.c DAW Effect Overlay Plugin
  *
- * Copyright (C) 2013-2018 studio-link.de
+ * Copyright (C) 2013-2020 studio-link.de
  */
 #define _DEFAULT_SOURCE 1
 #define _BSD_SOURCE 1
@@ -83,6 +83,9 @@ struct session {
 	struct lock *plock;
 	bool run_auto_mix;
 	bool bypass;
+	struct call *call;
+	bool stream; /* only for standalone */
+	bool local; /* only for standalone */
 };
 
 static struct list sessionl;
@@ -128,33 +131,8 @@ struct session* effect_session_start(void);
 struct session* effect_session_start(void)
 {
 	struct session *sess;
-	char *automixv = webapp_options_getv("auto-mix-n-1");
 
-	sess = mem_zalloc(sizeof(*sess), sess_destruct);
-	if (!sess)
-		return NULL;
 
-	calc_channel(sess);
-
-	sess->run_play = false;
-	sess->run_src = false;
-	sess->bypass = bypass;
-	sess->trev = 0;
-	sess->prev = 0;
-	lock_alloc(&sess->plock);
-
-	list_append(&sessionl, &sess->le, sess);
-#if 0
-	if (0 == str_cmp(automixv, "true")) {
-		sess->run_auto_mix = true;
-		warning("auto mix enabled\n");
-	}
-	else {
-		sess->run_auto_mix = false;
-		warning("auto mix disabled\n");
-	}
-#endif
-	sess->run_auto_mix = true;
 
 	return sess;
 }
@@ -163,10 +141,12 @@ struct session* effect_session_start(void)
 int effect_session_stop(struct session *session);
 int effect_session_stop(struct session *session)
 {
+#if 0
 	uint8_t pos = session->ch / 2;
 	channels[pos] = false;
 	mem_deref(session);
 	return (int)list_count(&sessionl);
+#endif
 }
 
 
@@ -513,6 +493,30 @@ static int effect_init(void)
 	int err;
 	err  = ausrc_register(&ausrc, baresip_ausrcl(), "effect", src_alloc);
 	err |= auplay_register(&auplay, baresip_auplayl(), "effect", play_alloc);
+	struct session *sess;
+
+
+	for (uint32_t cnt = 0; cnt < MAX_CHANNELS; cnt++)
+	{
+		sess = mem_zalloc(sizeof(*sess), sess_destruct);
+		if (!sess)
+			return ENOMEM;
+
+		calc_channel(sess);
+
+		sess->run_play = false;
+		sess->run_src = false;
+		sess->bypass = bypass;
+		sess->trev = 0;
+		sess->prev = 0;
+		sess->call = NULL;
+		lock_alloc(&sess->plock);
+
+		sess->run_auto_mix = true;
+		sess->local = false;
+		sess->stream = false;
+		list_append(&sessionl, &sess->le, sess);
+	}
 
 	return err;
 }
@@ -520,8 +524,18 @@ static int effect_init(void)
 
 static int effect_close(void)
 {
+	struct le *le;
+	struct session *sess;
+
 	ausrc  = mem_deref(ausrc);
 	auplay = mem_deref(auplay);
+
+	for (le = sessionl.head; le;)
+	{
+		sess = le->data;
+		le = le->next;
+		mem_deref(sess);
+	}
 
 	return 0;
 }

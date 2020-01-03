@@ -1129,13 +1129,17 @@ static int slrtaudio_init(void)
 	if (!playmix)
 		return ENOMEM;
 
+	/* add local/recording session
+	 */
 	sess = mem_zalloc(sizeof(*sess), sess_destruct);
 	if (!sess)
 		return ENOMEM;
 	sess->local = true;
 	sess->stream = false;
 	list_append(&sessionl, &sess->le, sess);
-
+	
+	/* add remote sessions
+	 */
 	for (uint32_t cnt = 0; cnt < MAX_REMOTE_CHANNELS; cnt++)
 	{
 		sess = mem_zalloc(sizeof(*sess), sess_destruct);
@@ -1151,12 +1155,15 @@ static int slrtaudio_init(void)
 		list_append(&sessionl, &sess->le, sess);
 	}
 
+	/* add stream session
+	 */
 	sess = mem_zalloc(sizeof(*sess), sess_destruct);
 	if (!sess)
 		return ENOMEM;
 	sess->local = false;
 	sess->stream = true;
 	sess->call = NULL;
+	sess->ch = MAX_REMOTE_CHANNELS + 1;
 	list_append(&sessionl, &sess->le, sess);
 
 	slrtaudio_drivers();
