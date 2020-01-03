@@ -233,6 +233,8 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app
     cp -a StudioLinkStandalone.app StudioLinkStandaloneHardened.app
     codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkStandalone.app
+    codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLink.component
+    codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkOnAir.component
     codesign --options runtime -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkStandaloneHardened.app
     sed $sed_opt s/ITSR:\ StudioLinkOnAir/StudioLinkOnAir\ \(ITSR\)/ StudioLinkOnAir.component/Contents/Info.plist # Reaper 5.70 Fix
     zip -r studio-link-plugin-osx StudioLink.component
