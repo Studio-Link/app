@@ -77,7 +77,7 @@ struct session {
 	uint32_t trev;
 	uint32_t prev;
 	int32_t *dstmix;
-	uint8_t ch;
+	int8_t ch;
 	bool run_src;
 	bool run_play;
 	struct lock *plock;
@@ -92,8 +92,6 @@ static struct list sessionl;
 
 static struct ausrc *ausrc;
 static struct auplay *auplay;
-
-static bool channels[MAX_CHANNELS] = {false};
 
 static bool bypass = false;
 
@@ -111,28 +109,28 @@ static void sess_destruct(void *arg)
 }
 
 
-static void calc_channel(struct session *sess)
+struct list* sl_sessions(void);
+struct list* sl_sessions(void)
 {
-	for (uint8_t pos = 0; pos < MAX_CHANNELS; pos++) {
-		if (!channels[pos]) {
-			channels[pos] = true;
-			sess->ch = pos * 2;
-			return;
-		}
-	}
-
-	/* Max Channels reached */
-	sess->ch = MAX_CHANNELS * 2;
+	return &sessionl;
 }
 
 
-char* webapp_options_getv(char *key);
 struct session* effect_session_start(void);
 struct session* effect_session_start(void)
 {
 	struct session *sess;
+	struct le *le;
+	int pos;
 
+	for (le = sessionl.head; le; le = le->next) {
+		sess = le->data;
 
+		if (!sess->ch) {
+			sess->ch = pos * 2;
+		}
+		pos++;
+	}
 
 	return sess;
 }
@@ -141,12 +139,21 @@ struct session* effect_session_start(void)
 int effect_session_stop(struct session *session);
 int effect_session_stop(struct session *session)
 {
-#if 0
-	uint8_t pos = session->ch / 2;
-	channels[pos] = false;
-	mem_deref(session);
-	return (int)list_count(&sessionl);
-#endif
+	int count;
+	struct session *sess;
+	struct le *le;
+
+	session->ch = 0;
+
+	for (le = sessionl.head; le; le = le->next) {
+		sess = le->data;
+
+		if (sess->ch) {
+			count++;
+		}
+	}
+
+	return count;
 }
 
 
@@ -502,13 +509,12 @@ static int effect_init(void)
 		if (!sess)
 			return ENOMEM;
 
-		calc_channel(sess);
-
 		sess->run_play = false;
 		sess->run_src = false;
-		sess->bypass = bypass;
+		sess->bypass = false;
 		sess->trev = 0;
 		sess->prev = 0;
+		sess->ch = 0;
 		sess->call = NULL;
 		lock_alloc(&sess->plock);
 

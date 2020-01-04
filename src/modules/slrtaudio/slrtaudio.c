@@ -383,7 +383,8 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 		if (!sess->stream) {
 			convert_float(st_play->sampv,
 					sess->vumeter, samples);
-			ws_meter_process(sess->ch, sess->vumeter, (unsigned long)samples);
+			ws_meter_process(sess->ch, sess->vumeter,
+					  (unsigned long)samples);
 		}
 
 		/* mix n-1 */
@@ -577,7 +578,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	{
 		struct session *sess = le->data;
 
-		if (!sess->run_src && !sess->local && sess->call)		
+		if (!sess->run_src && !sess->local && sess->call)
 		{
 			sess->st_src = mem_zalloc(sizeof(*st_src),
 					ausrc_destructor);
@@ -1137,7 +1138,7 @@ static int slrtaudio_init(void)
 	sess->local = true;
 	sess->stream = false;
 	list_append(&sessionl, &sess->le, sess);
-	
+
 	/* add remote sessions
 	 */
 	for (uint32_t cnt = 0; cnt < MAX_REMOTE_CHANNELS; cnt++)

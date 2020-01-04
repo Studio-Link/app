@@ -17,7 +17,7 @@ struct session {
 	FLAC__StreamEncoder *flac;
 	int16_t *sampv;
 	FLAC__int32 *pcm;
-	uint8_t ch;
+	int8_t ch;
 	float *vumeter;
 	struct call *call;
 };
