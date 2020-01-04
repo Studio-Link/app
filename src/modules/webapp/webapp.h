@@ -196,6 +196,7 @@ struct session {
 	struct call *call;
 	bool stream; /* only for standalone */
 	bool local; /* only for standalone */
+	bool master;
 };
 #endif
 

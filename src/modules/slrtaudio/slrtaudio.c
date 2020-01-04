@@ -340,12 +340,8 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 	for (le = sessionl.head; le; le = le->next)
 	{
 		sess = le->data;
-		msessplay = 0;
-
 		if (!sess->run_play || sess->local)
-		{
 			continue;
-		}
 
 		st_play = sess->st_play;
 		st_play->wh(st_play->sampv, samples, st_play->arg);
@@ -357,9 +353,7 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 		msessplay = 0;
 
 		if (!sess->run_play || sess->local)
-		{
 			continue;
-		}
 
 		st_play = sess->st_play;
 
