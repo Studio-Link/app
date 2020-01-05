@@ -39,7 +39,7 @@
 
 
 enum {
-	MAX_CHANNELS = 10
+	MAX_CHANNELS = 3
 };
 
 struct auplay_st {
@@ -74,17 +74,14 @@ struct session {
 	struct le le;
 	struct ausrc_st *st_src;
 	struct auplay_st *st_play;
-	uint32_t trev;
-	uint32_t prev;
 	int32_t *dstmix;
 	int8_t ch;
 	bool run_src;
 	bool run_play;
-	struct lock *plock;
 	bool run_auto_mix;
 	bool bypass;
 	struct call *call;
-	bool master;
+	bool primary;
 	bool stream; /* only for standalone */
 	bool local; /* only for standalone */
 };
@@ -96,12 +93,16 @@ static struct auplay *auplay;
 
 static bool bypass = false;
 
+static uint8_t played_sessions = 0;
+static uint8_t active_sessions = 0;
+static struct lock *lock;
+static struct lock *plock;
+
 static void sess_destruct(void *arg)
 {
 	struct session *sess = arg;
 
 	list_unlink(&sess->le);
-	mem_deref(sess->plock);
 #if 0
 	mem_deref(sess->st_src);
 	mem_deref(sess->st_play);
@@ -129,6 +130,9 @@ struct session* effect_session_start(void)
 
 		if (sess->ch == -1) {
 			sess->ch = pos * 2;
+			lock_write_get(lock);
+			++active_sessions;
+			lock_rel(lock);
 			return sess;
 		}
 		pos++;
@@ -146,6 +150,25 @@ int effect_session_stop(struct session *session)
 	struct le *le;
 
 	session->ch = -1;
+
+	lock_write_get(lock);
+	/* new primary election */
+	if (session->primary) {
+		for (le = sessionl.head; le; le = le->next)
+		{
+			sess = le->data;
+
+			if (sess->ch > -1)
+			{
+				sess->primary = true;
+				break;
+			}
+		}
+		session->primary = false;
+	}
+	--active_sessions;
+	lock_rel(lock);
+
 
 	for (le = sessionl.head; le; le = le->next) {
 		sess = le->data;
@@ -201,18 +224,24 @@ void effect_play(struct session *sess, float* const output0,
 void effect_play(struct session *sess, float* const output0,
 		float* const output1, unsigned long nframes)
 {
-	struct auplay_st *st_play = sess->st_play;
+	struct timeval now;
+	gettimeofday(&now, NULL);
+	lock_write_get(plock);
+	lock_rel(plock);
+	if (sess->primary) {
+		warning("play %x: %d *\n", sess, now.tv_usec);
+	} else {
+		warning("play %x: %d\n", sess, now.tv_usec);
+	}
 
 	if (!sess->run_play)
 		return;
+	struct auplay_st *st_play = sess->st_play;
 
-	lock_write_get(sess->plock);
 	sample_move_dS_s16(output0, (char*)st_play->sampv,
 			nframes, 4);
 	sample_move_dS_s16(output1, (char*)st_play->sampv+2,
 			nframes, 4);
-	lock_rel(sess->plock);
-
 	if (sess->ch > -1)
 		ws_meter_process(sess->ch+1, (float*)output0, nframes);
 #if 0
@@ -413,24 +442,6 @@ static void mix_n_minus_1(struct session *sess, unsigned long samples)
 #endif
 }
 
-static int effect_sync(struct session *sess)
-{
-		struct session *msess;
-		struct le *le;
-
-		for (le = sessionl.head; le; le = le->next)
-		{
-			msess = le->data;
-			if (!sess->master && msess->ch != -1)
-			{
-				if (sess->trev != msess->trev)
-				{
-					return 1;
-				}
-			}
-		}
-		return 0;
-}
 
 void effect_src(struct session *sess, const float* const input0,
 		const float* const input1, unsigned long nframes);
@@ -438,42 +449,54 @@ void effect_src(struct session *sess, const float* const input0,
 void effect_src(struct session *sess, const float* const input0,
 		const float* const input1, unsigned long nframes)
 {
+	struct timeval now;
+	gettimeofday(&now, NULL);
+
+	if (sess->primary) {
+		lock_write_get(plock);
+		
+		for (size_t i = 0; i < 10; i++)
+		{
+			sys_usleep(100);
+			warning("sourced/active = %d/%d\n", played_sessions, active_sessions);
+			if (played_sessions >= active_sessions - 1) {
+				lock_write_get(lock);
+				played_sessions = 0;
+				lock_rel(lock);
+
+				break;
+			}
+		}
+		warning("src %x: %d *\n", sess, now.tv_usec);
+	} else {
+		lock_write_get(lock);
+		++played_sessions;
+		warning("src %x: %d\n", sess, now.tv_usec);
+		lock_rel(lock);
+	}
+
 	if (sess->ch > -1)
 		ws_meter_process(sess->ch, (float*)input0, nframes);
 
 	if (!sess->run_src)
+	{
+		if (sess->primary)
+			lock_rel(plock);
 		return;
+	}
 	struct ausrc_st *st_src = sess->st_src;
 
-	lock_write_get(sess->plock);
 	sample_move_d16_sS((char *)st_src->sampv, (float *)input0,
 					   nframes, 4);
 	sample_move_d16_sS((char *)st_src->sampv + 2, (float *)input1,
 					   nframes, 4);
 
-	++sess->trev;
-	//warning("%x: %d\n", sess, sess->trev);
-
-	if (sess->master) {
-		/* sync
-		while(effect_sync(sess)) {
-			warning("Sync\n");
-			sys_msleep(1);
-		}
-		*/
+	if (sess->primary) {
 		mix_n_minus_1(sess, nframes * 2);
+		lock_rel(plock);
 	}
-	lock_rel(sess->plock);
 
-
-#if 0
-	if (sess->run_src) {
-
-		if (sess->run_auto_mix)
-			mix_n_minus_1(sess, st_src->sampv, nframes * 2);
-		st_src->rh(st_src->sampv, nframes * 2, st_src->arg);
-	}
-#endif
+	//lock_rel(lock);
 }
 
 
@@ -638,6 +661,8 @@ static int effect_init(void)
 	err |= auplay_register(&auplay, baresip_auplayl(), "effect", play_alloc);
 	struct session *sess;
 	int pos = 0;
+	lock_alloc(&lock);
+	lock_alloc(&plock);
 
 	for (uint32_t cnt = 0; cnt < MAX_CHANNELS; cnt++)
 	{
@@ -648,17 +673,14 @@ static int effect_init(void)
 		sess->run_play = false;
 		sess->run_src = false;
 		sess->bypass = false;
-		sess->trev = 0;
-		sess->prev = 0;
 		sess->ch = -1;
 		sess->call = NULL;
-		lock_alloc(&sess->plock);
 
 		sess->run_auto_mix = true;
 		if (pos < 1)
-			sess->master = true;
+			sess->primary = true;
 		else
-			sess->master = false;
+			sess->primary = false;
 		sess->stream = false;
 		sess->local = false;
 		list_append(&sessionl, &sess->le, sess);
@@ -676,6 +698,8 @@ static int effect_close(void)
 
 	ausrc  = mem_deref(ausrc);
 	auplay = mem_deref(auplay);
+	lock = mem_deref(lock);
+	plock = mem_deref(plock);
 
 	for (le = sessionl.head; le;)
 	{
