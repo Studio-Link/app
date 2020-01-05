@@ -103,10 +103,6 @@ static void sess_destruct(void *arg)
 	struct session *sess = arg;
 
 	list_unlink(&sess->le);
-#if 0
-	mem_deref(sess->st_src);
-	mem_deref(sess->st_play);
-#endif
 	warning("DESTRUCT SESSION\n");
 }
 
@@ -207,16 +203,6 @@ static void sample_move_dS_s16(float *dst, char *src, unsigned long nsamples,
 	}
 }
 
-#if 0
-static void play_process(struct session *sess, unsigned long nframes)
-{
-	struct auplay_st *st_play = sess->st_play;
-
-	st_play->wh(st_play->sampv, nframes, st_play->arg);
-	++sess->prev;
-}
-#endif
-
 
 void ws_meter_process(unsigned int ch, float *in, unsigned long nframes);
 
@@ -249,21 +235,6 @@ void effect_play(struct session *sess, float* const output0,
 			nframes, 4);
 	if (sess->ch > -1)
 		ws_meter_process(sess->ch+1, (float*)output0, nframes);
-#if 0
-	lock_write_get(sess->plock);
-//	if (sess->trev > sess->prev)
-		play_process(sess, nframes*2);
-
-	sample_move_dS_s16(output0, (char*)st_play->sampv,
-			nframes, 4);
-	sample_move_dS_s16(output1, (char*)st_play->sampv+2,
-			nframes, 4);
-	lock_rel(sess->plock);
-	
-	if (sess->ch > -1)
-		ws_meter_process(sess->ch+1, (float*)output0, nframes);
-//	++sess->trev;
-#endif
 }
 
 
@@ -378,55 +349,6 @@ static void mix_n_minus_1(struct session *sess, unsigned long samples)
 			st_src->rh(st_src->sampv, samples, st_src->arg);
 		}
 	}
-
-#if 0
-	struct le *le;
-	int32_t *dstmixv;
-	int16_t *dstv = dst;
-	int16_t *mixv;
-	unsigned active = 0;
-
-	for (le = sessionl.head; le; le = le->next) {
-		struct session *msess = le->data;
-
-		if (msess->run_play && msess != sess) {
-			mixv = msess->st_play->sampv;
-			dstmixv = sess->dstmix;
-
-			lock_write_get(msess->plock);
-			play_process(msess, nsamples);
-			for (unsigned n = 0; n < nsamples; n++) {
-				*dstmixv = *dstmixv + *mixv;
-				++mixv;
-				++dstmixv;
-			}
-			lock_rel(msess->plock);
-
-			++active;
-		}
-	}
-
-	if (active) {
-		dstmixv = sess->dstmix;
-		for (unsigned i = 0; i < nsamples; i++) {
-			*dstmixv = *dstmixv + *dstv;
-			++dstv;
-			++dstmixv;
-		}
-
-		dstmixv = sess->dstmix;
-		for (unsigned i = 0; i < nsamples; i++) {
-			if (*dstmixv > SAMPLE_16BIT_MAX)
-				*dstmixv = SAMPLE_16BIT_MAX;
-			if (*dstmixv < SAMPLE_16BIT_MIN)
-				*dstmixv = SAMPLE_16BIT_MIN;
-			*dst = *dstmixv;
-			*dstmixv = 0;
-			++dst;
-			++dstmixv;
-		}
-	}
-#endif
 }
 
 
