@@ -148,6 +148,8 @@ int effect_session_stop(struct session *session)
 	int count;
 	struct session *sess;
 	struct le *le;
+	if (!session)
+		return MAX_CHANNELS;
 
 	session->ch = -1;
 
@@ -225,6 +227,9 @@ void effect_play(struct session *sess, float* const output0,
 		float* const output1, unsigned long nframes)
 {
 	struct timeval now;
+	if(!sess) 
+		return;
+
 	gettimeofday(&now, NULL);
 	lock_write_get(plock);
 	lock_rel(plock);
@@ -276,9 +281,8 @@ void effect_bypass(struct session *sess,
 		const float* const input1,
 		unsigned long nframes)
 {
-	struct le *le;
-	struct session *msess;
-	int8_t counter;
+	if (!sess)
+		return;
 
 	if (sess->run_play)
 		return;
@@ -295,23 +299,6 @@ void effect_bypass(struct session *sess,
 			output1[pos] = 0;
 		}
 	}
-
-#if 0
-	for (le = sessionl.head; le; le = le->next) {
-		msess = le->data;
-		if (msess != sess) {
-			counter = msess->trev - sess->trev;
-			if (counter > 1) {
-				sess->trev = msess->trev;
-				sess->prev = msess->prev;
-				warning("sync thread %d\n", counter);
-				return;
-			}
-		}
-	}
-#endif
-	//++sess->trev;
-	//++sess->prev;
 }
 
 
@@ -449,6 +436,9 @@ void effect_src(struct session *sess, const float* const input0,
 void effect_src(struct session *sess, const float* const input0,
 		const float* const input1, unsigned long nframes)
 {
+	if (!sess)
+		return;
+
 	struct timeval now;
 	gettimeofday(&now, NULL);
 
