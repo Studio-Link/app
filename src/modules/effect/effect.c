@@ -204,10 +204,15 @@ void effect_play(struct session *sess, float* const output0,
 	gettimeofday(&now, NULL);
 	//warning("play %x: %d\n", sess, now.tv_usec);
 
-	if (!sess->run_play)
+	if (!sess->run_play) {
+		for (uint32_t pos = 0; pos < nframes; pos++) {
+			output0[pos] = 0;
+			output1[pos] = 0;
+		}
 		return;
-	struct auplay_st *st_play = sess->st_play;
+	}
 
+	struct auplay_st *st_play = sess->st_play;
 	sample_move_dS_s16(output0, (char*)st_play->sampv,
 			nframes, 4);
 	sample_move_dS_s16(output1, (char*)st_play->sampv+2,
@@ -260,7 +265,7 @@ static void mix_n_minus_1(struct session *sess, unsigned long samples)
 	struct auplay_st *mst_play;
 	struct le *le;
 	struct le *mle;
-	int cntplay = 0, msessplay = 0;
+	int msessplay = 0;
 
 	for (le = sessionl.head; le; le = le->next)
 	{
@@ -309,7 +314,6 @@ static void mix_n_minus_1(struct session *sess, unsigned long samples)
 			}
 			++msessplay;
 		}
-		++cntplay;
 	}
 
 	for (le = sessionl.head; le; le = le->next)
@@ -329,6 +333,7 @@ static void mix_n_minus_1(struct session *sess, unsigned long samples)
 			st_src->rh(st_src->sampv, samples, st_src->arg);
 		}
 	}
+
 }
 
 

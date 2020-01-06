@@ -510,7 +510,7 @@ static void syscmd(void *arg)
 {
 #ifndef SLBOX
 	int err = 0;
-	//err = system(command);
+	err = system(command);
 	if (err) {}
 #endif
 }
