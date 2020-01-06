@@ -191,7 +191,6 @@ struct session {
 	bool run_auto_mix;
 	bool bypass;
 	struct call *call;
-	bool primary;
 	bool stream; /* only for standalone */
 	bool local; /* only for standalone */
 };
