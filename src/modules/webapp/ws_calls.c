@@ -54,6 +54,9 @@ void webapp_ws_calls(const struct websock_hdr *hdr,
 			ws_send_all(WS_CALLS, SIP_CLOSED);
 		}
 	}
+	else if (!str_cmp(e->u.str, "hangup_open_call")) {
+		ua_hangup(uag_current(), call, 0, NULL);
+	}
 
 out:
 	mem_deref(cmd);
