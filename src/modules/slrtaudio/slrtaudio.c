@@ -105,6 +105,11 @@ void slrtaudio_mute_set(bool active)
 	mute = active;
 }
 
+struct list* sl_sessions(void);
+struct list* sl_sessions(void)
+{
+	return &sessionl;
+}
 
 static void sess_destruct(void *arg)
 {
@@ -126,6 +131,7 @@ static void sess_destruct(void *arg)
 	mem_deref(sess->sampv);
 	mem_deref(sess->pcm);
 	mem_deref(sess->aubuf);
+	mem_deref(sess->vumeter);
 
 	list_unlink(&sess->le);
 }
@@ -334,12 +340,8 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 	for (le = sessionl.head; le; le = le->next)
 	{
 		sess = le->data;
-		msessplay = 0;
-
 		if (!sess->run_play || sess->local)
-		{
 			continue;
-		}
 
 		st_play = sess->st_play;
 		st_play->wh(st_play->sampv, samples, st_play->arg);
@@ -351,9 +353,7 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 		msessplay = 0;
 
 		if (!sess->run_play || sess->local)
-		{
 			continue;
-		}
 
 		st_play = sess->st_play;
 
@@ -373,7 +373,15 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 		/* write remote streams to flac record buffer */
 		(void)aubuf_write_samp(sess->aubuf, st_play->sampv, samples);
 
-		/** mix n-1 */
+		/* vumeter */
+		if (!sess->stream) {
+			convert_float(st_play->sampv,
+					sess->vumeter, samples);
+			ws_meter_process(sess->ch, sess->vumeter,
+					  (unsigned long)samples);
+		}
+
+		/* mix n-1 */
 		for (mle = sessionl.head; mle; mle = mle->next)
 		{
 			struct session *msess = mle->data;
@@ -552,6 +560,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	(void)ctx;
 	(void)errh;
 	(void)device;
+
 	int err = 0;
 	struct ausrc_st *st_src = NULL;
 	struct le *le;
@@ -563,7 +572,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	{
 		struct session *sess = le->data;
 
-		if (!sess->run_src && !sess->local)
+		if (!sess->run_src && !sess->local && sess->call)
 		{
 			sess->st_src = mem_zalloc(sizeof(*st_src),
 					ausrc_destructor);
@@ -621,7 +630,7 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 	{
 		struct session *sess = le->data;
 
-		if (!sess->run_play && !sess->local)
+		if (!sess->run_play && !sess->local && sess->call)
 		{
 			sess->st_play = mem_zalloc(sizeof(*st_play),
 					auplay_destructor);
@@ -1115,28 +1124,49 @@ static int slrtaudio_init(void)
 	if (!playmix)
 		return ENOMEM;
 
+	/* add local/recording session
+	 */
 	sess = mem_zalloc(sizeof(*sess), sess_destruct);
 	if (!sess)
 		return ENOMEM;
 	sess->local = true;
+	sess->stream = false;
 	list_append(&sessionl, &sess->le, sess);
 
+	/* add remote sessions
+	 */
 	for (uint32_t cnt = 0; cnt < MAX_REMOTE_CHANNELS; cnt++)
 	{
 		sess = mem_zalloc(sizeof(*sess), sess_destruct);
 		if (!sess)
 			return ENOMEM;
+		sess->vumeter = mem_zalloc(BUFFER_LEN, NULL);
 
 		sess->local = false;
+		sess->stream = false;
+		sess->ch = cnt * 2 + 1;
+		sess->call = NULL;
+
 		list_append(&sessionl, &sess->le, sess);
 	}
+
+	/* add stream session
+	 */
+	sess = mem_zalloc(sizeof(*sess), sess_destruct);
+	if (!sess)
+		return ENOMEM;
+	sess->local = false;
+	sess->stream = true;
+	sess->call = NULL;
+	sess->ch = MAX_REMOTE_CHANNELS + 1;
+	list_append(&sessionl, &sess->le, sess);
 
 	slrtaudio_drivers();
 	slrtaudio_devices();
 	slrtaudio_record_init();
 	slrtaudio_start();
 
-	warning("slrtaudio\n");
+	warning("slrtaudio ready\n");
 
 	return err;
 }

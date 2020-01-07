@@ -1,4 +1,8 @@
 #define SLVERSION "SLVERSION_T"
+#ifndef SLPLUGIN 
+#include <pthread.h>
+#include "FLAC/stream_encoder.h"
+#endif
 
 #ifdef SLPLUGIN
 /*
@@ -39,8 +43,9 @@ enum webapp_call_state webapp_call_status;
 
 struct odict *webapp_calls;
 
-int webapp_call_delete(struct call *call);
+int webapp_session_delete(char * const sess_id, struct call *call);
 int webapp_call_update(struct call *call, char *state);
+int webapp_session_stop_stream(void);
 
 int webapp_update(bool status);
 
@@ -147,3 +152,50 @@ const struct odict* slrtaudio_get_interfaces(void);
 void slrtaudio_record_set(bool active);
 void slrtaudio_mono_set(bool active);
 void slrtaudio_mute_set(bool active);
+
+#ifndef SLPLUGIN 
+/*
+ * session standalone slrtaudio.h
+ */
+struct session {
+	struct le le;
+	struct ausrc_st *st_src;
+	struct auplay_st *st_play;
+	bool local;
+	bool stream;
+	bool run_src;
+	bool run_play;
+	bool run_record;
+	int32_t *dstmix;
+	struct aubuf *aubuf;
+	pthread_t record_thread;
+	FLAC__StreamEncoder *flac;
+	int16_t *sampv;
+	FLAC__int32 *pcm;
+	int8_t ch;
+	float *vumeter;
+	struct call *call;
+};
+#else
+/*
+ * session plugin effect.c
+ */
+struct session {
+	struct le le;
+	struct ausrc_st *st_src;
+	struct auplay_st *st_play;
+	int32_t *dstmix;
+	int8_t ch;
+	bool run_src;
+	bool run_play;
+	bool run_auto_mix;
+	bool bypass;
+	struct call *call;
+	bool stream; /* only for standalone */
+	bool local; /* only for standalone */
+};
+#endif
+
+
+
+

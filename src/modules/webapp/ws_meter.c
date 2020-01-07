@@ -6,7 +6,7 @@
 #include "webapp.h"
 
 
-#define MAX_METERS 24
+#define MAX_METERS 32
 
 static float bias = 1.0f;
 static float peaks[MAX_METERS] = {0};

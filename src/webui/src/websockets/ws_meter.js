@@ -66,7 +66,7 @@ $(function () {
 		var head10 = iec_scale(parseFloat(peaks[19])) * 100;
 		var head11 = iec_scale(parseFloat(peaks[21])) * 100;
 		var head12 = iec_scale(parseFloat(peaks[23])) * 100;
-		
+
 		if (peaks[2] != "inf") {
 			$("#microphonebar2").removeClass("d-none");
 			$("#headphonesbar2").removeClass("d-none");
@@ -128,14 +128,14 @@ $(function () {
 		$("#microphonebar10").html('<div class="progress-bar '+rainbow(mic10)+'" style="width: '+mic10+'%"> <span class="sr-only">'+mic10+'% Complete (success)</span></div>');
 
 		$("#headphonesbar1").html('<div class="progress-bar '+rainbow(head1)+'" style="width: '+head1+'%"> <span class="sr-only">'+head1+'% Complete (success)</span></div>');
-		$("#headphonesbar2").html('<div class="progress-bar '+rainbow(head2)+'" style="width: '+head2+'%"> <span class="sr-only">'+head2+'% Complete (success)</span></div>');
-		$("#headphonesbar3").html('<div class="progress-bar '+rainbow(head3)+'" style="width: '+head3+'%"> <span class="sr-only">'+head3+'% Complete (success)</span></div>');
-		$("#headphonesbar4").html('<div class="progress-bar '+rainbow(head4)+'" style="width: '+head4+'%"> <span class="sr-only">'+head4+'% Complete (success)</span></div>');
-		$("#headphonesbar5").html('<div class="progress-bar '+rainbow(head5)+'" style="width: '+head5+'%"> <span class="sr-only">'+head5+'% Complete (success)</span></div>');
-		$("#headphonesbar6").html('<div class="progress-bar '+rainbow(head6)+'" style="width: '+head6+'%"> <span class="sr-only">'+head6+'% Complete (success)</span></div>');
-		$("#headphonesbar7").html('<div class="progress-bar '+rainbow(head7)+'" style="width: '+head7+'%"> <span class="sr-only">'+head7+'% Complete (success)</span></div>');
-		$("#headphonesbar8").html('<div class="progress-bar '+rainbow(head8)+'" style="width: '+head8+'%"> <span class="sr-only">'+head8+'% Complete (success)</span></div>');
-		$("#headphonesbar9").html('<div class="progress-bar '+rainbow(head9)+'" style="width: '+head9+'%"> <span class="sr-only">'+head9+'% Complete (success)</span></div>');
-		$("#headphonesbar10").html('<div class="progress-bar '+rainbow(head10)+'" style="width: '+head10+'%"> <span class="sr-only">'+head10+'% Complete (success)</span></div>');
+		$("#headphonesbar3").html('<div class="progress-bar '+rainbow(head2)+'" style="width: '+head2+'%"> <span class="sr-only">'+head2+'% Complete (success)</span></div>');
+		$("#headphonesbar5").html('<div class="progress-bar '+rainbow(head3)+'" style="width: '+head3+'%"> <span class="sr-only">'+head3+'% Complete (success)</span></div>');
+		$("#headphonesbar7").html('<div class="progress-bar '+rainbow(head4)+'" style="width: '+head4+'%"> <span class="sr-only">'+head4+'% Complete (success)</span></div>');
+		$("#headphonesbar9").html('<div class="progress-bar '+rainbow(head5)+'" style="width: '+head5+'%"> <span class="sr-only">'+head5+'% Complete (success)</span></div>');
+		$("#headphonesbar11").html('<div class="progress-bar '+rainbow(head6)+'" style="width: '+head6+'%"> <span class="sr-only">'+head6+'% Complete (success)</span></div>');
+		$("#headphonesbar13").html('<div class="progress-bar '+rainbow(head7)+'" style="width: '+head7+'%"> <span class="sr-only">'+head7+'% Complete (success)</span></div>');
+		$("#headphonesbar15").html('<div class="progress-bar '+rainbow(head8)+'" style="width: '+head8+'%"> <span class="sr-only">'+head8+'% Complete (success)</span></div>');
+		$("#headphonesbar17").html('<div class="progress-bar '+rainbow(head9)+'" style="width: '+head9+'%"> <span class="sr-only">'+head9+'% Complete (success)</span></div>');
+		$("#headphonesbar19").html('<div class="progress-bar '+rainbow(head10)+'" style="width: '+head10+'%"> <span class="sr-only">'+head10+'% Complete (success)</span></div>');
 	};
 });

@@ -16,19 +16,10 @@
 static struct tmr tmr;
 
 static struct http_sock *httpsock = NULL;
-enum webapp_call_state webapp_call_status = WS_CALL_OFF;
 static char webapp_call_json[150] = {0};
 struct odict *webapp_calls = NULL;
 static char command[100] = {0};
 static bool auto_answer = false;
-
-#ifndef SLPLUGIN
-static struct aufilt vumeter = {
-	LE_INIT, "webapp_vumeter",
-	webapp_vu_encode_update, webapp_vu_encode,
-	webapp_vu_decode_update, webapp_vu_decode
-};
-#endif
 
 static int http_sreply(struct http_conn *conn, uint16_t scode,
 		const char *reason, const char *ctype,
@@ -199,67 +190,148 @@ static void ua_event_current_set(struct ua *ua)
 }
 
 
-int webapp_call_delete(struct call *call)
+struct list* sl_sessions(void);
+
+int webapp_session_stop_stream(void)
+{
+	struct list *tsession;
+	struct session *sess;
+	struct le *le;
+	int err = 0;
+
+	tsession = sl_sessions();
+
+	for (le = tsession->head; le; le = le->next) {
+		sess = le->data;
+
+		if (sess->stream) {
+			ua_hangup(uag_current(), sess->call, 0, NULL);
+			sess->call = NULL;
+
+			return err;
+		}
+	}
+
+	return err;
+}
+
+int webapp_session_delete(char * const sess_id, struct call *call)
 {
 	char id[64] = {0};
 	int err = 0;
+	struct list *tsession;
+	struct session *sess;
+	struct le *le;
 
-	if (!call)
+	if (!sess_id && !call)
 		return EINVAL;
 
-	re_snprintf(id, sizeof(id), "%x", call);
-	odict_entry_del(webapp_calls, id);
+	tsession = sl_sessions();
+
+	for (le = tsession->head; le; le = le->next) {
+		sess = le->data;
+
+		if (sess->local)
+			continue;
+
+		re_snprintf(id, sizeof(id), "%x", sess);
+
+		if (sess_id) {
+			if (!str_cmp(id, sess_id)) {
+				ua_hangup(uag_current(), sess->call, 0, NULL);
+				sess->call = NULL;
+				odict_entry_del(webapp_calls, id);
+				warning("delete session id/channel: %s/%d\n",
+						id, sess->ch);
+				break;
+			}
+		}
+		if (call) {
+			if (sess->call == call) {
+				sess->call = NULL;
+				odict_entry_del(webapp_calls, id);
+				warning("delete session id/channel: %s/%d\n",
+						id, sess->ch);
+				break;
+			}
+		}
+	}
 
 	return err;
 }
 
 
-static int json_print_handler(const char *p, size_t size, void *arg)                                
-{      
-	//warning("json: %s", p);
-	return re_snprintf(arg, sizeof(arg), "%s%s", p, arg);
-}    
-
-
-static void chat_send_calls(void)
-{
-	struct re_printf pf;                   
-	char msg[1024] = {0};
-	pf.vph = json_print_handler;                
-	pf.arg = msg;
-
-	json_encode_odict(&pf, webapp_calls);
-	webapp_chat_send(msg, NULL);
-}
-
-
 int webapp_call_update(struct call *call, char *state)
 {
+	struct list *tsession;
+	struct session *sess;
+	struct le *le;
 	struct odict *o;
 	char id[64] = {0};
 	int err = 0;
+	bool new = true; 
 
-	if (!call || !state)
-		return EINVAL;
-
-#ifndef SLPLUGIN
-	if (!str_cmp(call_peeruri(call), "sip:stream@studio-link.de;transport=tls")) {
-		return err;
-	}
-#endif
 
 	err = odict_alloc(&o, DICT_BSIZE);
 	if (err)
 		return ENOMEM;
 
-	re_snprintf(id, sizeof(id), "%x", call);
+	tsession = sl_sessions();
 
-	odict_entry_del(webapp_calls, id);
-	odict_entry_add(o, "peer", ODICT_STRING, call_peeruri(call));
-	odict_entry_add(o, "state", ODICT_STRING, state);
-	odict_entry_add(webapp_calls, id, ODICT_OBJECT, o);
+#ifndef SLPLUGIN
+	if (!str_cmp(call_peeruri(call), "sip:stream@studio-link.de;transport=tls")) {
+		for (le = tsession->head; le; le = le->next) {
+			sess = le->data;
 
-	chat_send_calls();
+			if (sess->stream) {
+				sess->call = call;
+				return err;
+			}
+		}
+	}
+#endif
+
+	for (le = tsession->head; le; le = le->next) {
+		sess = le->data;
+
+		if (sess->local)
+			continue;
+
+		if (sess->call == call) {
+			new = false;
+			warning("session update: %d\n", sess->ch);
+		}
+	}
+
+	for (le = tsession->head; le; le = le->next) {
+		sess = le->data;
+
+		if (sess->local)
+			continue;
+
+		if (new && !sess->call) {
+			sess->call = call;
+			new = false;
+		}
+
+		if (sess->call != call)
+			continue;
+
+
+		re_snprintf(id, sizeof(id), "%x", sess);
+		warning("session id/channel: %s/%d/%d\n", id, sess->ch, new);
+
+		odict_entry_del(webapp_calls, id);
+		odict_entry_add(o, "peer", ODICT_STRING, call_peeruri(call));
+		odict_entry_add(o, "state", ODICT_STRING, state);
+#ifdef SLPLUGIN
+		odict_entry_add(o, "ch", ODICT_INT, (int64_t)sess->ch+1);
+#else
+		odict_entry_add(o, "ch", ODICT_INT, (int64_t)sess->ch);
+#endif
+		odict_entry_add(webapp_calls, id, ODICT_OBJECT, o);
+	}
+
 	ws_send_json(WS_CALLS, webapp_calls);
 	mem_deref(o);
 	return err;
@@ -281,7 +353,6 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 						call_peeruri(call), call);
 				webapp_call_update(call, "Incoming");
 				ws_send_all(WS_CALLS, webapp_call_json);
-				webapp_call_status = WS_CALL_RINGING;
 			} else {
 				debug("auto answering call\n");
 				ua_answer(uag_current(), call);
@@ -291,7 +362,6 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 		case UA_EVENT_CALL_ESTABLISHED:
 			ua_event_current_set(ua);
 			webapp_call_update(call, "Established");
-			webapp_call_status = WS_CALL_ON;
 			break;
 
 		case UA_EVENT_CALL_CLOSED:
@@ -299,10 +369,9 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			re_snprintf(webapp_call_json, sizeof(webapp_call_json),
 					"{ \"callback\": \"CLOSED\",\
 					\"message\": \"%s\" }", prm);
-			webapp_call_delete(call);
+			webapp_session_delete(NULL, call);
 			ws_send_all(WS_CALLS, webapp_call_json);
 			ws_send_json(WS_CALLS, webapp_calls);
-			webapp_call_status = WS_CALL_OFF;
 			break;
 
 		case UA_EVENT_REGISTER_OK:
@@ -466,8 +535,6 @@ static int module_init(void)
 	(void)re_fprintf(stderr, "Studio Link Webapp %s - Standalone"
 			" Copyright (C) 2013-2019"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
-
-	aufilt_register(baresip_aufiltl(), &vumeter);
 #endif
 
 	err = http_port();
@@ -510,7 +577,6 @@ static int module_close(void)
 	//webapp_chat_close();
 #ifndef SLPLUGIN
 	webapp_ws_rtaudio_close();
-	aufilt_unregister(&vumeter);
 #endif
 	webapp_ws_close();
 	mem_deref(httpsock);

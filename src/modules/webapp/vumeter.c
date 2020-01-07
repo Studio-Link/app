@@ -76,6 +76,7 @@ int webapp_vu_decode_update(struct aufilt_dec_st **stp, void **ctx,
 	if (!st)
 		return ENOMEM;
 
+	warning("decode channel %d\n", channels_dec);
 	st->ch = channels_dec+1;
 	channels_dec = channels_dec + 2;
 

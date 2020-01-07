@@ -49,13 +49,13 @@ void webapp_ws_calls(const struct websock_hdr *hdr,
 		ua_answer(uag_current(), call);
 	}
 	else if (!str_cmp(e->u.str, "hangup")) {
-		webapp_call_delete(call);
-		ua_hangup(uag_current(), call, 0, NULL);
-		webapp_call_status = WS_CALL_OFF;
+		webapp_session_delete(key->u.str, NULL);
 		if (!active_calls()) {
 			ws_send_all(WS_CALLS, SIP_CLOSED);
 		}
-		ws_send_json(WS_CALLS, webapp_calls);
+	}
+	else if (!str_cmp(e->u.str, "hangup_open_call")) {
+		ua_hangup(uag_current(), call, 0, NULL);
 	}
 
 out:
