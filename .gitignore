@@ -1,4 +1,4 @@
-/build
+/build*
 .vscode
 /src/webui/node_modules
 /src/webui/dist

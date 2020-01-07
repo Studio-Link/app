@@ -83,7 +83,7 @@ tour.on('complete', function() {
 
 $(function () {
 	var onboarding = localStorage.getItem('slonboarding');
-	if (onboarding != 'completed1' ) {
+	if (onboarding != 'completed' ) {
 		tour.start();
 	}
 });

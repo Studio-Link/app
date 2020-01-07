@@ -7,6 +7,7 @@ struct session {
 	struct ausrc_st *st_src;
 	struct auplay_st *st_play;
 	bool local;
+	bool stream;
 	bool run_src;
 	bool run_play;
 	bool run_record;
@@ -16,6 +17,9 @@ struct session {
 	FLAC__StreamEncoder *flac;
 	int16_t *sampv;
 	FLAC__int32 *pcm;
+	int8_t ch;
+	float *vumeter;
+	struct call *call;
 };
 
 extern struct list sessionl;

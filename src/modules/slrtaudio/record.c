@@ -221,6 +221,9 @@ void slrtaudio_record_init(void) {
 	for (le = sessionl.head; le; le = le->next) {
 		sess = le->data;
 
+		if (sess->stream)
+			continue;
+
 		sess->pcm = mem_zalloc(10 * 1920, NULL);
 		sess->sampv = mem_zalloc(10 * 1920, NULL);
 		aubuf_alloc(&sess->aubuf, 1920 * 10, 1920 * 50);

@@ -77,7 +77,7 @@ $(function () {
 							ws_calls.send('{"command": "accept", "key": "'+
 								msg.key+'"}');
 						} else {
-							ws_calls.send('{"command": "hangup", "key": "'+
+							ws_calls.send('{"command": "hangup_open_call", "key": "'+
 								msg.key+'"}');
 						}
 					});
