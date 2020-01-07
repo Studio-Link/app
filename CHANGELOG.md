@@ -68,3 +68,4 @@
 [Unreleased]: https://github.com/Studio-Link/app/compare/v19.09.0-beta...HEAD
 [v19.09.0-beta]: https://github.com/Studio-Link/app/compare/v19.04.0-beta-605.7ebfed8...v19.09.0-beta
 [#87]: https://gitlab.com/studio.link/app/issues/87
+[#53]: https://gitlab.com/studio.link/app/issues/53
