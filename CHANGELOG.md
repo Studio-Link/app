@@ -25,6 +25,7 @@
 
 - **Standalone** [#87] Web-UI non functional / blocks browser on Raspbian
   Thanks @BayCom
+- **Misc** [#53] Wrong Call audio level allocation
 
 
 ## [v19.09.0-beta] - 2019-09-17
