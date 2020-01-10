@@ -20,6 +20,7 @@ static char webapp_call_json[150] = {0};
 struct odict *webapp_calls = NULL;
 static char command[100] = {0};
 static bool auto_answer = false;
+static bool streaming = false;
 
 static int http_sreply(struct http_conn *conn, uint16_t scode,
 		const char *reason, const char *ctype,
@@ -207,6 +208,7 @@ int webapp_session_stop_stream(void)
 		if (sess->stream) {
 			ua_hangup(uag_current(), sess->call, 0, NULL);
 			sess->call = NULL;
+			streaming = false;
 
 			return err;
 		}
@@ -233,6 +235,13 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 
 		if (sess->local)
 			continue;
+
+		/* reconnect stream if active */
+		if (sess->stream && streaming) {
+			ua_connect(uag_current(), &call, NULL,
+					"stream@studio-link.de", VIDMODE_OFF);
+		}
+
 
 		re_snprintf(id, sizeof(id), "%x", sess);
 
@@ -285,6 +294,7 @@ int webapp_call_update(struct call *call, char *state)
 
 			if (sess->stream) {
 				sess->call = call;
+				streaming = true;
 				return err;
 			}
 		}
@@ -529,11 +539,11 @@ static int module_init(void)
 
 #ifdef SLPLUGIN
 	(void)re_fprintf(stderr, "Studio Link Webapp %s - Effect Plugin"
-			" Copyright (C) 2013-2019"
+			" Copyright (C) 2013-2020"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 #else
 	(void)re_fprintf(stderr, "Studio Link Webapp %s - Standalone"
-			" Copyright (C) 2013-2019"
+			" Copyright (C) 2013-2020"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 #endif
 
