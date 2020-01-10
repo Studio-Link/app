@@ -266,6 +266,7 @@ static void mix_n_minus_1(struct session *sess, unsigned long samples)
 	struct le *le;
 	struct le *mle;
 	int msessplay = 0;
+	int sessplay = 0;
 
 	for (le = sessionl.head; le; le = le->next)
 	{
@@ -313,6 +314,7 @@ static void mix_n_minus_1(struct session *sess, unsigned long samples)
 				}
 			}
 			++msessplay;
+			++sessplay;
 		}
 	}
 
@@ -325,9 +327,12 @@ static void mix_n_minus_1(struct session *sess, unsigned long samples)
 
 			for (uint16_t pos = 0; pos < samples; pos++)
 			{
-				st_src->sampv[pos] =
-					st_src->sampv[pos] +
-					sess->dstmix[pos];
+				/* ignore on last call the dstmix */
+				if (sessplay) {
+					st_src->sampv[pos] =
+						st_src->sampv[pos] +
+						sess->dstmix[pos];
+				}
 			}
 
 			st_src->rh(st_src->sampv, samples, st_src->arg);
@@ -398,9 +403,6 @@ static void auplay_destructor(void *arg)
 	sess->run_play = false;
 	sys_msleep(20);
 	mem_deref(st->sampv);
-	//@fixme
-	//if (sess->dstmix)
-	//	mem_deref(sess->dstmix);
 }
 
 

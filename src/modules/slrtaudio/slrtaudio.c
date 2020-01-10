@@ -276,7 +276,7 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 	struct auplay_st *st_play;
 	struct auplay_st *mst_play;
 	struct ausrc_st *st_src;
-	int cntplay = 0, msessplay = 0, error = 0;
+	int cntplay = 0, msessplay = 0, sessplay = 0, error = 0;
 
 	SRC_DATA src_data_in;
 	lock_write_get(rtaudio_lock);
@@ -407,6 +407,7 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 				}
 			}
 			++msessplay;
+			++sessplay;
 		}
 		++cntplay;
 	}
@@ -420,9 +421,15 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 
 			for (uint16_t pos = 0; pos < samples; pos++)
 			{
-				st_src->sampv[pos] =
-					slrtaudio->inBuffer[pos] +
-					sess->dstmix[pos];
+				if (!sessplay) {
+					/* ignore on last call the dstmix */
+					st_src->sampv[pos] =
+						slrtaudio->inBuffer[pos];
+				} else {
+					st_src->sampv[pos] =
+						slrtaudio->inBuffer[pos] +
+						sess->dstmix[pos];
+				}
 			}
 
 			st_src->rh(st_src->sampv, samples, st_src->arg);
