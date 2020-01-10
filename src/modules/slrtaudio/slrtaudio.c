@@ -425,7 +425,9 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 					/* ignore on last call the dstmix */
 					st_src->sampv[pos] =
 						slrtaudio->inBuffer[pos];
-				} else {
+				}
+				else
+				{
 					st_src->sampv[pos] =
 						slrtaudio->inBuffer[pos] +
 						sess->dstmix[pos];
