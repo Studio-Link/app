@@ -1,7 +1,7 @@
 /**
  * @file webapp.c Webserver UI module
  *
- * Copyright (C) 2013-2019 studio-link.de Sebastian Reimers
+ * Copyright (C) 2013-2020 studio-link.de Sebastian Reimers
  */
 #include <re.h>
 #include <baresip.h>

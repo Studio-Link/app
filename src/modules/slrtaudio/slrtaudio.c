@@ -1,7 +1,7 @@
 /**
  * @file rtaudio.c RTAUDIO
  *
- * Copyright (C) 2018-2019 studio-link.de
+ * Copyright (C) 2018-2020 studio-link.de
  */
 #include <stdlib.h>
 #include <string.h>
