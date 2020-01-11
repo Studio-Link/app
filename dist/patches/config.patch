@@ -118,7 +118,7 @@ index bfe59ba..dc8fa62 100644
   out:
  	return err;
 diff --git a/src/config.c b/src/config.c
-index 1563c6c..52ff8bd 100644
+index 1563c6c..2791c0e 100644
 --- a/src/config.c
 +++ b/src/config.c
 @@ -18,7 +18,7 @@
@@ -253,7 +253,15 @@ index 1563c6c..52ff8bd 100644
  			  default_interface_print, NULL);
  
  	err |= re_hprintf(pf,
-@@ -731,7 +745,7 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -721,6 +735,7 @@ int config_write_template(const char *file, const struct config *cfg)
+ 			 modpath_valid ? "" : "#", modpath);
+ 
+ 	(void)re_fprintf(f, "\n# UI Modules\n");
++	(void)re_fprintf(f, "module\t\t\t" "slogging" MOD_EXT "\n");
+ #if defined (WIN32)
+ 	(void)re_fprintf(f, "module\t\t\t" "wincons" MOD_EXT "\n");
+ #else
+@@ -731,10 +746,10 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "#module\t\t\t" "httpd" MOD_EXT "\n");
  
  	(void)re_fprintf(f, "\n# Audio codec Modules (in order)\n");
@@ -261,8 +269,12 @@ index 1563c6c..52ff8bd 100644
 +	(void)re_fprintf(f, "module\t\t\t" "opus" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" "amr" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" "g7221" MOD_EXT "\n");
- 	(void)re_fprintf(f, "#module\t\t\t" "g722" MOD_EXT "\n");
-@@ -756,18 +770,12 @@ int config_write_template(const char *file, const struct config *cfg)
+-	(void)re_fprintf(f, "#module\t\t\t" "g722" MOD_EXT "\n");
++	(void)re_fprintf(f, "module\t\t\t" "g722" MOD_EXT "\n");
+ 	(void)re_fprintf(f, "#module\t\t\t" "g726" MOD_EXT "\n");
+ 	(void)re_fprintf(f, "module\t\t\t" "g711" MOD_EXT "\n");
+ 	(void)re_fprintf(f, "#module\t\t\t" "gsm" MOD_EXT "\n");
+@@ -756,18 +771,12 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "\n# Audio driver Modules\n");
  #if defined (ANDROID)
  	(void)re_fprintf(f, "module\t\t\t" "opensles" MOD_EXT "\n");
@@ -286,7 +298,7 @@ index 1563c6c..52ff8bd 100644
  #endif
  	(void)re_fprintf(f, "#module\t\t\t" "jack" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" "portaudio" MOD_EXT "\n");
-@@ -791,13 +799,13 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -791,13 +800,13 @@ int config_write_template(const char *file, const struct config *cfg)
  #if defined (DARWIN)
  
  #ifdef QTCAPTURE_RUNLOOP
@@ -303,7 +315,7 @@ index 1563c6c..52ff8bd 100644
  
  #else
  	(void)re_fprintf(f, "#module\t\t\t" "v4l2" MOD_EXT "\n");
-@@ -843,7 +851,7 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -843,7 +852,7 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "# Temporary Modules (loaded then unloaded)\n");
  	(void)re_fprintf(f, "\n");
  	(void)re_fprintf(f, "module_tmp\t\t" "uuid" MOD_EXT "\n");
@@ -312,7 +324,7 @@ index 1563c6c..52ff8bd 100644
  	(void)re_fprintf(f, "\n");
  
  	(void)re_fprintf(f, "\n#------------------------------------"
-@@ -852,27 +860,32 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -852,27 +861,32 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "\n");
  	(void)re_fprintf(f, "module_app\t\t" "auloop"MOD_EXT"\n");
  	(void)re_fprintf(f, "#module_app\t\t" "b2bua"MOD_EXT"\n");
@@ -350,7 +362,7 @@ index 1563c6c..52ff8bd 100644
  	(void)re_fprintf(f, "\n# UI Modules parameters\n");
  	(void)re_fprintf(f, "cons_listen\t\t0.0.0.0:5555 # cons\n");
  
-@@ -884,18 +897,19 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -884,18 +898,19 @@ int config_write_template(const char *file, const struct config *cfg)
  
  	(void)re_fprintf(f, "\n");
  	(void)re_fprintf(f, "evdev_device\t\t/dev/input/event0\n");
@@ -374,7 +386,7 @@ index 1563c6c..52ff8bd 100644
  
  	(void)re_fprintf(f, "\n# Opus Multistream codec parameters\n");
  	(void)re_fprintf(f,
-@@ -915,8 +929,8 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -915,8 +930,8 @@ int config_write_template(const char *file, const struct config *cfg)
  
  	(void)re_fprintf(f,
  			"\n# ICE\n"

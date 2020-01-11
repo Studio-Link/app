@@ -7,8 +7,7 @@ make_opts="-j4"
 
 if [ "$BUILD_OS" == "ccheck" ]; then
     #dist/tools/ccheck.py src/modules/webapp
-    dist/tools/ccheck.py src/modules/slrtaudio/record.c
-    dist/tools/ccheck.py src/modules/slrtaudio/
+    dist/tools/ccheck.py src/modules/slrtaudio
     exit 0
 fi
 
@@ -18,6 +17,7 @@ if [ "$BUILD_OS" == "linuxarm" ]; then
     export ARCH=arm
     export CCPREFIX=$HOME/rpi-tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-
     export CC=arm-linux-gnueabihf-gcc
+    export CXX=arm-linux-gnueabihf-g++
     export RPI_CROSS_COMPILE=true
 fi
 
