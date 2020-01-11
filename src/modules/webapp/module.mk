@@ -1,7 +1,7 @@
 #
 # module.mk
 #
-# Copyright (C) 2013-2018 studio-link.de
+# Copyright (C) 2013-2019 studio-link.de
 #
 
 MOD		:= webapp
