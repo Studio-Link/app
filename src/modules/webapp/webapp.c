@@ -206,9 +206,9 @@ int webapp_session_stop_stream(void)
 		sess = le->data;
 
 		if (sess->stream) {
+			streaming = false;
 			ua_hangup(uag_current(), sess->call, 0, NULL);
 			sess->call = NULL;
-			streaming = false;
 
 			return err;
 		}
