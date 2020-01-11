@@ -532,7 +532,6 @@ static void syscmd(void *arg)
 static int module_init(void)
 {
 	int err = 0;
-
 	err = odict_alloc(&webapp_calls, DICT_BSIZE);
 	if (err)
 		goto out;
@@ -591,6 +590,7 @@ static int module_close(void)
 	webapp_ws_close();
 	mem_deref(httpsock);
 	mem_deref(webapp_calls);
+
 	return 0;
 }
 

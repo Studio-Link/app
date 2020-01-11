@@ -195,7 +195,3 @@ struct session {
 	bool local; /* only for standalone */
 };
 #endif
-
-
-
-
