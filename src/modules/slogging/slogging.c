@@ -12,26 +12,27 @@ static char myid[9] = {0};
 
 static void log_handler(uint32_t level, const char *msg)
 {
-    char fmt[1024] = {0};
-    char gelf[1024] = {0};
+	char fmt[1024] = {0};
+	char gelf[1024] = {0};
 
-    re_snprintf(gelf, sizeof(gelf), 
-        "{\"short_message\":\"%s\", \"host\": \"%s\"}\r\n", msg, myid);
+	re_snprintf(gelf, sizeof(gelf),
+			"{\"short_message\":\"%s\", \"host\": \"%s\"}\r\n",
+			msg, myid);
 
-    re_snprintf(fmt, sizeof(fmt), 
-        "Content-Length: %d\r\n"
-        "Content-Type: application/x-www-form-urlencoded\r\n"
-        "\r\n"
-	"%s", 
-        str_len(gelf), gelf);
+	re_snprintf(fmt, sizeof(fmt),
+			"Content-Length: %d\r\n"
+			"Content-Type: application/x-www-form-urlencoded\r\n"
+			"\r\n"
+			"%s",
+			str_len(gelf), gelf);
 
-    http_request(&req, cli, "POST", url, NULL,
-                 NULL, NULL, fmt);
+	http_request(&req, cli, "POST", url, NULL,
+			NULL, NULL, fmt);
 }
 
 
 static struct log lg = {
-    .h = log_handler,
+	.h = log_handler,
 };
 
 
@@ -58,8 +59,8 @@ static int uuid_load(const char *file, char *uuid, size_t sz)
 static int generate_random_uuid(FILE *f)
 {
 	if (re_fprintf(f, "%08x-%04x-%04x-%04x-%08x%04x",
-		       rand_u32(), rand_u16(), rand_u16(), rand_u16(),
-		       rand_u32(), rand_u16()) != UUID_LEN)
+				rand_u32(), rand_u16(), rand_u16(), rand_u16(),
+				rand_u32(), rand_u16()) != UUID_LEN)
 		return ENOMEM;
 
 	return 0;
@@ -92,7 +93,7 @@ static int uuid_init(const char *file)
 
 	info("uuid: generated new UUID in %s\n", file);
 
- out:
+out:
 	if (f)
 		fclose(f);
 
@@ -102,9 +103,9 @@ static int uuid_init(const char *file)
 
 static int module_init(void)
 {
-    int err = 0;
+	int err = 0;
 	char path[256];
-    char uuidtmp[40];
+	char uuidtmp[40];
 
 	err = conf_path_get(path, sizeof(path));
 	if (err)
@@ -120,24 +121,24 @@ static int module_init(void)
 	if (err)
 		return err;
 
-    str_ncpy(myid, uuidtmp, sizeof(myid));
+	str_ncpy(myid, uuidtmp, sizeof(myid));
 
-    net = baresip_network();
-    re_snprintf(url, sizeof(url), "https://log.studio.link/gelf");
-    http_client_alloc(&cli, net_dnsc(net));
+	net = baresip_network();
+	re_snprintf(url, sizeof(url), "https://log.studio.link/gelf");
+	http_client_alloc(&cli, net_dnsc(net));
 
-    log_register_handler(&lg);
+	log_register_handler(&lg);
 
-    return 0;
+	return 0;
 }
 
 static int module_close(void)
 {
-    log_unregister_handler(&lg);
+	log_unregister_handler(&lg);
 	req = mem_deref(req);
 	cli = mem_deref(cli);
 
-    return 0;
+	return 0;
 }
 
 const struct mod_export DECL_EXPORTS(slogging) = {
