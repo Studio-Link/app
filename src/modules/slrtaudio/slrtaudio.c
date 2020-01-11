@@ -283,12 +283,12 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 
 	if (status == RTAUDIO_STATUS_INPUT_OVERFLOW)
 	{
-		warning("rtaudio: Buffer Overflow\n");
+		warning("slrtaudio: Buffer Overflow\n");
 	}
 
 	if (status == RTAUDIO_STATUS_OUTPUT_UNDERFLOW)
 	{
-		warning("rtaudio: Buffer Underrun\n");
+		warning("slrtaudio: Buffer Underrun\n");
 	}
 
 	downsample_first_ch(slrtaudio->inBuffer, in, nframes * input_channels);
@@ -325,7 +325,7 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 
 		if ((error = src_process(src_state_in, &src_data_in)) != 0)
 		{
-			warning("Samplerate::src_process_in :"
+			error_msg("slrtaudio: Samplerate::src_process_in :"
 					"returned error : %s\n",
 					src_strerror(error));
 			return 1;
@@ -496,7 +496,7 @@ int slrtaudio_callback_out(void *out, void *in, unsigned int nframes,
 
 		if ((error = src_process(src_state_out, &src_data_out)) != 0)
 		{
-			warning("Samplerate::src_process_out :"
+			error_msg("slrtaudio: Samplerate::src_process_out :"
 				"returned error : %s\n", src_strerror(error));
 			return 1;
 		};
@@ -543,7 +543,7 @@ static void ausrc_destructor(void *arg)
 {
 	struct ausrc_st *st = arg;
 	struct session *sess = st->sess;
-	warning("DESTRUCT ausrc\n");
+	info("slrtaudio: destruct ausrc\n");
 	sess->run_src = false;
 	sys_msleep(20);
 	mem_deref(st->sampv);
@@ -554,7 +554,7 @@ static void auplay_destructor(void *arg)
 {
 	struct auplay_st *st = arg;
 	struct session *sess = st->sess;
-	warning("DESTRUCT auplay\n");
+	info("slrtaudio: destruct auplay\n");
 	sess->run_play = false;
 	sys_msleep(20);
 	mem_deref(st->sampv);
@@ -704,7 +704,7 @@ static int slrtaudio_drivers(void)
 
 		if (apis[i] == RTAUDIO_API_LINUX_PULSE)
 		{
-			warning("driver detected PULSE\n");
+			info("slrtaudio: driver detected PULSE\n");
 			if (driver == -1)
 			{
 				driver = RTAUDIO_API_LINUX_PULSE;
@@ -715,7 +715,7 @@ static int slrtaudio_drivers(void)
 		}
 		if (apis[i] == RTAUDIO_API_LINUX_ALSA)
 		{
-			warning("driver detected ALSA\n");
+			info("slrtaudio: driver detected ALSA\n");
 			odict_entry_add(o, "display", ODICT_STRING, "ALSA");
 			if (driver == -1)
 			{
@@ -725,12 +725,13 @@ static int slrtaudio_drivers(void)
 		}
 		if (apis[i] == RTAUDIO_API_UNIX_JACK)
 		{
-			warning("driver detected JACK\n");
+			info("slrtaudio: driver detected JACK\n");
 			odict_entry_add(o, "display", ODICT_STRING, "JACK");
 			detected = 1;
 		}
 		if (apis[i] == RTAUDIO_API_WINDOWS_WASAPI)
 		{
+			info("slrtaudio: driver detected WASAPI\n");
 			odict_entry_add(o, "display", ODICT_STRING, "WASAPI");
 			if (driver == -1)
 			{
@@ -740,17 +741,20 @@ static int slrtaudio_drivers(void)
 		}
 		if (apis[i] == RTAUDIO_API_WINDOWS_DS)
 		{
+			info("slrtaudio: driver detected Directsound\n");
 			odict_entry_add(o, "display", ODICT_STRING,
 					"DirectSound");
 			detected = 1;
 		}
 		if (apis[i] == RTAUDIO_API_WINDOWS_ASIO)
 		{
+			info("slrtaudio: driver detected ASIO\n");
 			odict_entry_add(o, "display", ODICT_STRING, "ASIO");
 			detected = 1;
 		}
 		if (apis[i] == RTAUDIO_API_MACOSX_CORE)
 		{
+			info("slrtaudio: driver detected Coreaudio\n");
 			odict_entry_add(o, "display", ODICT_STRING,
 					"Coreaudio");
 			if (driver == -1)
@@ -793,7 +797,7 @@ static int slrtaudio_devices(void)
 	struct odict *array_out;
 	char idx[2];
 	rtaudio_t audio;
-	rtaudio_device_info_t info;
+	rtaudio_device_info_t device_info;
 	char errmsg[512];
 
 	audio = rtaudio_create(driver);
@@ -809,17 +813,17 @@ static int slrtaudio_devices(void)
 	{
 		(void)re_snprintf(idx, sizeof(idx), "%d", i);
 
-		info = rtaudio_get_device_info(audio, i);
+		device_info = rtaudio_get_device_info(audio, i);
 		if (rtaudio_error(audio) != NULL)
 		{
 			re_snprintf(errmsg, sizeof(errmsg), "%s",
 					rtaudio_error(audio));
-			warning("rtaudio error: %s\n", errmsg);
+			error_msg("slrtaudio rtaudio_error: %s\n", errmsg);
 			err = 1;
 			goto out1;
 		}
 
-		if (!info.probed)
+		if (!device_info.probed)
 			continue;
 
 		err = odict_alloc(&o_in, DICT_BSIZE);
@@ -829,26 +833,26 @@ static int slrtaudio_devices(void)
 		if (err)
 			goto out1;
 
-		if (info.output_channels > 0)
+		if (device_info.output_channels > 0)
 		{
 			if (output == -1)
 			{
 				output = i;
 			}
-			warning("slrtaudio: device out %c%d: %s: %d (ch %d)\n",
-					info.is_default_output ? '*' : ' ', i,
-					info.name, info.preferred_sample_rate,
-					info.output_channels);
+			info("slrtaudio: device out %c%d: %s: %d (ch %d)\n",
+					device_info.is_default_output ? '*' : ' ', i,
+					device_info.name, device_info.preferred_sample_rate,
+					device_info.output_channels);
 			if (output == i)
 			{
 				preferred_sample_rate_out =
-					info.preferred_sample_rate;
+					device_info.preferred_sample_rate;
 				odict_entry_add(o_out, "selected",
 						ODICT_BOOL, true);
-				output_channels = info.output_channels;
-				warning("slrtaudio output"
+				output_channels = device_info.output_channels;
+				info("slrtaudio output"
 						": %s (%dhz/%dch)\n",
-						info.name,
+						device_info.name,
 						preferred_sample_rate_out,
 						output_channels);
 			}
@@ -859,29 +863,29 @@ static int slrtaudio_devices(void)
 			}
 			odict_entry_add(o_out, "id", ODICT_INT, (int64_t)i);
 			odict_entry_add(o_out, "display", ODICT_STRING,
-					info.name);
+					device_info.name);
 			odict_entry_add(array_out, idx, ODICT_OBJECT, o_out);
 		}
 
-		if (info.input_channels > 0)
+		if (device_info.input_channels > 0)
 		{
 			if (input == -1)
 			{
 				input = i;
 			}
-			warning("slrtaudio: device in %c%d: %s: %d (ch %d)\n",
-					info.is_default_input ? '*' : ' ', i,
-					info.name, info.preferred_sample_rate,
-					info.input_channels);
+			info("slrtaudio: device in %c%d: %s: %d (ch %d)\n",
+					device_info.is_default_input ? '*' : ' ', i,
+					device_info.name, device_info.preferred_sample_rate,
+					device_info.input_channels);
 			if (input == i)
 			{
 				odict_entry_add(o_in, "selected",
 						ODICT_BOOL, true);
-				input_channels = info.input_channels;
+				input_channels = device_info.input_channels;
 				preferred_sample_rate_in =
-					info.preferred_sample_rate;
-				warning("slrtaudio input: %s (%dhz/%dch)\n",
-						info.name,
+					device_info.preferred_sample_rate;
+				info("slrtaudio input: %s (%dhz/%dch)\n",
+						device_info.name,
 						preferred_sample_rate_in,
 						input_channels);
 			}
@@ -892,12 +896,12 @@ static int slrtaudio_devices(void)
 			}
 			odict_entry_add(o_in, "id", ODICT_INT, (int64_t)i);
 			odict_entry_add(o_in, "channels", ODICT_INT,
-					(int64_t)info.input_channels);
+					(int64_t)device_info.input_channels);
 			odict_entry_add(o_in, "first_input_channel",
 					ODICT_INT,
 					(int64_t)first_input_channel);
 			odict_entry_add(o_in, "display", ODICT_STRING,
-					info.name);
+					device_info.name);
 			odict_entry_add(array_in, idx, ODICT_OBJECT, o_in);
 		}
 
@@ -983,7 +987,7 @@ static int slrtaudio_start(void)
 	/** Initialize the sample rate converter for input */
 	if ((src_state_in = src_new(SRC_SINC_FASTEST, 2, &error)) == NULL)
 	{
-		warning("Samplerate::src_new failed : %s.\n",
+		error_msg("Samplerate::src_new failed : %s.\n",
 				src_strerror(error));
 		return 1;
 	};
@@ -991,19 +995,19 @@ static int slrtaudio_start(void)
 	/** Initialize the sample rate converter for output */
 	if ((src_state_out = src_new(SRC_SINC_FASTEST, 2, &error)) == NULL)
 	{
-		warning("Samplerate::src_new failed : %s.\n",
+		error_msg("slrtaudio: Samplerate::src_new failed : %s.\n",
 				src_strerror(error));
 		return 1;
 	};
 
-	warning("samplerate/ch: in %d/%d out %d/%d\n",
+	info("slrtaudio: samplerate/ch: in %d/%d out %d/%d\n",
 			preferred_sample_rate_in,
 			input_channels,
 			preferred_sample_rate_out,
 			output_channels);
 
 	if (mismatch_samplerates) {
-		warning("MISMATCH START STREAM: %i/%i \n", input, output);
+		info("slrtaudio: MISMATCH START STREAM: %i/%i \n", input, output);
 		rtaudio_open_stream(audio_in, NULL,
 				&in_params, RTAUDIO_FORMAT_SINT16,
 				preferred_sample_rate_in, &bufsz_in,
@@ -1039,7 +1043,7 @@ static int slrtaudio_start(void)
 		}
 	}
 	else {
-		warning("START STREAM: %i/%i \n", input, output);
+		info("slrtaudio: START STREAM: %i/%i \n", input, output);
 		rtaudio_open_stream(audio_in, &out_params,
 				&in_params, RTAUDIO_FORMAT_SINT16,
 				preferred_sample_rate_in, &bufsz_in,
@@ -1059,16 +1063,15 @@ static int slrtaudio_start(void)
 		}
 	}
 
-	warning("START END \n");
 out:
 	if (err) {
 		re_snprintf(errmsg, sizeof(errmsg), "%s",
 					rtaudio_error(audio_in));
-		warning("error: %s\n", errmsg);
+		error_msg("slrtaudio: error: %s\n", errmsg);
 		if (audio_out) {
 			re_snprintf(errmsg, sizeof(errmsg), "%s",
 					rtaudio_error(audio_out));
-			warning("error: %s\n", errmsg);
+			error_msg("slrtaudio out error: %s\n", errmsg);
 		}
 		/**	webapp_ws_rtaudio_set_err(errmsg);*/
 	}
@@ -1175,7 +1178,7 @@ static int slrtaudio_init(void)
 	slrtaudio_record_init();
 	slrtaudio_start();
 
-	warning("slrtaudio ready\n");
+	info("slrtaudio ready\n");
 
 	return err;
 }

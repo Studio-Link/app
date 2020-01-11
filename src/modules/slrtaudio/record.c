@@ -105,7 +105,7 @@ static int openfile(struct session *sess)
 
 	/* Basic Encoder */
 	if((sess->flac = FLAC__stream_encoder_new()) == NULL) {
-		error_msg("ERROR: allocating FLAC encoder\n");
+		error_msg("slrtaudio/record: allocating FLAC encoder\n");
 		return ENOMEM;
 	}
 
@@ -117,7 +117,7 @@ static int openfile(struct session *sess)
 	ok &= FLAC__stream_encoder_set_total_samples_estimate(sess->flac, 0);
 
 	if (!ok) {
-		error_msg("Error: FLAC__stream_encoder_set\n");
+		error_msg("slrtaudio/record: FLAC__stream_encoder_set\n");
 		return EINVAL;
 	}
 
@@ -133,7 +133,7 @@ static int openfile(struct session *sess)
 			meta[0], entry, /*copy=*/false);
 
 	if (!ok) {
-		error_msg("FLAC METADATA ERROR: out of memory or tag error\n");
+		error_msg("slrtaudio/record: FLAC METADATA ERROR: out of memory or tag error\n");
 		return ENOMEM;
 	}
 
@@ -142,7 +142,7 @@ static int openfile(struct session *sess)
 	ok = FLAC__stream_encoder_set_metadata(sess->flac, meta, 2);
 
 	if (!ok) {
-		error_msg("Error: FLAC__stream_encoder_set_metadata\n");
+		error_msg("slrtaudio/record: FLAC__stream_encoder_set_metadata\n");
 		return ENOMEM;
 	}
 
@@ -150,7 +150,7 @@ static int openfile(struct session *sess)
 						     NULL, NULL);
 
 	if (init_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
-		error_msg("FLAC ERROR: initializing encoder: %s\n",
+		error_msg("slrtaudio/record: FLAC ERROR: initializing encoder: %s\n",
 			  FLAC__StreamEncoderInitStatusString[init_status]);
 	}
 
@@ -177,7 +177,7 @@ static void *record_thread(void *arg)
 			if (!sess->flac) {
 				ret = openfile(sess);
 				if (ret) {
-					error_msg("FLAC open file error\n");
+					error_msg("slrtaudio/record: FLAC open file error\n");
 					webapp_options_set("record", "false");
 					continue;
 				}
@@ -202,7 +202,7 @@ static void *record_thread(void *arg)
 
 		if (!ok) {
 			encstate = FLAC__stream_encoder_get_state(sess->flac);
-			warning("FLAC ENCODE ERROR: %s\n",
+			warning("slrtaudio/record: FLAC ENCODE ERROR: %s\n",
 				FLAC__StreamEncoderStateString[encstate]);
 			ok = true;
 		}

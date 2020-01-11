@@ -121,7 +121,7 @@ void webapp_account_delete(char *user, char *domain)
 			mem_deref(uag_find_aor(aor));
 			uag_current_set(NULL);
 			webapp_write_file_json(accs, filename);
-			warning("DELETE USER %s\n", aor);
+			info("webapp/account: delete user %s\n", aor);
 			break;
 		}
 	}

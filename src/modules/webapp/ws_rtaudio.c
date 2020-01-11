@@ -75,7 +75,6 @@ int webapp_ws_rtaudio_init(void)
 {
 	int err = 0;
 
-	warning("ws_rtaudio\n");
 	return err;
 }
 

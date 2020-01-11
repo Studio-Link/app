@@ -250,8 +250,6 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 				ua_hangup(uag_current(), sess->call, 0, NULL);
 				sess->call = NULL;
 				odict_entry_del(webapp_calls, id);
-				warning("delete session id/channel: %s/%d\n",
-						id, sess->ch);
 				break;
 			}
 		}
@@ -259,8 +257,6 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 			if (sess->call == call) {
 				sess->call = NULL;
 				odict_entry_del(webapp_calls, id);
-				warning("delete session id/channel: %s/%d\n",
-						id, sess->ch);
 				break;
 			}
 		}
@@ -309,7 +305,7 @@ int webapp_call_update(struct call *call, char *state)
 
 		if (sess->call == call) {
 			new = false;
-			warning("session update: %d\n", sess->ch);
+			debug("webapp: session update: %d\n", sess->ch);
 		}
 	}
 
@@ -329,7 +325,6 @@ int webapp_call_update(struct call *call, char *state)
 
 
 		re_snprintf(id, sizeof(id), "%x", sess);
-		warning("session id/channel: %s/%d/%d\n", id, sess->ch, new);
 
 		odict_entry_del(webapp_calls, id);
 		odict_entry_add(o, "peer", ODICT_STRING, call_peeruri(call));
@@ -385,19 +380,18 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			break;
 
 		case UA_EVENT_REGISTER_OK:
-			warning("Register OK: %s\n", ua_aor(ua));
 			webapp_account_status(ua_aor(ua), true);
 			ws_send_json(WS_BARESIP, webapp_accounts_get());
 			break;
 
 		case UA_EVENT_UNREGISTERING:
-			warning("UNREGISTERING: %s\n", ua_aor(ua));
+			warning("webapp: unregistering: %s\n", ua_aor(ua));
 			webapp_account_status(ua_aor(ua), false);
 			ws_send_json(WS_BARESIP, webapp_accounts_get());
 			break;
 
 		case UA_EVENT_REGISTER_FAIL:
-			warning("Register Fail: %s\n", ua_aor(ua));
+			warning("webapp: Register Fail: %s\n", ua_aor(ua));
 			webapp_account_status(ua_aor(ua), false);
 			ws_send_json(WS_BARESIP, webapp_accounts_get());
 			break;
