@@ -111,6 +111,7 @@ sl_get_baresip() {
     ## Link backend modules
     rm -Rf modules/g722
     cp -a ../../src/modules/g722 modules/g722
+    cp -a ../../src/modules/slogging modules/slogging
     cp -a ../../src/modules/webapp modules/webapp
     cp -a ../../src/modules/effect modules/effect
     cp -a ../../src/modules/effectonair modules/effectonair
