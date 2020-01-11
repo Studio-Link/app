@@ -89,7 +89,7 @@ baresip:	Makefile librem.a libre.a
 	PKG_CONFIG_LIBDIR="$(SYSROOT)/lib/pkgconfig" \
 	make baresip.exe -C baresip $(COMMON_FLAGS) STATIC=1 \
 		LIBRE_SO=$(PWD)/re LIBREM_PATH=$(PWD)/rem \
-		MODULES="opus wincons ice g711 turn stun uuid auloop webapp winwave slrtaudio"
+		MODULES="opus wincons ice g711 turn stun uuid auloop webapp winwave slrtaudio slogging g722"
 	cp -a baresip/baresip.exe studio-link-standalone.exe
 	make clean -C baresip $(COMMON_FLAGS)
 	make libbaresip.a -C baresip $(COMMON_FLAGS) STATIC=1 \
@@ -100,7 +100,7 @@ baresip:	Makefile librem.a libre.a
 	make clean -C baresip $(COMMON_FLAGS)
 	make libbaresip.a -C baresip $(COMMON_FLAGS) STATIC=1 \
 		LIBRE_SO=$(PWD)/re LIBREM_PATH=$(PWD)/rem \
-		MODULES="opus ice g711 turn stun uuid webapp effect" \
+		MODULES="opus ice g711 turn stun uuid webapp effect slogging g722" \
 		EXTRA_CFLAGS="$(CFLAGS) -DSLPLUGIN"
 
 .PHONY: openssl
