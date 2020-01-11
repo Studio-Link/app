@@ -2,6 +2,11 @@
 #include <baresip.h>
 #include <string.h>
 
+#define	LOG_ERR		3	/* error conditions */
+#define	LOG_WARNING	4	/* warning conditions */
+#define	LOG_INFO	6	/* informational */
+#define	LOG_DEBUG	7	/* debug-level messages */
+
 static struct http_cli *cli = NULL;
 static const struct network *net;
 static char url[255] = {0};
@@ -10,14 +15,16 @@ enum { UUID_LEN = 36 };
 static char myid[9] = {0};
 
 
+static const int lmap[] = { LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
+
 static void log_handler(uint32_t level, const char *msg)
 {
 	char fmt[1024] = {0};
 	char gelf[1024] = {0};
 
 	re_snprintf(gelf, sizeof(gelf),
-			"{\"short_message\":\"%s\", \"host\": \"%s\"}\r\n",
-			msg, myid);
+	"{\"short_message\":\"%s\", \"host\": \"%s\", \"level\": \"%d\"}\r\n",
+	msg, myid, lmap[MIN(level, ARRAY_SIZE(lmap)-1)]);
 
 	re_snprintf(fmt, sizeof(fmt),
 			"Content-Length: %d\r\n"
