@@ -26,7 +26,7 @@ static void log_handler(uint32_t level, const char *msg)
 	int timestamp;
 
 	timestamp = time(NULL);
-	time_ms = tmr_jiffies() - (u_int64_t)timestamp * (u_int64_t)1000;
+	time_ms = tmr_jiffies() - (uint64_t)timestamp * (uint64_t)1000;
 
 	re_snprintf(gelf, sizeof(gelf),
 		"{\"version\": \"1.1\",\
@@ -122,6 +122,31 @@ out:
 }
 
 
+#ifdef WIN32
+static void determineWinOsVersion(void)
+{
+	#define pGetModuleHandle GetModuleHandleW
+	typedef LONG NTSTATUS;
+	typedef NTSTATUS(NTAPI *RtlGetVersionFunction)(LPOSVERSIONINFO);
+
+	OSVERSIONINFOEX result = { sizeof(OSVERSIONINFOEX),
+		0, 0, 0, 0, {'\0'}, 0, 0, 0, 0, 0};
+	HMODULE ntdll = pGetModuleHandle(L"ntdll.dll");
+	if (!ntdll)
+		return;
+
+	RtlGetVersionFunction pRtlGetVersion =
+		(RtlGetVersionFunction)GetProcAddress(ntdll, "RtlGetVersion");
+	if (!pRtlGetVersion)
+		return;
+
+	pRtlGetVersion((LPOSVERSIONINFO)&result);
+
+	info("slogging: Windows Version %i.%i.%i \n", result.dwMajorVersion,
+			result.dwMinorVersion, result.dwBuildNumber);
+}
+#endif
+
 static int module_init(void)
 {
 	int err = 0;
@@ -156,6 +181,10 @@ static int module_init(void)
 	info("slogging: Kernel %H\n", sys_kernel_get, NULL);
 	info("slogging: Build %H\n", sys_build_get, NULL);
 	info("slogging: Network %H\n", net_debug, net);
+
+#ifdef WIN32
+	determineWinOsVersion();
+#endif
 
 	return 0;
 }
