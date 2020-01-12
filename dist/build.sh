@@ -265,18 +265,18 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     codesign --options runtime -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkOnAir.component
     popd
 
-    zip -r studio-link-plugin-osx StudioLink.component
-    zip -r studio-link-plugin-onair-osx StudioLinkOnAir.component
+    zip -r studio-link-plugin StudioLink.component
+    zip -r studio-link-plugin-onair StudioLinkOnAir.component
     zip -r studio-link-standalone StudioLinkStandalone.app
 
     pushd hardened
-    zip -r studio-link-plugin-osx StudioLink.component
-    zip -r studio-link-plugin-onair-osx StudioLinkOnAir.component
+    zip -r studio-link-plugin StudioLink.component
+    zip -r studio-link-plugin-onair StudioLinkOnAir.component
     zip -r studio-link-standalone-$version_t.zip StudioLinkStandalone.app
     popd
 
     cp -a studio-link-standalone.zip $s3_path/studio-link-standalone-$version_t.zip
-    cp -a studio-link-plugin-osx.zip $s3_path
-    cp -a studio-link-plugin-onair-osx.zip $s3_path
+    cp -a studio-link-plugin.zip $s3_path
+    cp -a studio-link-plugin-onair.zip $s3_path
     cp -a hardened $s3_path
 fi
