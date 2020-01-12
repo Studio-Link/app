@@ -840,9 +840,10 @@ static int slrtaudio_devices(void)
 				output = i;
 			}
 			info("slrtaudio: device out %c%d: %s: %d (ch %d)\n",
-					device_info.is_default_output ? '*' : ' ', i,
-					device_info.name, device_info.preferred_sample_rate,
-					device_info.output_channels);
+				device_info.is_default_output ? '*' : ' ', i,
+				device_info.name,
+				device_info.preferred_sample_rate,
+				device_info.output_channels);
 			if (output == i)
 			{
 				preferred_sample_rate_out =
@@ -874,9 +875,10 @@ static int slrtaudio_devices(void)
 				input = i;
 			}
 			info("slrtaudio: device in %c%d: %s: %d (ch %d)\n",
-					device_info.is_default_input ? '*' : ' ', i,
-					device_info.name, device_info.preferred_sample_rate,
-					device_info.input_channels);
+				device_info.is_default_input ? '*' : ' ', i,
+				device_info.name,
+				device_info.preferred_sample_rate,
+				device_info.input_channels);
 			if (input == i)
 			{
 				odict_entry_add(o_in, "selected",
@@ -1007,7 +1009,8 @@ static int slrtaudio_start(void)
 			output_channels);
 
 	if (mismatch_samplerates) {
-		info("slrtaudio: MISMATCH START STREAM: %i/%i \n", input, output);
+		info("slrtaudio: MISMATCH START STREAM: %i/%i \n",
+				input, output);
 		rtaudio_open_stream(audio_in, NULL,
 				&in_params, RTAUDIO_FORMAT_SINT16,
 				preferred_sample_rate_in, &bufsz_in,
