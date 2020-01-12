@@ -247,19 +247,36 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLinkOnAir.component StudioLinkOnAir.component
     mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app
-    cp -a StudioLinkStandalone.app StudioLinkStandaloneHardened.app
+
+    sed $sed_opt s/ITSR:\ StudioLinkOnAir/StudioLinkOnAir\ \(ITSR\)/ StudioLinkOnAir.component/Contents/Info.plist # Reaper 5.70 Fix
+
+    mkdir hardened
+    cp -a StudioLinkStandalone.app hardened
+    cp -a StudioLink.component hardened
+    cp -a StudioLinkOnAir.component hardened
+
     codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkStandalone.app
     codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLink.component
     codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkOnAir.component
-    codesign --options runtime -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkStandaloneHardened.app
-    sed $sed_opt s/ITSR:\ StudioLinkOnAir/StudioLinkOnAir\ \(ITSR\)/ StudioLinkOnAir.component/Contents/Info.plist # Reaper 5.70 Fix
+
+    pushd hardened
+    codesign --options runtime -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkStandalone.app
+    codesign --options runtime -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLink.component
+    codesign --options runtime -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkOnAir.component
+    popd
+
     zip -r studio-link-plugin-osx StudioLink.component
     zip -r studio-link-plugin-onair-osx StudioLinkOnAir.component
     zip -r studio-link-standalone StudioLinkStandalone.app
-    zip -r studio-link-standalone-hardened StudioLinkStandaloneHardened.app
+
+    pushd hardened
+    zip -r studio-link-plugin-osx StudioLink.component
+    zip -r studio-link-plugin-onair-osx StudioLinkOnAir.component
+    zip -r studio-link-standalone-$version_t.zip StudioLinkStandalone.app
+    popd
 
     cp -a studio-link-standalone.zip $s3_path/studio-link-standalone-$version_t.zip
-    cp -a studio-link-standalone-hardened.zip $s3_path/studio-link-standalone-hardened-$version_t.zip
     cp -a studio-link-plugin-osx.zip $s3_path
     cp -a studio-link-plugin-onair-osx.zip $s3_path
+    cp -a hardened $s3_path
 fi
