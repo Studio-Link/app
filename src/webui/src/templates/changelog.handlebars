@@ -3,10 +3,7 @@
 	<!-- Nav tabs -->
 	<ul class="nav nav-tabs" role="tablist">
 		<li class="nav-item">
-			<a class="nav-link active" id="changelogen-tab" data-toggle="tab" href="#changelogen" role="tab" aria-controls="changelogen" aria-selected="true">Changelog (EN)</a>
-		</li>
-		<li class="nav-item">
-			<a class="nav-link" id="changelogde-tab" data-toggle="tab" href="#changelogde" role="tab" aria-controls="changelogde" aria-selected="false">Changelog (DE)</a>
+			<a class="nav-link active" id="changelogen-tab" data-toggle="tab" href="#changelogen" role="tab" aria-controls="changelogen" aria-selected="true">Changelog</a>
 		</li>
 		<li class="nav-item">
 			<a class="nav-link" id="credits-tab" data-toggle="tab" href="#credits" role="tab" aria-controls="credits" aria-selected="false">Credits</a>
@@ -16,12 +13,11 @@
 	<!-- Tab panes -->
 	<div class="tab-content">
 		<div role="tabpanel" class="tab-pane active" id="changelogen"></div>
-		<div role="tabpanel" class="tab-pane" id="changelogde"></div>
 		<div role="tabpanel" class="tab-pane" id="credits">
 			<h3>Credits/Licences</h3>
 			<pre>
-LICENSE AGREEMENT FOR STUDIOLINK SOFTWARE:
-Copyright (c) 2013-2019 Sebastian Reimers <studio.link>
+MIT LICENSE AGREEMENT FOR STUDIOLINK SOFTWARE:
+Copyright (c) 2013-2020 Sebastian Reimers <studio.link>
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the "Software"),
@@ -54,13 +50,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	</div>
 </div>
 <script>
-	$.get( "https://raw.githubusercontent.com/Studio-Link/app/v19.xx.x/CHANGELOG.md", 
+	$.get( "https://raw.githubusercontent.com/Studio-Link/app/v20.xx.x/CHANGELOG.md", 
 		function( data ) {
 			$( "#changelogen" ).html(marked(data));
 		});
-$.get( "https://raw.githubusercontent.com/Studio-Link/app/v19.xx.x/CHANGELOG-DE.md", 
-	function( data ) {
-		$( "#changelogde" ).html(marked(data));
-	});
 </script>
 
