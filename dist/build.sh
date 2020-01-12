@@ -257,12 +257,12 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
 
     codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkStandalone.app
     codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLink.component
-    codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkOnAir.component
+    codesign -f --verbose --deep -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkOnAir.component
 
     pushd hardened
     codesign --options runtime -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkStandalone.app
     codesign --options runtime -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLink.component
-    codesign --options runtime -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkOnAir.component
+    codesign --options runtime --deep -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkOnAir.component
     popd
 
     zip -r studio-link-plugin StudioLink.component
