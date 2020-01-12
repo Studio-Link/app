@@ -102,7 +102,7 @@ static void sess_destruct(void *arg)
 	struct session *sess = arg;
 
 	list_unlink(&sess->le);
-	warning("DESTRUCT SESSION\n");
+	info("destruct session\n");
 }
 
 
@@ -197,12 +197,8 @@ void effect_play(struct session *sess, float* const output0,
 void effect_play(struct session *sess, float* const output0,
 		float* const output1, unsigned long nframes)
 {
-	struct timeval now;
 	if(!sess) 
 		return;
-
-	gettimeofday(&now, NULL);
-	//warning("play %x: %d\n", sess, now.tv_usec);
 
 	if (!sess->run_play) {
 		for (uint32_t pos = 0; pos < nframes; pos++) {
@@ -348,8 +344,6 @@ void effect_src(struct session *sess, const float* const input0,
 void effect_src(struct session *sess, const float* const input0,
 		const float* const input1, unsigned long nframes)
 {
-	struct timeval now;
-
 	if (!sess)
 		return;
 
@@ -388,7 +382,7 @@ static void ausrc_destructor(void *arg)
 {
 	struct ausrc_st *st = arg;
 	struct session *sess = st->sess;
-	warning("DESTRUCT ausrc\n");
+	info("effect: ausrc\n");
 	sess->run_src = false;
 	sys_msleep(20);
 	mem_deref(st->sampv);
@@ -399,7 +393,7 @@ static void auplay_destructor(void *arg)
 {
 	struct auplay_st *st = arg;
 	struct session *sess = st->sess;
-	warning("DESTRUCT auplay\n");
+	info("effect: destruct auplay\n");
 	sess->run_play = false;
 	sys_msleep(20);
 	mem_deref(st->sampv);

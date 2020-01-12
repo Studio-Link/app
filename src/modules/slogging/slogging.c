@@ -1,6 +1,7 @@
 #include <re.h>
 #include <baresip.h>
 #include <string.h>
+#include <time.h>
 
 #define	LOG_ERR		3	/* error conditions */
 #define	LOG_WARNING	4	/* warning conditions */
@@ -19,12 +20,25 @@ static const int lmap[] = { LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
 
 static void log_handler(uint32_t level, const char *msg)
 {
-	char fmt[1024] = {0};
-	char gelf[1024] = {0};
+	char fmt[2048] = {0};
+	char gelf[2048] = {0};
+	uint64_t time_ms;
+	int timestamp;
+
+	timestamp = time(NULL);
+	time_ms = tmr_jiffies() - (u_int64_t)timestamp * (u_int64_t)1000;
 
 	re_snprintf(gelf, sizeof(gelf),
-	"{\"short_message\":\"%s\", \"host\": \"%s\", \"level\": \"%d\"}\r\n",
-	msg, myid, lmap[MIN(level, ARRAY_SIZE(lmap)-1)]);
+		"{\"version\": \"1.1\",\
+		\"timestamp\":\"%d.%u\",\
+		\"short_message\":\"%s\",\
+		\"host\": \"%s\",\
+		\"level\": \"%d\"}\r\n",
+		timestamp, time_ms,
+		msg,
+		myid,
+		lmap[MIN(level, ARRAY_SIZE(lmap)-1)]
+	);
 
 	re_snprintf(fmt, sizeof(fmt),
 			"Content-Length: %d\r\n"
@@ -135,6 +149,13 @@ static int module_init(void)
 	http_client_alloc(&cli, net_dnsc(net));
 
 	log_register_handler(&lg);
+
+	info("slogging: started\n");
+	info("slogging: Version %s\n", BARESIP_VERSION);
+	info("slogging: Machine %s/%s\n", sys_arch_get(), sys_os_get());
+	info("slogging: Kernel %H\n", sys_kernel_get, NULL);
+	info("slogging: Build %H\n", sys_build_get, NULL);
+	info("slogging: Network %H\n", net_debug, net);
 
 	return 0;
 }
