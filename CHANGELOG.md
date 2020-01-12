@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [v20.01.0-beta] - 2020-01-12
+
 ### Added
 
 - **Standalone** Option to mix input channels
@@ -9,6 +11,7 @@
 - **Standalone** Experimental ASIO support on Windows
 - **Standalone** Experimental JACK support on Linux
 - **Plugin** Linux VST
+- **Misc** Implement Remote Logging - [Privacy Policy](https://studio-link.de/datenschutz_en.html)
 
 ### Changed
 
@@ -65,7 +68,8 @@
 
 [Changelog Archive...](https://github.com/Studio-Link/app/blob/v19.xx.x/CHANGELOG-ARCHIVE.md)
 
-[Unreleased]: https://github.com/Studio-Link/app/compare/v19.09.0-beta...HEAD
+[Unreleased]: https://github.com/Studio-Link/app/compare/v20.01.0-beta...HEAD
+[v20.01.0-beta]: https://github.com/Studio-Link/app/compare/v19.09.0-beta...v20.01.0-beta
 [v19.09.0-beta]: https://github.com/Studio-Link/app/compare/v19.04.0-beta-605.7ebfed8...v19.09.0-beta
 [#87]: https://gitlab.com/studio.link/app/issues/87
 [#53]: https://gitlab.com/studio.link/app/issues/53
