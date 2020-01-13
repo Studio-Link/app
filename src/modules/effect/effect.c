@@ -140,9 +140,10 @@ struct session* effect_session_start(void)
 int effect_session_stop(struct session *session);
 int effect_session_stop(struct session *session)
 {
-	int count;
 	struct session *sess;
 	struct le *le;
+	int count = 0;
+
 	if (!session)
 		return MAX_CHANNELS;
 
@@ -160,6 +161,7 @@ int effect_session_stop(struct session *session)
 			count++;
 		}
 	}
+	warning("effect: debug session_stop count: %d", count);
 
 	return count;
 }
