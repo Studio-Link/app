@@ -78,6 +78,11 @@ make
 make -C overlay-vst PREFIX=$_arch
 make -C overlay-onair-vst PREFIX=$_arch
 
+mkdir -p debug
+cp -a studio-link-standalone.exe debug
+cp -a overlay-vst/studio-link.dll debug
+cp -a overlay-onair-vst/studio-link-onair.dll debug
+
 $_arch-strip --strip-all studio-link-standalone.exe
 $_arch-strip --strip-all overlay-vst/studio-link.dll
 $_arch-strip --strip-all overlay-onair-vst/studio-link-onair.dll
@@ -91,3 +96,4 @@ mkdir -p $s3_path
 cp -a studio-link-standalone.exe $s3_path/studio-link-standalone-$version_t.exe
 cp -a studio-link-plugin-$BUILD_OS.zip $s3_path
 cp -a studio-link-plugin-onair-$BUILD_OS.zip $s3_path
+cp -a debug $s3_path
