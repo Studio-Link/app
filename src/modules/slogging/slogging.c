@@ -176,6 +176,7 @@ static int module_init(void)
 	log_register_handler(&lg);
 
 	info("slogging: started\n");
+	info("slogging: uuid: %s\n", myid);
 	info("slogging: Version %s\n", BARESIP_VERSION);
 	info("slogging: Machine %s/%s\n", sys_arch_get(), sys_os_get());
 	info("slogging: Kernel %H\n", sys_kernel_get, NULL);
