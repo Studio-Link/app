@@ -62,7 +62,7 @@ COMMON_FLAGS := CC=$(CC) \
 		USE_OPENSSL_SRTP=yes \
 		USE_ZLIB= \
 		-j4 \
-		RELEASE=1
+		RELEASE=0
 
 #default:	retest baresip
 default:	baresip
