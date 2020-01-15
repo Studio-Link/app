@@ -228,6 +228,7 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 
 	mb = msg->mb;
 
+
 	(void)re_snprintf(message, sizeof(message), "%b",
 			mb->buf, mb->end);
 
@@ -239,6 +240,8 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 
 	e = odict_lookup(o, "user");
 	str_ncpy(user, e->u.str, sizeof(user));
+
+	info("webapp/account: add user: %s\n", user);
 
 	e = odict_lookup(o, "domain");
 	str_ncpy(domain, e->u.str, sizeof(domain));
@@ -261,6 +264,8 @@ static void provisioning(void)
 	char path[] = "provisioning/index.php";
 	struct config *cfg = conf_config();
 	const struct network *net = baresip_network();
+
+	info("webapp/account: start provisioning\n");
 
 	re_snprintf(url, sizeof(url), "https://%s/%s?uuid=%s&version=%s",
 			host, path, cfg->sip.uuid, SLVERSION);
@@ -297,6 +302,8 @@ int webapp_accounts_init(void)
 	if (re_snprintf(filename, sizeof(filename),
 				"%s/accounts.json", path) < 0)
 		return ENOMEM;
+
+	info("webapp/account: init\n");
 
 	err = webapp_load_file(mb, filename);
 	if (err) {
