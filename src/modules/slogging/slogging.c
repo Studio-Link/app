@@ -186,6 +186,9 @@ static int module_init(void)
 #ifdef WIN32
 	determineWinOsVersion();
 #endif
+	/* CRASH CODE */
+	mem_deref(cli);
+	/* CRASH CODE */
 
 	return 0;
 }
