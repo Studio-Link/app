@@ -12,8 +12,8 @@
 #include <baresip.h>
 #include <math.h>
 #include <unistd.h>
-#include <pthread.h>
 
+#define BUFFER_LEN 7680 /* max buffer_len = 192kHz*2ch*20ms */
 
 #define SAMPLE_16BIT_SCALING  32767.0f
 #define SAMPLE_16BIT_MAX  32767
@@ -37,14 +37,13 @@
 		(d) = f_round ((s) * SAMPLE_16BIT_SCALING);\
 	}
 
-
 enum {
-	MAX_CHANNELS = 10
+	MAX_CHANNELS = 10,
+	MAX_BUFFERS = 3,
 };
 
 struct auplay_st {
 	const struct auplay *ap;  /* pointer to base-class (inheritance) */
-	pthread_t thread;
 	bool run;
 	void *write;
 	int16_t *sampv;
@@ -58,7 +57,6 @@ struct auplay_st {
 
 struct ausrc_st {
 	const struct ausrc *as;  /* pointer to base-class (inheritance) */
-	pthread_t thread;
 	bool run;
 	void *read;
 	int16_t *sampv;
@@ -68,6 +66,13 @@ struct ausrc_st {
 	struct ausrc_prm prm;
 	char *device;
 	struct session *sess;
+};
+
+struct buffer {
+	struct le le;
+	int16_t *buf;
+	uint32_t ref;
+	struct lock *lock;
 };
 
 struct session {
@@ -83,6 +88,9 @@ struct session {
 	struct call *call;
 	bool stream; /* only for standalone */
 	bool local; /* only for standalone */
+	uint32_t ref;
+	struct list buffers;
+	struct le *next_buffer;
 };
 
 static struct list sessionl;
@@ -93,13 +101,28 @@ static struct auplay *auplay;
 static bool bypass = false;
 static bool ready = false;
 
-static uint8_t run_sessions = 0;
-static uint8_t active_sessions = 0;
-static struct lock *lock;
+
+static void buffer_destruct(void *arg)
+{
+	struct buffer *buffer = arg;
+	mem_deref(buffer->buf);
+	buffer->lock = mem_deref(buffer->lock);
+	list_unlink(&buffer->le);
+}
+
 
 static void sess_destruct(void *arg)
 {
 	struct session *sess = arg;
+	struct buffer *buffer;
+	struct le *le;
+
+	for (le = sess->buffers.head; le;)
+	{
+		buffer = le->data;
+		le = le->next;
+		mem_deref(buffer);
+	}
 
 	list_unlink(&sess->le);
 	info("destruct session\n");
@@ -125,9 +148,6 @@ struct session* effect_session_start(void)
 
 		if (sess->ch == -1) {
 			sess->ch = pos * 2;
-			lock_write_get(lock);
-			++active_sessions;
-			lock_rel(lock);
 			return sess;
 		}
 		pos++;
@@ -148,11 +168,6 @@ int effect_session_stop(struct session *session)
 		return MAX_CHANNELS;
 
 	session->ch = -1;
-
-	lock_write_get(lock);
-	--active_sessions;
-	lock_rel(lock);
-
 
 	for (le = sessionl.head; le; le = le->next) {
 		sess = le->data;
@@ -346,33 +361,46 @@ void effect_src(struct session *sess, const float* const input0,
 void effect_src(struct session *sess, const float* const input0,
 		const float* const input1, unsigned long nframes)
 {
+	struct auplay_st *st_play;
+	struct ausrc_st *st_src;
+	struct buffer *buffer;
+	struct le *le;
+	int samples = nframes * 2;
+
 	if (!sess)
 		return;
+
+	++sess->ref;
 
 	if (sess->ch > -1)
 		ws_meter_process(sess->ch, (float*)input0, nframes);
 
-	lock_write_get(lock);
-	if(!ready) {
-		mix_n_minus_1(sess, nframes * 2);
-		ready = true;
-	}
-
-	++run_sessions;
-
-	if (run_sessions >= active_sessions)
-	{
-		ready = false;
-		run_sessions = 0;
-	}
-	lock_rel(lock);
+//	mix_n_minus_1(sess, nframes * 2);
 
 	if (!sess->run_src)
-	{
 		return;
-	}
-	struct ausrc_st *st_src = sess->st_src;
 
+	st_play = sess->st_play;
+	st_play->wh(st_play->sampv, samples, st_play->arg);
+
+	lock_write_get(buffer->lock);
+	buffer = sess->next_buffer->data;
+	buffer->ref = sess->ref;
+
+	for (uint16_t pos = 0; pos < samples; pos++)
+	{
+		buffer->buf[pos] = st_play->sampv[pos];
+	}
+
+	if(sess->next_buffer->next)
+		sess->next_buffer = sess->next_buffer->next;
+	else
+		sess->next_buffer = sess->buffers.head;
+	lock_rel(buffer->lock);
+
+
+
+	st_src = sess->st_src;
 	sample_move_d16_sS((char *)st_src->sampv, (float *)input0,
 					   nframes, 4);
 	sample_move_d16_sS((char *)st_src->sampv + 2, (float *)input1,
@@ -537,9 +565,9 @@ static int effect_init(void)
 	err  = ausrc_register(&ausrc, baresip_ausrcl(), "effect", src_alloc);
 	err |= auplay_register(&auplay, baresip_auplayl(), "effect", play_alloc);
 	struct session *sess;
-	lock_alloc(&lock);
+	struct buffer *buffer;
 
-	for (uint32_t cnt = 0; cnt < MAX_CHANNELS; cnt++)
+	for (int cnt = 0; cnt < MAX_CHANNELS; cnt++)
 	{
 		sess = mem_zalloc(sizeof(*sess), sess_destruct);
 		if (!sess)
@@ -554,6 +582,22 @@ static int effect_init(void)
 		sess->run_auto_mix = true;
 		sess->stream = false;
 		sess->local = false;
+		sess->ref = 0;
+		sess->next_buffer = NULL;
+
+		for (int bufc = 0; bufc < MAX_BUFFERS; bufc++)
+		{
+			buffer = mem_zalloc(sizeof(*buffer), buffer_destruct);
+			if (!buffer)
+				return ENOMEM;
+			lock_alloc(&buffer->lock);
+			buffer->buf = mem_zalloc(BUFFER_LEN, NULL);
+			buffer->ref = 0;
+			if(!sess->next_buffer)
+				sess->next_buffer = &buffer->le;
+			list_append(&sess->buffers, &buffer->le, buffer);
+		}
+
 		list_append(&sessionl, &sess->le, sess);
 	}
 
@@ -568,7 +612,6 @@ static int effect_close(void)
 
 	ausrc  = mem_deref(ausrc);
 	auplay = mem_deref(auplay);
-	lock = mem_deref(lock);
 
 	for (le = sessionl.head; le;)
 	{
