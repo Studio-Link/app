@@ -1,5 +1,19 @@
 # Changelog Archive
 
+## [v19.09.0-beta] - 2019-09-17
+
+- **Misc** Baresip 0.6.3
+- **Misc** OpenSSL 1.1.1c
+- **Standalone** Automatic samplerate and channel conversion
+
+
+## v19.04.0-beta - 2019-04-20
+
+- **Standalone** Onboarding is disabled after first pass or by skipping
+- **Standalone** The recordings are now stored in a subfolder
+- **Standalone** The Mono/Stereo setting is retained at restart
+- **Standalone** UTF-8 support for macOS audio devices
+
 
 ## v19.03.1-alpha (04.04.2019)
 
@@ -135,3 +149,5 @@
 - **Plugin** Changes to the effect plugins (Audio Unit, LV2 and VST)
 - **Box** Changes to the [orange] hardware box
 - **Misc** Anything that is left or general.
+
+[v19.09.0-beta]: https://github.com/Studio-Link/app/compare/v19.04.0-beta-605.7ebfed8...v19.09.0-beta

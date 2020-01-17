@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **Standalone** Try to fix crashes by adding entitlements.plist
+
 ## [v20.01.0-beta] - 2020-01-12
 
 ### Added
@@ -31,21 +35,6 @@
 - **Misc** [#53] Wrong Call audio level allocation
 
 
-## [v19.09.0-beta] - 2019-09-17
-
-- **Misc** Baresip 0.6.3
-- **Misc** OpenSSL 1.1.1c
-- **Standalone** Automatic samplerate and channel conversion
-
-
-## v19.04.0-beta - 2019-04-20
-
-- **Standalone** Onboarding is disabled after first pass or by skipping
-- **Standalone** The recordings are now stored in a subfolder
-- **Standalone** The Mono/Stereo setting is retained at restart
-- **Standalone** UTF-8 support for macOS audio devices
-
-
 # Syntax
 
 ## Types
@@ -70,6 +59,5 @@
 
 [Unreleased]: https://github.com/Studio-Link/app/compare/v20.01.0-beta...HEAD
 [v20.01.0-beta]: https://github.com/Studio-Link/app/compare/v19.09.0-beta...v20.01.0-beta
-[v19.09.0-beta]: https://github.com/Studio-Link/app/compare/v19.04.0-beta-605.7ebfed8...v19.09.0-beta
 [#87]: https://gitlab.com/studio.link/app/issues/87
 [#53]: https://gitlab.com/studio.link/app/issues/53
