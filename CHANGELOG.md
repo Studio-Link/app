@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [v20.01.1-beta] - 2020-01-17
+
 ### Fixed
 
 - **Standalone** Try to fix crashes by adding entitlements.plist
@@ -58,6 +60,7 @@
 [Changelog Archive...](https://github.com/Studio-Link/app/blob/v19.xx.x/CHANGELOG-ARCHIVE.md)
 
 [Unreleased]: https://github.com/Studio-Link/app/compare/v20.01.0-beta...HEAD
+[v20.01.1-beta]: https://github.com/Studio-Link/app/compare/v20.01.0-beta...v20.01.1-beta
 [v20.01.0-beta]: https://github.com/Studio-Link/app/compare/v19.09.0-beta...v20.01.0-beta
 [#87]: https://gitlab.com/studio.link/app/issues/87
 [#53]: https://gitlab.com/studio.link/app/issues/53
