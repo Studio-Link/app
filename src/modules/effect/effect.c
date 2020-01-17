@@ -383,6 +383,7 @@ void effect_src(struct session *sess, const float* const input0,
 	st_play = sess->st_play;
 	st_play->wh(st_play->sampv, samples, st_play->arg);
 
+	/* <-Buffer offloading */
 	lock_write_get(buffer->lock);
 	buffer = sess->next_buffer->data;
 	buffer->ref = sess->ref;
@@ -392,11 +393,13 @@ void effect_src(struct session *sess, const float* const input0,
 		buffer->buf[pos] = st_play->sampv[pos];
 	}
 
+	lock_rel(buffer->lock);
+
 	if(sess->next_buffer->next)
 		sess->next_buffer = sess->next_buffer->next;
 	else
 		sess->next_buffer = sess->buffers.head;
-	lock_rel(buffer->lock);
+	/* Buffer offloading-> */
 
 
 
