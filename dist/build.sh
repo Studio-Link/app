@@ -261,6 +261,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
 
     pushd hardened
     codesign --options runtime --entitlements ../../dist/patches/entitlements.plist -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkStandalone.app
+    codesign --display --entitlements - StudioLinkStandalone.app
     codesign -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLink.component
     codesign --deep -f --verbose -s "Developer ID Application: Sebastian Reimers (CX34XZ2JTT)" StudioLinkOnAir.component
     popd
