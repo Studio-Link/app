@@ -283,12 +283,12 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 
 	if (status == RTAUDIO_STATUS_INPUT_OVERFLOW)
 	{
-		warning("slrtaudio: Buffer Overflow\n");
+		warning("slrtaudio: Buffer Overflow frames: %d\n", nframes);
 	}
 
 	if (status == RTAUDIO_STATUS_OUTPUT_UNDERFLOW)
 	{
-		warning("slrtaudio: Buffer Underrun\n");
+		warning("slrtaudio: Buffer Underrun frames: %d\n", nframes);
 	}
 
 	downsample_first_ch(slrtaudio->inBuffer, in, nframes * input_channels);

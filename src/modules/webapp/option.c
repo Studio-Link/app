@@ -39,9 +39,11 @@ void webapp_options_set(char *key, char *value)
 	if (!str_cmp(key, "record")) {
 		if (!str_cmp(value, "false")) {
 			slrtaudio_record_set(false);
+			info("webapp/option: stop record\n");
 		}
 		else {
 			slrtaudio_record_set(true);
+			info("webapp/option: start record\n");
 		}
 	}
 	if (!str_cmp(key, "mute")) {
