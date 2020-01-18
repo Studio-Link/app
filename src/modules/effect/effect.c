@@ -12,8 +12,8 @@
 #include <baresip.h>
 #include <math.h>
 #include <unistd.h>
+#include <pthread.h>
 
-#define BUFFER_LEN 7680 /* max buffer_len = 192kHz*2ch*20ms */
 
 #define SAMPLE_16BIT_SCALING  32767.0f
 #define SAMPLE_16BIT_MAX  32767
@@ -37,13 +37,14 @@
 		(d) = f_round ((s) * SAMPLE_16BIT_SCALING);\
 	}
 
+
 enum {
-	MAX_CHANNELS = 10,
-	MAX_BUFFERS = 3,
+	MAX_CHANNELS = 10
 };
 
 struct auplay_st {
 	const struct auplay *ap;  /* pointer to base-class (inheritance) */
+	pthread_t thread;
 	bool run;
 	void *write;
 	int16_t *sampv;
@@ -57,6 +58,7 @@ struct auplay_st {
 
 struct ausrc_st {
 	const struct ausrc *as;  /* pointer to base-class (inheritance) */
+	pthread_t thread;
 	bool run;
 	void *read;
 	int16_t *sampv;
@@ -68,29 +70,22 @@ struct ausrc_st {
 	struct session *sess;
 };
 
-struct buffer {
-	struct le le;
-	int16_t *buf;
-	uint32_t ref;
-	struct lock *lock;
-};
-
 struct session {
 	struct le le;
 	struct ausrc_st *st_src;
 	struct auplay_st *st_play;
+	uint32_t trev;
+	uint32_t prev;
 	int32_t *dstmix;
 	int8_t ch;
 	bool run_src;
 	bool run_play;
+	struct lock *plock;
 	bool run_auto_mix;
 	bool bypass;
 	struct call *call;
 	bool stream; /* only for standalone */
-	bool local; /* only for standalone */
-	uint32_t ref;
-	struct list buffers;
-	struct le *next_buffer;
+	bool local;  /* only for standalone */
 };
 
 static struct list sessionl;
@@ -99,33 +94,15 @@ static struct ausrc *ausrc;
 static struct auplay *auplay;
 
 static bool bypass = false;
-static bool ready = false;
-
-
-static void buffer_destruct(void *arg)
-{
-	struct buffer *buffer = arg;
-	mem_deref(buffer->buf);
-	buffer->lock = mem_deref(buffer->lock);
-	list_unlink(&buffer->le);
-}
 
 
 static void sess_destruct(void *arg)
 {
 	struct session *sess = arg;
-	struct buffer *buffer;
-	struct le *le;
-
-	for (le = sess->buffers.head; le;)
-	{
-		buffer = le->data;
-		le = le->next;
-		mem_deref(buffer);
-	}
 
 	list_unlink(&sess->le);
-	info("destruct session\n");
+	mem_deref(sess->plock);
+	info("effect: destruct session\n");
 }
 
 
@@ -176,7 +153,7 @@ int effect_session_stop(struct session *session)
 			count++;
 		}
 	}
-	warning("effect: debug session_stop count: %d", count);
+	info("effect: debug session_stop count: %d", count);
 
 	return count;
 }
@@ -206,6 +183,15 @@ static void sample_move_dS_s16(float *dst, char *src, unsigned long nsamples,
 }
 
 
+static void play_process(struct session *sess, unsigned long nframes)
+{
+	struct auplay_st *st_play = sess->st_play;
+
+	st_play->wh(st_play->sampv, nframes, st_play->arg);
+	++sess->prev;
+}
+
+
 void ws_meter_process(unsigned int ch, float *in, unsigned long nframes);
 
 void effect_play(struct session *sess, float* const output0,
@@ -214,25 +200,24 @@ void effect_play(struct session *sess, float* const output0,
 void effect_play(struct session *sess, float* const output0,
 		float* const output1, unsigned long nframes)
 {
-	if(!sess) 
-		return;
 
-	if (!sess->run_play) {
-		for (uint32_t pos = 0; pos < nframes; pos++) {
-			output0[pos] = 0;
-			output1[pos] = 0;
-		}
+	if (!sess->run_play)
 		return;
-	}
 
 	struct auplay_st *st_play = sess->st_play;
+
+	lock_write_get(sess->plock);
+	if (sess->trev > sess->prev)
+		play_process(sess, nframes*2);
+
 	sample_move_dS_s16(output0, (char*)st_play->sampv,
 			nframes, 4);
 	sample_move_dS_s16(output1, (char*)st_play->sampv+2,
 			nframes, 4);
+	lock_rel(sess->plock);
 
-	if (sess->ch > -1)
-		ws_meter_process(sess->ch+1, (float*)output0, nframes);
+	ws_meter_process(sess->ch+1, (float*)output0, nframes);
+	++sess->trev;
 }
 
 
@@ -250,8 +235,9 @@ void effect_bypass(struct session *sess,
 		const float* const input1,
 		unsigned long nframes)
 {
-	if (!sess)
-		return;
+	struct le *le;
+	struct session *msess;
+	int8_t counter;
 
 	if (sess->run_play)
 		return;
@@ -268,92 +254,77 @@ void effect_bypass(struct session *sess,
 			output1[pos] = 0;
 		}
 	}
+
+
+	for (le = sessionl.head; le; le = le->next) {
+		msess = le->data;
+		if (msess != sess) {
+			counter = msess->trev - sess->trev;
+			if (counter > 1) {
+				sess->trev = msess->trev;
+				sess->prev = msess->prev;
+				warning("sync thread %d\n", counter);
+				return;
+			}
+		}
+	}
+
+	++sess->trev;
+	++sess->prev;
 }
 
 
-static void mix_n_minus_1(struct session *sess, unsigned long samples)
+static void mix_n_minus_1(struct session *sess, int16_t *dst,
+		unsigned long nsamples)
 {
-	struct ausrc_st *st_src = sess->st_src;
-	struct auplay_st *st_play;
-	struct auplay_st *mst_play;
 	struct le *le;
-	struct le *mle;
-	int msessplay = 0;
-	int sessplay = 0;
+	int32_t *dstmixv;
+	int16_t *dstv = dst;
+	int16_t *mixv;
+	unsigned active = 0;
 
-	for (le = sessionl.head; le; le = le->next)
-	{
-		sess = le->data;
-		if (!sess->run_play)
-			continue;
+	for (le = sessionl.head; le; le = le->next) {
+		struct session *msess = le->data;
 
-		st_play = sess->st_play;
-		st_play->wh(st_play->sampv, samples, st_play->arg);
-	}
+		if (msess->run_play && msess != sess) {
+			mixv = msess->st_play->sampv;
+			dstmixv = sess->dstmix;
 
-	for (le = sessionl.head; le; le = le->next)
-	{
-		sess = le->data;
-		msessplay = 0;
-
-		if (!sess->run_play)
-			continue;
-
-		st_play = sess->st_play;
-
-		/* mix n-1 */
-		for (mle = sessionl.head; mle; mle = mle->next)
-		{
-			struct session *msess = mle->data;
-
-			if (!msess->run_play || msess == sess)
-			{
-				continue;
+			lock_write_get(msess->plock);
+			if (sess->trev > msess->prev)
+				play_process(msess, nsamples);
+			for (unsigned n = 0; n < nsamples; n++) {
+				*dstmixv = *dstmixv + *mixv;
+				++mixv;
+				++dstmixv;
 			}
-			mst_play = msess->st_play;
+			lock_rel(msess->plock);
 
-			for (uint16_t pos = 0; pos < samples; pos++)
-			{
-				if (msessplay < 1)
-				{
-					sess->dstmix[pos] =
-						mst_play->sampv[pos];
-				}
-				else
-				{
-					sess->dstmix[pos] =
-						mst_play->sampv[pos] +
-						sess->dstmix[pos];
-				}
-			}
-			++msessplay;
-			++sessplay;
+			++active;
 		}
 	}
 
-	for (le = sessionl.head; le; le = le->next)
-	{
-		sess = le->data;
-		if (sess->run_src)
-		{
-			st_src = sess->st_src;
+	if (active) {
+		dstmixv = sess->dstmix;
+		for (unsigned i = 0; i < nsamples; i++) {
+			*dstmixv = *dstmixv + *dstv;
+			++dstv;
+			++dstmixv;
+		}
 
-			for (uint16_t pos = 0; pos < samples; pos++)
-			{
-				/* ignore on last call the dstmix */
-				if (sessplay) {
-					st_src->sampv[pos] =
-						st_src->sampv[pos] +
-						sess->dstmix[pos];
-				}
-			}
-
-			st_src->rh(st_src->sampv, samples, st_src->arg);
+		dstmixv = sess->dstmix;
+		for (unsigned i = 0; i < nsamples; i++) {
+			if (*dstmixv > SAMPLE_16BIT_MAX)
+				*dstmixv = SAMPLE_16BIT_MAX;
+			if (*dstmixv < SAMPLE_16BIT_MIN)
+				*dstmixv = SAMPLE_16BIT_MIN;
+			*dst = *dstmixv;
+			*dstmixv = 0;
+			++dst;
+			++dstmixv;
 		}
 	}
-
 }
-
 
 void effect_src(struct session *sess, const float* const input0,
 		const float* const input1, unsigned long nframes);
@@ -361,53 +332,23 @@ void effect_src(struct session *sess, const float* const input0,
 void effect_src(struct session *sess, const float* const input0,
 		const float* const input1, unsigned long nframes)
 {
-	struct auplay_st *st_play;
-	struct ausrc_st *st_src;
-	struct buffer *buffer;
-	struct le *le;
-	int samples = nframes * 2;
-
-	if (!sess)
+	/* check max sessions reached*/
+	if(!sess)
 		return;
 
-	++sess->ref;
+	if (sess->run_src) {
+		struct ausrc_st *st_src = sess->st_src;
 
-	if (sess->ch > -1)
-		ws_meter_process(sess->ch, (float*)input0, nframes);
-
-//	mix_n_minus_1(sess, nframes * 2);
-
-	if (!sess->run_src)
-		return;
-
-	st_play = sess->st_play;
-	st_play->wh(st_play->sampv, samples, st_play->arg);
-
-	/* <-Buffer offloading */
-	lock_write_get(buffer->lock);
-	buffer = sess->next_buffer->data;
-	buffer->ref = sess->ref;
-
-	for (uint16_t pos = 0; pos < samples; pos++)
-	{
-		buffer->buf[pos] = st_play->sampv[pos];
+		sample_move_d16_sS((char*)st_src->sampv, (float*)input0,
+				nframes, 4);
+		sample_move_d16_sS((char*)st_src->sampv+2, (float*)input1,
+				nframes, 4);
+		if (sess->run_auto_mix)
+			mix_n_minus_1(sess, st_src->sampv, nframes * 2);
+		st_src->rh(st_src->sampv, nframes * 2, st_src->arg);
 	}
+	ws_meter_process(sess->ch, (float*)input0, nframes);
 
-	lock_rel(buffer->lock);
-
-	if(sess->next_buffer->next)
-		sess->next_buffer = sess->next_buffer->next;
-	else
-		sess->next_buffer = sess->buffers.head;
-	/* Buffer offloading-> */
-
-
-
-	st_src = sess->st_src;
-	sample_move_d16_sS((char *)st_src->sampv, (float *)input0,
-					   nframes, 4);
-	sample_move_d16_sS((char *)st_src->sampv + 2, (float *)input1,
-					   nframes, 4);
 }
 
 
@@ -415,7 +356,7 @@ static void ausrc_destructor(void *arg)
 {
 	struct ausrc_st *st = arg;
 	struct session *sess = st->sess;
-	info("effect: ausrc\n");
+	warning("DESTRUCT ausrc\n");
 	sess->run_src = false;
 	sys_msleep(20);
 	mem_deref(st->sampv);
@@ -426,7 +367,7 @@ static void auplay_destructor(void *arg)
 {
 	struct auplay_st *st = arg;
 	struct session *sess = st->sess;
-	info("effect: destruct auplay\n");
+	warning("DESTRUCT auplay\n");
 	sess->run_play = false;
 	sys_msleep(20);
 	mem_deref(st->sampv);
@@ -565,12 +506,12 @@ void effect_set_bypass(bool value)
 static int effect_init(void)
 {
 	int err;
+	struct session *sess;
+
 	err  = ausrc_register(&ausrc, baresip_ausrcl(), "effect", src_alloc);
 	err |= auplay_register(&auplay, baresip_auplayl(), "effect", play_alloc);
-	struct session *sess;
-	struct buffer *buffer;
 
-	for (int cnt = 0; cnt < MAX_CHANNELS; cnt++)
+	for (uint32_t cnt = 0; cnt < MAX_CHANNELS; cnt++)
 	{
 		sess = mem_zalloc(sizeof(*sess), sess_destruct);
 		if (!sess)
@@ -581,26 +522,13 @@ static int effect_init(void)
 		sess->bypass = false;
 		sess->ch = -1;
 		sess->call = NULL;
+		sess->trev = 0;
+		sess->prev = 0;
+		lock_alloc(&sess->plock);
 
 		sess->run_auto_mix = true;
 		sess->stream = false;
 		sess->local = false;
-		sess->ref = 0;
-		sess->next_buffer = NULL;
-
-		for (int bufc = 0; bufc < MAX_BUFFERS; bufc++)
-		{
-			buffer = mem_zalloc(sizeof(*buffer), buffer_destruct);
-			if (!buffer)
-				return ENOMEM;
-			lock_alloc(&buffer->lock);
-			buffer->buf = mem_zalloc(BUFFER_LEN, NULL);
-			buffer->ref = 0;
-			if(!sess->next_buffer)
-				sess->next_buffer = &buffer->le;
-			list_append(&sess->buffers, &buffer->le, buffer);
-		}
-
 		list_append(&sessionl, &sess->le, sess);
 	}
 
