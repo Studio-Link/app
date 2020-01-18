@@ -22,15 +22,21 @@ static void log_handler(uint32_t level, const char *msg)
 {
 	char fmt[2048] = {0};
 	char gelf[2048] = {0};
-	uint64_t time_ms;
-	int timestamp;
+	int time_ms = 0, timestamp = 0;
 
 	timestamp = time(NULL);
-	time_ms = tmr_jiffies() - (uint64_t)timestamp * (uint64_t)1000;
+
+#ifdef WIN32
+	SYSTEMTIME st;
+	GetSystemTime(&st);
+	time_ms = st.wMilliseconds;
+#else
+	time_ms = (int)(tmr_jiffies() - (uint64_t)timestamp * (uint64_t)1000);
+#endif
 
 	re_snprintf(gelf, sizeof(gelf),
 		"{\"version\": \"1.1\",\
-		\"timestamp\":\"%d.%u\",\
+		\"timestamp\":\"%d.%03d\",\
 		\"short_message\":\"%s\",\
 		\"host\": \"%s\",\
 		\"level\": \"%d\"}\r\n",
