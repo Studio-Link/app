@@ -200,6 +200,9 @@ void effect_play(struct session *sess, float* const output0,
 void effect_play(struct session *sess, float* const output0,
 		float* const output1, unsigned long nframes)
 {
+	/* check max sessions reached*/
+	if(!sess)
+		return;
 
 	if (!sess->run_play)
 		return;
@@ -238,6 +241,10 @@ void effect_bypass(struct session *sess,
 	struct le *le;
 	struct session *msess;
 	int8_t counter;
+
+	/* check max sessions reached*/
+	if(!sess)
+		return;
 
 	if (sess->run_play)
 		return;
