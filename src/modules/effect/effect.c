@@ -153,7 +153,7 @@ int effect_session_stop(struct session *session)
 			count++;
 		}
 	}
-	info("effect: debug session_stop count: %d", count);
+	info("effect: debug session_stop count: %d\n", count);
 
 	return count;
 }
@@ -255,15 +255,16 @@ void effect_bypass(struct session *sess,
 		}
 	}
 
-
 	for (le = sessionl.head; le; le = le->next) {
 		msess = le->data;
-		if (msess != sess) {
+		if (msess != sess && msess->ch != -1) {
 			counter = msess->trev - sess->trev;
 			if (counter > 1) {
 				sess->trev = msess->trev;
 				sess->prev = msess->prev;
-				warning("sync thread %d\n", counter);
+#if 0
+				info("effect: sync thread %d\n", counter);
+#endif
 				return;
 			}
 		}
@@ -356,7 +357,6 @@ static void ausrc_destructor(void *arg)
 {
 	struct ausrc_st *st = arg;
 	struct session *sess = st->sess;
-	warning("DESTRUCT ausrc\n");
 	sess->run_src = false;
 	sys_msleep(20);
 	mem_deref(st->sampv);
@@ -367,7 +367,6 @@ static void auplay_destructor(void *arg)
 {
 	struct auplay_st *st = arg;
 	struct session *sess = st->sess;
-	warning("DESTRUCT auplay\n");
 	sess->run_play = false;
 	sys_msleep(20);
 	mem_deref(st->sampv);
