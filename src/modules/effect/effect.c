@@ -161,7 +161,7 @@ int effect_session_stop(struct session *session)
 			count++;
 		}
 	}
-	warning("effect: debug session_stop count: %d", count);
+	info("effect: debug session_stop count: %d\n", count);
 
 	return count;
 }
