@@ -178,7 +178,8 @@ static void *record_thread(void *arg)
 
 		if (record) {
 			if (!sess->flac) {
-				info("slrtaudio/record: open session record file\n");
+				info("slrtaudio/record: open \
+						session record file\n");
 				ret = openfile(sess);
 				if (ret) {
 					error_msg("slrtaudio/record: \
@@ -198,7 +199,8 @@ static void *record_thread(void *arg)
 		}
 		else {
 			if (sess->flac) {
-				info("slrtaudio/record: close session record file\n");
+				info("slrtaudio/record: \
+						close session record file\n");
 				FLAC__stream_encoder_finish(sess->flac);
 				FLAC__stream_encoder_delete(sess->flac);
 
