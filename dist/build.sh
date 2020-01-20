@@ -228,19 +228,25 @@ if [ "$BUILD_OS" == "linux" ]; then
     cp -a overlay-lv2/studio-link.so studio-link.lv2/
     cp -a overlay-lv2/*.ttl studio-link.lv2/
     cp -a overlay-lv2/README.md studio-link.lv2/
-    zip -r studio-link-plugin-linux studio-link.lv2
+    zip -r studio-link-plugin studio-link.lv2
 
     mkdir -p studio-link-onair.lv2
     cp -a overlay-onair-lv2/studio-link-onair.so studio-link-onair.lv2/
     cp -a overlay-onair-lv2/*.ttl studio-link-onair.lv2/
     cp -a overlay-onair-lv2/README.md studio-link-onair.lv2/
-    zip -r studio-link-plugin-onair-linux studio-link-onair.lv2
+    zip -r studio-link-plugin-onair studio-link-onair.lv2
+
+    mkdir -p vst
+    pushd vst
+    cp ../overlay-vst/studio-link.so .
+    zip studio-link-plugin.zip studio-link.so
+    rm studio-link.so
+    popd
 
     cp -a studio-link-standalone-$version_tc.tar.gz $s3_path
-    cp -a studio-link-plugin-linux.zip $s3_path
-    cp -a studio-link-plugin-onair-linux.zip $s3_path
-    mkdir $s3_path/vst
-    cp -a overlay-vst/studio-link.so $s3_path/vst/
+    cp -a studio-link-plugin.zip $s3_path
+    cp -a studio-link-plugin-onair.zip $s3_path
+    cp -a vst $s3_path
 fi
 
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
