@@ -274,6 +274,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     zip -r studio-link-plugin StudioLink.component
     zip -r studio-link-plugin-onair StudioLinkOnAir.component
     zip -r studio-link-standalone-$version_t.zip StudioLinkStandalone.app
+    rm -Rf StudioLink.component StudioLinkOnAir.component StudioLinkStandalone.app
     popd
 
     cp -a studio-link-standalone.zip $s3_path/studio-link-standalone-$version_t.zip
