@@ -30,6 +30,10 @@ See [CHANGELOG.md](CHANGELOG.md)
 
 ## Development
 
+### CI builds
+
+https://download.studio.link/devel/
+
 ### Build Requirements
 
 - OpenSSL
