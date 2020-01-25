@@ -118,7 +118,7 @@ index bfe59ba..dc8fa62 100644
   out:
  	return err;
 diff --git a/src/config.c b/src/config.c
-index 1563c6c..2791c0e 100644
+index 1563c6c..e512b77 100644
 --- a/src/config.c
 +++ b/src/config.c
 @@ -18,7 +18,7 @@
@@ -211,7 +211,7 @@ index 1563c6c..2791c0e 100644
  			  "#sip_certificate\tcert.pem\n"
  			  "#sip_cafile\t\t%s\n"
  			  "\n"
-@@ -552,10 +564,10 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
+@@ -552,17 +564,18 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
  			  "audio_player\t\t%s\n"
  			  "audio_source\t\t%s\n"
  			  "audio_alert\t\t%s\n"
@@ -219,14 +219,15 @@ index 1563c6c..2791c0e 100644
 -			  "#auplay_srate\t\t48000\n"
 -			  "#ausrc_channels\t\t0\n"
 -			  "#auplay_channels\t0\n"
+-			  "#audio_txmode\t\tpoll\t\t# poll, thread\n"
 +			  "ausrc_srate\t\t48000\n"
 +			  "auplay_srate\t\t48000\n"
 +			  "ausrc_channels\t\t2\n"
 +			  "auplay_channels\t2\n"
- 			  "#audio_txmode\t\tpoll\t\t# poll, thread\n"
++			  "audio_txmode\t\tthread\t\t# poll, thread\n"
  			  "audio_level\t\tno\n"
  			  "ausrc_format\t\ts16\t\t# s16, float, ..\n"
-@@ -563,6 +575,7 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
+ 			  "auplay_format\t\ts16\t\t# s16, float, ..\n"
  			  "auenc_format\t\ts16\t\t# s16, float, ..\n"
  			  "audec_format\t\ts16\t\t# s16, float, ..\n"
  			  ,
