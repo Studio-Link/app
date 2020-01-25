@@ -101,6 +101,7 @@ sl_get_baresip() {
 
     ## Add patches
     patch -p1 < ../../dist/patches/config.patch
+    patch -p1 < ../../dist/patches/fix_check_telev.patch
     patch -p1 < ../../dist/patches/osx_sample_rate.patch
 
     #fixes multiple maxaverage lines in fmtp e.g.: 

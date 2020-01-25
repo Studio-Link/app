@@ -1,0 +1,27 @@
+diff --git a/src/audio.c b/src/audio.c
+index 11e3b3f..bf0a365 100644
+--- a/src/audio.c
++++ b/src/audio.c
+@@ -663,10 +663,10 @@ static void ausrc_read_handler(const void *sampv, size_t sampc, void *arg)
+ 
+ 			poll_aubuf_tx(a);
+ 		}
++		/* Exact timing: send Telephony-Events from here */
++		check_telev(a, tx);
+ 	}
+ 
+-	/* Exact timing: send Telephony-Events from here */
+-	check_telev(a, tx);
+ }
+ 
+ 
+@@ -1267,6 +1267,9 @@ static void *tx_thread(void *arg)
+ 			      " (total %llu)\n", tx->stats.aubuf_underrun);
+ 		}
+ 
++		/* Exact timing: send Telephony-Events from here */
++		check_telev(a, tx);
++
+ 		ts += tx->ptime;
+ 	}
+ 
