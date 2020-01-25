@@ -262,23 +262,16 @@ void effect_bypass(struct session *sess,
 		}
 	}
 
-	for (le = sessionl.head; le; le = le->next) {
-		msess = le->data;
-		if (msess != sess && msess->ch != -1) {
-			counter = msess->trev - sess->trev;
-			if (counter > 1) {
-				sess->trev = msess->trev;
-				sess->prev = msess->prev;
-#if 0
-				info("effect: sync thread %d\n", counter);
-#endif
-				return;
-			}
-		}
-	}
-
 	++sess->trev;
 	++sess->prev;
+
+	for (le = sessionl.head; le; le = le->next) {
+		msess = le->data;
+		if (msess != sess && msess->ch == -1) {
+			msess->trev = sess->trev;
+			msess->prev = sess->prev;
+		}
+	}
 }
 
 
