@@ -125,6 +125,8 @@ struct session* effect_session_start(void)
 
 		if (sess->ch == -1) {
 			sess->ch = pos * 2;
+			sess->trev = 0;
+			sess->prev = 0;
 			return sess;
 		}
 		pos++;
@@ -145,6 +147,8 @@ int effect_session_stop(struct session *session)
 		return MAX_CHANNELS;
 
 	session->ch = -1;
+	session->trev = 0;
+	session->prev = 0;
 
 	for (le = sessionl.head; le; le = le->next) {
 		sess = le->data;
@@ -262,16 +266,23 @@ void effect_bypass(struct session *sess,
 		}
 	}
 
+	if (sess->trev == 0)
+	{
+		for (le = sessionl.head; le; le = le->next)
+		{
+			msess = le->data;
+			if (msess != sess && msess->trev > 0)
+			{
+				sess->trev = msess->trev;
+				sess->prev = msess->prev;
+				return;
+			}
+		}
+	}
+
 	++sess->trev;
 	++sess->prev;
 
-	for (le = sessionl.head; le; le = le->next) {
-		msess = le->data;
-		if (msess != sess && msess->ch == -1) {
-			msess->trev = sess->trev;
-			msess->prev = sess->prev;
-		}
-	}
 }
 
 
