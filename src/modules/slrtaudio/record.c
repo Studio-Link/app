@@ -22,6 +22,7 @@
 #include "slrtaudio.h"
 
 static bool record = false;
+static char command[256];
 
 
 void slrtaudio_record_set(bool active)
@@ -44,7 +45,6 @@ static int timestamp_print(struct re_printf *pf, const struct tm *tm)
 static int openfile(struct session *sess)
 {
 	char filename[256];
-	char command[256];
 	char buf[256];
 	time_t tnow = time(0);
 	struct tm *tm = localtime(&tnow);
@@ -205,6 +205,10 @@ static void *record_thread(void *arg)
 				FLAC__stream_encoder_delete(sess->flac);
 
 				sess->flac = NULL;
+
+				/* open folder on stop record */
+				if (sess->local)
+					ret = system(command);
 			}
 		}
 
