@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **Standalone** Add macOS microphone description
+
 ## [v20.01.1-beta] - 2020-01-17
 
 ### Fixed
