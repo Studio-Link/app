@@ -326,8 +326,9 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 		if ((error = src_process(src_state_in, &src_data_in)) != 0)
 		{
 			error_msg("slrtaudio: Samplerate::src_process_in :"
-					"returned error : %s\n",
-					src_strerror(error));
+					"returned error : %s %f\n",
+					src_strerror(error),
+					src_data_in.src_ratio);
 			return 1;
 		};
 		samples = src_data_in.output_frames_gen * 2;
@@ -933,12 +934,12 @@ static int slrtaudio_start(void)
 	int error = 0;
 
 	slrtaudio = mem_zalloc(sizeof(*slrtaudio), NULL);
-	slrtaudio->inBuffer = mem_zalloc(BUFFER_LEN, NULL);
-	slrtaudio->outBufferTmp = mem_zalloc(BUFFER_LEN, NULL);
-	slrtaudio->inBufferFloat = mem_zalloc(BUFFER_LEN, NULL);
-	slrtaudio->inBufferOutFloat = mem_zalloc(BUFFER_LEN, NULL);
-	slrtaudio->outBufferFloat = mem_zalloc(BUFFER_LEN, NULL);
-	slrtaudio->outBufferInFloat = mem_zalloc(BUFFER_LEN, NULL);
+	slrtaudio->inBuffer = mem_zalloc(sizeof(int16_t) * BUFFER_LEN, NULL);
+	slrtaudio->outBufferTmp = mem_zalloc(sizeof(int16_t) * BUFFER_LEN, NULL);
+	slrtaudio->inBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN, NULL);
+	slrtaudio->inBufferOutFloat = mem_zalloc(sizeof(float) * BUFFER_LEN, NULL);
+	slrtaudio->outBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN, NULL);
+	slrtaudio->outBufferInFloat = mem_zalloc(sizeof(float) * BUFFER_LEN, NULL);
 
 	/* calculate 20ms buffersize/nframes  */
 	unsigned int bufsz_in = preferred_sample_rate_in * 20 / 1000;
