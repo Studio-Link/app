@@ -14,6 +14,7 @@ static char url[255] = {0};
 static struct http_req *req = NULL;
 enum { UUID_LEN = 36 };
 static char myid[9] = {0};
+struct lock *lock;
 
 
 static const int lmap[] = { LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
@@ -52,9 +53,10 @@ static void log_handler(uint32_t level, const char *msg)
 			"\r\n"
 			"%s",
 			str_len(gelf), gelf);
-
+	lock_write_get(lock);
 	http_request(&req, cli, "POST", url, NULL,
 			NULL, NULL, fmt);
+	lock_rel(lock);
 }
 
 
@@ -175,6 +177,8 @@ static int module_init(void)
 
 	str_ncpy(myid, uuidtmp, sizeof(myid));
 
+	lock_alloc(&lock);
+
 	net = baresip_network();
 	re_snprintf(url, sizeof(url), "https://log.studio.link/gelf");
 	http_client_alloc(&cli, net_dnsc(net));
@@ -201,6 +205,7 @@ static int module_close(void)
 	log_unregister_handler(&lg);
 	req = mem_deref(req);
 	cli = mem_deref(cli);
+	lock = mem_deref(lock);
 
 	return 0;
 }
