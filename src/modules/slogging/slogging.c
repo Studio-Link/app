@@ -14,7 +14,7 @@ static char url[255] = {0};
 static struct http_req *req = NULL;
 enum { UUID_LEN = 36 };
 static char myid[9] = {0};
-struct lock *lock;
+static struct lock *lock;
 
 
 static const int lmap[] = { LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
