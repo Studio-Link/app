@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [v20.01.3-beta] - 2020-02-03
+
+### Fixed
+
+- **Standalone** Prevent resampling crashes with >48kHz
+
+## [v20.01.2-beta] - 2020-01-29
+
 ### Fixed
 
 - **Standalone** Add macOS microphone description
@@ -64,6 +72,8 @@
 [Changelog Archive...](https://github.com/Studio-Link/app/blob/v19.xx.x/CHANGELOG-ARCHIVE.md)
 
 [Unreleased]: https://github.com/Studio-Link/app/compare/v20.01.0-beta...HEAD
+[v20.01.3-beta]: https://github.com/Studio-Link/app/compare/v20.01.2-beta...v20.01.3-beta
+[v20.01.2-beta]: https://github.com/Studio-Link/app/compare/v20.01.1-beta...v20.01.2-beta
 [v20.01.1-beta]: https://github.com/Studio-Link/app/compare/v20.01.0-beta...v20.01.1-beta
 [v20.01.0-beta]: https://github.com/Studio-Link/app/compare/v19.09.0-beta...v20.01.0-beta
 [#87]: https://gitlab.com/studio.link/app/issues/87

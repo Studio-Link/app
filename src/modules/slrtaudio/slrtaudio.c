@@ -934,12 +934,18 @@ static int slrtaudio_start(void)
 	int error = 0;
 
 	slrtaudio = mem_zalloc(sizeof(*slrtaudio), NULL);
-	slrtaudio->inBuffer = mem_zalloc(sizeof(int16_t) * BUFFER_LEN, NULL);
-	slrtaudio->outBufferTmp = mem_zalloc(sizeof(int16_t) * BUFFER_LEN, NULL);
-	slrtaudio->inBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN, NULL);
-	slrtaudio->inBufferOutFloat = mem_zalloc(sizeof(float) * BUFFER_LEN, NULL);
-	slrtaudio->outBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN, NULL);
-	slrtaudio->outBufferInFloat = mem_zalloc(sizeof(float) * BUFFER_LEN, NULL);
+	slrtaudio->inBuffer = mem_zalloc(sizeof(int16_t) * BUFFER_LEN,
+					NULL);
+	slrtaudio->outBufferTmp = mem_zalloc(sizeof(int16_t) * BUFFER_LEN,
+					NULL);
+	slrtaudio->inBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
+					NULL);
+	slrtaudio->inBufferOutFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
+					NULL);
+	slrtaudio->outBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
+					NULL);
+	slrtaudio->outBufferInFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
+					NULL);
 
 	/* calculate 20ms buffersize/nframes  */
 	unsigned int bufsz_in = preferred_sample_rate_in * 20 / 1000;
