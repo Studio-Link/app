@@ -5,6 +5,9 @@
 
 ## [v20.02.0-rc0]
 
+### Added
+- **Standalone** [#100] Auto-Record, starts/end with active call
+
 ### Fixed
 
 - **Misc** Crashes caused by logging and DNS refresh (not thread safe)
@@ -97,3 +100,4 @@
 [v20.01.0-beta]: https://github.com/Studio-Link/app/compare/v19.09.0-beta...v20.01.0-beta
 [#87]: https://gitlab.com/studio.link/app/issues/87
 [#53]: https://gitlab.com/studio.link/app/issues/53
+[#100]: https://gitlab.com/studio.link/app/issues/100

@@ -237,7 +237,7 @@ void slrtaudio_record_init(void) {
 
 		sess->pcm = mem_zalloc(10 * 1920, NULL);
 		sess->sampv = mem_zalloc(10 * 1920, NULL);
-		aubuf_alloc(&sess->aubuf, 1920 * 10, 1920 * 50);
+		aubuf_alloc(&sess->aubuf, 1920 * 10, 1920 * 100);
 		sess->run_record = true;
 		pthread_create(&sess->record_thread, NULL,
 			       record_thread, sess);
