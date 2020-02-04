@@ -244,7 +244,7 @@ void effect_bypass(struct session *sess,
 {
 	struct le *le;
 	struct session *msess;
-	int8_t counter;
+	int32_t counter;
 
 	/* check max sessions reached*/
 	if(!sess)
@@ -266,15 +266,17 @@ void effect_bypass(struct session *sess,
 		}
 	}
 
-	if (sess->trev == 0)
-	{
-		for (le = sessionl.head; le; le = le->next)
-		{
-			msess = le->data;
-			if (msess != sess && msess->trev > 0)
-			{
+	for (le = sessionl.head; le; le = le->next) {
+		msess = le->data;
+		if (msess->ch == -1)
+			continue;
+
+		if (msess != sess) {
+			counter = msess->trev - sess->trev;
+			if (counter > 1) {
 				sess->trev = msess->trev;
 				sess->prev = msess->prev;
+				warning("sync thread %d\n", counter);
 				return;
 			}
 		}
