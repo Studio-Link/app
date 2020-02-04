@@ -3,10 +3,15 @@
 ## [Unreleased]
 
 
-## [v20.02.0-rc0]
+## [v20.02.0-rc0] - 2020-02-04
 
 ### Added
+
 - **Standalone** [#100] Auto-Record, starts/end with active call
+
+### Changed
+
+- **Standalone** Increase record audio buffer
 
 ### Fixed
 
@@ -93,7 +98,7 @@
 
 [Changelog Archive...](https://github.com/Studio-Link/app/blob/v19.xx.x/CHANGELOG-ARCHIVE.md)
 
-[Unreleased]: https://github.com/Studio-Link/app/compare/v20.01.0-beta...HEAD
+[Unreleased]: https://github.com/Studio-Link/app/compare/v20.02.0-rc0...HEAD
 [v20.02.0-rc0]: https://github.com/Studio-Link/app/compare/v20.01.3-beta...v20.02.0-rc0
 [v20.01.3-beta]: https://github.com/Studio-Link/app/compare/v20.01.1-beta...v20.01.3-beta
 [v20.01.1-beta]: https://github.com/Studio-Link/app/compare/v20.01.0-beta...v20.01.1-beta
