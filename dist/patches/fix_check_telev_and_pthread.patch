@@ -1,0 +1,97 @@
+diff --git a/src/audio.c b/src/audio.c
+index 11e3b3f..ef5edac 100644
+--- a/src/audio.c
++++ b/src/audio.c
+@@ -11,9 +11,7 @@
+ #ifdef HAVE_UNISTD_H
+ #include <unistd.h>
+ #endif
+-#ifdef HAVE_PTHREAD
+ #include <pthread.h>
+-#endif
+ #include <re.h>
+ #include <rem.h>
+ #include <baresip.h>
+@@ -109,14 +107,12 @@ struct autx {
+ 		uint64_t aubuf_underrun;
+ 	} stats;
+ 
+-#ifdef HAVE_PTHREAD
+ 	union {
+ 		struct {
+ 			pthread_t tid;/**< Audio transmit thread           */
+ 			bool run;     /**< Audio transmit thread running   */
+ 		} thr;
+ 	} u;
+-#endif
+ };
+ 
+ 
+@@ -220,14 +216,12 @@ static void stop_tx(struct autx *tx, struct audio *a)
+ 
+ 	switch (a->cfg.txmode) {
+ 
+-#ifdef HAVE_PTHREAD
+ 	case AUDIO_MODE_THREAD:
+ 		if (tx->u.thr.run) {
+ 			tx->u.thr.run = false;
+ 			pthread_join(tx->u.thr.tid, NULL);
+ 		}
+ 		break;
+-#endif
+ 	default:
+ 		break;
+ 	}
+@@ -663,10 +657,10 @@ static void ausrc_read_handler(const void *sampv, size_t sampc, void *arg)
+ 
+ 			poll_aubuf_tx(a);
+ 		}
++		/* Exact timing: send Telephony-Events from here */
++		check_telev(a, tx);
+ 	}
+ 
+-	/* Exact timing: send Telephony-Events from here */
+-	check_telev(a, tx);
+ }
+ 
+ 
+@@ -1228,7 +1222,6 @@ int audio_alloc(struct audio **ap, const struct stream_param *stream_prm,
+ }
+ 
+ 
+-#ifdef HAVE_PTHREAD
+ static void *tx_thread(void *arg)
+ {
+ 	struct audio *a = arg;
+@@ -1267,12 +1260,14 @@ static void *tx_thread(void *arg)
+ 			      " (total %llu)\n", tx->stats.aubuf_underrun);
+ 		}
+ 
++		/* Exact timing: send Telephony-Events from here */
++		check_telev(a, tx);
++
+ 		ts += tx->ptime;
+ 	}
+ 
+ 	return NULL;
+ }
+-#endif
+ 
+ 
+ static void aufilt_param_set(struct aufilt_prm *prm,
+@@ -1583,7 +1578,6 @@ static int start_source(struct autx *tx, struct audio *a)
+ 		case AUDIO_MODE_POLL:
+ 			break;
+ 
+-#ifdef HAVE_PTHREAD
+ 		case AUDIO_MODE_THREAD:
+ 			if (!tx->u.thr.run) {
+ 				tx->u.thr.run = true;
+@@ -1595,7 +1589,6 @@ static int start_source(struct autx *tx, struct audio *a)
+ 				}
+ 			}
+ 			break;
+-#endif
+ 
+ 		default:
+ 			warning("audio: tx mode not supported (%d)\n",
