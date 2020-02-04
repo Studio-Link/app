@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 
+## [v20.02.0-rc0]
+
+### Fixed
+
+- **Misc** Crashes caused by logging and DNS refresh (not thread safe)
+- **Misc** fix sysroot windows - and pthread detection for audio_txmode
+
+
 ## [v20.01.3-beta] - 2020-02-03
 
 ### Changed
@@ -83,6 +91,7 @@
 [Changelog Archive...](https://github.com/Studio-Link/app/blob/v19.xx.x/CHANGELOG-ARCHIVE.md)
 
 [Unreleased]: https://github.com/Studio-Link/app/compare/v20.01.0-beta...HEAD
+[v20.02.0-rc0]: https://github.com/Studio-Link/app/compare/v20.01.3-beta...v20.02.0-rc0
 [v20.01.3-beta]: https://github.com/Studio-Link/app/compare/v20.01.1-beta...v20.01.3-beta
 [v20.01.1-beta]: https://github.com/Studio-Link/app/compare/v20.01.0-beta...v20.01.1-beta
 [v20.01.0-beta]: https://github.com/Studio-Link/app/compare/v19.09.0-beta...v20.01.0-beta
