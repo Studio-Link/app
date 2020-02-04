@@ -95,7 +95,6 @@ static int openfile(struct session *sess)
 	if (sess->local) {
 		(void)re_snprintf(filename, sizeof(filename), "%s"
 				DIR_SEP "local-%x.flac", filename, sess);
-		err = system(command);
 	}
 	else {
 		(void)re_snprintf(filename, sizeof(filename), "%s"

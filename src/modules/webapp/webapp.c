@@ -224,11 +224,13 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 	struct list *tsession;
 	struct session *sess;
 	struct le *le;
+	int active_calls = 0;
 
 	if (!sess_id && !call)
 		return EINVAL;
 
 	tsession = sl_sessions();
+
 
 	for (le = tsession->head; le; le = le->next) {
 		sess = le->data;
@@ -261,6 +263,19 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 			}
 		}
 	}
+
+	/* Calculate active calls */
+	for (le = tsession->head; le; le = le->next) {
+		sess = le->data;
+		if (sess->call)
+			++active_calls;
+	}
+
+#ifndef SLPLUGIN
+	/* Auto-Record off if no call*/
+	if (!active_calls)
+		webapp_options_set("record", "false");
+#endif
 
 	return err;
 }
@@ -367,6 +382,10 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 		case UA_EVENT_CALL_ESTABLISHED:
 			ua_event_current_set(ua);
 			webapp_call_update(call, "Established");
+#ifndef SLPLUGIN
+			/* Auto-Record */
+			webapp_options_set("record", "true");
+#endif
 			break;
 
 		case UA_EVENT_CALL_CLOSED:
