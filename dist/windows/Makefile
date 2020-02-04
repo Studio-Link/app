@@ -15,7 +15,8 @@ endif
 
 
 # Tools
-SYSROOT   := /local/$(TUPLE)
+SYSROOT   := /usr/$(TUPLE)
+
 CC        := $(TUPLE)-gcc
 CXX       := $(TUPLE)-g++
 RANLIB    := $(TUPLE)-ranlib
