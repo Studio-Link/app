@@ -245,23 +245,38 @@ static void downsample_first_ch(int16_t *outv, const int16_t *inv, size_t inc)
 
 static void convert_out_channels(int16_t *outv, const int16_t *inv, size_t inc)
 {
+	unsigned ratio = 2;
+
 	while (inc >= 1)
 	{
 		outv[0] = inv[0];
 		outv[1] = inv[1];
 
-		outv += 2;
+		outv += ratio;
 
+		/* Jump over channels 3-n */
 		for (uint16_t ch = 0; ch < output_channels - 2; ch++)
 		{
 			outv += 1;
 		}
 
-		inv += 2;
-		inc -= 2;
+		inv += ratio;
+		inc -= ratio;
+	}
 	}
 
 
+static void convert_out_mono(int16_t *outv, const int16_t *inv, size_t inc)
+{
+	unsigned ratio = 2;
+
+	while (inc >= 1)
+	{
+		*outv++ = inv[0]/2 + inv[1]/2;
+
+		inv += ratio;
+		inc -= ratio;
+}
 }
 
 
@@ -501,7 +516,7 @@ int slrtaudio_callback_out(void *out, void *in, unsigned int nframes,
 				"returned error : %s\n", src_strerror(error));
 			return 1;
 		};
-		if (output_channels > 2) {
+		if (output_channels != 2) {
 			auconv_to_s16(slrtaudio->outBufferTmp, AUFMT_FLOAT,
 					slrtaudio->outBufferInFloat,
 					src_data_out.output_frames_gen * 2);
@@ -515,7 +530,7 @@ int slrtaudio_callback_out(void *out, void *in, unsigned int nframes,
 	}
 	else
 	{
-		if (output_channels > 2) {
+		if (output_channels != 2) {
 			for (uint16_t pos = 0; pos < nframes * 2; pos++)
 			{
 				slrtaudio->outBufferTmp[pos] = playmix[pos];
@@ -532,6 +547,11 @@ int slrtaudio_callback_out(void *out, void *in, unsigned int nframes,
 
 	if (output_channels > 2) {
 		convert_out_channels(outBuffer, slrtaudio->outBufferTmp,
+					nframes * 2);
+	}
+
+	if (output_channels == 1) {
+		convert_out_mono(outBuffer, slrtaudio->outBufferTmp,
 					nframes * 2);
 	}
 
