@@ -260,14 +260,14 @@ out:
 static void provisioning(void)
 {
 	char url[255] = {0};
-	char host[] = "vpn.studio-link.de";
-	char path[] = "provisioning/index.php";
+	char host[] = "my.studio.link";
+	char path[] = "api/provisioning";
 	struct config *cfg = conf_config();
 	const struct network *net = baresip_network();
 
 	info("webapp/account: start provisioning\n");
 
-	re_snprintf(url, sizeof(url), "https://%s/%s?uuid=%s&version=%s",
+	re_snprintf(url, sizeof(url), "https://%s/%s/%s?version=%s",
 			host, path, cfg->sip.uuid, SLVERSION);
 
 	http_client_alloc(&cli, net_dnsc(net));
