@@ -93,16 +93,18 @@ sl_get_librem() {
 
 sl_get_baresip() {
     sl_get_webui
-    #wget https://github.com/Studio-Link/baresip/archive/$baresip.tar.gz
-    wget "https://github.com/alfredh/baresip/archive/v${baresip}.tar.gz" -O baresip-${baresip}.tar.gz
+    baresip_url="https://github.com/studio-link-3rdparty/baresip/archive/v"
+    #baresip_url="https://github.com/alfredh/baresip/archive/v"
+
+    wget ${baresip_url}${baresip}.tar.gz -O baresip-${baresip}.tar.gz
     tar -xzf baresip-${baresip}.tar.gz
     ln -s baresip-$baresip baresip
     pushd baresip-$baresip
 
     ## Add patches
-    patch -p1 < ../../dist/patches/config.patch
-    patch -p1 < ../../dist/patches/fix_check_telev_and_pthread.patch
-    patch -p1 < ../../dist/patches/osx_sample_rate.patch
+    #patch -p1 < ../../dist/patches/config.patch
+    #patch -p1 < ../../dist/patches/fix_check_telev_and_pthread.patch
+    #patch -p1 < ../../dist/patches/osx_sample_rate.patch
 
     #fixes multiple maxaverage lines in fmtp e.g.: 
     #fmtp: stereo=1;sprop-stereo=1;maxaveragebitrate=64000;maxaveragebitrate=64000;
@@ -110,8 +112,8 @@ sl_get_baresip() {
     #patch -p1 < ../../dist/patches/opus_fmtp.patch
 
     ## Link backend modules
-    rm -Rf modules/g722
-    cp -a ../../src/modules/g722 modules/g722
+    #rm -Rf modules/g722
+    #cp -a ../../src/modules/g722 modules/g722
     cp -a ../../src/modules/slogging modules/slogging
     cp -a ../../src/modules/webapp modules/webapp
     cp -a ../../src/modules/effect modules/effect
