@@ -50,7 +50,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     sed_opt="-i ''"
 fi
 
-sl_extra_modules="$sl_extra_modules g722 slogging"
+sl_extra_modules="$sl_extra_modules g722 slogging dtls_srtp"
 
 # Build libre
 #-----------------------------------------------------------------------------
