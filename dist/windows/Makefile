@@ -28,7 +28,7 @@ PWD       := $(shell pwd)
 #
 
 CFLAGS    := -DFD_SETSIZE=1024 \
-	-isystem $(PWD)/openssl/include -I$(PWD) -I $(PWD)/my_include -g -gdwarf-2
+	-isystem $(PWD)/openssl/include -I$(PWD) -I $(PWD)/my_include -g -gdwarf-2 -DHAVE_POLL -DHAVE_WSAPOLL
 
 LFLAGS    := -L$(SYSROOT)/lib/ \
 	-L$(PWD)/openssl \
@@ -55,8 +55,6 @@ COMMON_FLAGS := CC=$(CC) \
 		HAVE_LIBPTHREAD= \
 		HAVE_INET_PTON=1 \
 		HAVE_INET6=1 \
-		HAVE_POLL=1 \
-		HAVE_WSAPOLL=1 \
 		PEDANTIC= \
 		OPT_SIZE=1 \
 		OS=win32 \
