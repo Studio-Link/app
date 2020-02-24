@@ -80,7 +80,7 @@ sl_get_libre() {
     patch --ignore-whitespace -p1 < ../../dist/patches/re_fix_authorization.patch
     if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
         patch -p1 < ../../dist/patches/fix_windows_ssize_t_bug.patch
-        patch -p1 < ../../dist/patches/re_wsapoll.patch
+        #patch -p1 < ../../dist/patches/re_wsapoll.patch
     fi
     popd
 }

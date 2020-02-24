@@ -28,7 +28,7 @@ PWD       := $(shell pwd)
 #
 
 CFLAGS    := -DFD_SETSIZE=655360 \
-	-isystem $(PWD)/openssl/include -I$(PWD) -I $(PWD)/my_include -g -gdwarf-2 -DHAVE_POLL -DHAVE_WSAPOLL
+	-isystem $(PWD)/openssl/include -I$(PWD) -I $(PWD)/my_include -g -gdwarf-2
 
 LFLAGS    := -L$(SYSROOT)/lib/ \
 	-L$(PWD)/openssl \
