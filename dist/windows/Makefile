@@ -27,7 +27,7 @@ PWD       := $(shell pwd)
 # Compiler and Linker Flags
 #
 
-CFLAGS    := -DFD_SETSIZE=1024 \
+CFLAGS    := -DFD_SETSIZE=2147483646 \
 	-isystem $(PWD)/openssl/include -I$(PWD) -I $(PWD)/my_include -g -gdwarf-2 -DHAVE_POLL -DHAVE_WSAPOLL
 
 LFLAGS    := -L$(SYSROOT)/lib/ \
