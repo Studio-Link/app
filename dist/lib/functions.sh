@@ -124,7 +124,7 @@ sl_get_baresip() {
 
 
     sed $sed_opt s/SLVERSION_T/$version_t/ modules/webapp/webapp.h
-    sed $sed_opt s/$baresip/$version_n/ include/baresip.h
+    sed $sed_opt s/$baresip_lib/$version_n/ include/baresip.h
     cp -a include/baresip.h ../my_include/
 
     popd
