@@ -38,7 +38,7 @@ out:
 	mem_deref(cmd);
 }
 
-int64_t slrtaudio_record_get_timer(void);
+int slrtaudio_record_get_timer(void);
 static void write_ws(void)
 {
 	int64_t record_time;
@@ -55,10 +55,10 @@ static void write_ws(void)
 	/* Record time */
 	record_time = slrtaudio_record_get_timer();
 
-	hours = (int)(record_time / 1000 / 3600);
-	min = (int)(record_time / 1000 / 60) - (hours * 60); 
-	sec = (int)(record_time / 1000) - (hours * 3600) - (min * 60);
-	msec = (int)(record_time) - (hours * 3600 * 1000) - (min * 60 * 1000) - (sec * 1000);
+	hours = record_time / 1000 / 3600;
+	min = (record_time / 1000 / 60) - (hours * 60); 
+	sec = (record_time / 1000) - (hours * 3600) - (min * 60);
+	msec = record_time - (hours * 3600 * 1000) - (min * 60 * 1000) - (sec * 1000);
 
 //	warning("record time: %d:%02d:%02d:%03d\n", hours,min,sec,msec);
 

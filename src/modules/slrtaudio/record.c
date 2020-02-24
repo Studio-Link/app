@@ -23,7 +23,7 @@
 
 static bool record = false;
 static char command[256];
-static int64_t record_timer = 0;
+static int record_timer = 0;
 
 
 void slrtaudio_record_set(bool active)
@@ -32,7 +32,7 @@ void slrtaudio_record_set(bool active)
 }
 
 
-int64_t slrtaudio_record_get_timer()
+int slrtaudio_record_get_timer()
 {
 	return record_timer;
 }
