@@ -272,9 +272,11 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 	}
 
 #ifndef SLPLUGIN
+#if 0
 	/* Auto-Record off if no call*/
 	if (!active_calls)
 		webapp_options_set("record", "false");
+#endif
 #endif
 
 	return err;
@@ -383,8 +385,10 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			ua_event_current_set(ua);
 			webapp_call_update(call, "Established");
 #ifndef SLPLUGIN
+#if 0
 			/* Auto-Record */
 			webapp_options_set("record", "true");
+#endif
 #endif
 			break;
 

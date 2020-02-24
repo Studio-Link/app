@@ -53,6 +53,7 @@ static int openfile(struct session *sess)
 	FLAC__StreamEncoderInitStatus init_status;
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
 	int err;
+	int ret;
 #ifdef WIN32
 	char win32_path[MAX_PATH];
 
@@ -95,6 +96,7 @@ static int openfile(struct session *sess)
 	if (sess->local) {
 		(void)re_snprintf(filename, sizeof(filename), "%s"
 				DIR_SEP "local-%x.flac", filename, sess);
+		ret = system(command);
 	}
 	else {
 		(void)re_snprintf(filename, sizeof(filename), "%s"

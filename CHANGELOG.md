@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **Standalone** Output Mono Support (needed by some bluetooth headsets)
+
 
 ## [v20.02.0-rc0] - 2020-02-04
 
