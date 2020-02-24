@@ -1,0 +1,72 @@
+diff --git a/mk/re.mk b/mk/re.mk
+index 85d5391..70dc174 100644
+--- a/mk/re.mk
++++ b/mk/re.mk
+@@ -325,7 +325,7 @@ ifeq ($(OS),openbsd)
+ 	HAVE_ARC4RANDOM	:= 1
+ endif
+ ifeq ($(OS),win32)
+-	CFLAGS		+= -DWIN32 -D_WIN32_WINNT=0x0501 -D__ssize_t_defined
++	CFLAGS		+= -DWIN32 -D_WIN32_WINNT=0x0601 -D__ssize_t_defined
+ 	LIBS		+= -lwsock32 -lws2_32 -liphlpapi
+ 	LFLAGS		+=
+ 	SH_LFLAGS	+= -shared
+diff --git a/src/main/main.c b/src/main/main.c
+index b90c139..aa7da08 100644
+--- a/src/main/main.c
++++ b/src/main/main.c
+@@ -22,8 +22,12 @@
+ #include <sys/select.h>
+ #endif
+ #ifdef HAVE_POLL
++#ifdef HAVE_WSAPOLL
++#include <winsock2.h>
++#else
+ #include <poll.h>
+ #endif
++#endif
+ #ifdef HAVE_EPOLL
+ #include <sys/epoll.h>
+ #endif
+@@ -101,8 +105,12 @@ struct re {
+ 	struct list tmrl;            /**< List of timers                    */
+ 
+ #ifdef HAVE_POLL
++#ifdef HAVE_WSAPOLL
++	WSAPOLLFD *fds;
++#else
+ 	struct pollfd *fds;          /**< Event set for poll()              */
+ #endif
++#endif
+ 
+ #ifdef HAVE_EPOLL
+ 	struct epoll_event *events;  /**< Event set for epoll()             */
+@@ -669,7 +677,14 @@ static int fd_poll(struct re *re)
+ #ifdef HAVE_POLL
+ 	case METHOD_POLL:
+ 		re_unlock(re);
++#ifdef HAVE_WSAPOLL
++		/* Timer Workaround for 
++		 * https://daniel.haxx.se/blog/2012/10/10/wsapoll-is-broken/
++		 */
++		n = WSAPoll(re->fds, re->nfds, to ? (int)to : 1000);
++#else
+ 		n = poll(re->fds, re->nfds, to ? (int)to : -1);
++#endif
+ 		re_lock(re);
+ 		break;
+ #endif
+@@ -755,11 +770,13 @@ static int fd_poll(struct re *re)
+ 			if (re->fds[fd].revents & (POLLERR|POLLHUP|POLLNVAL))
+ 				flags |= FD_EXCEPT;
+ 			if (re->fds[fd].revents & POLLNVAL) {
++#ifndef HAVE_WSAPOLL
+ 				DEBUG_WARNING("event: fd=%d POLLNVAL"
+ 					      " (fds.fd=%d,"
+ 					      " fds.events=0x%02x)\n",
+ 					      fd, re->fds[fd].fd,
+ 					      re->fds[fd].events);
++#endif
+ 			}
+ 			/* Clear events */
+ 			re->fds[fd].revents = 0;

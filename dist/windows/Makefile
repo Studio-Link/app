@@ -27,7 +27,7 @@ PWD       := $(shell pwd)
 # Compiler and Linker Flags
 #
 
-CFLAGS    := -DFD_SETSIZE=8192 \
+CFLAGS    := -DFD_SETSIZE=1024 \
 	-isystem $(PWD)/openssl/include -I$(PWD) -I $(PWD)/my_include -g -gdwarf-2
 
 LFLAGS    := -L$(SYSROOT)/lib/ \
@@ -55,6 +55,8 @@ COMMON_FLAGS := CC=$(CC) \
 		HAVE_LIBPTHREAD= \
 		HAVE_INET_PTON=1 \
 		HAVE_INET6=1 \
+		HAVE_POLL=1 \
+		HAVE_WSAPOLL=1 \
 		PEDANTIC= \
 		OPT_SIZE=1 \
 		OS=win32 \
