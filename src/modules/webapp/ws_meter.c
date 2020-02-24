@@ -38,16 +38,34 @@ out:
 	mem_deref(cmd);
 }
 
-
+int64_t slrtaudio_record_get_timer(void);
 static void write_ws(void)
 {
+	int64_t record_time;
 	int n;
 	int i;
 	float db;
 	char one_peak[100];
-	char p[1024];
+	char p[2048];
+	int hours;
+	int min;
+	int sec;
+	int msec;
+
+	/* Record time */
+	record_time = slrtaudio_record_get_timer();
+
+	hours = (int)(record_time / 1000 / 3600);
+	min = (int)(record_time / 1000 / 60) - (hours * 60); 
+	sec = (int)(record_time / 1000) - (hours * 3600) - (min * 60);
+	msec = (int)(record_time) - (hours * 3600 * 1000) - (min * 60 * 1000) - (sec * 1000);
+
+//	warning("record time: %d:%02d:%02d:%03d\n", hours,min,sec,msec);
 
 	p[0] = '\0';
+	re_snprintf(one_peak, 100, "%d:%02d:%02d:%03d 0 ", hours, min, sec, msec);
+	strcat((char*)p, one_peak);
+
 	for (i=0; i<MAX_METERS; i++) {
 		db = 20.0f * log10f(sent_peaks[i] * bias);
 		re_snprintf(one_peak, 100, "%f ", db);

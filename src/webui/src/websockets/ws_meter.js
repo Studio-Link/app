@@ -41,79 +41,66 @@ $(function () {
 		
 		var peaks = event.data.split(" ");
 
-		var mic1 = iec_scale(parseFloat(peaks[0])) * 100;
-		var mic2 = iec_scale(parseFloat(peaks[2])) * 100;
-		var mic3 = iec_scale(parseFloat(peaks[4])) * 100;
-		var mic4 = iec_scale(parseFloat(peaks[6])) * 100;
-		var mic5 = iec_scale(parseFloat(peaks[8])) * 100;
-		var mic6 = iec_scale(parseFloat(peaks[10])) * 100;
-		var mic7 = iec_scale(parseFloat(peaks[12])) * 100;
-		var mic8 = iec_scale(parseFloat(peaks[14])) * 100;
-		var mic9 = iec_scale(parseFloat(peaks[16])) * 100;
-		var mic10 = iec_scale(parseFloat(peaks[18])) * 100;
-		var mic11 = iec_scale(parseFloat(peaks[20])) * 100;
-		var mic12 = iec_scale(parseFloat(peaks[22])) * 100;
+		$("#record_time").html(peaks[0]);
 
-		var head1 = iec_scale(parseFloat(peaks[1])) * 100;
-		var head2 = iec_scale(parseFloat(peaks[3])) * 100;
-		var head3 = iec_scale(parseFloat(peaks[5])) * 100;
-		var head4 = iec_scale(parseFloat(peaks[7])) * 100;
-		var head5 = iec_scale(parseFloat(peaks[9])) * 100;
-		var head6 = iec_scale(parseFloat(peaks[11])) * 100;
-		var head7 = iec_scale(parseFloat(peaks[13])) * 100;
-		var head8 = iec_scale(parseFloat(peaks[15])) * 100;
-		var head9 = iec_scale(parseFloat(peaks[17])) * 100;
-		var head10 = iec_scale(parseFloat(peaks[19])) * 100;
-		var head11 = iec_scale(parseFloat(peaks[21])) * 100;
-		var head12 = iec_scale(parseFloat(peaks[23])) * 100;
+		var mic1 = iec_scale(parseFloat(peaks[2])) * 100;
+		var mic2 = iec_scale(parseFloat(peaks[4])) * 100;
+		var mic3 = iec_scale(parseFloat(peaks[6])) * 100;
+		var mic4 = iec_scale(parseFloat(peaks[8])) * 100;
+		var mic5 = iec_scale(parseFloat(peaks[10])) * 100;
+		var mic6 = iec_scale(parseFloat(peaks[12])) * 100;
+		var mic7 = iec_scale(parseFloat(peaks[14])) * 100;
+		var mic8 = iec_scale(parseFloat(peaks[16])) * 100;
+		var mic9 = iec_scale(parseFloat(peaks[18])) * 100;
+		var mic10 = iec_scale(parseFloat(peaks[20])) * 100;
+		var mic11 = iec_scale(parseFloat(peaks[22])) * 100;
+		var mic12 = iec_scale(parseFloat(peaks[24])) * 100;
 
-		if (peaks[2] != "inf") {
-			$("#microphonebar2").removeClass("d-none");
-			$("#headphonesbar2").removeClass("d-none");
-		}
-		
+		var head1 = iec_scale(parseFloat(peaks[3])) * 100;
+		var head2 = iec_scale(parseFloat(peaks[5])) * 100;
+		var head3 = iec_scale(parseFloat(peaks[7])) * 100;
+		var head4 = iec_scale(parseFloat(peaks[9])) * 100;
+		var head5 = iec_scale(parseFloat(peaks[11])) * 100;
+		var head6 = iec_scale(parseFloat(peaks[13])) * 100;
+		var head7 = iec_scale(parseFloat(peaks[15])) * 100;
+		var head8 = iec_scale(parseFloat(peaks[17])) * 100;
+		var head9 = iec_scale(parseFloat(peaks[19])) * 100;
+		var head10 = iec_scale(parseFloat(peaks[21])) * 100;
+		var head11 = iec_scale(parseFloat(peaks[23])) * 100;
+		var head12 = iec_scale(parseFloat(peaks[25])) * 100;
+
 		if (peaks[4] != "inf") {
-			$("#microphonebar3").removeClass("d-none");
-			$("#headphonesbar3").removeClass("d-none");
+			$("#microphonebar2").removeClass("d-none");
 		}
-		
 		if (peaks[6] != "inf") {
-			$("#microphonebar4").removeClass("d-none");
-			$("#headphonesbar4").removeClass("d-none");
+			$("#microphonebar3").removeClass("d-none");
 		}
-		
 		if (peaks[8] != "inf") {
-			$("#microphonebar5").removeClass("d-none");
-			$("#headphonesbar5").removeClass("d-none");
+			$("#microphonebar4").removeClass("d-none");
 		}
-		
 		if (peaks[10] != "inf") {
-			$("#microphonebar6").removeClass("d-none");
-			$("#headphonesbar6").removeClass("d-none");
+			$("#microphonebar5").removeClass("d-none");
 		}
 		if (peaks[12] != "inf") {
-			$("#microphonebar7").removeClass("d-none");
-			$("#headphonesbar7").removeClass("d-none");
+			$("#microphonebar6").removeClass("d-none");
 		}
 		if (peaks[14] != "inf") {
-			$("#microphonebar8").removeClass("d-none");
-			$("#headphonesbar8").removeClass("d-none");
+			$("#microphonebar7").removeClass("d-none");
 		}
 		if (peaks[16] != "inf") {
-			$("#microphonebar9").removeClass("d-none");
-			$("#headphonesbar9").removeClass("d-none");
+			$("#microphonebar8").removeClass("d-none");
 		}
 		if (peaks[18] != "inf") {
-			$("#microphonebar10").removeClass("d-none");
-			$("#headphonesbar10").removeClass("d-none");
+			$("#microphonebar9").removeClass("d-none");
 		}
 		if (peaks[20] != "inf") {
-			$("#microphonebar11").removeClass("d-none");
-			$("#headphonesbar11").removeClass("d-none");
+			$("#microphonebar10").removeClass("d-none");
 		}
 		if (peaks[22] != "inf") {
+			$("#microphonebar11").removeClass("d-none");
+		}
+		if (peaks[24] != "inf") {
 			$("#microphonebar12").removeClass("d-none");
-			$("#headphonesbar12").removeClass("d-none");
 		}
 
 		$("#microphonebar1").html('<div class="progress-bar '+rainbow(mic1)+'" style="width: '+mic1+'%"> <span class="sr-only">'+mic1+'% Complete (success)</span></div>');

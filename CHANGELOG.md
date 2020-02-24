@@ -1,10 +1,14 @@
 # Changelog
 
-## [Unreleased]
+## [v20.02.0-rc1]
 
 ### Fixed
 
 - **Standalone** Output Mono Support (needed by some bluetooth headsets)
+
+### Changed
+
+- **Standalone** Auto-Record disabled
 
 
 ## [v20.02.0-rc0] - 2020-02-04

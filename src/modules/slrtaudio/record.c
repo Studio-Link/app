@@ -23,11 +23,18 @@
 
 static bool record = false;
 static char command[256];
+static int64_t record_timer = 0;
 
 
 void slrtaudio_record_set(bool active)
 {
 	record = active;
+}
+
+
+int64_t slrtaudio_record_get_timer()
+{
+	return record_timer;
 }
 
 
@@ -197,6 +204,9 @@ static void *record_thread(void *arg)
 			ok = FLAC__stream_encoder_process_interleaved(
 					sess->flac, sess->pcm, SAMPC/2);
 
+			if (sess->local)
+				record_timer += PTIME;
+
 		}
 		else {
 			if (sess->flac) {
@@ -211,6 +221,7 @@ static void *record_thread(void *arg)
 				if (sess->local)
 					ret = system(command);
 			}
+			record_timer = 0;
 		}
 
 		if (!ok) {
