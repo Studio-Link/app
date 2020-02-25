@@ -57,7 +57,7 @@ static void write_ws(void)
 	int min;
 	int sec;
 	int msec;
-	int64_t record_time;
+	int record_time;
 
 	record_time = slrtaudio_record_get_timer();
 	hours = record_time / 1000 / 3600;
