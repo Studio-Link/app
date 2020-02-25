@@ -49,10 +49,6 @@ static void write_ws(void)
 	float db;
 	char one_peak[100];
 	char p[2048];
-	int hours;
-	int min;
-	int sec;
-	int msec;
 
 	p[0] = '\0';
 	/* Record time */
