@@ -16,7 +16,7 @@
 - **Standalone** Output Mono Support (needed by some bluetooth headsets)
 
 
-[Changelog Archive...](https://github.com/Studio-Link/app/blob/v19.xx.x/CHANGELOG-ARCHIVE.md)
+[Changelog Archive...](https://github.com/Studio-Link/app/blob/v20.xx.x/CHANGELOG-ARCHIVE.md)
 
 ---
 
