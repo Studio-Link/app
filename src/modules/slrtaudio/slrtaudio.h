@@ -20,11 +20,13 @@ struct session {
 	int8_t ch;
 	float *vumeter;
 	struct call *call;
+	int8_t track;
 };
 
 extern struct list sessionl;
 void slrtaudio_record_init(void);
 void slrtaudio_record_set(bool active);
+int slrtaudio_record_get_timer(void);
 void slrtaudio_mono_set(bool active);
 void slrtaudio_mute_set(bool active);
 const struct odict* slrtaudio_get_interfaces(void);

@@ -23,11 +23,18 @@
 
 static bool record = false;
 static char command[256];
+static int record_timer = 0;
 
 
 void slrtaudio_record_set(bool active)
 {
 	record = active;
+}
+
+
+int slrtaudio_record_get_timer()
+{
+	return record_timer;
 }
 
 
@@ -53,6 +60,7 @@ static int openfile(struct session *sess)
 	FLAC__StreamEncoderInitStatus init_status;
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
 	int err;
+	int ret;
 #ifdef WIN32
 	char win32_path[MAX_PATH];
 
@@ -94,11 +102,12 @@ static int openfile(struct session *sess)
 #endif
 	if (sess->local) {
 		(void)re_snprintf(filename, sizeof(filename), "%s"
-				DIR_SEP "local-%x.flac", filename, sess);
+			DIR_SEP "local.flac", filename);
+		ret = system(command);
 	}
 	else {
 		(void)re_snprintf(filename, sizeof(filename), "%s"
-				DIR_SEP "remote-%x.flac", filename, sess);
+			DIR_SEP "remote-track-%d.flac", filename, sess->track);
 	}
 
 
@@ -195,6 +204,9 @@ static void *record_thread(void *arg)
 			ok = FLAC__stream_encoder_process_interleaved(
 					sess->flac, sess->pcm, SAMPC/2);
 
+			if (sess->local)
+				record_timer += PTIME;
+
 		}
 		else {
 			if (sess->flac) {
@@ -205,10 +217,13 @@ static void *record_thread(void *arg)
 
 				sess->flac = NULL;
 
-				/* open folder on stop record */
-				if (sess->local)
+				/* open folder on stop record
+				 * if record_time > 5min
+				 */
+				if (sess->local && record_timer > 300000)
 					ret = system(command);
 			}
+			record_timer = 0;
 		}
 
 		if (!ok) {

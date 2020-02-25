@@ -86,6 +86,7 @@ struct session {
 	struct call *call;
 	bool stream; /* only for standalone */
 	bool local;  /* only for standalone */
+	int8_t track;
 };
 
 static struct list sessionl;
@@ -541,6 +542,7 @@ static int effect_init(void)
 		sess->run_auto_mix = true;
 		sess->stream = false;
 		sess->local = false;
+		sess->track = cnt + 1;
 		list_append(&sessionl, &sess->le, sess);
 	}
 
