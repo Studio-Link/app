@@ -245,7 +245,7 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 		}
 
 
-		re_snprintf(id, sizeof(id), "%x", sess);
+		re_snprintf(id, sizeof(id), "%d", sess->track);
 
 		if (sess_id) {
 			if (!str_cmp(id, sess_id)) {
@@ -341,7 +341,7 @@ int webapp_call_update(struct call *call, char *state)
 			continue;
 
 
-		re_snprintf(id, sizeof(id), "%x", sess);
+		re_snprintf(id, sizeof(id), "%d", sess->track);
 
 		odict_entry_del(webapp_calls, id);
 		odict_entry_add(o, "peer", ODICT_STRING, call_peeruri(call));
@@ -351,6 +351,7 @@ int webapp_call_update(struct call *call, char *state)
 #else
 		odict_entry_add(o, "ch", ODICT_INT, (int64_t)sess->ch);
 #endif
+		odict_entry_add(o, "track", ODICT_INT, (int64_t)sess->track);
 		odict_entry_add(webapp_calls, id, ODICT_OBJECT, o);
 	}
 

@@ -20,6 +20,7 @@ struct session {
 	int8_t ch;
 	float *vumeter;
 	struct call *call;
+	int8_t track;
 };
 
 extern struct list sessionl;

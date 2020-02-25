@@ -1187,6 +1187,7 @@ static int slrtaudio_init(void)
 		sess->local = false;
 		sess->stream = false;
 		sess->ch = cnt * 2 + 1;
+		sess->track = cnt + 1;
 		sess->call = NULL;
 
 		list_append(&sessionl, &sess->le, sess);

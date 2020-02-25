@@ -175,6 +175,7 @@ struct session {
 	int8_t ch;
 	float *vumeter;
 	struct call *call;
+	int8_t track;
 };
 #else
 /*
@@ -196,5 +197,6 @@ struct session {
 	struct call *call;
 	bool stream; /* only for standalone */
 	bool local;  /* only for standalone */
+	int8_t track;
 };
 #endif
