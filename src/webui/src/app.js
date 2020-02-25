@@ -5,19 +5,13 @@ Handlebars.registerHelper("inc", function(value, options) {
 });
 
 Handlebars.registerHelper("mysip", function(value, options) {
-  if (value.match("sip:(.+@studio-link.de)"))
-    return value.match("sip:(.+@studio-link.de)")[1];
+  if (value.match("sip:(.+@studio.link)"))
+    return value.match("sip:(.+@studio.link)")[1];
   return value;
 });
 
 Handlebars.registerHelper("inc", function(value, options) {
   return parseInt(value) + 1;
-});
-
-Handlebars.registerHelper("mysip", function(value, options) {
-  if (value.match("sip:(.+@studio-link.de)"))
-    return value.match("sip:(.+@studio-link.de)")[1];
-  return value;
 });
 
 Handlebars.registerHelper("myselect", function(channel, index, options) {
