@@ -102,12 +102,12 @@ static int openfile(struct session *sess)
 #endif
 	if (sess->local) {
 		(void)re_snprintf(filename, sizeof(filename), "%s"
-				DIR_SEP "local.flac", filename);
+			DIR_SEP "local.flac", filename);
 		ret = system(command);
 	}
 	else {
 		(void)re_snprintf(filename, sizeof(filename), "%s"
-				DIR_SEP "remote-track-%d.flac", filename, sess->track);
+			DIR_SEP "remote-track-%d.flac", filename, sess->track);
 	}
 
 
