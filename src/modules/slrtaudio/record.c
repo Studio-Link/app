@@ -217,8 +217,8 @@ static void *record_thread(void *arg)
 
 				sess->flac = NULL;
 
-				/* open folder on stop record 
-				 * if record_time > 5min 
+				/* open folder on stop record
+				 * if record_time > 5min
 				 */
 				if (sess->local && record_timer > 300000)
 					ret = system(command);
