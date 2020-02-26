@@ -274,7 +274,7 @@ static void provisioning(void)
 {
 	char url[255] = {0};
 	char host[] = "my.studio.link";
-	char path[] = "api/provisioning";
+	char path[] = "api/v1/provisioning";
 	struct config *cfg = conf_config();
 	const struct network *net = baresip_network();
 
