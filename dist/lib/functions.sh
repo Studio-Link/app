@@ -80,6 +80,7 @@ sl_get_libre() {
     patch --ignore-whitespace -p1 < ../../dist/patches/re_fix_authorization.patch
     if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
         patch -p1 < ../../dist/patches/fix_windows_ssize_t_bug.patch
+        #patch -p1 < ../../dist/patches/re_wsapoll.patch
     fi
     popd
 }
@@ -93,8 +94,10 @@ sl_get_librem() {
 
 sl_get_baresip() {
     sl_get_webui
-    #wget https://github.com/Studio-Link/baresip/archive/$baresip.tar.gz
-    wget "https://github.com/alfredh/baresip/archive/v${baresip}.tar.gz" -O baresip-${baresip}.tar.gz
+    baresip_url="https://github.com/studio-link-3rdparty/baresip/archive/v"
+    #baresip_url="https://github.com/alfredh/baresip/archive/v"
+
+    wget ${baresip_url}${baresip}.tar.gz -O baresip-${baresip}.tar.gz
     tar -xzf baresip-${baresip}.tar.gz
     ln -s baresip-$baresip baresip
     pushd baresip-$baresip
@@ -102,7 +105,9 @@ sl_get_baresip() {
     ## Add patches
     patch -p1 < ../../dist/patches/config.patch
     patch -p1 < ../../dist/patches/fix_check_telev_and_pthread.patch
-    patch -p1 < ../../dist/patches/osx_sample_rate.patch
+    patch -p1 < ../../dist/patches/dtls_aes256.patch
+    patch -p1 < ../../dist/patches/rtcp_mux_softphone.patch
+    #patch -p1 < ../../dist/patches/osx_sample_rate.patch
 
     #fixes multiple maxaverage lines in fmtp e.g.: 
     #fmtp: stereo=1;sprop-stereo=1;maxaveragebitrate=64000;maxaveragebitrate=64000;
@@ -121,7 +126,7 @@ sl_get_baresip() {
 
 
     sed $sed_opt s/SLVERSION_T/$version_t/ modules/webapp/webapp.h
-    sed $sed_opt s/$baresip/$version_n/ include/baresip.h
+    sed $sed_opt s/$baresip_lib/$version_n/ include/baresip.h
     cp -a include/baresip.h ../my_include/
 
     popd

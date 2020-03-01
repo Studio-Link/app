@@ -340,7 +340,7 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 
 		if ((error = src_process(src_state_in, &src_data_in)) != 0)
 		{
-			error_msg("slrtaudio: Samplerate::src_process_in :"
+			warning("slrtaudio: Samplerate::src_process_in :"
 					"returned error : %s %f\n",
 					src_strerror(error),
 					src_data_in.src_ratio);
@@ -512,7 +512,7 @@ int slrtaudio_callback_out(void *out, void *in, unsigned int nframes,
 
 		if ((error = src_process(src_state_out, &src_data_out)) != 0)
 		{
-			error_msg("slrtaudio: Samplerate::src_process_out :"
+			warning("slrtaudio: Samplerate::src_process_out :"
 				"returned error : %s\n", src_strerror(error));
 			return 1;
 		};
@@ -839,7 +839,7 @@ static int slrtaudio_devices(void)
 		{
 			re_snprintf(errmsg, sizeof(errmsg), "%s",
 					rtaudio_error(audio));
-			error_msg("slrtaudio rtaudio_error: %s\n", errmsg);
+			warning("slrtaudio rtaudio_error: %s\n", errmsg);
 			err = 1;
 			goto out1;
 		}
@@ -1016,7 +1016,7 @@ static int slrtaudio_start(void)
 	/** Initialize the sample rate converter for input */
 	if ((src_state_in = src_new(SRC_SINC_FASTEST, 2, &error)) == NULL)
 	{
-		error_msg("Samplerate::src_new failed : %s.\n",
+		warning("Samplerate::src_new failed : %s.\n",
 				src_strerror(error));
 		return 1;
 	};
@@ -1024,7 +1024,7 @@ static int slrtaudio_start(void)
 	/** Initialize the sample rate converter for output */
 	if ((src_state_out = src_new(SRC_SINC_FASTEST, 2, &error)) == NULL)
 	{
-		error_msg("slrtaudio: Samplerate::src_new failed : %s.\n",
+		warning("slrtaudio: Samplerate::src_new failed : %s.\n",
 				src_strerror(error));
 		return 1;
 	};
@@ -1097,11 +1097,11 @@ out:
 	if (err) {
 		re_snprintf(errmsg, sizeof(errmsg), "%s",
 					rtaudio_error(audio_in));
-		error_msg("slrtaudio: error: %s\n", errmsg);
+		warning("slrtaudio: error: %s\n", errmsg);
 		if (audio_out) {
 			re_snprintf(errmsg, sizeof(errmsg), "%s",
 					rtaudio_error(audio_out));
-			error_msg("slrtaudio out error: %s\n", errmsg);
+			warning("slrtaudio out error: %s\n", errmsg);
 		}
 		/**	webapp_ws_rtaudio_set_err(errmsg);*/
 	}

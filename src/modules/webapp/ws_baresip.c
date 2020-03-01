@@ -8,7 +8,7 @@
 static void sip_delete(struct odict *cmd, const struct odict_entry *e)
 {
 	char user[50];
-	char domain[50];
+	char domain[70];
 
 	e = odict_lookup(cmd, "user");
 	if (e)

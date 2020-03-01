@@ -27,7 +27,7 @@ PWD       := $(shell pwd)
 # Compiler and Linker Flags
 #
 
-CFLAGS    := -DFD_SETSIZE=16384 \
+CFLAGS    := -DFD_SETSIZE=65536 \
 	-isystem $(PWD)/openssl/include -I$(PWD) -I $(PWD)/my_include -g -gdwarf-2
 
 LFLAGS    := -L$(SYSROOT)/lib/ \
@@ -90,18 +90,18 @@ baresip:	Makefile librem.a libre.a
 	PKG_CONFIG_LIBDIR="$(SYSROOT)/lib/pkgconfig" \
 	make baresip.exe -C baresip $(COMMON_FLAGS) STATIC=1 \
 		LIBRE_SO=$(PWD)/re LIBREM_PATH=$(PWD)/rem \
-		MODULES="opus wincons ice g711 turn stun uuid auloop webapp winwave slrtaudio slogging g722"
+		MODULES="opus wincons ice g711 turn stun uuid auloop webapp winwave slrtaudio slogging g722 dtls_srtp"
 	cp -a baresip/baresip.exe studio-link-standalone.exe
 	make clean -C baresip $(COMMON_FLAGS)
 	make libbaresip.a -C baresip $(COMMON_FLAGS) STATIC=1 \
 		LIBRE_SO=$(PWD)/re LIBREM_PATH=$(PWD)/rem \
-		MODULES="opus ice g711 turn stun uuid apponair effectonair" \
+		MODULES="opus ice g711 turn stun uuid apponair effectonair slogging g722 dtls_srtp" \
 		EXTRA_CFLAGS="$(CFLAGS) -DSLIVE"
 	cp -a baresip/libbaresip.a libbaresip_onair.a 
 	make clean -C baresip $(COMMON_FLAGS)
 	make libbaresip.a -C baresip $(COMMON_FLAGS) STATIC=1 \
 		LIBRE_SO=$(PWD)/re LIBREM_PATH=$(PWD)/rem \
-		MODULES="opus ice g711 turn stun uuid webapp effect slogging g722" \
+		MODULES="opus ice g711 turn stun uuid webapp effect slogging g722 dtls_srtp" \
 		EXTRA_CFLAGS="$(CFLAGS) -DSLPLUGIN"
 
 .PHONY: openssl

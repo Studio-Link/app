@@ -1,8 +1,9 @@
-vmajor=20; vminor=02; vpatch=1
+vmajor=20; vminor=03; vpatch=0
 vbuild="$(git rev-list HEAD --count).$(git rev-parse --short HEAD)"
-#release="rc0-${vbuild}"
-release="rc1"
-baresip="0.6.3"
+release="beta-${vbuild}"
+#release="rc0"
+baresip="20.03.1"
+baresip_lib="0.6.5"
 re="0.6.1"
 rem="0.6.0"
 sl3rdparty="v20.02.0"

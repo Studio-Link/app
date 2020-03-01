@@ -1,5 +1,5 @@
 diff --git a/src/audio.c b/src/audio.c
-index 11e3b3f..ef5edac 100644
+index 7aa2480..36bfb09 100644
 --- a/src/audio.c
 +++ b/src/audio.c
 @@ -11,9 +11,7 @@
@@ -12,7 +12,7 @@ index 11e3b3f..ef5edac 100644
  #include <re.h>
  #include <rem.h>
  #include <baresip.h>
-@@ -109,14 +107,12 @@ struct autx {
+@@ -110,14 +108,12 @@ struct autx {
  		uint64_t aubuf_underrun;
  	} stats;
  
@@ -27,7 +27,7 @@ index 11e3b3f..ef5edac 100644
  };
  
  
-@@ -220,14 +216,12 @@ static void stop_tx(struct autx *tx, struct audio *a)
+@@ -224,14 +220,12 @@ static void stop_tx(struct autx *tx, struct audio *a)
  
  	switch (a->cfg.txmode) {
  
@@ -42,7 +42,7 @@ index 11e3b3f..ef5edac 100644
  	default:
  		break;
  	}
-@@ -663,10 +657,10 @@ static void ausrc_read_handler(const void *sampv, size_t sampc, void *arg)
+@@ -672,10 +666,10 @@ static void ausrc_read_handler(const void *sampv, size_t sampc, void *arg)
  
  			poll_aubuf_tx(a);
  		}
@@ -55,7 +55,7 @@ index 11e3b3f..ef5edac 100644
  }
  
  
-@@ -1228,7 +1222,6 @@ int audio_alloc(struct audio **ap, const struct stream_param *stream_prm,
+@@ -1180,7 +1174,6 @@ int audio_alloc(struct audio **ap, struct list *streaml,
  }
  
  
@@ -63,7 +63,7 @@ index 11e3b3f..ef5edac 100644
  static void *tx_thread(void *arg)
  {
  	struct audio *a = arg;
-@@ -1267,12 +1260,14 @@ static void *tx_thread(void *arg)
+@@ -1219,12 +1212,14 @@ static void *tx_thread(void *arg)
  			      " (total %llu)\n", tx->stats.aubuf_underrun);
  		}
  
@@ -79,7 +79,7 @@ index 11e3b3f..ef5edac 100644
  
  
  static void aufilt_param_set(struct aufilt_prm *prm,
-@@ -1583,7 +1578,6 @@ static int start_source(struct autx *tx, struct audio *a)
+@@ -1542,7 +1537,6 @@ static int start_source(struct autx *tx, struct audio *a)
  		case AUDIO_MODE_POLL:
  			break;
  
@@ -87,7 +87,7 @@ index 11e3b3f..ef5edac 100644
  		case AUDIO_MODE_THREAD:
  			if (!tx->u.thr.run) {
  				tx->u.thr.run = true;
-@@ -1595,7 +1589,6 @@ static int start_source(struct autx *tx, struct audio *a)
+@@ -1554,7 +1548,6 @@ static int start_source(struct autx *tx, struct audio *a)
  				}
  			}
  			break;

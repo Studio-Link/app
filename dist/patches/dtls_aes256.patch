@@ -1,0 +1,18 @@
+diff --git a/modules/dtls_srtp/dtls_srtp.c b/modules/dtls_srtp/dtls_srtp.c
+index 4791e93..11ee248 100644
+--- a/modules/dtls_srtp/dtls_srtp.c
++++ b/modules/dtls_srtp/dtls_srtp.c
+@@ -65,10 +65,10 @@ struct dtls_srtp {
+ 
+ static struct tls *tls;
+ static const char* srtp_profiles =
+-	"SRTP_AES128_CM_SHA1_80:"
+-	"SRTP_AES128_CM_SHA1_32:"
++	"SRTP_AEAD_AES_256_GCM:"
+ 	"SRTP_AEAD_AES_128_GCM:"
+-	"SRTP_AEAD_AES_256_GCM";
++	"SRTP_AES128_CM_SHA1_80:"
++	"SRTP_AES128_CM_SHA1_32";
+ 
+ 
+ static void sess_destructor(void *arg)

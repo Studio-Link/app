@@ -153,7 +153,7 @@ $(function () {
 				var state_html = '<span class="badge badge-danger">ERROR</span>';
 			}
 
-			if (domain == "studio-link.de") {
+			if (domain == "studio.link") {
 				var siphtml = user+"@"+domain;
 				var sipstatus = "<b>Status:</b> "+state_html;
 				$("#sipid").html(siphtml);

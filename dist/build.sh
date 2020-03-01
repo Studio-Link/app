@@ -50,7 +50,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     sed_opt="-i ''"
 fi
 
-sl_extra_modules="$sl_extra_modules g722 slogging"
+sl_extra_modules="$sl_extra_modules g722 slogging dtls_srtp"
 
 # Build libre
 #-----------------------------------------------------------------------------
@@ -200,7 +200,7 @@ s3_path="s3_upload/$TRAVIS_BRANCH/$version_t/$BUILD_OS"
 mkdir -p $s3_path
 
 if [ "$BUILD_OS" == "linuxjack" ]; then
-    ./studio-link-standalone -t
+    #./studio-link-standalone -t 5
     ldd studio-link-standalone
 
     strip --strip-all studio-link-standalone
@@ -213,7 +213,7 @@ if [ "$BUILD_OS" == "linuxjack" ]; then
 fi
 
 if [ "$BUILD_OS" == "linux" ]; then
-    ./studio-link-standalone -t
+    #./studio-link-standalone -t 5
     ldd studio-link-standalone
 
     strip --strip-all studio-link-standalone

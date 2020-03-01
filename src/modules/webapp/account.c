@@ -93,14 +93,15 @@ static int sip_register(const struct odict_entry *o)
 void webapp_account_delete(char *user, char *domain)
 {
 	struct le *le;
+	bool user_delete;
 
 	if (!accs)
 		return;
 
-	for (le = accs->lst.head; le; le = le->next) {
+	for (le = accs->lst.head; le;) {
 		char o_user[50];
-		char o_domain[50];
-		char aor[100];
+		char o_domain[70];
+		char aor[120];
 		const struct odict_entry *o = le->data;
 		const struct odict_entry *e;
 
@@ -115,15 +116,26 @@ void webapp_account_delete(char *user, char *domain)
 
 		str_ncpy(o_domain, e->u.str, sizeof(o_domain));
 
-		if (!str_cmp(o_user, user) && !str_cmp(o_domain, domain)) {
+		if (!user)
+			user_delete = true; /* Delete only by domain selection */
+		else
+			user_delete = !str_cmp(o_user, user);
+
+		if (user_delete && !str_cmp(o_domain, domain)) {
 			odict_entry_del(accs, o->key);
-			re_snprintf(aor, sizeof(aor), "sip:%s@%s", user, domain);
+			re_snprintf(aor, sizeof(aor), "sip:%s@%s", o_user, o_domain);
 			mem_deref(uag_find_aor(aor));
 			uag_current_set(NULL);
 			webapp_write_file_json(accs, filename);
 			info("webapp/account: delete user %s\n", aor);
-			break;
+
+			if (user) 
+				break;
+
+			le = accs->lst.head;
+			continue;
 		}
+		le = le->next;
 	}
 
 }
@@ -246,8 +258,9 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 	e = odict_lookup(o, "domain");
 	str_ncpy(domain, e->u.str, sizeof(domain));
 
-	/* if user already exists, delete him */
 	webapp_account_delete(user, domain);
+	webapp_account_delete(NULL, "studio-link.de");
+	webapp_account_delete(NULL, "studio.link");
 
 	if (e) {
 		webapp_account_add(e);
@@ -260,14 +273,14 @@ out:
 static void provisioning(void)
 {
 	char url[255] = {0};
-	char host[] = "vpn.studio-link.de";
-	char path[] = "provisioning/index.php";
+	char host[] = "my.studio.link";
+	char path[] = "api/v1/provisioning";
 	struct config *cfg = conf_config();
 	const struct network *net = baresip_network();
 
 	info("webapp/account: start provisioning\n");
 
-	re_snprintf(url, sizeof(url), "https://%s/%s?uuid=%s&version=%s",
+	re_snprintf(url, sizeof(url), "https://%s/%s/%s?version=%s",
 			host, path, cfg->sip.uuid, SLVERSION);
 
 	http_client_alloc(&cli, net_dnsc(net));
