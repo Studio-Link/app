@@ -76,7 +76,7 @@ void webapp_options_set(char *key, char *value)
 			if (err) {};
 
 			ua_connect(uag_current(), &call, NULL,
-					"stream@studio-link.de", VIDMODE_OFF);
+					"stream@studio.link", VIDMODE_OFF);
 
 			webapp_call_update(call, "Outgoing");
 		}

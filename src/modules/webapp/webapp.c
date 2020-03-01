@@ -14,6 +14,7 @@
 #include "webapp.h"
 
 static struct tmr tmr;
+static struct tmr tmr_stream;
 
 static struct http_sock *httpsock = NULL;
 static char webapp_call_json[150] = {0};
@@ -217,6 +218,20 @@ int webapp_session_stop_stream(void)
 	return err;
 }
 
+
+static void stream_check(void *arg)
+{
+	struct session *sess = arg;
+
+	/* reconnect stream if active */
+	if (sess->stream && streaming) {
+		info("webapp/stream_check: reconnect\n");
+		ua_connect(uag_current(), &sess->call, NULL,
+				"stream@studio.link", VIDMODE_OFF);
+	}
+}
+
+
 int webapp_session_delete(char * const sess_id, struct call *call)
 {
 	char id[64] = {0};
@@ -240,10 +255,8 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 
 		/* reconnect stream if active */
 		if (sess->stream && streaming) {
-			ua_connect(uag_current(), &call, NULL,
-					"stream@studio-link.de", VIDMODE_OFF);
+			tmr_start(&tmr_stream, 2000, stream_check, (void *)sess);
 		}
-
 
 		re_snprintf(id, sizeof(id), "%d", sess->track);
 
@@ -301,7 +314,7 @@ int webapp_call_update(struct call *call, char *state)
 	tsession = sl_sessions();
 
 #ifndef SLPLUGIN
-	if (!str_cmp(call_peeruri(call), "sip:stream@studio-link.de;transport=tls")) {
+	if (!str_cmp(call_peeruri(call), "sip:stream@studio.link;transport=tls")) {
 		for (le = tsession->head; le; le = le->next) {
 			sess = le->data;
 
@@ -577,6 +590,7 @@ static int module_init(void)
 	webapp_ws_meter_init();
 
 	tmr_init(&tmr);
+	tmr_init(&tmr_stream);
 #if defined (SLPLUGIN)
 	tmr_start(&tmr, 800, syscmd, NULL);
 #else
@@ -595,6 +609,7 @@ out:
 static int module_close(void)
 {
 	tmr_cancel(&tmr);
+	tmr_cancel(&tmr_stream);
 	uag_event_unregister(ua_event_handler);
 
 	webapp_ws_meter_close();
