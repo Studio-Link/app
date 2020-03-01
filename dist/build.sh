@@ -99,7 +99,7 @@ if [ ! -d baresip-$baresip ]; then
     # Effectonair Plugin
     make clean
     make $debug $make_opts USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
-        MODULES="opus stdio ice g711 turn stun uuid auloop apponair effectonair slogging g722" \
+        MODULES="opus stdio ice g711 turn stun uuid auloop apponair effectonair slogging g722 dtls_srtp" \
         EXTRA_CFLAGS="-I ../my_include -DSLIVE" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
     cp -a libbaresip.a ../my_include/libbaresip_onair.a
@@ -107,7 +107,7 @@ if [ ! -d baresip-$baresip ]; then
     # Effect Plugin
     make clean
     make $debug $make_opts USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
-        MODULES="opus stdio ice g711 turn stun uuid auloop webapp effect" \
+        MODULES="opus stdio ice g711 turn stun uuid auloop webapp effect g722 slogging dtls_srtp" \
         EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
 
