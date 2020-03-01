@@ -35,6 +35,8 @@ sl_3rdparty
 
 sl_extra_lflags="-L ../opus -L ../my_include "
 
+use_ssl='USE_OPENSSL="yes" USE_OPENSSL_DTLS="yes" USE_OPENSSL_SRTP="yes"'
+
 if [ "$BUILD_OS" == "linux" ]; then
     sl_extra_modules="alsa slrtaudio"
 fi
@@ -59,7 +61,7 @@ if [ ! -d re-$re ]; then
 
     # WARNING build releases with RELEASE=1, because otherwise its MEM Debug
     # statements are not THREAD SAFE! on every platform, especilly windows.
-    make -C re $make_opts $debug USE_OPENSSL="yes" EXTRA_CFLAGS="-I ../my_include/" libre.a
+    make -C re $make_opts $debug $use_ssl EXTRA_CFLAGS="-I ../my_include/" libre.a
     mkdir -p my_include/re
     cp -a re/include/* my_include/re/
 fi
@@ -81,7 +83,7 @@ if [ ! -d baresip-$baresip ]; then
     pushd baresip-$baresip
     # Standalone
     if [ "$BUILD_OS" == "linux" ] || [ "$BUILD_OS" == "linuxjack" ]; then
-        make $debug $make_opts USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+        make $debug $make_opts $use_ssl  LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
             MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
             EXTRA_CFLAGS="-I ../my_include" \
             EXTRA_LFLAGS="$sl_extra_lflags -L ../openssl"
@@ -90,7 +92,7 @@ if [ ! -d baresip-$baresip ]; then
     fi
 
     # libbaresip.a without effect plugin
-    make $debug $make_opts USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make $debug $make_opts $use_ssl LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
         EXTRA_CFLAGS="-I ../my_include" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
@@ -98,7 +100,7 @@ if [ ! -d baresip-$baresip ]; then
 
     # Effectonair Plugin
     make clean
-    make $debug $make_opts USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make $debug $make_opts $use_ssl LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop apponair effectonair slogging g722 dtls_srtp" \
         EXTRA_CFLAGS="-I ../my_include -DSLIVE" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
@@ -106,7 +108,7 @@ if [ ! -d baresip-$baresip ]; then
 
     # Effect Plugin
     make clean
-    make $debug $make_opts USE_OPENSSL="yes" LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    make $debug $make_opts $use_ssl LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp effect g722 slogging dtls_srtp" \
         EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
