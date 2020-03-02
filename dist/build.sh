@@ -35,10 +35,10 @@ sl_3rdparty
 
 sl_extra_lflags="-L ../opus -L ../my_include "
 
-if [ "$BUILD_OS" == "linux" ]; then
-use_ssl='USE_OPENSSL="yes"'
-else
+if [ "$TRAVIS_OS_NAME" == "osx" ]; then 
 use_ssl='USE_OPENSSL="yes" USE_OPENSSL_DTLS="yes" USE_OPENSSL_SRTP="yes"'
+else
+use_ssl='USE_OPENSSL="yes"'
 fi
 
 if [ "$BUILD_OS" == "linux" ]; then
