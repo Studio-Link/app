@@ -35,7 +35,11 @@ sl_3rdparty
 
 sl_extra_lflags="-L ../opus -L ../my_include "
 
+if [ "$BUILD_OS" == "linux" ]; then
+use_ssl='USE_OPENSSL="yes"'
+else
 use_ssl='USE_OPENSSL="yes" USE_OPENSSL_DTLS="yes" USE_OPENSSL_SRTP="yes"'
+fi
 
 if [ "$BUILD_OS" == "linux" ]; then
     sl_extra_modules="alsa slrtaudio"
