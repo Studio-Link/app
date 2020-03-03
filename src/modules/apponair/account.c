@@ -137,8 +137,9 @@ void webapp_account_status(const char *aor, bool status)
 		if (!e)
 			continue;
 		str_ncpy(domain, e->u.str, sizeof(domain));
-		snprintf(aor_find, sizeof(aor_find), "sip:%s@%s", user,
+		re_snprintf(aor_find, sizeof(aor_find), "sip:%s@%s", user,
 				domain);
+
 
 		if (!str_cmp(aor_find, aor)) {
 			if (odict_lookup(eg->u.odict, "status"))
@@ -186,7 +187,7 @@ void webapp_account_current(void)
 			continue;
 		str_ncpy(o_domain, e->u.str, sizeof(o_domain));
 
-		snprintf(aor_find, sizeof(aor_find), "sip:%s@%s", o_user,
+		re_snprintf(aor_find, sizeof(aor_find), "sip:%s@%s", o_user,
 				o_domain);
 
 		if (odict_lookup(eg->u.odict, "current"))
@@ -245,11 +246,6 @@ out2:
 }
 
 
-static void http_data_handler(struct mbuf *mb, void *arg)
-{
-}
-
-
 static void provisioning(void)
 {
 	char url[255] = {0};
@@ -265,7 +261,7 @@ static void provisioning(void)
 	http_client_alloc(&cli, net_dnsc(net));
 
 	http_request(&req, cli, "GET", url, http_resp_handler,
-			http_data_handler, NULL, NULL);
+			NULL, NULL, NULL);
 
 	mem_deref(cli);
 }
