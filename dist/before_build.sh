@@ -16,7 +16,6 @@ elif [ "$BUILD_OS" == "osx" ]; then
         security list-keychains -s ~/Library/Keychains/sl-build.keychain
         security unlock-keychain -p travis ~/Library/Keychains/sl-build.keychain
         security set-keychain-settings ~/Library/Keychains/sl-build.keychain
-        security set-keychain-settings -lut 1800 ~/Library/Keychains/sl-build.keychain
         security import ./dist/keychain/apple.cer -k ~/Library/Keychains/sl-build.keychain -A
         security import ./dist/keychain/cert.cer -k ~/Library/Keychains/sl-build.keychain -A
         security import ./dist/keychain/key.p12 -k ~/Library/Keychains/sl-build.keychain -P $KEY_PASSWORD -A
