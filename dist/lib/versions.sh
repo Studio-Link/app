@@ -1,6 +1,6 @@
 vmajor=20; vminor=03; vpatch=0
 vbuild="$(git rev-list HEAD --count).$(git rev-parse --short HEAD)"
-release="rc4-${vbuild}"
+release="rc5-${vbuild}"
 #release="rc3"
 baresip="20.03.1"
 baresip_lib="0.6.5"
