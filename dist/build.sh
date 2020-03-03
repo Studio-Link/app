@@ -54,7 +54,6 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     sl_extra_lflags+="-framework CoreFoundation"
     sl_extra_modules="slrtaudio"
     sed_opt="-i ''"
-    security show-keychain-info ~/Library/Keychains/sl-build.keychain
 fi
 
 sl_extra_modules="$sl_extra_modules g722 slogging dtls_srtp"
@@ -261,7 +260,7 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLinkOnAir.component StudioLinkOnAir.component
     mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app
 
-    sed $sed_opt s/ITSR:\ StudioLinkOnAir/StudioLinkOnAir\ \(ITSR\)/ StudioLinkOnAir.component/Contents/Info.plist # Reaper 5.70 Fix
+    #sed $sed_opt s/ITSR:\ StudioLinkOnAir/StudioLinkOnAir\ \(ITSR\)/ StudioLinkOnAir.component/Contents/Info.plist # Reaper 5.70 Fix
 
     mkdir hardened
     cp -a StudioLinkStandalone.app hardened
