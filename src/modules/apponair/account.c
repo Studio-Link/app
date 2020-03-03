@@ -7,6 +7,7 @@ static struct tmr tmr;
 static struct odict *accs = NULL;
 static char filename[256] = "";
 static struct http_req *req = NULL;
+static struct http_cli *cli = NULL;
 
 
 const struct odict* webapp_accounts_get(void) {
@@ -68,51 +69,61 @@ static int sip_register(const struct odict_entry *o)
 					opt, e->key, e->u.str);
 		}
 	}
-
-	re_snprintf(buf, sizeof(buf), "<sip:%s:%s@%s;transport=%s>%s",
-			user, password, domain, transport, opt);
+	re_snprintf(buf, sizeof(buf), "<sip:%s@%s;transport=%s>;auth_pass=%s;%s",
+			user, domain, transport, password, opt);
 	ua_alloc(&ua, buf);
 	ua_register(ua);
 
 	return err;
 }
 
-
 void webapp_account_delete(char *user, char *domain)
 {
-	struct le *le;
+        struct le *le;
+        bool user_delete;
 
-	if (!accs)
-		return;
+        if (!accs)
+                return;
 
-	for (le = accs->lst.head; le; le = le->next) {
-		char o_user[50];
-		char o_domain[50];
-		char aor[100];
-		const struct odict_entry *o = le->data;
-		const struct odict_entry *e;
+        for (le = accs->lst.head; le;) {
+                char o_user[50];
+                char o_domain[70];
+                char aor[120];
+                const struct odict_entry *o = le->data;
+                const struct odict_entry *e;
 
-		e = odict_lookup(o->u.odict, "user");
-		if (!e)
-			continue;
-		str_ncpy(o_user, e->u.str, sizeof(o_user));
+                e = odict_lookup(o->u.odict, "user");
+                if (!e)
+                        continue;
+                str_ncpy(o_user, e->u.str, sizeof(o_user));
 
-		e = odict_lookup(o->u.odict, "domain");
-		if (!e)
-			continue;
+                e = odict_lookup(o->u.odict, "domain");
+                if (!e)
+                        continue;
 
-		str_ncpy(o_domain, e->u.str, sizeof(o_domain));
+                str_ncpy(o_domain, e->u.str, sizeof(o_domain));
 
-		if (!str_cmp(o_user, user) && !str_cmp(o_domain, domain)) {
-			odict_entry_del(accs, o->key);
-			snprintf(aor, sizeof(aor), "sip:%s@%s", user, domain);
-			mem_deref(uag_find_aor(aor));
-			uag_current_set(NULL);
-			webapp_write_file_json(accs, filename);
-			warning("DELETE USER %s\n", aor);
-			break;
-		}
-	}
+                if (!user)
+                        user_delete = true; /* Delete only by domain selection */
+                else
+                        user_delete = !str_cmp(o_user, user);
+
+                if (user_delete && !str_cmp(o_domain, domain)) {
+                        odict_entry_del(accs, o->key);
+                        re_snprintf(aor, sizeof(aor), "sip:%s@%s", o_user, o_domain);
+                        mem_deref(uag_find_aor(aor));
+                        uag_current_set(NULL);
+                        webapp_write_file_json(accs, filename);
+                        info("webapp/account: delete user %s\n", aor);
+
+                        if (user) 
+                                break;
+
+                        le = accs->lst.head;
+                        continue;
+                }
+                le = le->next;
+        }
 
 }
 
@@ -232,8 +243,10 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 	e = odict_lookup(o, "domain");
 	str_ncpy(domain, e->u.str, sizeof(domain));
 
-	/* if user already exists, delete him */
-	webapp_account_delete(user, domain);
+        webapp_account_delete(user, domain);
+        webapp_account_delete(NULL, "studio-link.de");
+        webapp_account_delete(NULL, "studio.link");
+
 
 	if (e) {
 		webapp_account_add(e);
@@ -249,21 +262,20 @@ out2:
 static void provisioning(void)
 {
 	char url[255] = {0};
-	char host[] = "vpn.studio-link.de";
-	char path[] = "provisioning/index.php";
-	struct http_cli *cli = NULL;
+	char host[] = "my.studio.link";
+	char path[] = "api/v1/provisioning";
 	struct config *cfg = conf_config();
 	const struct network *net = baresip_network();
 
-	re_snprintf(url, sizeof(url), "https://%s/%s?uuid=%s",
-			host, path, cfg->sip.uuid);
+        re_snprintf(url, sizeof(url), "https://%s/%s/%s?version=%s",
+                        host, path, cfg->sip.uuid, BARESIP_VERSION);
+
 
 	http_client_alloc(&cli, net_dnsc(net));
 
 	http_request(&req, cli, "GET", url, http_resp_handler,
 			NULL, NULL, NULL);
 
-	mem_deref(cli);
 }
 
 static void startup(void *arg)
@@ -315,6 +327,7 @@ out:
 void webapp_accounts_close(void)
 {
 	tmr_cancel(&tmr);
+	mem_deref(cli);
 	req = mem_deref(req);
 	webapp_write_file_json(accs, filename);
 	accs = mem_deref(accs);
