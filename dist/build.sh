@@ -55,7 +55,6 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
     sl_extra_modules="slrtaudio"
     sed_opt="-i ''"
     security show-keychain-info ~/Library/Keychains/sl-build.keychain
-    exit 0
 fi
 
 sl_extra_modules="$sl_extra_modules g722 slogging dtls_srtp"
