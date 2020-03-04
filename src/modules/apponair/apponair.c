@@ -55,13 +55,13 @@ static int module_init(void)
 	webapp_accounts_init();
 
 #if defined (DARWIN)
-	re_snprintf(command, sizeof(command), "open https://stream.studio-link.de/stream/login/%s",
+	re_snprintf(command, sizeof(command), "open https://stream.studio-link.de/stream/login/%s?version=2",
 			cfg->sip.uuid);
 #elif defined (WIN32)
-	re_snprintf(command, sizeof(command), "start https://stream.studio-link.de/stream/login/%s",
+	re_snprintf(command, sizeof(command), "start https://stream.studio-link.de/stream/login/%s?version=2",
 			cfg->sip.uuid);
 #else
-	re_snprintf(command, sizeof(command), "xdg-open https://stream.studio-link.de/stream/login/%s",
+	re_snprintf(command, sizeof(command), "xdg-open https://stream.studio-link.de/stream/login/%s?version=2",
 			cfg->sip.uuid);
 #endif
 
