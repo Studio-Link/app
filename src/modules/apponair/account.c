@@ -327,8 +327,8 @@ out:
 void webapp_accounts_close(void)
 {
 	tmr_cancel(&tmr);
-	mem_deref(cli);
 	req = mem_deref(req);
+	cli = mem_deref(cli);
 	webapp_write_file_json(accs, filename);
 	accs = mem_deref(accs);
 	uag_current_set(NULL);
