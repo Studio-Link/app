@@ -1,5 +1,5 @@
 diff --git a/include/baresip.h b/include/baresip.h
-index 200d066..a150a30 100644
+index 9bfab8a..0651d01 100644
 --- a/include/baresip.h
 +++ b/include/baresip.h
 @@ -183,7 +183,7 @@ int custom_hdrs_apply(const struct list *hdrs, custom_hdrs_h *h, void *arg);
@@ -118,7 +118,7 @@ index bfe59ba..dc8fa62 100644
   out:
  	return err;
 diff --git a/src/config.c b/src/config.c
-index 61a3137..3bc26d5 100644
+index 61a3137..471f80f 100644
 --- a/src/config.c
 +++ b/src/config.c
 @@ -19,6 +19,11 @@
@@ -242,13 +242,11 @@ index 61a3137..3bc26d5 100644
  			  poll_method_name(poll_method_best()),
  			  default_cafile(),
  			  cfg->call.local_timeout,
-@@ -587,15 +605,15 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
- 			  "rtp_tos\t\t\t184\n"
+@@ -588,14 +606,14 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
  			  "#rtp_ports\t\t10000-20000\n"
  			  "#rtp_bandwidth\t\t512-1024 # [kbit/s]\n"
--			  "rtcp_mux\t\tno\n"
+ 			  "rtcp_mux\t\tno\n"
 -			  "jitter_buffer_delay\t%u-%u\t\t# frames\n"
-+			  "rtcp_mux\t\tyes\n"
 +			  "jitter_buffer_delay\t2-3\t\t# frames\n"
  			  "rtp_stats\t\tno\n"
  			  "#rtp_timeout\t\t60\n"
@@ -428,10 +426,10 @@ index 61a3137..3bc26d5 100644
  
  	(void)re_fprintf(f,
 diff --git a/src/main.c b/src/main.c
-index 2a1cef4..986ea44 100644
+index 610f1e8..5222253 100644
 --- a/src/main.c
 +++ b/src/main.c
-@@ -67,6 +67,7 @@ static void usage(void)
+@@ -78,6 +78,7 @@ static void usage(void)
  			 "\t-m <module>      Pre-load modules (repeat)\n"
  			 "\t-p <path>        Audio files\n"
  			 "\t-h -?            Help\n"
@@ -439,7 +437,7 @@ index 2a1cef4..986ea44 100644
  			 "\t-s               Enable SIP trace\n"
  			 "\t-t <sec>         Quit after <sec> seconds\n"
  			 "\t-n <net_if>      Specify network interface\n"
-@@ -91,6 +92,7 @@ int main(int argc, char *argv[])
+@@ -102,6 +103,7 @@ int main(int argc, char *argv[])
  	size_t i;
  	uint32_t tmo = 0;
  	int err;
@@ -447,7 +445,7 @@ index 2a1cef4..986ea44 100644
  
  	/*
  	 * turn off buffering on stdout
-@@ -112,7 +114,7 @@ int main(int argc, char *argv[])
+@@ -123,7 +125,7 @@ int main(int argc, char *argv[])
  
  #ifdef HAVE_GETOPT
  	for (;;) {
@@ -456,7 +454,7 @@ index 2a1cef4..986ea44 100644
  		if (0 > c)
  			break;
  
-@@ -185,6 +187,10 @@ int main(int argc, char *argv[])
+@@ -196,6 +198,10 @@ int main(int argc, char *argv[])
  			log_enable_debug(true);
  			break;
  
@@ -467,7 +465,7 @@ index 2a1cef4..986ea44 100644
  		default:
  			break;
  		}
-@@ -194,7 +200,7 @@ int main(int argc, char *argv[])
+@@ -205,7 +211,7 @@ int main(int argc, char *argv[])
  	(void)argv;
  #endif
  
