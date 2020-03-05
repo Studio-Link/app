@@ -1,5 +1,5 @@
 diff --git a/src/stream.c b/src/stream.c
-index 99f3283..87ac887 100644
+index 99f3283..5e06025 100644
 --- a/src/stream.c
 +++ b/src/stream.c
 @@ -470,6 +470,7 @@ int stream_alloc(struct stream **sp, struct list *streaml,
@@ -14,7 +14,7 @@ index 99f3283..87ac887 100644
  	if (!s)
  		return ENOMEM;
  
-+	if (str_cmp(mnat->id, "turn") == 0)
++	if (mnat && str_cmp(mnat->id, "turn") == 0)
 +		rtcp_mux = false;
 +	else
 +		rtcp_mux = cfg->rtcp_mux;
