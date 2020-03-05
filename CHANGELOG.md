@@ -6,7 +6,7 @@ TBD
 
 ## [v20.03.1-rc0] - 2020-03-01
 
-TBD
+Debug only Release
 
 ## [v20.03.0-rc0] - 2020-03-01
 
