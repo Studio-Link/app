@@ -1,16 +1,33 @@
 # Changelog
 
-## [v20.03.2-stable] - 2020-03-01
+## [v20.03.3-stable] - 2020-03-07
 
-TBD
+### Fixed
+
+- **onAir** Crashes (not necessary modules disabled)
+
+
+## [v20.03.2-stable] - 2020-03-05
+
+### Fixed
+
+- **Standalone** Provisioning Race Condition
+- **Misc** Example contacts
+
 
 ## [v20.03.1-rc0] - 2020-03-01
 
 Debug only Release
 
+
 ## [v20.03.0-rc0] - 2020-03-01
 
-TBD
+### Added
+
+- **Misc** my.Studio.link support - older clients before this version are not compatible
+- **Misc** Full End-to-End Encryption (DTLS-SRTP AES256)
+- **Misc** Update Baresip 0.6.5 - dev release
+
 
 ## [v20.02.1-rc0] - 2020-02-25
 
