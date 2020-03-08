@@ -5,6 +5,7 @@
 ### Fixed
 
 - **onAir** Crashes (not necessary modules disabled)
+- **Misc** Call crashes with non studio.link SIP accounts
 
 
 ## [v20.03.2-stable] - 2020-03-05
