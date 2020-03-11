@@ -4,6 +4,7 @@
 
 static struct list ws_srv_conns;
 static struct websock *ws;
+static struct tmr tmr_exit;
 
 
 int webapp_ws_handler(struct http_conn *conn, enum ws_type type,
@@ -17,6 +18,8 @@ int webapp_ws_handler(struct http_conn *conn, enum ws_type type,
 	list_append(&ws_srv_conns, &webapp->le, webapp);
 	debug("websocket created: %p\n", webapp->wc_srv);
 	webapp->ws_type = type;
+
+	tmr_cancel(&tmr_exit);
 
 	return 0;
 }
@@ -65,6 +68,11 @@ void ws_send_json(enum ws_type type, const struct odict *o)
 }
 
 
+static void exit_baresip(void *arg) {
+		ua_stop_all(false);
+}
+
+
 void srv_websock_close_handler(int err, void *arg)
 {
 	(void)err;
@@ -73,6 +81,12 @@ void srv_websock_close_handler(int err, void *arg)
 	mem_deref(webapp_p->wc_srv);
 	list_unlink(&webapp_p->le);
 	mem_deref(webapp_p);
+#ifndef SLPLUGIN
+	/* close studio link if browser is closed */
+	if (!webapp_active_calls()) {
+		tmr_start(&tmr_exit, 500, exit_baresip, NULL);
+	}
+#endif
 }
 
 
@@ -85,6 +99,7 @@ static void websock_shutdown_handler(void *arg)
 void webapp_ws_init(void)
 {
 	int err;
+	tmr_init(&tmr_exit);
 
 	list_init(&ws_srv_conns);
 	err = websock_alloc(&ws, websock_shutdown_handler, NULL);
@@ -98,6 +113,7 @@ void webapp_ws_init(void)
 void webapp_ws_close(void)
 {
 	info("webapp_ws_close\n");
+	tmr_cancel(&tmr_exit);
 	struct le *le;
 	if (!list_isempty(&ws_srv_conns)) {
 		for (le = list_head(&ws_srv_conns); le; le = le->next) {

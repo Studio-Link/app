@@ -5,22 +5,6 @@
 #define SIP_CLOSED "{ \"callback\": \"CLOSED\"}"
 
 
-static bool active_calls(void)
-{
-	struct le *le;
-
-	for (le = list_head(uag_list()); le; le = le->next) {
-
-		struct ua *ua = le->data;
-
-		if (ua_call(ua))
-			return true;
-	}
-
-	return false;
-}
-
-
 void webapp_ws_calls(const struct websock_hdr *hdr,
 				     struct mbuf *mb, void *arg)
 {
@@ -50,7 +34,7 @@ void webapp_ws_calls(const struct websock_hdr *hdr,
 	}
 	else if (!str_cmp(e->u.str, "hangup")) {
 		webapp_session_delete(key->u.str, NULL);
-		if (!active_calls()) {
+		if (!webapp_active_calls()) {
 			ws_send_all(WS_CALLS, SIP_CLOSED);
 		}
 	}

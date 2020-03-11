@@ -144,6 +144,7 @@ int webapp_write_file(char *string, char *filename);
 int webapp_write_file_json(struct odict *json, char *filename);
 int webapp_load_file(struct mbuf *mb, char *filename);
 struct call* webapp_get_call(char *sid);
+bool webapp_active_calls(void);
 
 /*
  * slrtaudio module

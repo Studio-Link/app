@@ -123,3 +123,19 @@ struct call* webapp_get_call(char *sid)
 
 	return NULL;
 }
+
+
+bool webapp_active_calls(void)
+{
+	struct le *le;
+
+	for (le = list_head(uag_list()); le; le = le->next) {
+
+		struct ua *ua = le->data;
+
+		if (ua_call(ua))
+			return true;
+	}
+
+	return false;
+}
