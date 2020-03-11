@@ -48,10 +48,19 @@ $.fn.serializeObject = function() {
   return obj;
 };
 
+window.addEventListener("beforeunload", function (e) {
+	if (window.callactive) {
+		e.preventDefault();
+		e.returnValue = '';
+	}
+});
+
 $(function() {
   var changelog = require("./templates/changelog.handlebars");
   var listsip = require("./templates/listsip.handlebars");
   var listcontacts = require("./templates/listcontacts.handlebars");
+
+  window.callactive = false;
 
   $("#accounts").html(listsip());
   $("#contacts").html(listcontacts());

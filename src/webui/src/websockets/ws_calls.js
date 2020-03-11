@@ -116,10 +116,12 @@ $(function () {
 					if ($( "#btn-mute" ).hasClass("d-none")) {
 						$( "#btn-mute" ).removeClass("d-none");
 					}
+					window.callactive = true;
 				} else {
 					if (!$( "#btn-mute" ).hasClass("d-none")) {
 						$( "#btn-mute" ).addClass("d-none");
 					}
+					window.callactive = false;
 				}
 			}
 			var activecalls = require("../templates/activecalls.handlebars");
