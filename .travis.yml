@@ -7,10 +7,6 @@ services:
 
 language: c
 
-os:
-  - linux
-  - osx
-
 dist: xenial
 osx_image: xcode10.1
 
