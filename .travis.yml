@@ -49,6 +49,7 @@ env:
   global:
     secure: WkYGUGZ3XX88IebmFHtVnPu7arU7cxAmNPIMv3/S6IpWotIdn4/KWocNdKyB7AHJcs/fI/ER+gdZOFHMxLG+6R/lexk1BUv8Okszv9/2Fo1k+Sk5pF1YmTnh3uBagYE4Tm0LE5jA9ZnBt1AlX4ocO51faTEJFACpna5+OpOzxhi3doRbHqACSxFpm4XVxIPKv4ZPR9xQ4wAT1xbg9x2bM6f5XSXxHVN10LkEXN2YeaQVTmg+B+CzJ4ET3M7Yv3jEuysKliAARmz6O+a+WcVmQh9oDfy79AXwbTThKOopD4W18Ed4REpO/y5cvIEXg2cKUtynTLdrlEtpSqFeLIJgx7eAIbQhMMQERx1W+onN/OJB8221KsCPceA4w3k7EBERPr1Fnj/vkrfvWVlQjohjxrVW9kfhgCcpYYemz7PbEC/svSwvzTxUUSM4b8SHnpqf9lr/ydFOl0pwRewVwBnaByPr2ENz1aViFBJXp+Mg1RsUXVb9Q4iNOFW2snN4svOD5+Wi02jIT8xNO94wyC46b607WN9cb9bhl9gNafZr+b/wLR2xCfJzUW4CHoKX5OstNOXUtL6c9b0tOpUCKxO4FoEBClkPsrWSu3af1JkSMaLMJY+73lxk3ABrkmK9Fm6x3/q1oYX7N/SI/KFfdVCYGlNubqrLEzr4xMeuLNkrVvo=
   matrix:
+    - BUILD_OS="windows32"
     - BUILD_OS="windows64"
     - BUILD_OS="linux"         
     - BUILD_OS="linuxjack"         
@@ -58,6 +59,8 @@ env:
 
 matrix:              
         exclude:            
+          - os: osx                
+            env: BUILD_OS="windows32"
           - os: osx                
             env: BUILD_OS="windows64"
           - os: osx          
