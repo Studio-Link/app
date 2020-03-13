@@ -1,4 +1,3 @@
-sudo: required
 git:
   depth: false
 
@@ -18,7 +17,8 @@ script: "./dist/build.sh"
 
 jobs:
   include:
-    - stage: webui
+    - os: linux
+      stage: webui
       script: "./dist/build_webui.sh"
       env: BUILD_OS="webui"
     - os: osx
@@ -54,7 +54,7 @@ deploy:
     region: eu-central-1
     local_dir: build/s3_upload
     acl: public_read
-    skip_cleanup: true
+    cleanup: false
     on:
       all_branches: true
       condition: $BUILD_OS != ccheck
