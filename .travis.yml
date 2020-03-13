@@ -20,35 +20,29 @@ jobs:
   include:
     - stage: webui
       script: "./dist/build_webui.sh"
-      env:
-        - BUILD_OS="webui"
+      env: BUILD_OS="webui"
     - os: osx
-      stage: test
-      env:
-        - BUILD_OS="osx"
+      stage: build
+      env: BUILD_OS="osx"
     - os: linux
-      stage: test
-      env:
-        - BUILD_OS="windows32"
+      stage: build
+      env: BUILD_OS="windows32"
     - os: linux
-      stage: test
-      env:
-        - BUILD_OS="windows64"
+      stage: build
+      env: BUILD_OS="windows64"
     - os: linux
-      stage: test
-      env:
-        - BUILD_OS="linux"
+      stage: build
+      env: BUILD_OS="linux"
     - os: linux
-      stage: test
-      env:
-        - BUILD_OS="linuxjack"
+      stage: build
+      env: BUILD_OS="linuxjack"
     - os: linux
-      stage: test
-      env:
-        - BUILD_OS="ccheck"
+      stage: build
+      env: BUILD_OS="ccheck"
+
 stages:
   - webui
-  - test
+  - build
 
 deploy:
   - provider: s3
