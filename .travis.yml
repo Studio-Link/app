@@ -54,7 +54,7 @@ deploy:
     region: eu-central-1
     local_dir: build/s3_upload
     acl: public_read
-    cleanup: false
+    skip_cleanup: true
     on:
       all_branches: true
       condition: $BUILD_OS != ccheck
