@@ -54,24 +54,6 @@ tour.addStep({
 		}
 	]
 });
-/*
-tour.addStep('stereo-call-step', {
-	text: 'If you hear your own voice only on one side, select <b>Mono</b>',
-	attachTo: '#btn-mono bottom',
-	buttons: [
-		{
-			text: 'Skip Tour',
-			action: tour.cancel,
-			classes: 'shepherd-button-secondary',
-		},
-
-		{
-			text: 'Next',
-			action: tour.next
-		}
-	]
-});
-*/
 
 tour.on('cancel', function() {
 	localStorage.setItem('slonboarding', 'completed');
