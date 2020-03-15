@@ -62,13 +62,13 @@ void webapp_options_set(char *key, char *value)
 		else {
 			struct config *cfg = conf_config();
 	#if defined (DARWIN)
-			re_snprintf(command, sizeof(command), "open https://stream.studio-link.de/stream/login/%s",
+			re_snprintf(command, sizeof(command), "open https://stream.studio-link.de/stream/login/%s?version=2",
 					cfg->sip.uuid);
 	#elif defined (WIN32)
-			re_snprintf(command, sizeof(command), "start https://stream.studio-link.de/stream/login/%s",
+			re_snprintf(command, sizeof(command), "start https://stream.studio-link.de/stream/login/%s?version=2",
 					cfg->sip.uuid);
 	#else
-			re_snprintf(command, sizeof(command), "xdg-open https://stream.studio-link.de/stream/login/%s",
+			re_snprintf(command, sizeof(command), "xdg-open https://stream.studio-link.de/stream/login/%s?version=2",
 					cfg->sip.uuid);
 	#endif
 			err = system(command);
