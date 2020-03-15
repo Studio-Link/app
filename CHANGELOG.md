@@ -1,5 +1,19 @@
 # Changelog
 
+## [v20.03.4-stable] - 2020-03-15
+
+### Fixed
+
+- **Standalone** Re-enable OnAir Streaming
+
+### Changed
+
+- **Standalone** Show close warning if a call is active
+- **Standalone** Exit Standalone if browser window/tab is closed and no call active
+- **Standalone** Re-add Windows 32bit Build
+
+---
+
 ## [v20.03.3-stable] - 2020-03-07
 
 ### Fixed
@@ -7,6 +21,7 @@
 - **onAir** Crashes (not necessary modules disabled)
 - **Misc** Call crashes with non studio.link SIP accounts
 
+---
 
 ## [v20.03.2-stable] - 2020-03-05
 
@@ -15,11 +30,13 @@
 - **Standalone** Provisioning Race Condition
 - **Misc** Example contacts
 
+---
 
 ## [v20.03.1-rc0] - 2020-03-01
 
 Debug only Release
 
+---
 
 ## [v20.03.0-rc0] - 2020-03-01
 
@@ -29,6 +46,7 @@ Debug only Release
 - **Misc** Full End-to-End Encryption (DTLS-SRTP AES256)
 - **Misc** Update Baresip 0.6.5 - dev release
 
+---
 
 ## [v20.02.1-rc0] - 2020-02-25
 
@@ -71,6 +89,6 @@ Debug only Release
 
 
 
-
-[Unreleased]: https://github.com/Studio-Link/app/compare/v20.02.1-rc0...HEAD
+[v20.03.4-stable]: https://github.com/Studio-Link/app/compare/v20.03.3-stable...v20.03.4-stable
+[Unreleased]: https://github.com/Studio-Link/app/compare/v20.03.3-stable...HEAD
 [v20.02.1-rc0]: https://github.com/Studio-Link/app/compare/v20.02.0-rc0...v20.02.1-rc0
