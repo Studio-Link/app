@@ -70,9 +70,9 @@ sl_build_webui() {
 
 sl_get_libre() {
     #wget -N "http://www.creytiv.com/pub/re-${re}.tar.gz"
-    wget "https://github.com/creytiv/re/archive/v${re}.tar.gz" -O re-${re}.tar.gz
+    libre_url="https://github.com/studio-link-3rdparty/re/archive/v"
+    wget ${libre_url}${re}.tar.gz -O re-${re}.tar.gz
     tar -xzf re-${re}.tar.gz
-    rm -f v${re}.tar.gz
     ln -s re-$re re
     pushd re
     patch --ignore-whitespace -p1 < ../../dist/patches/bluetooth_conflict.patch
