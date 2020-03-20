@@ -196,7 +196,13 @@ $(function () {
 			}
 		}
 		);
+		$( ".btn-dtmf" ).on( "click", function() {
+			ws_baresip.send('{"command": "dtmf", "key": "'+
+				$(this).html() +'"}');
+		});
 	});
+
+
 
 	RefreshEventListener();
 });
