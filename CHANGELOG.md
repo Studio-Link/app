@@ -1,6 +1,6 @@
 # Changelog
 
-## [v20.03.6-stable] - 2020-03-19
+## [v20.03.6-stable] - 2020-03-20
 
 ### Fixed
 
