@@ -261,6 +261,7 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 	webapp_account_delete(user, domain);
 	webapp_account_delete(NULL, "studio-link.de");
 	webapp_account_delete(NULL, "studio.link");
+	webapp_account_delete(NULL, "studio.link:443");
 
 	if (e) {
 		webapp_account_add(e);

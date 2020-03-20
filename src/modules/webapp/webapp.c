@@ -41,6 +41,7 @@ static int http_sreply(struct http_conn *conn, uint16_t scode,
 	http_reply(conn, 200, "OK",
 			"Content-Type: %s\r\n"
 			"Content-Length: %zu\r\n"
+			"Cache-Control: no-cache, no-store, must-revalidate\r\n"
 			"\r\n"
 			"%b",
 			ctype,

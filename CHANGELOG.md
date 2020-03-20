@@ -1,5 +1,23 @@
 # Changelog
 
+## [v20.03.6-stable] - 2020-03-19
+
+### Fixed
+
+- **Misc** IE11 Javascript bug (marked removed)
+
+
+## [v20.03.5-stable] - 2020-03-19
+
+### Fixed
+
+- **Misc** Disable prefered DNS resolvers
+
+### Changed
+
+- **Misc** Bump openssl version 1.1.1e
+
+
 ## [v20.03.4-stable] - 2020-03-15
 
 ### Fixed

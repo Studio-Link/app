@@ -90,7 +90,7 @@ $(function () {
 					if (msg[key]['state'] == 'Established')	{
 						established_calls = true;
 					}
-					var match = msg[key]['peer'].match("sip:(.+@studio-link\.de)");
+					var match = msg[key]['peer'].match("sip:(.+@studio\.link)");
 					if (!match)
 						continue;
 
@@ -102,11 +102,11 @@ $(function () {
 						}
 					}
 
-					if (match[1] == 'echo@studio-link.de') {
+					if (match[1] == 'echo@studio.link') {
 						msg[key]['contacthide'] = "hide";
 						msg[key]['peer'] = 'echo';
 					}
-					if (match[1] == 'music@studio-link.de') {
+					if (match[1] == 'music@studio.link') {
 						msg[key]['contacthide'] = "hide";
 						msg[key]['peer'] = 'music';
 					}

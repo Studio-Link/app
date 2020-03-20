@@ -84,7 +84,7 @@ void srv_websock_close_handler(int err, void *arg)
 #ifndef SLPLUGIN
 	/* close studio link if browser is closed */
 	if (!webapp_active_calls()) {
-		tmr_start(&tmr_exit, 500, exit_baresip, NULL);
+		tmr_start(&tmr_exit, 800, exit_baresip, NULL);
 	}
 #endif
 }
