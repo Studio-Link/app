@@ -6,6 +6,7 @@ services:
 
 language: c
 
+os: linux
 dist: xenial
 osx_image: xcode10.1
 
@@ -21,6 +22,7 @@ jobs:
       stage: webui
       script: "./dist/build_webui.sh"
       env: BUILD_OS="webui"
+      dist: bionic
     - os: osx
       stage: build
       env: BUILD_OS="osx"
