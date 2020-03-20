@@ -180,5 +180,23 @@ $(function () {
 			$( "#current_uag" ).val()+'"}');
 	});
 
+	var keyboard = require("../templates/keyboard.handlebars");
+
+	$( "#buttonkeyboard" ).on( "click", function() {
+		bootbox.dialog({
+			title: "DTMF Keyboard",
+			message: keyboard(),
+			buttons: {
+				close: {
+					label: 'Cancel',
+					callback: function() {
+						return true;
+					}
+				}
+			}
+		}
+		);
+	});
+
 	RefreshEventListener();
 });
