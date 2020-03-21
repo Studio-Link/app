@@ -233,6 +233,32 @@ static void stream_check(void *arg)
 }
 
 
+struct call* webapp_session_get_call(char * const sess_id)
+{
+	char id[64] = {0};
+	struct list *tsession;
+	struct session *sess;
+	struct le *le;
+
+	tsession = sl_sessions();
+
+	for (le = tsession->head; le; le = le->next) {
+		sess = le->data;
+
+		if (sess->local)
+			continue;
+
+		re_snprintf(id, sizeof(id), "%d", sess->track);
+
+		if (!str_cmp(id, sess_id)) {
+			return sess->call;
+		}
+	}
+
+	return NULL;
+}
+
+
 int webapp_session_delete(char * const sess_id, struct call *call)
 {
 	char id[64] = {0};
@@ -246,7 +272,6 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 		return EINVAL;
 
 	tsession = sl_sessions();
-
 
 	for (le = tsession->head; le; le = le->next) {
 		sess = le->data;

@@ -68,15 +68,6 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 		webapp_account_current();
 		ws_send_json(WS_BARESIP, webapp_accounts_get());
 	}
-	else if (!str_cmp(e->u.str, "dtmf")) {
-		e = odict_lookup(cmd, "key");
-		if (!e)
-			goto out;
-
-		call = ua_call(uag_current());
-		if (call)
-			call_send_digit(call, e->u.str[0]);
-	}
 
 out:
 	mem_deref(cmd);

@@ -27,7 +27,9 @@ void webapp_ws_calls(const struct websock_hdr *hdr,
 	if (!key)
 		goto out;
 
-	call = webapp_get_call(key->u.str);
+	call = webapp_session_get_call(key->u.str);
+	if (!call)
+		goto out;
 
 	if (!str_cmp(e->u.str, "accept")) {
 		ua_answer(uag_current(), call);
@@ -38,8 +40,12 @@ void webapp_ws_calls(const struct websock_hdr *hdr,
 			ws_send_all(WS_CALLS, SIP_CLOSED);
 		}
 	}
-	else if (!str_cmp(e->u.str, "hangup_open_call")) {
-		ua_hangup(uag_current(), call, 0, NULL);
+	else if (!str_cmp(e->u.str, "dtmf")) {
+		e = odict_lookup(cmd, "tone");
+		if (!e)
+			goto out;
+
+		call_send_digit(call, e->u.str[0]);
 	}
 
 out:

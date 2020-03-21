@@ -46,6 +46,7 @@ struct odict *webapp_calls;
 int webapp_session_delete(char * const sess_id, struct call *call);
 int webapp_call_update(struct call *call, char *state);
 int webapp_session_stop_stream(void);
+struct call* webapp_session_get_call(char * const sess_id);
 
 int webapp_update(bool status);
 
