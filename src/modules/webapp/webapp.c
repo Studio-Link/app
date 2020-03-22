@@ -233,6 +233,32 @@ static void stream_check(void *arg)
 }
 
 
+struct call* webapp_session_get_call(char * const sess_id)
+{
+	char id[64] = {0};
+	struct list *tsession;
+	struct session *sess;
+	struct le *le;
+
+	tsession = sl_sessions();
+
+	for (le = tsession->head; le; le = le->next) {
+		sess = le->data;
+
+		if (sess->local)
+			continue;
+
+		re_snprintf(id, sizeof(id), "%d", sess->track);
+
+		if (!str_cmp(id, sess_id)) {
+			return sess->call;
+		}
+	}
+
+	return NULL;
+}
+
+
 int webapp_session_delete(char * const sess_id, struct call *call)
 {
 	char id[64] = {0};
@@ -246,7 +272,6 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 		return EINVAL;
 
 	tsession = sl_sessions();
-
 
 	for (le = tsession->head; le; le = le->next) {
 		sess = le->data;
@@ -297,7 +322,7 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 }
 
 
-int webapp_call_update(struct call *call, char *state)
+int8_t webapp_call_update(struct call *call, char *state)
 {
 	struct list *tsession;
 	struct session *sess;
@@ -305,12 +330,13 @@ int webapp_call_update(struct call *call, char *state)
 	struct odict *o;
 	char id[64] = {0};
 	int err = 0;
+	int8_t track = 0;
 	bool new = true; 
 
 
 	err = odict_alloc(&o, DICT_BSIZE);
 	if (err)
-		return ENOMEM;
+		return 0;
 
 	tsession = sl_sessions();
 
@@ -322,7 +348,7 @@ int webapp_call_update(struct call *call, char *state)
 			if (sess->stream) {
 				sess->call = call;
 				streaming = true;
-				return err;
+				return sess->track;
 			}
 		}
 	}
@@ -354,7 +380,7 @@ int webapp_call_update(struct call *call, char *state)
 		if (sess->call != call)
 			continue;
 
-
+		track = sess->track;
 		re_snprintf(id, sizeof(id), "%d", sess->track);
 
 		odict_entry_del(webapp_calls, id);
@@ -371,29 +397,34 @@ int webapp_call_update(struct call *call, char *state)
 
 	ws_send_json(WS_CALLS, webapp_calls);
 	mem_deref(o);
-	return err;
+	return track;
 }
 
 
 static void ua_event_handler(struct ua *ua, enum ua_event ev,
 		struct call *call, const char *prm, void *arg)
 {
+	int8_t key = 0;
 
 	switch (ev) {
 		case UA_EVENT_CALL_INCOMING:
 			ua_event_current_set(ua);
+
+			key = webapp_call_update(call, "Incoming");
+			if (!key)
+				return;
+
 			if(!auto_answer) {
 				re_snprintf(webapp_call_json, sizeof(webapp_call_json),
 						"{ \"callback\": \"INCOMING\",\
 						\"peeruri\": \"%s\",\
-						\"key\": \"%x\" }",
-						call_peeruri(call), call);
-				webapp_call_update(call, "Incoming");
-				ws_send_all(WS_CALLS, webapp_call_json);
+						\"key\": \"%d\" }",
+						call_peeruri(call), key);
 			} else {
 				debug("auto answering call\n");
 				ua_answer(uag_current(), call);
 			}
+			ws_send_all(WS_CALLS, webapp_call_json);
 			break;
 
 		case UA_EVENT_CALL_ESTABLISHED:
