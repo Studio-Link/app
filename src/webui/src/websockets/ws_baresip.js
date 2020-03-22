@@ -180,5 +180,6 @@ $(function () {
 			$( "#current_uag" ).val()+'"}');
 	});
 
+
 	RefreshEventListener();
 });

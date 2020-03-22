@@ -13,6 +13,7 @@ import { faPhoneSquare } from '@fortawesome/free-solid-svg-icons/faPhoneSquare'
 import { faPlusCircle } from '@fortawesome/free-solid-svg-icons/faPlusCircle'
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit'
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt'
+import { faTh } from '@fortawesome/free-solid-svg-icons/faTh'
 
 library.add(faCog)
 library.add(faRandom)
@@ -28,6 +29,7 @@ library.add(faPhoneSquare)
 library.add(faPlusCircle)
 library.add(faEdit)
 library.add(faTrashAlt)
+library.add(faTh)
 
 // Replace any existing <i> tags with <svg> and set up a MutationObserver to
 // continue doing this as the DOM changes.

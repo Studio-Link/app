@@ -3,9 +3,33 @@ $(function () {
 
 	function RefreshEventListener() {
 		var addcontact = require("../templates/addcontact.handlebars");
+		var keyboard = require("../templates/keyboard.handlebars");
+
 		$( ".hangup" ).on( "click", function() {
 			ws_calls.send('{"command": "hangup", "key": "'+
 				$(this).attr('data-key')+'"}');
+		});
+
+
+		$( ".keyboard" ).on( "click", function() {
+			var call = $(this).attr('data-key');
+			bootbox.dialog({
+				title: "DTMF Keyboard",
+				message: keyboard(),
+				buttons: {
+					close: {
+						label: 'Cancel',
+						callback: function() {
+							return true;
+						}
+					}
+				}
+			}
+			);
+			$( ".btn-dtmf" ).on( "click", function() {
+				ws_calls.send('{"command": "dtmf", "tone": "'+
+					$(this).html() +'", "key": "'+ call +'"}');
+			});
 		});
 
 
@@ -77,7 +101,7 @@ $(function () {
 							ws_calls.send('{"command": "accept", "key": "'+
 								msg.key+'"}');
 						} else {
-							ws_calls.send('{"command": "hangup_open_call", "key": "'+
+							ws_calls.send('{"command": "hangup", "key": "'+
 								msg.key+'"}');
 						}
 					});
