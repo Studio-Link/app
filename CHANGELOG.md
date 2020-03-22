@@ -1,5 +1,17 @@
 # Changelog
 
+## [v20.03.7-stable] - 2020-03-22
+
+### Added
+
+- **Misc** DTMF handling
+
+### Fixed
+
+- **Misc** Call hangup handling
+- **Standalone** Audiointerface close
+
+
 ## [v20.03.6-stable] - 2020-03-20
 
 ### Fixed
