@@ -14,7 +14,6 @@ import { faPlusCircle } from '@fortawesome/free-solid-svg-icons/faPlusCircle'
 import { faEdit } from '@fortawesome/free-solid-svg-icons/faEdit'
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt'
 import { faTh } from '@fortawesome/free-solid-svg-icons/faTh'
-import { faKeyboard } from '@fortawesome/free-regular-svg-icons/faKeyboard'
 
 library.add(faCog)
 library.add(faRandom)
@@ -30,7 +29,6 @@ library.add(faPhoneSquare)
 library.add(faPlusCircle)
 library.add(faEdit)
 library.add(faTrashAlt)
-library.add(faKeyboard)
 library.add(faTh)
 
 // Replace any existing <i> tags with <svg> and set up a MutationObserver to
