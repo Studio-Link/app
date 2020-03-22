@@ -9,7 +9,7 @@
 ### Fixed
 
 - **Misc** Call hangup handling
-- **Standalone** Audiointerface close
+- **Standalone** macOS Audiointerface close
 
 
 ## [v20.03.6-stable] - 2020-03-20
