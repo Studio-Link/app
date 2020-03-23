@@ -93,7 +93,7 @@ mdkir studio-link
 cd studio-link
 git clone https://github.com/Studio-Link/3rdparty.git
 cd 3rdparty
-export TRAVIS_OS_NAME="windows64"; dist/build.sh
+export TRAVIS_OS_NAME="windows64"; dist/build_windows.sh
 cd ..
 git clone https://github.com/Studio-Link/app.git
 cd app
