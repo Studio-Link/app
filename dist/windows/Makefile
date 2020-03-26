@@ -34,7 +34,7 @@ LFLAGS    := -L$(SYSROOT)/lib/ \
 	-L$(PWD)/openssl \
 	-L$(PWD)/rem \
 	-L$(PWD)/opus \
-	-L$(PWD)/my_include
+	-L$(PWD)/my_include -fstack-protector
 
 # workaround for linker order (note, the order is important)
 LIBS	:= -lrem -lssl -lcrypto -lwsock32 -lws2_32 -liphlpapi -lcrypt32 -lopus -lFLAC -lsamplerate -lrtaudio -lstdc++ -lole32 -lwinmm -lksuser -lmfplat -lmfuuid -lwmcodecdspuuid -ldsound
