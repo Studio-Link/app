@@ -12,17 +12,15 @@ make_opts="-j4"
 
 mkdir -p mingw
 pushd mingw
-mingwurl="https://github.com/Studio-Link/mingw/releases/download/v18.01.0"
-wget -N $mingwurl/cloog-0.18.5-1-x86_64.pkg.tar.xz
-wget -N $mingwurl/isl-0.18-3-x86_64.pkg.tar.xz
-wget -N $mingwurl/mingw-w64-binutils-2.29-1-x86_64.pkg.tar.xz
-wget -N $mingwurl/mingw-w64-configure-0.1-1-any.pkg.tar.xz
-wget -N $mingwurl/mingw-w64-crt-5.0.3-1-any.pkg.tar.xz
-wget -N $mingwurl/mingw-w64-gcc-7.2.1.20180116-1-x86_64.pkg.tar.xz
-wget -N $mingwurl/mingw-w64-headers-5.0.3-1-any.pkg.tar.xz
-wget -N $mingwurl/mingw-w64-pkg-config-2-3-any.pkg.tar.xz
-wget -N $mingwurl/mingw-w64-winpthreads-5.0.3-1-any.pkg.tar.xz
-wget -N $mingwurl/osl-0.9.1-1-x86_64.pkg.tar.xz
+mingwurl="https://github.com/Studio-Link/mingw/releases/download/v20.03.0"
+wget -N $mingwurl/mingw-w64-binutils-2.34-1-x86_64.pkg.tar.xz
+wget -N $mingwurl/mingw-w64-configure-0.1.1-9-any.pkg.tar.xz
+wget -N $mingwurl/mingw-w64-crt-7.0.0-1-any.pkg.tar.xz
+wget -N $mingwurl/mingw-w64-environment-1-2-any.pkg.tar.xz
+wget -N $mingwurl/mingw-w64-gcc-9.3.0-1-x86_64.pkg.tar.xz
+wget -N $mingwurl/mingw-w64-headers-7.0.0-1-any.pkg.tar.xz
+wget -N $mingwurl/mingw-w64-pkg-config-2-4-any.pkg.tar.xz
+wget -N $mingwurl/mingw-w64-winpthreads-7.0.0-1-any.pkg.tar.xz
 yes | LANG=C sudo pacman -U *.pkg.tar.xz
 popd
 
