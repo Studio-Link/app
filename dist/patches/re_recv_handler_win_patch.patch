@@ -1,0 +1,32 @@
+From aad58ee79c5b06cf6b2b5a36e1e77ad102efd984 Mon Sep 17 00:00:00 2001
+From: Sebastian Reimers <hallo@studio-link.de>
+Date: Thu, 26 Mar 2020 17:11:03 +0100
+Subject: [PATCH] tcp: close socket on windows if connection is aborted or
+ reset
+
+---
+ src/tcp/tcp.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/tcp/tcp.c b/src/tcp/tcp.c
+index 1ca98edc..4b6b969f 100644
+--- a/src/tcp/tcp.c
++++ b/src/tcp/tcp.c
+@@ -377,7 +377,17 @@ static void tcp_recv_handler(int flags, void *arg)
+ 		return;
+ 	}
+ 	else if (n < 0) {
++#ifdef WIN32
++		err = WSAGetLastError();
++		DEBUG_WARNING("recv handler: recv(): %d\n", err);
++		if (err == WSAECONNRESET || err == WSAECONNABORTED) {
++			mem_deref(mb);
++			conn_close(tc, err);
++			return;
++		}
++#else
+ 		DEBUG_WARNING("recv handler: recv(): %m\n", errno);
++#endif
+ 		goto out;
+ 	}
+ 
