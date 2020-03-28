@@ -2,6 +2,8 @@
 #include <rem.h>
 #include <baresip.h>
 #include "webapp.h"
+	
+static int16_t *dummy[3840];
 
 /* src/audio.c */
 struct timestamp_recv {
@@ -49,8 +51,9 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 	int16_t max = 0;
 	struct aurx *rx = arg;
 
-	if (aubuf_cur_size(rx->aubuf) <= 1920*2*6 && !sess->talk) { /* 120ms */
-		info("webapp_jitter: increase latency %d\n", aubuf_cur_size(rx->aubuf));
+	if (aubuf_cur_size(rx->aubuf) <= 1920*2*4 && !sess->talk) { /* 80ms */
+		debug("webapp_jitter: increase latency %dms\n",
+				aubuf_cur_size(rx->aubuf)/3840*20);
 		return;
 	}
 
@@ -66,15 +69,17 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 	sess->talk = false;
 	if (max > 400) {
 		sess->talk = true;
-		warning("talk %d\n", aubuf_cur_size(rx->aubuf));
+		debug("talk %dms\n", aubuf_cur_size(rx->aubuf)/3840*20);
 	}
 
 	if (sess->talk)
 		return;
-
+#if 1
 	/* Reduce latency */
-	info("webapp_jitter: reduce latency %d\n", aubuf_cur_size(rx->aubuf));
-	if (aubuf_cur_size(rx->aubuf) >= 1920*2*7) //140ms
-		wh(sampv, sampc, arg);
-
+	if (aubuf_cur_size(rx->aubuf) >= 1920*2*15) { //300ms
+		debug("webapp_jitter: reduce latency %dms\n",
+				aubuf_cur_size(rx->aubuf)/3840*20);
+		wh(dummy, sampc, arg);
+	}
+#endif
 }
