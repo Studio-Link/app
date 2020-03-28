@@ -365,7 +365,7 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 
 		st_play = sess->st_play;
 
-		webapp_jitter(sess, st_play->sampv, 
+		webapp_jitter(sess, st_play->sampv,
 				st_play->wh, samples, st_play->arg);
 	}
 
