@@ -93,6 +93,9 @@ static int32_t *playmix;
 static bool mono = false;
 static bool mute = false;
 
+/* webapp/jitter.c */
+void webapp_jitter(struct session *sess, int16_t *sampv,
+		auplay_write_h *wh, unsigned int sampc, void *arg);
 
 void slrtaudio_mono_set(bool active)
 {
@@ -355,12 +358,15 @@ int slrtaudio_callback_in(void *out, void *in, unsigned int nframes,
 
 	for (le = sessionl.head; le; le = le->next)
 	{
+
 		sess = le->data;
 		if (!sess->run_play || sess->local)
 			continue;
 
 		st_play = sess->st_play;
-		st_play->wh(st_play->sampv, samples, st_play->arg);
+
+		webapp_jitter(sess, st_play->sampv, 
+				st_play->wh, samples, st_play->arg);
 	}
 
 	for (le = sessionl.head; le; le = le->next)

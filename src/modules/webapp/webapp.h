@@ -152,6 +152,7 @@ int webapp_load_file(struct mbuf *mb, char *filename);
 struct call* webapp_get_call(char *sid);
 bool webapp_active_calls(void);
 
+
 /*
  * slrtaudio module
  */
@@ -183,6 +184,7 @@ struct session {
 	float *vumeter;
 	struct call *call;
 	int8_t track;
+	bool talk;
 };
 #else
 /*
@@ -205,5 +207,13 @@ struct session {
 	bool stream; /* only for standalone */
 	bool local;  /* only for standalone */
 	int8_t track;
+	bool talk;
 };
 #endif
+
+
+/*
+ * jitter.c
+ */
+void webapp_jitter(struct session *sess, int16_t *sampv,
+		auplay_write_h *wh, unsigned int sampc, void *arg);
