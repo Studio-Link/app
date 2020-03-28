@@ -87,6 +87,7 @@ struct session {
 	bool stream; /* only for standalone */
 	bool local;  /* only for standalone */
 	int8_t track;
+	bool talk;
 };
 
 static struct list sessionl;
@@ -95,6 +96,10 @@ static struct ausrc *ausrc;
 static struct auplay *auplay;
 
 static bool bypass = false;
+
+/* webapp/jitter.c */
+void webapp_jitter(struct session *sess, int16_t *sampv,
+		auplay_write_h *wh, unsigned int sampc, void *arg);
 
 
 static void sess_destruct(void *arg)
@@ -192,7 +197,9 @@ static void play_process(struct session *sess, unsigned long nframes)
 {
 	struct auplay_st *st_play = sess->st_play;
 
-	st_play->wh(st_play->sampv, nframes, st_play->arg);
+	webapp_jitter(sess, st_play->sampv,
+			st_play->wh, nframes, st_play->arg);
+
 	++sess->prev;
 }
 
