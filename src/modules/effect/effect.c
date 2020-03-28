@@ -436,7 +436,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	st_src->arg = arg;
 
 	st_src->sampc = prm->srate * prm->ch * prm->ptime / 1000;
-	st_src->sampv = mem_alloc(10 * st_src->sampc, NULL);
+	st_src->sampv = mem_zalloc(10 * st_src->sampc, NULL);
 	if (!st_src->sampv) {
 		err = ENOMEM;
 		goto out;
@@ -493,7 +493,7 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 	st_play->wh  = wh;
 	st_play->arg = arg;
 	st_play->sampc = sampc;
-	st_play->sampv = mem_alloc(10 * sampc, NULL);
+	st_play->sampv = mem_zalloc(10 * sampc, NULL);
 	if (!st_play->sampv) {
 		err = ENOMEM;
 		goto out;
