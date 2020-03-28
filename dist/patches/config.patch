@@ -128,7 +128,7 @@ index 61a3137..ebcbf3e 100644
 +#if defined (SLPLUGIN)
 +#define SL_MAX_CALLS 10
 +#else
-+#define SL_MAX_CALLS 6
++#define SL_MAX_CALLS 7
 +#endif
 +
  

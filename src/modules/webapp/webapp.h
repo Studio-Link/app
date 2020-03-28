@@ -40,15 +40,20 @@ struct webapp {
 };
 
 enum webapp_call_state webapp_call_status;
-
 struct odict *webapp_calls;
 
+
+/*
+ * sessions.c
+ */
+void webapp_sessions_init(void);
+void webapp_sessions_close(void);
 int webapp_session_delete(char * const sess_id, struct call *call);
 int8_t webapp_call_update(struct call *call, char *state);
 int webapp_session_stop_stream(void);
 struct call* webapp_session_get_call(char * const sess_id);
+bool webapp_session_available(void);
 
-int webapp_update(bool status);
 
 /*
  * vumeter.c

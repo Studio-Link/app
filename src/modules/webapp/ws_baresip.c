@@ -5,6 +5,9 @@
 #define SIP_EMPTY "{ \"callback\": \"CLOSED\",\
 	\"message\": \"SIP Number Empty\" }"
 
+#define SIP_MAX_CALLS "{ \"callback\": \"CLOSED\",\
+	\"message\": \"Max Calls reached...\" }"
+
 static void sip_delete(struct odict *cmd, const struct odict_entry *e)
 {
 	char user[50];
@@ -45,6 +48,11 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 			ws_send_all(WS_CALLS, SIP_EMPTY);
 		}
 		else {
+			if (!webapp_session_available()) {
+				ws_send_all(WS_CALLS, SIP_MAX_CALLS);
+				goto out;
+			}
+
 			ua_connect(uag_current(), &call, NULL,
 					e->u.str, VIDMODE_OFF);
 			webapp_call_update(call, "Outgoing");
