@@ -262,7 +262,7 @@ index 61a3137..ebcbf3e 100644
  			  "#rtp_bandwidth\t\t512-1024 # [kbit/s]\n"
  			  "rtcp_mux\t\tno\n"
 -			  "jitter_buffer_delay\t%u-%u\t\t# frames\n"
-+			  "jitter_buffer_delay\t2-3\t\t# frames\n"
++			  "jitter_buffer_delay\t0\t\t# frames\n"
  			  "rtp_stats\t\tno\n"
  			  "#rtp_timeout\t\t60\n"
  			  "\n# Network\n"
