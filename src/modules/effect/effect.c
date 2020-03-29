@@ -88,6 +88,7 @@ struct session {
 	bool local;  /* only for standalone */
 	int8_t track;
 	bool talk;
+	int16_t bufsz;
 };
 
 static struct list sessionl;
