@@ -105,9 +105,30 @@ $(function () {
 								msg.key+'"}');
 						}
 					});
+
 		} else if (msg.callback == "CLOSED") {
+
 			bootbox.hideAll();
 			$.notify("Call closed: " + msg.message, "warn");
+
+		} else if (msg.callback == "JITTER") {
+
+			var jitters = msg.buffers.split(" ");
+			for (let i=0; i<jitters.length; i++) {
+				let track = i + 1;
+				$("#jitter"+track).html(jitters[i]);
+				console.log(jitters[i]);
+			}
+
+			var talks = msg.talks.split(" ");
+			for (let i=0; i<talks.length; i++) {
+				let track = i + 1;
+				if (talks[i] == 1)
+					$("#talk"+track).html("yes");
+				else 
+					$("#talk"+track).html("no");
+			}
+
 		} else {
 			if (swvariant == "standalone") {
 				for (var key in msg) {

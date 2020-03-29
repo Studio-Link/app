@@ -1,8 +1,10 @@
 #include <re.h>
 #include <baresip.h>
+#include <string.h>
 #include "webapp.h"
 
 static struct tmr tmr_stream;
+static struct tmr tmr_jitter_buffer;
 static bool streaming = false;
 struct list* sl_sessions(void);
 
@@ -237,13 +239,58 @@ int8_t webapp_call_update(struct call *call, char *state)
 }
 
 
+static void jitter_buffer(void *arg)
+{
+	struct list *tsession;
+	struct session *sess;
+	struct le *le;
+	char bufsz[10] = {0};
+	char talk[3] = {0};
+	char buffers[200] = {0};
+	char talks[200] = {0};
+	char json[1024] = {0};
+	int n;
+
+	tsession = sl_sessions();
+
+	for (le = tsession->head; le; le = le->next) {
+		sess = le->data;
+
+		if (sess->local || sess->stream)
+			continue;
+	
+		re_snprintf(bufsz, sizeof(bufsz), "%d ", sess->bufsz);
+		re_snprintf(talk, sizeof(talk), "%d ", sess->talk);
+		strcat((char*)buffers, bufsz);
+		strcat((char*)talks, talk);
+	}
+	n = strlen(buffers); 
+	buffers[n-1] = '\0'; /* remove trailing space */
+
+	n = strlen(talks); 
+	talks[n-1] = '\0'; /* remove trailing space */
+
+	re_snprintf(json, sizeof(json),
+			"{ \"callback\": \"JITTER\",\
+			\"buffers\": \"%s\",\
+			\"talks\": \"%s\"}",
+			buffers, talks);
+
+	ws_send_all(WS_CALLS, json);
+	tmr_start(&tmr_jitter_buffer, 200, jitter_buffer, NULL);
+}
+
+
 void webapp_sessions_init(void)
 {
 	tmr_init(&tmr_stream);
+	tmr_init(&tmr_jitter_buffer);
+	tmr_start(&tmr_jitter_buffer, 2000, jitter_buffer, NULL);
 }
 
 
 void webapp_sessions_close(void)
 {
 	tmr_cancel(&tmr_stream);
+	tmr_cancel(&tmr_jitter_buffer);
 }

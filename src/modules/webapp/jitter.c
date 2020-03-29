@@ -51,11 +51,13 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 	int16_t max = 0;
 	struct aurx *rx = arg;
 
-	if (aubuf_cur_size(rx->aubuf) <= 1920*2*4 && !sess->talk) { /* 80ms */
+	if (aubuf_cur_size(rx->aubuf) <= 1920*2*5 && !sess->talk) { /* 100ms */
 		debug("webapp_jitter: increase latency %dms\n",
 				aubuf_cur_size(rx->aubuf)/3840*20);
 		return;
 	}
+
+	sess->bufsz = 100.0/76800.0*aubuf_cur_size(rx->aubuf); /* 100% = 400ms */
 
 	wh(sampv, sampc, arg);
 
@@ -70,6 +72,9 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 	if (max > 400) {
 		sess->talk = true;
 		debug("talk %dms\n", aubuf_cur_size(rx->aubuf)/3840*20);
+	} else {
+		debug("webapp_jitter: latency %dms\n",
+				aubuf_cur_size(rx->aubuf)/3840*20);
 	}
 
 	if (sess->talk)

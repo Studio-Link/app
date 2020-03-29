@@ -185,6 +185,7 @@ struct session {
 	struct call *call;
 	int8_t track;
 	bool talk;
+	int16_t bufsz;
 };
 #else
 /*
@@ -208,6 +209,7 @@ struct session {
 	bool local;  /* only for standalone */
 	int8_t track;
 	bool talk;
+	int16_t bufsz;
 };
 #endif
 
