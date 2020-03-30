@@ -285,7 +285,7 @@ void effect_bypass(struct session *sess,
 			if (counter > 1) {
 				sess->trev = msess->trev;
 				sess->prev = msess->prev;
-				warning("sync thread %d\n", counter);
+				debug("sync thread %d\n", counter);
 				return;
 			}
 		}
