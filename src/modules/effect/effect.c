@@ -87,6 +87,8 @@ struct session {
 	bool stream; /* only for standalone */
 	bool local;  /* only for standalone */
 	int8_t track;
+	bool talk;
+	int16_t bufsz;
 };
 
 static struct list sessionl;
@@ -95,6 +97,10 @@ static struct ausrc *ausrc;
 static struct auplay *auplay;
 
 static bool bypass = false;
+
+/* webapp/jitter.c */
+void webapp_jitter(struct session *sess, int16_t *sampv,
+		auplay_write_h *wh, unsigned int sampc, void *arg);
 
 
 static void sess_destruct(void *arg)
@@ -192,7 +198,9 @@ static void play_process(struct session *sess, unsigned long nframes)
 {
 	struct auplay_st *st_play = sess->st_play;
 
-	st_play->wh(st_play->sampv, nframes, st_play->arg);
+	webapp_jitter(sess, st_play->sampv,
+			st_play->wh, nframes, st_play->arg);
+
 	++sess->prev;
 }
 
@@ -277,7 +285,7 @@ void effect_bypass(struct session *sess,
 			if (counter > 1) {
 				sess->trev = msess->trev;
 				sess->prev = msess->prev;
-				warning("sync thread %d\n", counter);
+				debug("sync thread %d\n", counter);
 				return;
 			}
 		}
@@ -429,7 +437,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	st_src->arg = arg;
 
 	st_src->sampc = prm->srate * prm->ch * prm->ptime / 1000;
-	st_src->sampv = mem_alloc(10 * st_src->sampc, NULL);
+	st_src->sampv = mem_zalloc(10 * st_src->sampc, NULL);
 	if (!st_src->sampv) {
 		err = ENOMEM;
 		goto out;
@@ -486,7 +494,7 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 	st_play->wh  = wh;
 	st_play->arg = arg;
 	st_play->sampc = sampc;
-	st_play->sampv = mem_alloc(10 * sampc, NULL);
+	st_play->sampv = mem_zalloc(10 * sampc, NULL);
 	if (!st_play->sampv) {
 		err = ENOMEM;
 		goto out;
