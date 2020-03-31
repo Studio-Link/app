@@ -50,14 +50,17 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 {
 	int16_t max = 0;
 	struct aurx *rx = arg;
+	size_t bufsz = 0;
 
-	if (aubuf_cur_size(rx->aubuf) <= 1920*2*5 && !sess->talk) { /* 100ms */
+	bufsz = aubuf_cur_size(rx->aubuf);
+
+	if (bufsz <= 1920*2*3 && !sess->talk) { /* <=60ms */
 		debug("webapp_jitter: increase latency %dms\n",
-				aubuf_cur_size(rx->aubuf)/3840*20);
+				bufsz/3840*20);
 		return;
 	}
 
-	sess->bufsz = 100.0/76800.0*aubuf_cur_size(rx->aubuf); /* 100% = 400ms */
+	sess->bufsz = 100.0/76800.0*bufsz; /* 100% = 400ms */
 
 	wh(sampv, sampc, arg);
 
@@ -69,6 +72,7 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 	}
 
 	sess->talk = false;
+
 	if (max > 400) {
 		sess->talk = true;
 		debug("talk %dms\n", aubuf_cur_size(rx->aubuf)/3840*20);
@@ -80,11 +84,12 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 	if (sess->talk)
 		return;
 #if 1
+	bufsz = aubuf_cur_size(rx->aubuf);
 	/* Reduce latency */
-	if (aubuf_cur_size(rx->aubuf) >= 1920*2*15) { //300ms
+	if (bufsz >= 1920*2*10) { // >=200ms
 		debug("webapp_jitter: reduce latency %dms\n",
-				aubuf_cur_size(rx->aubuf)/3840*20);
-		wh(dummy, sampc, arg);
+				bufsz/3840*20);
+		wh(dummy, 3840, arg);
 	}
 #endif
 }
