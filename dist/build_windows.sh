@@ -88,7 +88,6 @@ $_arch-strip --strip-all overlay-onair-vst/studio-link-onair.dll
 
 zip -r studio-link-plugin-$BUILD_OS overlay-vst/studio-link.dll
 zip -r studio-link-plugin-onair-$BUILD_OS overlay-onair-vst/studio-link-onair.dll
-ls -lha
 
 s3_path="s3_upload/$TRAVIS_BRANCH/$version_t/$BUILD_OS"
 mkdir -p $s3_path
