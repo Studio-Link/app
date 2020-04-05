@@ -1,5 +1,5 @@
 sl_extra_lflags="-L ../opus -L ../my_include "
-sl_extra_modules="alsa slrtaudio slogging dtls_srtp"
+sl_extra_modules="alsa jack slaudio slogging dtls_srtp"
 
 make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
     MODULES="opus stdio ice g711 g722 turn stun uuid auloop webapp menu $sl_extra_modules" \

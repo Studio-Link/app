@@ -770,6 +770,152 @@ static int slaudio_drivers(void)
 static int slaudio_devices(void)
 {
 	int err = 0;
+	struct SoundIo *soundio;
+	int output_count, input_count, default_output, default_input;
+	struct odict *o;
+	struct odict *array_in;
+	struct odict *array_out;
+	struct SoundIoDevice *device;
+	char idx[2];
+
+	err = odict_alloc(&array_in, DICT_BSIZE);
+	if (err)
+		return ENOMEM;
+
+	err = odict_alloc(&array_out, DICT_BSIZE);
+	if (err)
+		return ENOMEM;
+
+	if (!(soundio = soundio_create()))
+		return ENOMEM; 
+
+	err = soundio_connect_backend(soundio, backend);
+	if (err) {
+		warning("slaudio/soundio_connect_backend err: %s",
+				soundio_strerror(err));
+		goto out;
+	}
+
+	soundio_flush_events(soundio);
+
+	output_count = soundio_output_device_count(soundio);
+	input_count = soundio_input_device_count(soundio);
+
+	default_output = soundio_default_output_device_index(soundio);
+	default_input = soundio_default_input_device_index(soundio);
+
+	for (int i = 0; i < input_count; i += 1) {
+
+		device = soundio_get_input_device(soundio, i);
+		(void)re_snprintf(idx, sizeof(idx), "%d", i);
+
+		if (!device->sample_rate_current)
+		{
+			info("slaudio/input device %s has no sample_rate",
+					device->name);
+			soundio_device_unref(device);
+			continue;
+		}
+
+		if (!device->current_layout.channel_count)
+		{
+			info("slaudio/input device %s has no inputs",
+					device->name);
+			soundio_device_unref(device);
+			continue;
+		}
+
+		err = odict_alloc(&o, DICT_BSIZE);
+		if (err)
+			goto out1;
+
+		odict_entry_add(o, "id", ODICT_INT, (int64_t)i);
+		odict_entry_add(o, "display", ODICT_STRING, device->name);
+		odict_entry_add(o, "channels", ODICT_INT,
+				(int64_t)device->current_layout.channel_count);
+		odict_entry_add(o, "first_input_channel",
+				ODICT_INT,
+				(int64_t)first_input_channel);
+
+		if (input == -1 && default_input == i)
+		{
+			input = i;
+		}
+
+		if (input == i)
+		{
+			odict_entry_add(o, "selected", ODICT_BOOL, true);
+			preferred_sample_rate_in = device->sample_rate_current;
+		}
+		else
+		{
+			odict_entry_add(o, "selected", ODICT_BOOL, false);
+		}
+
+		odict_entry_add(array_in, idx, ODICT_OBJECT, o);
+
+		soundio_device_unref(device);
+		mem_deref(o);
+	}
+
+	for (int i = 0; i < output_count; i += 1) {
+
+		device = soundio_get_output_device(soundio, i);
+		(void)re_snprintf(idx, sizeof(idx), "%d", i);
+
+		if (!device->sample_rate_current)
+		{
+			info("slaudio/output device %s has no sample_rate",
+					device->name);
+			soundio_device_unref(device);
+			continue;
+		}
+
+		if (!device->current_layout.channel_count)
+		{
+			info("slaudio/output device %s has no outputs",
+					device->name);
+			soundio_device_unref(device);
+			continue;
+		}
+
+		err = odict_alloc(&o, DICT_BSIZE);
+		if (err)
+			goto out1;
+
+		odict_entry_add(o, "id", ODICT_INT, (int64_t)i);
+		odict_entry_add(o, "display", ODICT_STRING, device->name);
+
+		if (output == -1 && default_output == i)
+		{
+			output = i;
+		}
+
+		if (output == i) 
+		{
+			odict_entry_add(o, "selected", ODICT_BOOL, true);
+			preferred_sample_rate_out = device->sample_rate_current;
+		}
+		else
+		{
+			odict_entry_add(o, "selected", ODICT_BOOL, false);
+		}
+
+		odict_entry_add(array_out, idx, ODICT_OBJECT, o);
+
+		soundio_device_unref(device);
+		mem_deref(o);
+	}
+
+	odict_entry_add(interfaces, "input", ODICT_ARRAY, array_in);
+	odict_entry_add(interfaces, "output", ODICT_ARRAY, array_out);
+
+out1:
+	mem_deref(array_in);
+	mem_deref(array_out);
+
+out:
+	soundio_destroy(soundio);
 
 	return err;
 }
