@@ -79,7 +79,7 @@ static void http_req_handler(struct http_conn *conn,
 	if (0 == pl_strcasecmp(&msg->path, "/ws_rtaudio")) {
 		webapp_ws_handler(conn, WS_RTAUDIO, msg, webapp_ws_rtaudio);
 #ifndef SLPLUGIN
-		ws_send_json(WS_RTAUDIO, slrtaudio_get_interfaces());
+		ws_send_json(WS_RTAUDIO, slaudio_get_interfaces());
 #endif
 		return;
 	}

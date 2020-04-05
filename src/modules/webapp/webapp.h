@@ -154,16 +154,16 @@ bool webapp_active_calls(void);
 
 
 /*
- * slrtaudio module
+ * slaudio module
  */
-const struct odict* slrtaudio_get_interfaces(void);
-void slrtaudio_record_set(bool active);
-void slrtaudio_mono_set(bool active);
-void slrtaudio_mute_set(bool active);
+const struct odict* slaudio_get_interfaces(void);
+void slaudio_record_set(bool active);
+void slaudio_mono_set(bool active);
+void slaudio_mute_set(bool active);
 
 #ifndef SLPLUGIN 
 /*
- * session standalone slrtaudio.h
+ * session standalone slaudio.h
  */
 struct session {
 	struct le le;
