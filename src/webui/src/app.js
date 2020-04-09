@@ -71,6 +71,7 @@ $(function() {
     if (swvariant == "standalone") {
       $("#btn-record").removeClass("d-none");
       $("#btn-onair").removeClass("d-none");
+      $("#btn-mute").removeClass("d-none");
       ws_rtaudio_init();
     }
     if (swvariant == "plugin") {

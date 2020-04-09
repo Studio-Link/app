@@ -94,11 +94,11 @@ $(function () {
 
 	function RefreshMute() {
 		if (mute) {
-			$("#btn-mute").removeClass("btn-secondary");
+			$("#btn-mute").removeClass("btn-primary");
 			$("#btn-mute").addClass("btn-danger");
 		} else {
 			$("#btn-mute").removeClass("btn-danger");
-			$("#btn-mute").addClass("btn-secondary");
+			$("#btn-mute").addClass("btn-primary");
 		}
 	}
 
@@ -237,4 +237,19 @@ $(function () {
 
 		ws_options.send('{"key": "mute", "value": "'+mute+'"}');
 	});
+
+	document.onkeydown = function(e) {
+		//"shortcut: m"
+		if (e.which == 77) {
+			if ($("#sipnumbercall").is(':focus'))
+				return;
+			if (mute) {
+				mute = false;
+			} else {
+				mute = true;
+			}
+
+			ws_options.send('{"key": "mute", "value": "'+mute+'"}');
+		}
+	}
 });

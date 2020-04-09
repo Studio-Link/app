@@ -14,6 +14,11 @@ xl: 1140px
 @import 'theme/bootswatch';
 @import '~shepherd.js/dist/css/shepherd.css';
 
+
+label {
+	margin-bottom: 0;
+}
+
 .card-body {
 	padding: 1rem;
 }

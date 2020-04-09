@@ -165,8 +165,10 @@ $(function () {
 
 
 	$('#sipnumbercall').keypress(function(ev) {
-		if (ev.which === 13)
+		if (ev.which === 13) {
 			$('#buttoncall').click();
+			$(this).blur();
+		}
 	});
 
 	$( "#buttoncall" ).on( "click", function() {

@@ -117,7 +117,6 @@ $(function () {
 			for (let i=0; i<jitters.length; i++) {
 				let track = i + 1;
 				$("#jitter"+track).html(jitters[i]);
-				console.log(jitters[i]);
 			}
 
 			var talks = msg.talks.split(" ");
@@ -158,14 +157,8 @@ $(function () {
 				}
 
 				if (established_calls) {
-					if ($( "#btn-mute" ).hasClass("d-none")) {
-						$( "#btn-mute" ).removeClass("d-none");
-					}
 					window.callactive = true;
 				} else {
-					if (!$( "#btn-mute" ).hasClass("d-none")) {
-						$( "#btn-mute" ).addClass("d-none");
-					}
 					window.callactive = false;
 				}
 			}
