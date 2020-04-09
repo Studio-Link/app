@@ -103,11 +103,13 @@ void slaudio_mute_set(bool active)
 	mute = active;
 }
 
+
 struct list* sl_sessions(void);
 struct list* sl_sessions(void)
 {
 	return &sessionl;
 }
+
 
 static void sess_destruct(void *arg)
 {
