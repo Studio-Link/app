@@ -82,7 +82,6 @@ $(function () {
 	ws_contacts.onmessage = function (message) {
 		var msg = JSON.parse(message.data);
 		ws_contacts_list = msg;
-		console.log(ws_contacts_list);
 		$( "#contacts" ).html(listcontacts(ws_contacts_list));
 		RefreshEventListener();
 	};

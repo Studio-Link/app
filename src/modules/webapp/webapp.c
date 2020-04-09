@@ -67,6 +67,7 @@ static void http_req_handler(struct http_conn *conn,
 	}
 	if (0 == pl_strcasecmp(&msg->path, "/ws_contacts")) {
 		webapp_ws_handler(conn, WS_CONTACT, msg, webapp_ws_contacts);
+		sys_msleep(200);
 		ws_send_json(WS_CONTACT, webapp_contacts_get());
 		return;
 	}

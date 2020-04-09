@@ -57,13 +57,7 @@ window.addEventListener("beforeunload", function (e) {
 
 $(function() {
   var changelog = require("./templates/changelog.handlebars");
-  var listsip = require("./templates/listsip.handlebars");
-  var listcontacts = require("./templates/listcontacts.handlebars");
-
   window.callactive = false;
-
-  $("#accounts").html(listsip());
-  $("#contacts").html(listcontacts());
 
   $.get("/swvariant", function(data) {
     var swvariant = data;
