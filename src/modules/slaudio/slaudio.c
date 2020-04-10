@@ -29,6 +29,11 @@ struct slaudio_st
 	float *inBufferOutFloat;
 	float *outBufferFloat;
 	float *outBufferInFloat;
+	struct SoundIo *soundio;
+	struct SoundIoDevice *dev_in;
+	struct SoundIoDevice *dev_out;
+	struct SoundIoInStream *instream;
+	struct SoundIoOutStream *outstream;
 };
 
 static struct slaudio_st *slaudio;
@@ -38,7 +43,7 @@ struct auplay_st
 	const struct auplay *ap; /* pointer to base-class (inheritance) */
 	bool run;
 	void *write;
-	int16_t *sampv;
+	void *sampv;
 	size_t sampc;
 	auplay_write_h *wh;
 	void *arg;
@@ -52,7 +57,7 @@ struct ausrc_st
 	const struct ausrc *as; /* pointer to base-class (inheritance) */
 	bool run;
 	void *read;
-	int16_t *sampv;
+	void *sampv;
 	size_t sampc;
 	ausrc_read_h *rh;
 	void *arg;
@@ -77,8 +82,6 @@ static struct odict *interfaces = NULL;
 struct list sessionl;
 static SRC_STATE *src_state_in;
 static SRC_STATE *src_state_out;
-static unsigned int samples = 0;
-static bool mismatch_samplerates = false;
 
 static int slaudio_stop(void);
 static int slaudio_start(void);
@@ -343,7 +346,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	st_src->arg = arg;
 
 	st_src->sampc = prm->srate * prm->ch * prm->ptime / 1000;
-	st_src->sampv = mem_zalloc(sizeof(int16_t) * st_src->sampc, NULL);
+	st_src->sampv = mem_zalloc(sizeof(float) * st_src->sampc, NULL);
 	if (!st_src->sampv)
 	{
 		err = ENOMEM;
@@ -403,7 +406,7 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 	st_play->wh = wh;
 	st_play->arg = arg;
 	st_play->sampc = sampc;
-	st_play->sampv = mem_zalloc(sizeof(int16_t) * sampc, NULL);
+	st_play->sampv = mem_zalloc(sizeof(float) * sampc, NULL);
 	if (!st_play->sampv)
 	{
 		err = ENOMEM;
@@ -513,7 +516,7 @@ static int slaudio_devices(void)
 
 	err = soundio_connect_backend(soundio, backend);
 	if (err) {
-		warning("slaudio/soundio_connect_backend err: %s",
+		warning("slaudio/soundio_connect_backend err: %s\n",
 				soundio_strerror(err));
 		goto out;
 	}
@@ -533,7 +536,7 @@ static int slaudio_devices(void)
 
 		if (!device->sample_rate_current)
 		{
-			info("slaudio/input device %s has no sample_rate",
+			info("slaudio/input device %s has no sample_rate\n",
 					device->name);
 			soundio_device_unref(device);
 			continue;
@@ -541,7 +544,7 @@ static int slaudio_devices(void)
 
 		if (!device->current_layout.channel_count)
 		{
-			info("slaudio/input device %s has no inputs",
+			info("slaudio/input device %s has no inputs\n",
 					device->name);
 			soundio_device_unref(device);
 			continue;
@@ -587,7 +590,7 @@ static int slaudio_devices(void)
 
 		if (!device->sample_rate_current)
 		{
-			info("slaudio/output device %s has no sample_rate",
+			info("slaudio/output device %s has no sample_rate\n",
 					device->name);
 			soundio_device_unref(device);
 			continue;
@@ -595,7 +598,7 @@ static int slaudio_devices(void)
 
 		if (!device->current_layout.channel_count)
 		{
-			info("slaudio/output device %s has no outputs",
+			info("slaudio/output device %s has no outputs\n",
 					device->name);
 			soundio_device_unref(device);
 			continue;
@@ -644,14 +647,117 @@ out:
 }
 
 
+static void read_callback(struct SoundIoInStream *instream,
+				int frame_count_min, int frame_count_max) 
+{
+	struct SoundIoChannelArea *areas;
+	int err;
+
+	int frames_left = frame_count_max;
+	
+
+	for (;;) {
+		int frame_count = frames_left;
+		
+		if ((err = soundio_instream_begin_read(instream, &areas, &frame_count))) {
+			warning("slaudio/read_callback:"
+				"begin read error: %s\n", soundio_strerror(err));
+			break; /*@TODO handle error */
+		}
+
+		if (!frame_count)
+			break;
+
+		if (!areas) {
+			// Due to an overflow there is a hole. Fill the ring buffer with
+			// silence for the size of the hole.
+			//memset(write_ptr, 0, frame_count * instream->bytes_per_frame);
+			warning("slaudio/read_callback:"
+				"Dropped %d frames overflow\n", frame_count);
+		} else {
+			for (int frame = 0; frame < frame_count; frame += 1) {
+				for (int ch = 0; ch < instream->layout.channel_count; ch += 1) {
+				//	memcpy(write_ptr, areas[ch].ptr, instream->bytes_per_sample);
+					areas[ch].ptr += areas[ch].step;
+				//	write_ptr += instream->bytes_per_sample;
+				}
+			}
+		}
+
+		if ((err = soundio_instream_end_read(instream))) {
+			warning("slaudio/read_callback:"
+				"end read error: %s\n", soundio_strerror(err));
+			break; /*@TODO handle error */
+		}
+
+		frames_left -= frame_count;
+		if (frames_left <= 0)
+			break;		
+	}
+
+}
+
+
+static void write_callback(struct SoundIoOutStream *outstream,
+				int frame_count_min, int frame_count_max)
+{
+	struct SoundIoChannelArea *areas;
+	int err;
+
+	int frames_left = frame_count_max;
+
+
+	for (;;) {
+		int frame_count = frames_left;
+
+		if ((err = soundio_outstream_begin_write(outstream, &areas, &frame_count))) {
+			warning("slaudio/write_callback:"
+					"begin write error: %s\n", soundio_strerror(err));
+			break; /*@TODO handle error */
+		}
+
+		if (!frame_count)
+			break;
+
+		for (int frame = 0; frame < frame_count; frame += 1) {
+			for (int ch = 0; ch < outstream->layout.channel_count; ch += 1) {
+				//memcpy(write_ptr, areas[ch].ptr, outstream->bytes_per_sample);
+				areas[ch].ptr += areas[ch].step;
+				//write_ptr += outstream->bytes_per_sample;
+			}
+		}
+
+		if ((err = soundio_outstream_end_write(outstream))) {
+			warning("slaudio/write_callback:"
+					"end write error: %s\n", soundio_strerror(err));
+			break; /*@TODO handle error */
+		}
+
+		frames_left -= frame_count;
+		if (frames_left <= 0)
+			break;		
+	}
+}
+
+
 static int slaudio_start(void)
 {
 	int err = 0;
 
+	if (input == -1) {
+		warning("slaudio/start: invalid input device\n");
+		return 1;
+	}
+
+	if (output == -1) {
+		warning("slaudio/start: invalid output device\n");
+		return 1;
+	}
+
 	slaudio = mem_zalloc(sizeof(*slaudio), NULL);
-	slaudio->inBuffer = mem_zalloc(sizeof(int16_t) * BUFFER_LEN,
+	slaudio->inBuffer = mem_zalloc(sizeof(float) * BUFFER_LEN,
 					NULL);
-	slaudio->outBufferTmp = mem_zalloc(sizeof(int16_t) * BUFFER_LEN,
+	slaudio->outBufferTmp = mem_zalloc(sizeof(float) * BUFFER_LEN,
 					NULL);
 	slaudio->inBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
 					NULL);
@@ -662,15 +768,10 @@ static int slaudio_start(void)
 	slaudio->outBufferInFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
 					NULL);
 
-	/* calculate 20ms buffersize/nframes  */
-	unsigned int bufsz_in = preferred_sample_rate_in * 20 / 1000;
-	unsigned int bufsz_out = preferred_sample_rate_out * 20 / 1000;
-
-
 	/** Initialize the sample rate converter for input */
 	if ((src_state_in = src_new(SRC_SINC_FASTEST, 2, &err)) == NULL)
 	{
-		warning("Samplerate::src_new failed : %s.\n",
+		warning("slaudio/start: Samplerate::src_new failed : %s.\n",
 				src_strerror(err));
 		return err;
 	};
@@ -678,11 +779,123 @@ static int slaudio_start(void)
 	/** Initialize the sample rate converter for output */
 	if ((src_state_out = src_new(SRC_SINC_FASTEST, 2, &err)) == NULL)
 	{
-		warning("slaudio: Samplerate::src_new failed : %s.\n",
+		warning("slaudio/start: Samplerate::src_new failed : %s.\n",
 				src_strerror(err));
 		return err;
 	};
 
+	slaudio->soundio = soundio_create();
+
+	if (!slaudio->soundio)
+		return ENOMEM;
+
+	err = soundio_connect_backend(slaudio->soundio, backend);
+	if (err) {
+		warning("slaudio/start: soundio_connect err: %s\n",
+				soundio_strerror(err));
+		goto err_out;
+	}
+
+	soundio_flush_events(slaudio->soundio);
+
+	slaudio->dev_in = soundio_get_input_device(slaudio->soundio, input);
+	if (!slaudio->dev_in) {
+		warning("slaudio/start: error soundio_get_input_device\n");
+		err = ENOMEM;
+		goto err_out;
+	}
+
+	slaudio->dev_out = soundio_get_output_device(slaudio->soundio, output);
+	if (!slaudio->dev_out) {
+		warning("slaudio/start: error soundio_get_output_device\n");
+		err = ENOMEM;
+		soundio_device_unref(slaudio->dev_in);
+		goto err_out;
+	}
+
+	info("slaudio/start: in dev: %s\n", slaudio->dev_in->name);
+	info("slaudio/start: out dev: %s\n", slaudio->dev_out->name);
+
+
+	/* Create input stream */
+
+	slaudio->instream = soundio_instream_create(slaudio->dev_in);
+	if (!slaudio->instream) {
+		warning("slaudio/start: error soundio_instream_create\n");
+		err = ENOMEM;
+		goto err_out_stream;
+	}
+
+	slaudio->instream->format = SoundIoFormatFloat32NE;
+	slaudio->instream->read_callback = read_callback;
+	slaudio->instream->software_latency = 0.02;
+
+	err = soundio_instream_open(slaudio->instream);
+	if (err) {
+		warning("slaudio/start: soundio_instream_open: %s\n",
+				soundio_strerror(err));
+		goto err_out_open;
+	}
+
+
+	/* Create output stream */
+
+	slaudio->outstream = soundio_outstream_create(slaudio->dev_out);
+	if (!slaudio->outstream) {
+		warning("slaudio/start: error soundio_outstream_create\n");
+		err = ENOMEM;
+		soundio_instream_destroy(slaudio->instream);
+		goto err_out_stream;
+	}
+
+	slaudio->outstream->format = SoundIoFormatFloat32NE;
+	slaudio->outstream->write_callback = write_callback;
+	slaudio->outstream->software_latency = 0.02;
+
+
+	err = soundio_outstream_open(slaudio->outstream);
+	if (err) {
+		warning("slaudio/start: soundio_outstream_open: %s\n",
+				soundio_strerror(err));
+		goto err_out_open;
+	}
+
+	if (slaudio->outstream->layout_error)
+		warning("slaudio/start: unable to set channel layout: %s\n",
+			soundio_strerror(slaudio->outstream->layout_error));
+
+
+	/* Start streams */
+
+	err = soundio_instream_start(slaudio->instream);
+	if (err) {
+		warning("slaudio/start: soundio_instream_start: %s\n",
+				soundio_strerror(err));
+		goto err_out_open;
+	}
+
+	err = soundio_outstream_start(slaudio->outstream);
+	if (err) {
+		warning("slaudio/start: soundio_outstream_start: %s\n",
+				soundio_strerror(err));
+		goto err_out_open;
+	}
+
+
+	info("slaudio/start: success\n");
+	return 0;
+
+err_out_open:
+	soundio_instream_destroy(slaudio->instream);
+	soundio_outstream_destroy(slaudio->outstream);
+
+err_out_stream:
+	soundio_device_unref(slaudio->dev_in);
+	soundio_device_unref(slaudio->dev_out);
+err_out:
+	soundio_destroy(slaudio->soundio);
+
+	warning("slaudio/start: error %d\n", err);
 	return err;
 }
 
@@ -696,6 +909,11 @@ static int slaudio_stop(void)
 		src_state_out = src_delete(src_state_out);
 
 	if (slaudio) {
+		soundio_instream_destroy(slaudio->instream);
+		soundio_outstream_destroy(slaudio->outstream);
+		soundio_device_unref(slaudio->dev_in);
+		soundio_device_unref(slaudio->dev_out);
+		soundio_destroy(slaudio->soundio);
 		mem_deref(slaudio->inBuffer);
 		mem_deref(slaudio->outBufferTmp);
 		mem_deref(slaudio->inBufferFloat);
