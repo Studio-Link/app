@@ -263,7 +263,7 @@ static void convert_out_channels(int16_t *outv, const int16_t *inv, size_t inc)
 		inv += ratio;
 		inc -= ratio;
 	}
-	}
+}
 
 
 static void convert_out_mono(int16_t *outv, const int16_t *inv, size_t inc)
@@ -276,289 +276,8 @@ static void convert_out_mono(int16_t *outv, const int16_t *inv, size_t inc)
 
 		inv += ratio;
 		inc -= ratio;
+	}
 }
-}
-
-#if 0
-int slaudio_callback_in(void *out, void *in, unsigned int nframes,
-			double stream_time, rtaudio_stream_status_t status,
-			void *userdata)
-{
-	unsigned int in_samples = nframes * 2;
-	struct le *le;
-	struct le *mle;
-	struct session *sess;
-	struct auplay_st *st_play;
-	struct auplay_st *mst_play;
-	struct ausrc_st *st_src;
-	int cntplay = 0, msessplay = 0, sessplay = 0, error = 0;
-
-	SRC_DATA src_data_in;
-	lock_write_get(rtaudio_lock);
-
-	if (status == RTAUDIO_STATUS_INPUT_OVERFLOW)
-	{
-		warning("slaudio: Buffer Overflow frames: %d\n", nframes);
-	}
-
-	if (status == RTAUDIO_STATUS_OUTPUT_UNDERFLOW)
-	{
-		warning("slaudio: Buffer Underrun frames: %d\n", nframes);
-	}
-
-	downsample_first_ch(slaudio->inBuffer, in, nframes * input_channels);
-
-	if (mute)
-	{
-		for (uint16_t pos = 0; pos < in_samples; pos++)
-		{
-			slaudio->inBuffer[pos] = 0;
-		}
-	}
-
-	/** vumeter */
-	convert_float(slaudio->inBuffer,
-			slaudio->inBufferFloat, in_samples);
-	ws_meter_process(0, slaudio->inBufferFloat,
-			(unsigned long)in_samples);
-
-	samples = nframes * 2;
-
-	/**<-- Input Samplerate conversion */
-	if (preferred_sample_rate_in != 48000)
-	{
-		if (!src_state_in)
-			return 1;
-
-		src_data_in.data_in = slaudio->inBufferFloat;
-		src_data_in.data_out = slaudio->inBufferOutFloat;
-		src_data_in.input_frames = nframes;
-		src_data_in.output_frames = BUFFER_LEN / 2;
-		src_data_in.src_ratio =
-				48000 / (double)preferred_sample_rate_in;
-		src_data_in.end_of_input = 0;
-
-		if ((error = src_process(src_state_in, &src_data_in)) != 0)
-		{
-			warning("slaudio: Samplerate::src_process_in :"
-					"returned error : %s %f\n",
-					src_strerror(error),
-					src_data_in.src_ratio);
-			return 1;
-		};
-		samples = src_data_in.output_frames_gen * 2;
-		auconv_to_s16(slaudio->inBuffer, AUFMT_FLOAT,
-				slaudio->inBufferOutFloat,
-				samples);
-	}
-	/** Input Samplerate conversion -->*/
-
-	for (le = sessionl.head; le; le = le->next)
-	{
-		sess = le->data;
-		if (!sess->run_play || sess->local)
-			continue;
-
-		st_play = sess->st_play;
-		st_play->wh(st_play->sampv, samples, st_play->arg);
-	}
-
-	for (le = sessionl.head; le; le = le->next)
-	{
-		sess = le->data;
-		msessplay = 0;
-
-		if (!sess->run_play || sess->local)
-			continue;
-
-		st_play = sess->st_play;
-
-		for (uint16_t pos = 0; pos < samples; pos++)
-		{
-			if (cntplay < 1)
-			{
-				playmix[pos] = st_play->sampv[pos];
-			}
-			else
-			{
-				playmix[pos] =
-					playmix[pos] + st_play->sampv[pos];
-			}
-		}
-
-		/* write remote streams to flac record buffer */
-		(void)aubuf_write_samp(sess->aubuf, st_play->sampv, samples);
-
-		/* vumeter */
-		if (!sess->stream) {
-			convert_float(st_play->sampv,
-					sess->vumeter, samples);
-			ws_meter_process(sess->ch, sess->vumeter,
-					  (unsigned long)samples);
-		}
-
-		/* mix n-1 */
-		for (mle = sessionl.head; mle; mle = mle->next)
-		{
-			struct session *msess = mle->data;
-
-			if (!msess->run_play || msess == sess || sess->local)
-			{
-				continue;
-			}
-			mst_play = msess->st_play;
-
-			for (uint16_t pos = 0; pos < samples; pos++)
-			{
-				if (msessplay < 1)
-				{
-					sess->dstmix[pos] =
-						mst_play->sampv[pos];
-				}
-				else
-				{
-					sess->dstmix[pos] =
-						mst_play->sampv[pos] +
-						sess->dstmix[pos];
-				}
-			}
-			++msessplay;
-			++sessplay;
-		}
-		++cntplay;
-	}
-
-	for (le = sessionl.head; le; le = le->next)
-	{
-		sess = le->data;
-		if (sess->run_src && !sess->local)
-		{
-			st_src = sess->st_src;
-
-			for (uint16_t pos = 0; pos < samples; pos++)
-			{
-				if (!sessplay) {
-					/* ignore on last call the dstmix */
-					st_src->sampv[pos] =
-						slaudio->inBuffer[pos];
-				}
-				else
-				{
-					st_src->sampv[pos] =
-						slaudio->inBuffer[pos] +
-						sess->dstmix[pos];
-				}
-			}
-
-			st_src->rh(st_src->sampv, samples, st_src->arg);
-		}
-
-		if (sess->local)
-		{
-			/* write local audio to flac record buffer */
-			(void)aubuf_write_samp(sess->aubuf,
-					slaudio->inBuffer, samples);
-		}
-	}
-
-	if (!cntplay)
-	{
-		for (uint16_t pos = 0; pos < samples; pos++)
-		{
-			playmix[pos] = 0;
-		}
-	}
-
-	lock_rel(rtaudio_lock);
-
-	if (!mismatch_samplerates)
-		slaudio_callback_out(out, in, nframes,
-				stream_time, status, userdata);
-
-	return 0;
-}
-
-
-int slaudio_callback_out(void *out, void *in, unsigned int nframes,
-			double stream_time, rtaudio_stream_status_t status,
-			void *userdata)
-{
-	int16_t *outBuffer = (int16_t *)out;
-	SRC_DATA src_data_out;
-	int error;
-
-	lock_write_get(rtaudio_lock);
-
-	if (preferred_sample_rate_out != 48000)
-	{
-		for (uint16_t pos = 0; pos < samples; pos++)
-		{
-			slaudio->outBufferTmp[pos] = playmix[pos];
-		}
-
-		convert_float(slaudio->outBufferTmp,
-				slaudio->outBufferFloat, samples);
-
-		src_data_out.data_in = slaudio->outBufferFloat;
-		src_data_out.data_out = slaudio->outBufferInFloat;
-		src_data_out.input_frames = samples / 2;
-		src_data_out.output_frames = nframes;
-		src_data_out.src_ratio =
-			(double)preferred_sample_rate_out / 48000;
-		src_data_out.end_of_input = 0;
-
-		if (!src_state_out)
-			return 1;
-
-		if ((error = src_process(src_state_out, &src_data_out)) != 0)
-		{
-			warning("slaudio: Samplerate::src_process_out :"
-				"returned error : %s\n", src_strerror(error));
-			return 1;
-		};
-		if (output_channels != 2) {
-			auconv_to_s16(slaudio->outBufferTmp, AUFMT_FLOAT,
-					slaudio->outBufferInFloat,
-					src_data_out.output_frames_gen * 2);
-		}
-		else
-		{
-			auconv_to_s16(outBuffer, AUFMT_FLOAT,
-					slaudio->outBufferInFloat,
-					src_data_out.output_frames_gen * 2);
-		}
-	}
-	else
-	{
-		if (output_channels != 2) {
-			for (uint16_t pos = 0; pos < nframes * 2; pos++)
-			{
-				slaudio->outBufferTmp[pos] = playmix[pos];
-			}
-		}
-		else
-		{
-			for (uint16_t pos = 0; pos < nframes * 2; pos++)
-			{
-				outBuffer[pos] = playmix[pos];
-			}
-		}
-	}
-
-	if (output_channels > 2) {
-		convert_out_channels(outBuffer, slaudio->outBufferTmp,
-					nframes * 2);
-	}
-
-	if (output_channels == 1) {
-		convert_out_mono(outBuffer, slaudio->outBufferTmp,
-					nframes * 2);
-	}
-
-	lock_rel(rtaudio_lock);
-	return 0;
-}
-#endif
 
 
 static void ausrc_destructor(void *arg)
@@ -665,7 +384,8 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 			sess->st_play = mem_zalloc(sizeof(*st_play),
 					auplay_destructor);
 
-			sess->dstmix = mem_zalloc(sizeof(int16_t) * sampc, NULL);
+			sess->dstmix = mem_zalloc(sizeof(int16_t) * sampc,
+					NULL);
 			if (!sess->st_play)
 				return ENOMEM;
 			st_play = sess->st_play;
@@ -717,7 +437,7 @@ static int slaudio_drivers(void)
 		return ENOMEM;
 
 	if (!(soundio = soundio_create()))
-		return ENOMEM; 
+		return ENOMEM;
 
 	for (int i = 0; i < soundio_backend_count(soundio); i++)
 	{
@@ -728,7 +448,7 @@ static int slaudio_drivers(void)
 
 		backend_tmp = soundio_get_backend(soundio, i);
 
-		(void)re_snprintf(backend_name, sizeof(backend_name), "%s", 
+		(void)re_snprintf(backend_name, sizeof(backend_name), "%s",
 				soundio_backend_name(backend_tmp));
 
 		odict_entry_add(o, "display", ODICT_STRING,
@@ -744,7 +464,7 @@ static int slaudio_drivers(void)
 
 		if (driver == -1 && !str_cmp(backend_name, "Coreaudio"))
 			driver = i;
-		
+
 		if (driver == i) {
 			odict_entry_add(o, "selected", ODICT_BOOL, true);
 			backend = backend_tmp;
@@ -789,7 +509,7 @@ static int slaudio_devices(void)
 		return ENOMEM;
 
 	if (!(soundio = soundio_create()))
-		return ENOMEM; 
+		return ENOMEM;
 
 	err = soundio_connect_backend(soundio, backend);
 	if (err) {
@@ -893,10 +613,11 @@ static int slaudio_devices(void)
 			output = i;
 		}
 
-		if (output == i) 
+		if (output == i)
 		{
 			odict_entry_add(o, "selected", ODICT_BOOL, true);
-			preferred_sample_rate_out = device->sample_rate_current;
+			preferred_sample_rate_out =
+				device->sample_rate_current;
 		}
 		else
 		{
