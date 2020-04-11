@@ -224,53 +224,15 @@ static void downsample_first_ch(float *outv, struct SoundIoChannelArea *areas,
 				/*stereo ch left*/
 				memcpy(outv, areas[ch].ptr,
 						instream->bytes_per_sample);
-				outv += instream->bytes_per_sample;
+				outv += 1;
 
 				/*stereo ch right*/
 				memcpy(outv, areas[ch].ptr,
 						instream->bytes_per_sample);
-				outv += instream->bytes_per_sample;
+				outv += 1;
+				areas[ch].ptr += areas[ch].step;
 			}
-
-			areas[ch].ptr += areas[ch].step;
 		}
-	}
-}
-
-
-static void convert_out_channels(int16_t *outv, const int16_t *inv, size_t inc)
-{
-	unsigned ratio = 2;
-
-	while (inc >= 1)
-	{
-		outv[0] = inv[0];
-		outv[1] = inv[1];
-
-		outv += ratio;
-
-		/* Jump over channels 3-n */
-		for (uint16_t ch = 0; ch < output_channels - 2; ch++)
-		{
-			outv += 1;
-		}
-
-		inv += ratio;
-		inc -= ratio;
-	}
-}
-
-
-static void convert_out_mono(int16_t *outv, const int16_t *inv, size_t inc)
-{
-	unsigned ratio = 2;
-
-	while (inc >= 1)
-	{
-		*outv++ = inv[0]/2 + inv[1]/2;
-
-		inv += ratio;
-		inc -= ratio;
 	}
 }
 
@@ -284,6 +246,7 @@ static void ausrc_destructor(void *arg)
 	sys_msleep(20);
 	mem_deref(st->sampv);
 }
+
 
 static void auplay_destructor(void *arg)
 {
@@ -338,7 +301,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	st_src->arg = arg;
 
 	st_src->sampc = prm->srate * prm->ch * prm->ptime / 1000;
-	st_src->sampv = mem_zalloc(sizeof(int16_t) * st_src->sampc, NULL);
+	st_src->sampv = mem_zalloc(sizeof(int16_t) * st_src->sampc * 10, NULL);
 	if (!st_src->sampv)
 	{
 		err = ENOMEM;
@@ -379,7 +342,7 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 			sess->st_play = mem_zalloc(sizeof(*st_play),
 					auplay_destructor);
 
-			sess->dstmix = mem_zalloc(sizeof(int16_t) * sampc,
+			sess->dstmix = mem_zalloc(sizeof(int16_t) * sampc * 10,
 					NULL);
 			if (!sess->st_play)
 				return ENOMEM;
@@ -398,7 +361,7 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 	st_play->wh = wh;
 	st_play->arg = arg;
 	st_play->sampc = sampc;
-	st_play->sampv = mem_zalloc(sizeof(int16_t) * sampc, NULL);
+	st_play->sampv = mem_zalloc(sizeof(int16_t) * sampc * 10, NULL);
 	if (!st_play->sampv)
 	{
 		err = ENOMEM;
@@ -562,7 +525,6 @@ static int slaudio_devices(void)
 		if (input == i)
 		{
 			odict_entry_add(o, "selected", ODICT_BOOL, true);
-			preferred_sample_rate_in = device->sample_rate_current;
 		}
 		else
 		{
@@ -611,8 +573,6 @@ static int slaudio_devices(void)
 		if (output == i)
 		{
 			odict_entry_add(o, "selected", ODICT_BOOL, true);
-			preferred_sample_rate_out =
-				device->sample_rate_current;
 		}
 		else
 		{
@@ -657,12 +617,17 @@ static void read_callback(struct SoundIoInStream *instream,
 	int cntplay = 0, msessplay = 0, sessplay = 0;
 	SRC_DATA src_data_in;
 
+
+	if (frame_count_max > 960)
+		nframes = 960;
 		
 	if ((err = soundio_instream_begin_read(instream, &areas, &nframes))) {
 		warning("slaudio/read_callback:"
 				"begin read error: %s\n", soundio_strerror(err));
 		return; /*@TODO handle error */
 	}
+
+//	warning("nframes %d\n", nframes);
 
 	if (!nframes)
 		return;
@@ -729,7 +694,7 @@ static void read_callback(struct SoundIoInStream *instream,
 	for (le = sessionl.head; le; le = le->next)
 	{
 		sess = le->data;
-		if (!sess->run_play || sess->local)
+		if (!sess || !sess->run_play || sess->local)
 			continue;
 
 		st_play = sess->st_play;
@@ -743,7 +708,7 @@ static void read_callback(struct SoundIoInStream *instream,
 		sess = le->data;
 		msessplay = 0;
 
-		if (!sess->run_play || sess->local)
+		if (!sess || !sess->run_play || sess->local)
 			continue;
 
 		st_play = sess->st_play;
@@ -817,7 +782,7 @@ static void read_callback(struct SoundIoInStream *instream,
 	for (le = sessionl.head; le; le = le->next)
 	{
 		sess = le->data;
-		if (sess->run_src && !sess->local)
+		if (sess && sess->run_src && !sess->local)
 		{
 			st_src = sess->st_src;
 
@@ -839,7 +804,7 @@ static void read_callback(struct SoundIoInStream *instream,
 			st_src->rh(st_src->sampv, samples, st_src->arg);
 		}
 
-		if (sess->local)
+		if (sess && sess->local)
 		{
 			/* write local audio to flac record buffer */
 			(void)aubuf_write_samp(sess->aubuf,
@@ -863,6 +828,7 @@ static void read_callback(struct SoundIoInStream *instream,
 
 	auconv_from_s16(AUFMT_FLOAT, write_ptr,
 			playmix, samples);
+	//memcpy(write_ptr, slaudio->inBufferFloat, samples * instream->bytes_per_sample);
 	int advance_bytes = samples * instream->bytes_per_sample;
 	soundio_ring_buffer_advance_write_ptr(ring_buffer, advance_bytes);
 }
@@ -920,6 +886,8 @@ static void write_callback(struct SoundIoOutStream *outstream,
 	if (!nframes)
 		return;
 
+//	warning("out: nframes %d\n", nframes);
+
 	for (int frame = 0; frame < nframes; frame += 1) {
 		//@TODO: handle >2ch, read_ptr is 2ch only
 		for (int ch = 0; ch < outstream->layout.channel_count; ch += 1) {
@@ -958,15 +926,7 @@ static int slaudio_start(void)
 	slaudio = mem_zalloc(sizeof(*slaudio), NULL);
 	slaudio->inBuffer = mem_zalloc(sizeof(int16_t) * BUFFER_LEN,
 					NULL);
-	slaudio->outBufferTmp = mem_zalloc(sizeof(float) * BUFFER_LEN,
-					NULL);
 	slaudio->inBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
-					NULL);
-	slaudio->inBufferOutFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
-					NULL);
-	slaudio->outBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
-					NULL);
-	slaudio->outBufferInFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
 					NULL);
 
 	/** Initialize the sample rate converter for input */
@@ -1075,6 +1035,10 @@ static int slaudio_start(void)
 		goto err_out_open;
 	}
 
+	preferred_sample_rate_in = slaudio->instream->sample_rate;
+	preferred_sample_rate_out = slaudio->outstream->sample_rate;
+	info("slaudio/start: sample_rate in: %d out: %d\n", preferred_sample_rate_in, preferred_sample_rate_out);
+
 	/* Start streams */
 
 	err = soundio_instream_start(slaudio->instream);
@@ -1125,11 +1089,7 @@ static int slaudio_stop(void)
 		soundio_device_unref(slaudio->dev_out);
 		soundio_destroy(slaudio->soundio);
 		mem_deref(slaudio->inBuffer);
-		mem_deref(slaudio->outBufferTmp);
 		mem_deref(slaudio->inBufferFloat);
-		mem_deref(slaudio->inBufferOutFloat);
-		mem_deref(slaudio->outBufferFloat);
-		mem_deref(slaudio->outBufferInFloat);
 		slaudio = mem_deref(slaudio);
 	}
 
@@ -1161,7 +1121,7 @@ static int slaudio_init(void)
 
 	/* add local/recording session
 	 */
-	sess = mem_zalloc(sizeof(*sess), sess_destruct);
+	sess = mem_alloc(sizeof(*sess), sess_destruct);
 	if (!sess)
 		return ENOMEM;
 	sess->local = true;
@@ -1172,10 +1132,10 @@ static int slaudio_init(void)
 	 */
 	for (uint32_t cnt = 0; cnt < MAX_REMOTE_CHANNELS; cnt++)
 	{
-		sess = mem_zalloc(sizeof(*sess), sess_destruct);
+		sess = mem_alloc(sizeof(*sess), sess_destruct);
 		if (!sess)
 			return ENOMEM;
-		sess->vumeter = mem_zalloc(BUFFER_LEN, NULL);
+		sess->vumeter = mem_zalloc(BUFFER_LEN * sizeof(float), NULL);
 
 		sess->local = false;
 		sess->stream = false;
