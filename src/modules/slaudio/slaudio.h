@@ -21,6 +21,8 @@ struct session {
 	float *vumeter;
 	struct call *call;
 	int8_t track;
+	bool talk;
+	int16_t bufsz;
 };
 
 extern struct list sessionl;

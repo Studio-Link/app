@@ -43,7 +43,7 @@ struct auplay_st
 	const struct auplay *ap; /* pointer to base-class (inheritance) */
 	bool run;
 	void *write;
-	void *sampv;
+	int16_t *sampv;
 	size_t sampc;
 	auplay_write_h *wh;
 	void *arg;
@@ -57,7 +57,7 @@ struct ausrc_st
 	const struct ausrc *as; /* pointer to base-class (inheritance) */
 	bool run;
 	void *read;
-	void *sampv;
+	int16_t *sampv;
 	size_t sampc;
 	ausrc_read_h *rh;
 	void *arg;
@@ -87,12 +87,17 @@ static int slaudio_stop(void);
 static int slaudio_start(void);
 static int slaudio_devices(void);
 static int slaudio_drivers(void);
+static struct SoundIoRingBuffer *ring_buffer = NULL;
 void webapp_ws_rtaudio_sync(void);
 
-static int32_t *playmix;
+static int16_t *playmix;
 
 static bool mono = false;
 static bool mute = false;
+
+/* webapp/jitter.c */
+void webapp_jitter(struct session *sess, int16_t *sampv,
+		auplay_write_h *wh, unsigned int sampc, void *arg);
 
 
 void slaudio_mono_set(bool active)
@@ -210,38 +215,25 @@ static void convert_float(int16_t *sampv, float *f_sampv, size_t sampc)
 }
 
 
-static void downsample_first_ch(int16_t *outv, const int16_t *inv, size_t inc)
+static void downsample_first_ch(float *outv, struct SoundIoChannelArea *areas,
+		int nframes, struct SoundIoInStream *instream)
 {
-	unsigned ratio = input_channels;
-	int16_t mix = 0;
+	for (int frame = 0; frame < nframes; frame++) {
+		for (int ch = 0; ch < instream->layout.channel_count; ch++) {
+			if (ch == first_input_channel) {
+				/*stereo ch left*/
+				memcpy(outv, areas[ch].ptr,
+						instream->bytes_per_sample);
+				outv += instream->bytes_per_sample;
 
-	/** Mix Channels */
-	if (first_input_channel == 99) {
-		while (inc >= 1)
-		{
-			mix = 0;
-			for (uint16_t ch = 0; ch < input_channels; ch++)
-			{
-				mix += inv[ch];
+				/*stereo ch right*/
+				memcpy(outv, areas[ch].ptr,
+						instream->bytes_per_sample);
+				outv += instream->bytes_per_sample;
 			}
-			outv[0] = mix;
-			outv[1] = mix;
 
-			outv += 2;
-			inv += ratio;
-			inc -= ratio;
+			areas[ch].ptr += areas[ch].step;
 		}
-		return;
-	}
-
-	while (inc >= 1)
-	{
-		outv[0] = inv[first_input_channel];
-		outv[1] = inv[first_input_channel];
-
-		outv += 2;
-		inv += ratio;
-		inc -= ratio;
 	}
 }
 
@@ -346,7 +338,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	st_src->arg = arg;
 
 	st_src->sampc = prm->srate * prm->ch * prm->ptime / 1000;
-	st_src->sampv = mem_zalloc(sizeof(float) * st_src->sampc, NULL);
+	st_src->sampv = mem_zalloc(sizeof(int16_t) * st_src->sampc, NULL);
 	if (!st_src->sampv)
 	{
 		err = ENOMEM;
@@ -406,7 +398,7 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 	st_play->wh = wh;
 	st_play->arg = arg;
 	st_play->sampc = sampc;
-	st_play->sampv = mem_zalloc(sizeof(float) * sampc, NULL);
+	st_play->sampv = mem_zalloc(sizeof(int16_t) * sampc, NULL);
 	if (!st_play->sampv)
 	{
 		err = ENOMEM;
@@ -650,51 +642,229 @@ out:
 static void read_callback(struct SoundIoInStream *instream,
 				int frame_count_min, int frame_count_max) 
 {
-	struct SoundIoChannelArea *areas;
 	int err;
+	struct SoundIoChannelArea *areas;
 
-	int frames_left = frame_count_max;
-	
+	int nframes = frame_count_max;
+	int samples;
 
-	for (;;) {
-		int frame_count = frames_left;
+	struct le *le;
+	struct le *mle;
+	struct session *sess;
+	struct auplay_st *st_play;
+	struct auplay_st *mst_play;
+	struct ausrc_st *st_src;
+	int cntplay = 0, msessplay = 0, sessplay = 0;
+	SRC_DATA src_data_in;
+
 		
-		if ((err = soundio_instream_begin_read(instream, &areas, &frame_count))) {
-			warning("slaudio/read_callback:"
+	if ((err = soundio_instream_begin_read(instream, &areas, &nframes))) {
+		warning("slaudio/read_callback:"
 				"begin read error: %s\n", soundio_strerror(err));
-			break; /*@TODO handle error */
-		}
+		return; /*@TODO handle error */
+	}
 
-		if (!frame_count)
-			break;
+	if (!nframes)
+		return;
 
-		if (!areas) {
-			// Due to an overflow there is a hole. Fill the ring buffer with
-			// silence for the size of the hole.
-			//memset(write_ptr, 0, frame_count * instream->bytes_per_frame);
-			warning("slaudio/read_callback:"
-				"Dropped %d frames overflow\n", frame_count);
-		} else {
-			for (int frame = 0; frame < frame_count; frame += 1) {
-				for (int ch = 0; ch < instream->layout.channel_count; ch += 1) {
-				//	memcpy(write_ptr, areas[ch].ptr, instream->bytes_per_sample);
-					areas[ch].ptr += areas[ch].step;
-				//	write_ptr += instream->bytes_per_sample;
-				}
+	samples = nframes * 2; /* Stereo (2 ch) only */
+
+	if (!areas) {
+		/* Due to an overflow there is a hole. Fill with silence */
+		memset(slaudio->inBufferFloat, 0, samples * instream->bytes_per_frame);
+		warning("slaudio/read_callback:"
+				"Dropped %d frames overflow\n", nframes);
+	} else {
+		downsample_first_ch(slaudio->inBufferFloat, areas, nframes, instream);
+	}
+
+	if ((err = soundio_instream_end_read(instream))) {
+		warning("slaudio/read_callback:"
+				"end read error: %s\n", soundio_strerror(err));
+		return; /*@TODO handle error */
+	}
+
+	if (mute)
+	{
+		memset(slaudio->inBufferFloat, 0, samples * instream->bytes_per_frame);
+	}
+	
+	ws_meter_process(0, slaudio->inBufferFloat, (unsigned long)samples);
+
+	/**<-- Input Samplerate conversion */
+	if (preferred_sample_rate_in != 48000)
+	{
+		if (!src_state_in)
+			return; 
+
+		src_data_in.data_in = slaudio->inBufferFloat;
+		src_data_in.data_out = slaudio->inBufferOutFloat;
+		src_data_in.input_frames = nframes;
+		src_data_in.output_frames = BUFFER_LEN / 2;
+		src_data_in.src_ratio =
+				48000 / (double)preferred_sample_rate_in;
+		src_data_in.end_of_input = 0;
+
+		if ((err = src_process(src_state_in, &src_data_in)) != 0)
+		{
+			warning("slaudio: Samplerate::src_process_in :"
+					"returned error : %s %f\n",
+					src_strerror(err),
+					src_data_in.src_ratio);
+			return;
+		};
+		samples = src_data_in.output_frames_gen * 2;
+		auconv_to_s16(slaudio->inBuffer, AUFMT_FLOAT,
+				slaudio->inBufferOutFloat,
+				samples);
+	} else {
+		auconv_to_s16(slaudio->inBuffer, AUFMT_FLOAT,
+				slaudio->inBufferFloat, samples);
+	}
+	/** Input Samplerate conversion -->*/
+
+	//warning("samples: %d %d\n", nframes, instream->layout.channel_count);
+
+
+	for (le = sessionl.head; le; le = le->next)
+	{
+		sess = le->data;
+		if (!sess->run_play || sess->local)
+			continue;
+
+		st_play = sess->st_play;
+
+		webapp_jitter(sess, st_play->sampv,
+				st_play->wh, samples, st_play->arg);
+	}
+
+	for (le = sessionl.head; le; le = le->next)
+	{
+		sess = le->data;
+		msessplay = 0;
+
+		if (!sess->run_play || sess->local)
+			continue;
+
+		st_play = sess->st_play;
+
+		for (uint16_t pos = 0; pos < samples; pos++)
+		{
+			int32_t val = 0;
+			if (cntplay < 1)
+			{
+				playmix[pos] = st_play->sampv[pos];
+			}
+			else
+			{
+				val = playmix[pos] + st_play->sampv[pos];
+				if (val >= 32767)
+					val = 32767;
+				if (val <= -32767)
+					val = -32767;
+				playmix[pos] = val;
 			}
 		}
 
-		if ((err = soundio_instream_end_read(instream))) {
-			warning("slaudio/read_callback:"
-				"end read error: %s\n", soundio_strerror(err));
-			break; /*@TODO handle error */
+		/* write remote streams to flac record buffer */
+		(void)aubuf_write_samp(sess->aubuf, st_play->sampv, samples);
+
+		/* vumeter */
+		if (!sess->stream) {
+			convert_float(st_play->sampv,
+					sess->vumeter, samples);
+			ws_meter_process(sess->ch, sess->vumeter,
+					(unsigned long)samples);
 		}
 
-		frames_left -= frame_count;
-		if (frames_left <= 0)
-			break;		
+		/* mix n-1 */
+		for (mle = sessionl.head; mle; mle = mle->next)
+		{
+			struct session *msess = mle->data;
+			int32_t val = 0;
+
+			if (!msess->run_play || msess == sess || sess->local)
+			{
+				continue;
+			}
+			mst_play = msess->st_play;
+
+			for (uint16_t pos = 0; pos < samples; pos++)
+			{
+				if (msessplay < 1)
+				{
+					sess->dstmix[pos] =
+						mst_play->sampv[pos];
+				}
+				else
+				{
+					val = mst_play->sampv[pos] +
+						sess->dstmix[pos];
+					if (val >= 32767)
+						val = 32767;
+					if (val <= -32767)
+						val = -32767;
+
+					sess->dstmix[pos] = val;
+				}
+			}
+			++msessplay;
+			++sessplay;
+		}
+		++cntplay;
 	}
 
+	for (le = sessionl.head; le; le = le->next)
+	{
+		sess = le->data;
+		if (sess->run_src && !sess->local)
+		{
+			st_src = sess->st_src;
+
+			for (uint16_t pos = 0; pos < samples; pos++)
+			{
+				if (!sessplay) {
+					/* ignore on last call the dstmix */
+					st_src->sampv[pos] =
+						slaudio->inBuffer[pos];
+				}
+				else
+				{
+					st_src->sampv[pos] =
+						slaudio->inBuffer[pos] +
+						sess->dstmix[pos];
+				}
+			}
+
+			st_src->rh(st_src->sampv, samples, st_src->arg);
+		}
+
+		if (sess->local)
+		{
+			/* write local audio to flac record buffer */
+			(void)aubuf_write_samp(sess->aubuf,
+					slaudio->inBuffer, samples);
+		}
+	}
+
+	if (!cntplay)
+	{
+		memset(playmix, 0, samples * sizeof(int16_t));
+	}
+
+	char *write_ptr = soundio_ring_buffer_write_ptr(ring_buffer);
+	int free_bytes = soundio_ring_buffer_free_count(ring_buffer);
+	int free_count = free_bytes / instream->bytes_per_sample;
+
+	if (samples > free_count) {
+		warning("ring buffer overflow %d/%d/%d\n", samples, free_count);
+		return;
+	}
+
+	auconv_from_s16(AUFMT_FLOAT, write_ptr,
+			playmix, samples);
+	int advance_bytes = samples * instream->bytes_per_sample;
+	soundio_ring_buffer_advance_write_ptr(ring_buffer, advance_bytes);
 }
 
 
@@ -703,46 +873,77 @@ static void write_callback(struct SoundIoOutStream *outstream,
 {
 	struct SoundIoChannelArea *areas;
 	int err;
+	int nframes = frame_count_max;
 
-	int frames_left = frame_count_max;
+	char *read_ptr = soundio_ring_buffer_read_ptr(ring_buffer);
+	int fill_bytes = soundio_ring_buffer_fill_count(ring_buffer);
+	int fill_count = fill_bytes / outstream->bytes_per_frame;
+	int frames_left;
+	int frame_count;
 
-
-	for (;;) {
-		int frame_count = frames_left;
-
-		if ((err = soundio_outstream_begin_write(outstream, &areas, &frame_count))) {
-			warning("slaudio/write_callback:"
-					"begin write error: %s\n", soundio_strerror(err));
-			break; /*@TODO handle error */
-		}
-
-		if (!frame_count)
-			break;
-
-		for (int frame = 0; frame < frame_count; frame += 1) {
-			for (int ch = 0; ch < outstream->layout.channel_count; ch += 1) {
-				//memcpy(write_ptr, areas[ch].ptr, outstream->bytes_per_sample);
-				areas[ch].ptr += areas[ch].step;
-				//write_ptr += outstream->bytes_per_sample;
+	if (nframes > fill_count) {
+		// Ring buffer does not have enough data, fill with zeroes.
+		frames_left = nframes;
+		for (;;) {
+			frame_count = frames_left;
+			if (frame_count <= 0)
+				return;
+			if ((err = soundio_outstream_begin_write(outstream, &areas, &frame_count))) {
+				warning("slaudio/write_callback:"
+						"begin write error: %s\n", soundio_strerror(err));
+				return;
 			}
+			if (frame_count <= 0)
+				return;
+			for (int frame = 0; frame < frame_count; frame += 1) {
+				for (int ch = 0; ch < outstream->layout.channel_count; ch += 1) {
+					memset(areas[ch].ptr, 0, outstream->bytes_per_sample);
+					areas[ch].ptr += areas[ch].step;
+				}
+			}
+			if ((err = soundio_outstream_end_write(outstream))) {
+				warning("slaudio/write_callback:"
+						"end write error: %s\n", soundio_strerror(err));
+				return;
+			}
+			frames_left -= frame_count;
 		}
-
-		if ((err = soundio_outstream_end_write(outstream))) {
-			warning("slaudio/write_callback:"
-					"end write error: %s\n", soundio_strerror(err));
-			break; /*@TODO handle error */
-		}
-
-		frames_left -= frame_count;
-		if (frames_left <= 0)
-			break;		
 	}
+
+
+	if ((err = soundio_outstream_begin_write(outstream, &areas, &nframes))) {
+		warning("slaudio/write_callback:"
+				"begin write error: %s\n", soundio_strerror(err));
+		return; /*@TODO handle error */
+	}
+
+	if (!nframes)
+		return;
+
+	for (int frame = 0; frame < nframes; frame += 1) {
+		//@TODO: handle >2ch, read_ptr is 2ch only
+		for (int ch = 0; ch < outstream->layout.channel_count; ch += 1) {
+			memcpy(areas[ch].ptr, read_ptr, outstream->bytes_per_sample);
+			areas[ch].ptr += areas[ch].step;
+			read_ptr += outstream->bytes_per_sample;
+		}
+	}
+
+	if ((err = soundio_outstream_end_write(outstream))) {
+		warning("slaudio/write_callback:"
+				"end write error: %s\n", soundio_strerror(err));
+		return; /*@TODO handle error */
+	}
+
+	soundio_ring_buffer_advance_read_ptr(ring_buffer, nframes * outstream->bytes_per_frame);
+
 }
 
 
 static int slaudio_start(void)
 {
 	int err = 0;
+	double microphone_latency = 0.02;
 
 	if (input == -1) {
 		warning("slaudio/start: invalid input device\n");
@@ -755,7 +956,7 @@ static int slaudio_start(void)
 	}
 
 	slaudio = mem_zalloc(sizeof(*slaudio), NULL);
-	slaudio->inBuffer = mem_zalloc(sizeof(float) * BUFFER_LEN,
+	slaudio->inBuffer = mem_zalloc(sizeof(int16_t) * BUFFER_LEN,
 					NULL);
 	slaudio->outBufferTmp = mem_zalloc(sizeof(float) * BUFFER_LEN,
 					NULL);
@@ -828,7 +1029,7 @@ static int slaudio_start(void)
 
 	slaudio->instream->format = SoundIoFormatFloat32NE;
 	slaudio->instream->read_callback = read_callback;
-	slaudio->instream->software_latency = 0.02;
+	slaudio->instream->software_latency = microphone_latency;
 
 	err = soundio_instream_open(slaudio->instream);
 	if (err) {
@@ -850,7 +1051,7 @@ static int slaudio_start(void)
 
 	slaudio->outstream->format = SoundIoFormatFloat32NE;
 	slaudio->outstream->write_callback = write_callback;
-	slaudio->outstream->software_latency = 0.02;
+	slaudio->outstream->software_latency = microphone_latency;
 
 
 	err = soundio_outstream_open(slaudio->outstream);
@@ -864,6 +1065,15 @@ static int slaudio_start(void)
 		warning("slaudio/start: unable to set channel layout: %s\n",
 			soundio_strerror(slaudio->outstream->layout_error));
 
+	/* Prepare ring buffer */
+
+	int capacity = microphone_latency * 2 * 3 * slaudio->instream->sample_rate * slaudio->instream->bytes_per_frame;
+	ring_buffer = soundio_ring_buffer_create(slaudio->soundio, capacity);
+	if (!ring_buffer) {
+		warning("slaudio/start: error ring_buffer\n");
+		err = ENOMEM;
+		goto err_out_open;
+	}
 
 	/* Start streams */
 
@@ -921,6 +1131,11 @@ static int slaudio_stop(void)
 		mem_deref(slaudio->outBufferFloat);
 		mem_deref(slaudio->outBufferInFloat);
 		slaudio = mem_deref(slaudio);
+	}
+
+	if (ring_buffer) {
+		soundio_ring_buffer_destroy(ring_buffer);
+		ring_buffer = NULL;
 	}
 
 	return 0;
