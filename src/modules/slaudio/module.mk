@@ -10,6 +10,6 @@ $(MOD)_LFLAGS   += -lsoundio -lsamplerate
 ifeq ($(OS),linux)
 	$(MOD)_LFLAGS   += -lpulse-simple -lpulse
 endif
-$(MOD)_CFLAGS   += -Wno-aggregate-return
+$(MOD)_CFLAGS   += -DSOUNDIO_STATIC_LIBRARY=1
 
 include mk/mod.mk
