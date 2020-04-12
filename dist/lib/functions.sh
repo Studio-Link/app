@@ -123,7 +123,7 @@ sl_get_baresip() {
     cp -a ../../src/modules/effect modules/effect
     cp -a ../../src/modules/effectonair modules/effectonair
     cp -a ../../src/modules/apponair modules/apponair
-    cp -a ../../src/modules/slrtaudio modules/slrtaudio
+    cp -a ../../src/modules/slaudio modules/slaudio
 
 
     sed $sed_opt s/SLVERSION_T/$version_t/ modules/webapp/webapp.h
