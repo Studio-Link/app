@@ -203,7 +203,7 @@ index 61a3137..51b03ce 100644
 +        return "opensles,nil";
  #elif defined (DARWIN)
 -	return "coreaudio,default";
-+        return "slrtaudio,default";
++        return "slaudio,default";
  #elif defined (FREEBSD)
 -	return "oss,/dev/dsp";
 +        return "oss,/dev/dsp";
@@ -212,10 +212,10 @@ index 61a3137..51b03ce 100644
 +        return "sndio,default";
  #elif defined (WIN32)
 -	return "winwave,nil";
-+        return "slrtaudio,default";
++        return "slaudio,default";
  #else
 -	return "alsa,default";
-+        return "slrtaudio,default";
++        return "slaudio,default";
  #endif
  }
  
@@ -342,7 +342,7 @@ index 61a3137..51b03ce 100644
  #else
 -	(void)re_fprintf(f, "module\t\t\t" "alsa" MOD_EXT "\n");
 -	(void)re_fprintf(f, "#module\t\t\t" "pulse" MOD_EXT "\n");
-+        (void)re_fprintf(f, "module\t\t\t" MOD_PRE "slrtaudio" MOD_EXT "\n");
++        (void)re_fprintf(f, "module\t\t\t" MOD_PRE "slaudio" MOD_EXT "\n");
  #endif
 -	(void)re_fprintf(f, "#module\t\t\t" "jack" MOD_EXT "\n");
 -	(void)re_fprintf(f, "#module\t\t\t" "portaudio" MOD_EXT "\n");

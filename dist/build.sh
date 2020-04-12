@@ -42,17 +42,17 @@ use_ssl='USE_OPENSSL="yes"'
 fi
 
 if [ "$BUILD_OS" == "linux" ]; then
-    sl_extra_modules="alsa slrtaudio"
+    sl_extra_modules="alsa slaudio"
 fi
 if [ "$BUILD_OS" == "linuxjack" ]; then
-    sl_extra_modules="jack alsa slrtaudio"
+    sl_extra_modules="jack alsa slaudio"
 fi
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then 
-    export MACOSX_DEPLOYMENT_TARGET=10.9
+    export MACOSX_DEPLOYMENT_TARGET=10.10
     sl_extra_lflags+="-L ../openssl ../openssl/libssl.a ../openssl/libcrypto.a "
     sl_extra_lflags+="-framework SystemConfiguration "
     sl_extra_lflags+="-framework CoreFoundation"
-    sl_extra_modules="slrtaudio"
+    sl_extra_modules="slaudio"
     sed_opt="-i ''"
 fi
 
