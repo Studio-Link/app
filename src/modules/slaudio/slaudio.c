@@ -166,7 +166,6 @@ static int slaudio_reset(void)
 	slaudio_drivers();
 	slaudio_devices();
 	webapp_ws_rtaudio_sync();
-	first_input_channel = 0;
 	slaudio_start();
 
 	return err;
@@ -186,6 +185,7 @@ void slaudio_set_driver(int value)
 void slaudio_set_input(int value)
 {
 	input = value;
+	first_input_channel = 0;
 	slaudio_reset();
 }
 
