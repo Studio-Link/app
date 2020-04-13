@@ -628,6 +628,7 @@ static void read_callback(struct SoundIoInStream *instream,
 	struct ausrc_st *st_src;
 	int cntplay = 0, msessplay = 0, sessplay = 0;
 	SRC_DATA src_data_in;
+	SRC_DATA src_data_out;
 
 //	warning("nframes read %d\n", nframes);
 	
@@ -690,6 +691,8 @@ static void read_callback(struct SoundIoInStream *instream,
 					src_data_in.src_ratio);
 			return;
 		};
+
+//		warning("input: nframes:%d out: %d\n", nframes, src_data_in.output_frames_gen);
 		samples = src_data_in.output_frames_gen * 2;
 		auconv_to_s16(slaudio->inBuffer, AUFMT_FLOAT,
 				slaudio->inBufferOutFloat,
@@ -842,8 +845,35 @@ static void read_callback(struct SoundIoInStream *instream,
 		return;
 	}
 
-	auconv_from_s16(AUFMT_FLOAT, write_ptr,
-			playmix, samples);
+	if (preferred_sample_rate_out != 48000)
+	{	
+		auconv_from_s16(AUFMT_FLOAT, slaudio->outBufferFloat,
+				playmix, samples);
+
+		src_data_out.data_in = slaudio->outBufferFloat;
+		src_data_out.data_out = (float *)write_ptr;
+		src_data_out.input_frames = samples / 2;
+		src_data_out.output_frames = free_count;
+		src_data_out.src_ratio =
+			(double)preferred_sample_rate_out / 48000;
+		src_data_out.end_of_input = 0;
+
+		if (!src_state_out)
+			return; 
+
+		if ((err = src_process(src_state_out, &src_data_out)) != 0)
+		{
+			warning("slrtaudio: Samplerate::src_process_out :"
+					"returned error : %s\n", src_strerror(err));
+			return;
+		};
+
+		samples = src_data_out.output_frames_gen * 2;
+	} else {
+		auconv_from_s16(AUFMT_FLOAT, write_ptr,
+				playmix, samples);
+	}
+
 	int advance_bytes = samples * instream->bytes_per_sample;
 	soundio_ring_buffer_advance_write_ptr(ring_buffer, advance_bytes);
 }
@@ -865,6 +895,7 @@ static void write_callback(struct SoundIoOutStream *outstream,
 	int fill_count = fill_bytes / outstream->bytes_per_frame;
 	int frames_left;
 	int frame_count;
+	int samples;
 
 	if (nframes > fill_count) {
 		// Ring buffer does not have enough data, fill with zeroes.
@@ -895,7 +926,6 @@ static void write_callback(struct SoundIoOutStream *outstream,
 		}
 	}
 
-
 	if ((err = soundio_outstream_begin_write(outstream, &areas, &nframes))) {
 		warning("slaudio/write_callback:"
 				"begin write error: %s\n", soundio_strerror(err));
@@ -905,15 +935,25 @@ static void write_callback(struct SoundIoOutStream *outstream,
 	if (!nframes)
 		return;
 
-//	warning("out: nframes %d\n", nframes);
+	samples = nframes * 2;
+
+
+	memcpy(slaudio->outBufferFloat, read_ptr, samples * outstream->bytes_per_sample);
+	soundio_ring_buffer_advance_read_ptr(ring_buffer, samples * outstream->bytes_per_sample);
+
+	float *outBufferFloat = slaudio->outBufferFloat;
 
 	for (int frame = 0; frame < nframes; frame += 1) {
-		//@TODO: handle >2ch, read_ptr is 2ch only
-		for (int ch = 0; ch < outstream->layout.channel_count; ch += 1) {
-			memcpy(areas[ch].ptr, read_ptr, outstream->bytes_per_sample);
-			areas[ch].ptr += areas[ch].step;
-			read_ptr += outstream->bytes_per_sample;
-		}
+		memcpy(areas[0].ptr, outBufferFloat, outstream->bytes_per_sample);
+		outBufferFloat += 1;
+		areas[0].ptr += areas[0].step;
+
+		if (outstream->layout.channel_count == 1)
+			continue;
+
+		memcpy(areas[1].ptr, outBufferFloat, outstream->bytes_per_sample);
+		outBufferFloat += 1;
+		areas[1].ptr += areas[1].step;
 	}
 
 	if ((err = soundio_outstream_end_write(outstream))) {
@@ -921,9 +961,6 @@ static void write_callback(struct SoundIoOutStream *outstream,
 				"end write error: %s\n", soundio_strerror(err));
 		return; /*@TODO handle error */
 	}
-
-	soundio_ring_buffer_advance_read_ptr(ring_buffer, nframes * outstream->bytes_per_frame);
-
 }
 
 
@@ -948,6 +985,8 @@ static int slaudio_start(void)
 	slaudio->inBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
 					NULL);
 	slaudio->inBufferOutFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
+					NULL);
+	slaudio->outBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
 					NULL);
 
 	/** Initialize the sample rate converter for input */
@@ -1113,6 +1152,7 @@ static int slaudio_stop(void)
 		mem_deref(slaudio->inBuffer);
 		mem_deref(slaudio->inBufferFloat);
 		mem_deref(slaudio->inBufferOutFloat);
+		mem_deref(slaudio->outBufferFloat);
 		slaudio = mem_deref(slaudio);
 	}
 
