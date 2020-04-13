@@ -381,6 +381,12 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 }
 
 
+static void underflow_callback(struct SoundIoOutStream *outstream) {
+	static int count = 0;
+	warning("slaudio/underflow %d\n", ++count);
+}
+
+
 static int slaudio_drivers(void)
 {
 	int err = 0;
@@ -1020,6 +1026,7 @@ static int slaudio_start(void)
 	slaudio->outstream->format = SoundIoFormatFloat32NE;
 	slaudio->outstream->write_callback = write_callback;
 	slaudio->outstream->software_latency = microphone_latency;
+	slaudio->outstream->underflow_callback = underflow_callback;
 
 
 	err = soundio_outstream_open(slaudio->outstream);
