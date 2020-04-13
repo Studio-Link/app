@@ -94,6 +94,7 @@ static int16_t *playmix;
 
 static bool mono = false;
 static bool mute = false;
+static bool monitor = true;
 
 /* webapp/jitter.c */
 void webapp_jitter(struct session *sess, int16_t *sampv,
@@ -617,7 +618,8 @@ static void read_callback(struct SoundIoInStream *instream,
 	int cntplay = 0, msessplay = 0, sessplay = 0;
 	SRC_DATA src_data_in;
 
-
+//	warning("nframes read %d\n", nframes);
+	
 	if (frame_count_max > 960)
 		nframes = 960;
 		
@@ -627,7 +629,6 @@ static void read_callback(struct SoundIoInStream *instream,
 		return; /*@TODO handle error */
 	}
 
-//	warning("nframes %d\n", nframes);
 
 	if (!nframes)
 		return;
@@ -689,7 +690,11 @@ static void read_callback(struct SoundIoInStream *instream,
 	/** Input Samplerate conversion -->*/
 
 	//warning("samples: %d %d\n", nframes, instream->layout.channel_count);
-
+	
+	if (monitor)
+	{
+		memcpy(playmix, slaudio->inBuffer, samples * sizeof(int16_t));
+	}
 
 	for (le = sessionl.head; le; le = le->next)
 	{
@@ -812,7 +817,7 @@ static void read_callback(struct SoundIoInStream *instream,
 		}
 	}
 
-	if (!cntplay)
+	if (!cntplay && !monitor)
 	{
 		memset(playmix, 0, samples * sizeof(int16_t));
 	}
@@ -822,13 +827,12 @@ static void read_callback(struct SoundIoInStream *instream,
 	int free_count = free_bytes / instream->bytes_per_sample;
 
 	if (samples > free_count) {
-		warning("ring buffer overflow %d/%d/%d\n", samples, free_count);
+		warning("ring buffer overflow %d/%d/%d\n", samples, free_count, frame_count_max);
 		return;
 	}
 
 	auconv_from_s16(AUFMT_FLOAT, write_ptr,
 			playmix, samples);
-	//memcpy(write_ptr, slaudio->inBufferFloat, samples * instream->bytes_per_sample);
 	int advance_bytes = samples * instream->bytes_per_sample;
 	soundio_ring_buffer_advance_write_ptr(ring_buffer, advance_bytes);
 }
@@ -840,6 +844,10 @@ static void write_callback(struct SoundIoOutStream *outstream,
 	struct SoundIoChannelArea *areas;
 	int err;
 	int nframes = frame_count_max;
+
+//	warning("nframes write %d\n", nframes);
+	if (frame_count_max > 960)
+		nframes = 960;
 
 	char *read_ptr = soundio_ring_buffer_read_ptr(ring_buffer);
 	int fill_bytes = soundio_ring_buffer_fill_count(ring_buffer);
@@ -1142,6 +1150,7 @@ static int slaudio_init(void)
 		sess->ch = cnt * 2 + 1;
 		sess->track = cnt + 1;
 		sess->call = NULL;
+		sess->jb_max = 0;
 
 		list_append(&sessionl, &sess->le, sess);
 	}
@@ -1154,6 +1163,7 @@ static int slaudio_init(void)
 	sess->local = false;
 	sess->stream = true;
 	sess->call = NULL;
+	sess->jb_max = 0;
 	sess->ch = MAX_REMOTE_CHANNELS + 1;
 	list_append(&sessionl, &sess->le, sess);
 
