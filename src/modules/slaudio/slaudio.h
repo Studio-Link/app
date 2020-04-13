@@ -23,6 +23,7 @@ struct session {
 	int8_t track;
 	bool talk;
 	int16_t bufsz;
+	int16_t jb_max;
 };
 
 extern struct list sessionl;
