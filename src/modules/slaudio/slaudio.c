@@ -28,7 +28,6 @@ struct slaudio_st
 	float *inBufferFloat;
 	float *inBufferOutFloat;
 	float *outBufferFloat;
-	float *outBufferInFloat;
 	struct SoundIo *soundio;
 	struct SoundIoDevice *dev_in;
 	struct SoundIoDevice *dev_out;
@@ -72,8 +71,8 @@ static struct auplay *auplay;
 static enum SoundIoBackend backend;
 static int driver = -1;
 static int input = -1;
-static int input_channels = 2;
-static int output_channels = 2;
+//static int input_channels = 2;
+//static int output_channels = 2;
 static int first_input_channel = 0;
 static int preferred_sample_rate_in = 0;
 static int preferred_sample_rate_out = 0;
@@ -948,6 +947,8 @@ static int slaudio_start(void)
 					NULL);
 	slaudio->inBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
 					NULL);
+	slaudio->inBufferOutFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
+					NULL);
 
 	/** Initialize the sample rate converter for input */
 	if ((src_state_in = src_new(SRC_SINC_FASTEST, 2, &err)) == NULL)
@@ -1111,6 +1112,7 @@ static int slaudio_stop(void)
 		soundio_destroy(slaudio->soundio);
 		mem_deref(slaudio->inBuffer);
 		mem_deref(slaudio->inBufferFloat);
+		mem_deref(slaudio->inBufferOutFloat);
 		slaudio = mem_deref(slaudio);
 	}
 
