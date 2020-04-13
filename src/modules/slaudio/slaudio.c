@@ -413,8 +413,12 @@ static int slaudio_drivers(void)
 
 		backend_tmp = soundio_get_backend(soundio, i);
 
+
 		(void)re_snprintf(backend_name, sizeof(backend_name), "%s",
 				soundio_backend_name(backend_tmp));
+
+		if (!str_cmp(backend_name, "Dummy"))
+			continue;
 
 		odict_entry_add(o, "display", ODICT_STRING,
 				backend_name);
@@ -427,7 +431,7 @@ static int slaudio_drivers(void)
 		if (driver == -1 && !str_cmp(backend_name, "WASAPI"))
 			driver = i;
 
-		if (driver == -1 && !str_cmp(backend_name, "Coreaudio"))
+		if (driver == -1 && !str_cmp(backend_name, "CoreAudio"))
 			driver = i;
 
 		if (driver == i) {
