@@ -1,5 +1,31 @@
 # Changelog
 
+## [v20.04.1-beta] - 2020-04-xx
+
+### Changed
+
+- **Standalone** New Audio Framework (libsoundio)
+
+### Removed
+
+- **Standalone** Windows ASIO Support (will be added later,
+please use v20.03.8 until ready)
+
+### Fixed
+
+- **Misc** Audio distortion with low buffer size
+and high network jitter (caused by new jitter buffer)
+
+---
+
+## [v20.04.0-beta] - 2020-03-xx
+
+### Changed
+
+- **Misc** New jitter buffer implementation
+
+---
+
 ## [v20.03.8-stable] - 2020-03-29
 
 ### Fixed
@@ -19,6 +45,7 @@
 - **Misc** Call hangup handling
 - **Standalone** macOS Audiointerface close
 
+---
 
 ## [v20.03.6-stable] - 2020-03-20
 
@@ -26,6 +53,7 @@
 
 - **Misc** IE11 Javascript bug (marked removed)
 
+---
 
 ## [v20.03.5-stable] - 2020-03-19
 
@@ -37,6 +65,7 @@
 
 - **Misc** Bump openssl version 1.1.1e
 
+---
 
 ## [v20.03.4-stable] - 2020-03-15
 
