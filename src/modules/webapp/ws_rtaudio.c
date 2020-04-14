@@ -9,16 +9,16 @@
 #include "webapp.h"
 
 
-void slrtaudio_set_driver(int value);
-void slrtaudio_set_input(int value);
-void slrtaudio_set_first_input_channel(int value);
-void slrtaudio_set_output(int value);
+void slaudio_set_driver(int value);
+void slaudio_set_input(int value);
+void slaudio_set_first_input_channel(int value);
+void slaudio_set_output(int value);
 
 
 void webapp_ws_rtaudio_sync(void)
 {
 #ifndef SLPLUGIN
-	ws_send_json(WS_RTAUDIO, slrtaudio_get_interfaces());
+	ws_send_json(WS_RTAUDIO, slaudio_get_interfaces());
 #endif
 }
 
@@ -43,25 +43,25 @@ void webapp_ws_rtaudio(const struct websock_hdr *hdr,
 
 	if (!str_cmp(e->u.str, "driver")) {
 		e = odict_lookup(cmd, "id");
-		slrtaudio_set_driver(e->u.integer);
+		slaudio_set_driver(e->u.integer);
 		goto out;
 	}
 
 	if (!str_cmp(e->u.str, "input")) {
 		e = odict_lookup(cmd, "id");
-		slrtaudio_set_input(e->u.integer);
+		slaudio_set_input(e->u.integer);
 		goto out;
 	}
 
 	if (!str_cmp(e->u.str, "first_input_channel")) {
 		e = odict_lookup(cmd, "id");
-		slrtaudio_set_first_input_channel(e->u.integer);
+		slaudio_set_first_input_channel(e->u.integer);
 		goto out;
 	}
 
 	if (!str_cmp(e->u.str, "output")) {
 		e = odict_lookup(cmd, "id");
-		slrtaudio_set_output(e->u.integer);
+		slaudio_set_output(e->u.integer);
 		goto out;
 	}
 

@@ -1,6 +1,7 @@
 #include <re.h>
 #include <rem.h>
 #include <baresip.h>
+#include <string.h>
 #include "webapp.h"
 	
 static int16_t *dummy[3840];
@@ -57,6 +58,7 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 	if (bufsz <= 1920*2*3 && !sess->talk) { /* <=60ms */
 		debug("webapp_jitter: increase latency %dms\n",
 				bufsz/3840*20);
+		memset(sampv, 0, sampc * sizeof(int16_t));
 		return;
 	}
 
@@ -73,12 +75,14 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 
 	sess->talk = false;
 
-	if (max > 400) {
+	sess->jb_max = (sess->jb_max + max) / 2;
+
+	if (sess->jb_max > 400) {
 		sess->talk = true;
-		debug("talk %dms\n", aubuf_cur_size(rx->aubuf)/3840*20);
+	//	debug("talk %dms\n", aubuf_cur_size(rx->aubuf)/3840*20);
 	} else {
-		debug("webapp_jitter: latency %dms\n",
-				aubuf_cur_size(rx->aubuf)/3840*20);
+	//	debug("webapp_jitter: latency %dms\n",
+	//			aubuf_cur_size(rx->aubuf)/3840*20);
 	}
 
 	if (sess->talk)

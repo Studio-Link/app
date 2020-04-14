@@ -37,7 +37,7 @@ LFLAGS    := -L$(SYSROOT)/lib/ \
 	-L$(PWD)/my_include -fstack-protector
 
 # workaround for linker order (note, the order is important)
-LIBS	:= -lrem -lssl -lcrypto -lwsock32 -lws2_32 -liphlpapi -lcrypt32 -lopus -lFLAC -lsamplerate -lrtaudio -lstdc++ -lole32 -lwinmm -lksuser -lmfplat -lmfuuid -lwmcodecdspuuid -ldsound
+LIBS	:= -lrem -lssl -lcrypto -lwsock32 -lws2_32 -liphlpapi -lcrypt32 -lopus -lFLAC -lsamplerate -lsoundio -lstdc++ -lole32 -lwinmm -lksuser -lmfplat -lmfuuid -lwmcodecdspuuid -ldsound
 
 
 COMMON_FLAGS := CC=$(CC) \
@@ -90,7 +90,7 @@ baresip:	Makefile librem.a libre.a
 	PKG_CONFIG_LIBDIR="$(SYSROOT)/lib/pkgconfig" \
 	make baresip.exe -C baresip $(COMMON_FLAGS) STATIC=1 \
 		LIBRE_SO=$(PWD)/re LIBREM_PATH=$(PWD)/rem \
-		MODULES="opus wincons ice g711 turn stun uuid auloop webapp winwave slrtaudio slogging g722 dtls_srtp"
+		MODULES="opus wincons ice g711 turn stun uuid auloop webapp winwave slaudio slogging g722 dtls_srtp"
 	cp -a baresip/baresip.exe studio-link-standalone.exe
 	make clean -C baresip $(COMMON_FLAGS)
 	make libbaresip.a -C baresip $(COMMON_FLAGS) STATIC=1 \

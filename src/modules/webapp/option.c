@@ -30,28 +30,28 @@ void webapp_options_set(char *key, char *value)
 #else
 	if (!str_cmp(key, "mono")) {
 		if (!str_cmp(value, "false")) {
-			slrtaudio_mono_set(false);
+			slaudio_mono_set(false);
 		}
 		else {
-			slrtaudio_mono_set(true);
+			slaudio_mono_set(true);
 		}
 	}
 	if (!str_cmp(key, "record")) {
 		if (!str_cmp(value, "false")) {
-			slrtaudio_record_set(false);
+			slaudio_record_set(false);
 			info("webapp/option: stop record\n");
 		}
 		else {
-			slrtaudio_record_set(true);
+			slaudio_record_set(true);
 			info("webapp/option: start record\n");
 		}
 	}
 	if (!str_cmp(key, "mute")) {
 		if (!str_cmp(value, "false")) {
-			slrtaudio_mute_set(false);
+			slaudio_mute_set(false);
 		}
 		else {
-			slrtaudio_mute_set(true);
+			slaudio_mute_set(true);
 		}
 	}
 	if (!str_cmp(key, "onair")) {

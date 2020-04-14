@@ -40,7 +40,7 @@ out:
 
 
 #ifndef SLPLUGIN
-int slrtaudio_record_get_timer(void);
+int slaudio_record_get_timer(void);
 #endif
 static void write_ws(void)
 {
@@ -59,7 +59,7 @@ static void write_ws(void)
 	int msec;
 	int record_time;
 
-	record_time = slrtaudio_record_get_timer();
+	record_time = slaudio_record_get_timer();
 	hours = record_time / 1000 / 3600;
 	min = (record_time / 1000 / 60) - (hours * 60); 
 	sec = (record_time / 1000) - (hours * 3600) - (min * 60);
