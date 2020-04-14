@@ -71,8 +71,6 @@ static struct auplay *auplay;
 static enum SoundIoBackend backend;
 static int driver = -1;
 static int input = -1;
-//static int input_channels = 2;
-//static int output_channels = 2;
 static int first_input_channel = 0;
 static int preferred_sample_rate_in = 0;
 static int preferred_sample_rate_out = 0;
@@ -161,6 +159,8 @@ static int slaudio_reset(void)
 	err = odict_alloc(&interfaces, DICT_BSIZE);
 	if (err)
 		return ENOMEM;
+
+	info("slaudio/reset\n");
 
 	slaudio_stop();
 	slaudio_drivers();
@@ -388,6 +388,20 @@ static void underflow_callback(struct SoundIoOutStream *outstream) {
 }
 
 
+static void outstream_error_callback(struct SoundIoOutStream *os, int err) {
+	warning("slaudio/out_err_call: %s\n", soundio_strerror(err));
+	soundio_outstream_destroy(os);
+	slaudio_reset();
+}
+
+
+static void instream_error_callback(struct SoundIoInStream *is, int err) {
+	warning("slaudio/in_err_call: %s\n", soundio_strerror(err));
+	soundio_instream_destroy(is);
+	slaudio_reset();
+}
+
+
 static int slaudio_drivers(void)
 {
 	int err = 0;
@@ -500,7 +514,6 @@ static int slaudio_devices(void)
 
 		device = soundio_get_input_device(soundio, i);
 		(void)re_snprintf(idx, sizeof(idx), "%d", i);
-
 		if (!device->sample_rate_current)
 		{
 			info("slaudio/input device %s has no sample_rate\n",
@@ -1049,6 +1062,7 @@ static int slaudio_start(void)
 	slaudio->instream->format = SoundIoFormatFloat32NE;
 	slaudio->instream->read_callback = read_callback;
 	slaudio->instream->software_latency = microphone_latency;
+	slaudio->instream->error_callback = instream_error_callback;
 
 	err = soundio_instream_open(slaudio->instream);
 	if (err) {
@@ -1057,6 +1071,10 @@ static int slaudio_start(void)
 		goto err_out_open;
 	}
 
+	if (slaudio->instream->format != SoundIoFormatFloat32NE) {
+		warning("slaudio/start instream: only float supported\n");
+		goto err_out_open;
+	}
 
 	/* Create output stream */
 
@@ -1072,6 +1090,7 @@ static int slaudio_start(void)
 	slaudio->outstream->write_callback = write_callback;
 	slaudio->outstream->software_latency = microphone_latency;
 	slaudio->outstream->underflow_callback = underflow_callback;
+	slaudio->outstream->error_callback = outstream_error_callback;
 
 
 	err = soundio_outstream_open(slaudio->outstream);
@@ -1081,9 +1100,16 @@ static int slaudio_start(void)
 		goto err_out_open;
 	}
 
-	if (slaudio->outstream->layout_error)
+	if (slaudio->outstream->layout_error) {
 		warning("slaudio/start: unable to set channel layout: %s\n",
 			soundio_strerror(slaudio->outstream->layout_error));
+		goto err_out_open;
+	}
+
+	if (slaudio->outstream->format != SoundIoFormatFloat32NE) {
+		warning("slaudio/start outstream: only float supported\n");
+		goto err_out_open;
+	}
 
 	/* Prepare ring buffer */
 
