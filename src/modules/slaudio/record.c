@@ -104,6 +104,7 @@ static int openfile(struct session *sess)
 		(void)re_snprintf(filename, sizeof(filename), "%s"
 			DIR_SEP "local.flac", filename);
 		ret = system(command);
+		if (ret) {}
 	}
 	else {
 		(void)re_snprintf(filename, sizeof(filename), "%s"
@@ -176,13 +177,16 @@ static void *record_thread(void *arg)
 	FLAC__bool ok = true;
 	unsigned i;
 	int ret;
+	size_t bufsz;
 	FLAC__StreamEncoderState encstate;
+	size_t num_bytes = SAMPC * sizeof(int16_t);
 
 	while (sess->run_record) {
-		ret = aubuf_get_samp(sess->aubuf, PTIME, sess->sampv, SAMPC);
-		if (ret) {
+		bufsz = aubuf_cur_size(sess->aubuf);
+		if (bufsz < num_bytes) {
 			goto sleep;
 		}
+		aubuf_read(sess->aubuf, (uint8_t *)sess->sampv, num_bytes);
 
 		if (record) {
 			if (!sess->flac) {
@@ -235,7 +239,7 @@ static void *record_thread(void *arg)
 			ok = true;
 		}
 sleep:
-		sys_msleep(5);
+		sys_msleep(10);
 	}
 	return NULL;
 }

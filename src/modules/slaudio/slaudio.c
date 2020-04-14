@@ -35,6 +35,8 @@ struct slaudio_st
 	struct SoundIoOutStream *outstream;
 };
 
+int16_t *empty_buffer;
+
 static struct slaudio_st *slaudio;
 
 struct auplay_st
@@ -740,8 +742,13 @@ static void read_callback(struct SoundIoInStream *instream,
 		sess = le->data;
 		msessplay = 0;
 
-		if (!sess || !sess->run_play || sess->local)
+		if (!sess || sess->local)
 			continue;
+
+		if (!sess->run_play) {
+			(void)aubuf_write_samp(sess->aubuf, empty_buffer, samples);
+			continue;
+		}
 
 		st_play = sess->st_play;
 
@@ -1207,6 +1214,10 @@ static int slaudio_init(void)
 	if (!playmix)
 		return ENOMEM;
 
+	empty_buffer = mem_zalloc(sizeof(int16_t) * BUFFER_LEN, NULL);
+	if (!empty_buffer)
+		return ENOMEM;
+
 	/* add local/recording session
 	 */
 	sess = mem_alloc(sizeof(*sess), sess_destruct);
@@ -1277,6 +1288,7 @@ static int slaudio_close(void)
 	}
 
 	playmix = mem_deref(playmix);
+	empty_buffer = mem_deref(empty_buffer);
 
 	return 0;
 }
