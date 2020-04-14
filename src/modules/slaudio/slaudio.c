@@ -1087,7 +1087,7 @@ static int slaudio_start(void)
 
 	/* Prepare ring buffer */
 
-	int capacity = microphone_latency * 2 * 3 * 48000 * slaudio->instream->bytes_per_frame;
+	int capacity = microphone_latency * 2 * 3 * slaudio->outstream->sample_rate * slaudio->instream->bytes_per_frame;
 	ring_buffer = soundio_ring_buffer_create(slaudio->soundio, capacity);
 	if (!ring_buffer) {
 		warning("slaudio/start: error ring_buffer\n");
