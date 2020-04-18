@@ -52,8 +52,6 @@ static enum SoundIoFormat prioritized_formats[] = {
 
 struct slaudio_st
 {
-	void *inFmtConvert;
-	void *outFmtConvert;
 	int16_t *inBuffer;
 	int16_t *outBufferTmp;
 	float *inBufferFloat;
@@ -1050,8 +1048,6 @@ static void slaudio_destruct(void *arg)
 		mem_deref(slaudio->inBufferFloat);
 		mem_deref(slaudio->inBufferOutFloat);
 		mem_deref(slaudio->outBufferFloat);
-		mem_deref(slaudio->inFmtConvert);
-		mem_deref(slaudio->outFmtConvert);
 		slaudio = mem_deref(slaudio);
 	}
 }
@@ -1082,11 +1078,7 @@ static int slaudio_start(void)
 					NULL);
 	slaudio->outBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
 					NULL);
-	//4 Bytes max. 64bit not supported
-	slaudio->inFmtConvert = mem_zalloc(4 * BUFFER_LEN,
-					NULL);
-	slaudio->outFmtConvert = mem_zalloc(4 * BUFFER_LEN,
-					NULL);
+
 	/** Initialize the sample rate converter for input */
 	if ((src_state_in = src_new(SRC_SINC_FASTEST, 2, &err)) == NULL)
 	{
