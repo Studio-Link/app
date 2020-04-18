@@ -18,6 +18,24 @@
 #include <windows.h>
 #endif
 
+#include <math.h>
+#define SAMPLE_24BIT_SCALING  8388607.0f
+#define NORMALIZED_FLOAT_MIN -1.0f
+#define NORMALIZED_FLOAT_MAX  1.0f
+#define SAMPLE_24BIT_MAX  8388607
+#define SAMPLE_24BIT_MIN  -8388607
+
+#define f_round(f) lrintf (f)
+
+#define float_24u32(s, d) \
+	if ((s) <= NORMALIZED_FLOAT_MIN) { \
+		(d) = SAMPLE_24BIT_MIN << 8; \
+	} else if ((s) >= NORMALIZED_FLOAT_MAX) { \
+		(d) = SAMPLE_24BIT_MAX << 8; \
+	} else { \
+		(d) = f_round ((s) * SAMPLE_24BIT_SCALING) << 8; \
+	}
+
 enum
 {
 	MAX_REMOTE_CHANNELS = 6,
@@ -25,8 +43,17 @@ enum
 	MAX_LEVELS = 8,
 };
 
+static enum SoundIoFormat prioritized_formats[] = {
+	SoundIoFormatFloat32NE,
+	SoundIoFormatS32NE,
+	SoundIoFormatS16NE,
+	SoundIoFormatInvalid,
+};
+
 struct slaudio_st
 {
+	void *inFmtConvert;
+	void *outFmtConvert;
 	int16_t *inBuffer;
 	int16_t *outBufferTmp;
 	float *inBufferFloat;
@@ -98,6 +125,7 @@ static int16_t *playmix;
 static bool mono = false;
 static bool mute = false;
 static bool monitor = true;
+
 
 /* webapp/jitter.c */
 void webapp_jitter(struct session *sess, int16_t *sampv,
@@ -222,22 +250,27 @@ static void convert_float(int16_t *sampv, float *f_sampv, size_t sampc)
 	}
 }
 
-
 static void downsample_first_ch(float *outv, struct SoundIoChannelArea *areas,
 		int nframes, struct SoundIoInStream *instream)
 {
+	float value = 0;
+
 	for (int frame = 0; frame < nframes; frame++) {
 		for (int ch = 0; ch < instream->layout.channel_count; ch++) {
 			if (ch == first_input_channel) {
 				/*stereo ch left*/
-				memcpy(outv, areas[ch].ptr,
-						instream->bytes_per_sample);
+				if (instream->format == SoundIoFormatS32NE) {
+					value = (*((int32_t*)areas[ch].ptr) >> 8) / SAMPLE_24BIT_SCALING;
+				} else {
+					value = *((float*)areas[ch].ptr); 
+				}
+				*outv = value;
 				outv += 1;
 
 				/*stereo ch right*/
-				memcpy(outv, areas[ch].ptr,
-						instream->bytes_per_sample);
+				*outv = value;
 				outv += 1;
+
 				areas[ch].ptr += areas[ch].step;
 			}
 		}
@@ -484,6 +517,7 @@ static int slaudio_devices(void)
 	int err = 0;
 	struct SoundIo *soundio;
 	int output_count, input_count, default_output, default_input;
+	bool default_input_err;
 	struct odict *o;
 	struct odict *array_in;
 	struct odict *array_out;
@@ -516,35 +550,29 @@ static int slaudio_devices(void)
 
 	default_output = soundio_default_output_device_index(soundio);
 	default_input = soundio_default_input_device_index(soundio);
+	default_input_err = false;
 
 	for (int i = 0; i < input_count; i += 1) {
 
 		device = soundio_get_input_device(soundio, i);
 		(void)re_snprintf(idx, sizeof(idx), "%d", i);
 
+		if (backend == SoundIoBackendAlsa && !device->is_raw) {
+			soundio_device_unref(device);
+			if (i == default_input)
+				default_input_err = true;
+			continue;
+		}
+
 		if (device->probe_error) {
 			info("slaudio/input device %s probe error\n",
 					device->name);
 			soundio_device_unref(device);
-			continue;
-		}
-#if 0
-		if (!device->sample_rate_current)
-		{
-			info("slaudio/input device %s has no sample_rate\n",
-					device->name);
-			soundio_device_unref(device);
+			if (i == default_input)
+				default_input_err = true;
 			continue;
 		}
 
-		if (!device->current_layout.channel_count)
-		{
-			info("slaudio/input device %s has no inputs\n",
-					device->name);
-			soundio_device_unref(device);
-			continue;
-		}
-#endif
 		err = odict_alloc(&o, DICT_BSIZE);
 		if (err)
 			goto out1;
@@ -554,18 +582,24 @@ static int slaudio_devices(void)
 		if (device->is_raw) {
 			(void)re_snprintf(device_name, sizeof(device_name), "%s (Exclusiv)", device->name);
 		} else {
-			(void)re_snprintf(device_name, sizeof(device_name), "%s (Shared)", device->name);
+			(void)re_snprintf(device_name, sizeof(device_name), "%s", device->name);
 		}
 
 		odict_entry_add(o, "display", ODICT_STRING, device_name);
+		//@TODO select highest channel count
 		odict_entry_add(o, "channels", ODICT_INT,
 				(int64_t)device->current_layout.channel_count);
 		odict_entry_add(o, "first_input_channel",
 				ODICT_INT,
 				(int64_t)first_input_channel);
 
-		if (input == -1 && default_input == i && !device->is_raw)
+		if (input == -1 && default_input == i)
 		{
+			input = i;
+		}
+
+		if (input == -1 && default_input_err) {
+			info("set fallback input %d\n", i);
 			input = i;
 		}
 
@@ -588,29 +622,19 @@ static int slaudio_devices(void)
 
 		device = soundio_get_output_device(soundio, i);
 		(void)re_snprintf(idx, sizeof(idx), "%d", i);
+
+		if (backend == SoundIoBackendAlsa && !device->is_raw) {
+			soundio_device_unref(device);
+			continue;
+		}
+
 		if (device->probe_error) {
 			info("slaudio/input device %s probe error\n",
 					device->name);
 			soundio_device_unref(device);
 			continue;
 		}
-#if 0
-		if (!device->sample_rate_current)
-		{
-			info("slaudio/output device %s has no sample_rate\n",
-					device->name);
-			soundio_device_unref(device);
-			continue;
-		}
 
-		if (!device->current_layout.channel_count)
-		{
-			info("slaudio/output device %s has no outputs\n",
-					device->name);
-			soundio_device_unref(device);
-			continue;
-		}
-#endif
 		err = odict_alloc(&o, DICT_BSIZE);
 		if (err)
 			goto out1;
@@ -619,7 +643,7 @@ static int slaudio_devices(void)
 		if (device->is_raw) {
 			(void)re_snprintf(device_name, sizeof(device_name), "%s (Exclusiv)", device->name);
 		} else {
-			(void)re_snprintf(device_name, sizeof(device_name), "%s (Shared)", device->name);
+			(void)re_snprintf(device_name, sizeof(device_name), "%s", device->name);
 		}
 		odict_entry_add(o, "display", ODICT_STRING, device_name);
 
@@ -676,11 +700,6 @@ static void read_callback(struct SoundIoInStream *instream,
 	SRC_DATA src_data_in;
 	SRC_DATA src_data_out;
 
-	//warning("nframes read %d %d\n", frame_count_min, frame_count_max);
-	
-	if (frame_count_max > 960)
-		nframes = 960;
-		
 	if ((err = soundio_instream_begin_read(instream, &areas, &nframes))) {
 		warning("slaudio/read_callback:"
 				"begin read error: %s\n", soundio_strerror(err));
@@ -937,10 +956,6 @@ static void write_callback(struct SoundIoOutStream *outstream,
 	int err;
 	int nframes = frame_count_max;
 
-//	warning("nframes write %d\n", nframes);
-	if (frame_count_max > 960)
-		nframes = 960;
-
 	char *read_ptr = soundio_ring_buffer_read_ptr(ring_buffer);
 	int fill_bytes = soundio_ring_buffer_fill_count(ring_buffer);
 	int fill_count = fill_bytes / outstream->bytes_per_frame;
@@ -994,14 +1009,23 @@ static void write_callback(struct SoundIoOutStream *outstream,
 	float *outBufferFloat = slaudio->outBufferFloat;
 
 	for (int frame = 0; frame < nframes; frame += 1) {
-		memcpy(areas[0].ptr, outBufferFloat, outstream->bytes_per_sample);
+		if (outstream->format == SoundIoFormatS32NE) {
+			float_24u32(*outBufferFloat, *((int32_t*)areas[0].ptr));
+		} else {
+			memcpy(areas[0].ptr, outBufferFloat, outstream->bytes_per_sample);
+		}
 		outBufferFloat += 1;
 		areas[0].ptr += areas[0].step;
 
 		if (outstream->layout.channel_count == 1)
 			continue;
 
-		memcpy(areas[1].ptr, outBufferFloat, outstream->bytes_per_sample);
+		if (outstream->format == SoundIoFormatS32NE) {
+			float_24u32(*outBufferFloat, *((int32_t*)areas[1].ptr));
+		} else {
+			memcpy(areas[1].ptr, outBufferFloat, outstream->bytes_per_sample);
+		}
+
 		outBufferFloat += 1;
 		areas[1].ptr += areas[1].step;
 	}
@@ -1026,6 +1050,8 @@ static void slaudio_destruct(void *arg)
 		mem_deref(slaudio->inBufferFloat);
 		mem_deref(slaudio->inBufferOutFloat);
 		mem_deref(slaudio->outBufferFloat);
+		mem_deref(slaudio->inFmtConvert);
+		mem_deref(slaudio->outFmtConvert);
 		slaudio = mem_deref(slaudio);
 	}
 }
@@ -1034,7 +1060,8 @@ static void slaudio_destruct(void *arg)
 static int slaudio_start(void)
 {
 	int err = 0;
-	double microphone_latency = 0.01;
+	double microphone_latency = 0.02;
+	enum SoundIoFormat *fmt;
 
 	if (input == -1) {
 		warning("slaudio/start: invalid input device\n");
@@ -1055,7 +1082,11 @@ static int slaudio_start(void)
 					NULL);
 	slaudio->outBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
 					NULL);
-
+	//4 Bytes max. 64bit not supported
+	slaudio->inFmtConvert = mem_zalloc(4 * BUFFER_LEN,
+					NULL);
+	slaudio->outFmtConvert = mem_zalloc(4 * BUFFER_LEN,
+					NULL);
 	/** Initialize the sample rate converter for input */
 	if ((src_state_in = src_new(SRC_SINC_FASTEST, 2, &err)) == NULL)
 	{
@@ -1076,6 +1107,8 @@ static int slaudio_start(void)
 
 	if (!slaudio->soundio)
 		return ENOMEM;
+
+	slaudio->soundio->app_name = "StudioLink";
 
 	err = soundio_connect_backend(slaudio->soundio, backend);
 	if (err) {
@@ -1104,6 +1137,18 @@ static int slaudio_start(void)
 	info("slaudio/start: out dev: %s\n", slaudio->dev_out->name);
 
 
+	for (fmt = prioritized_formats; *fmt != SoundIoFormatInvalid; fmt += 1) {
+		if (soundio_device_supports_format(slaudio->dev_in, *fmt))
+		{
+			break;
+		}
+	}
+	if (*fmt == SoundIoFormatInvalid) {
+		warning("slaudio/start: instream SoundIoFormatInvalid\n");
+		err = 42;
+		goto err_out;
+	}
+
 	/* Create input stream */
 
 	slaudio->instream = soundio_instream_create(slaudio->dev_in);
@@ -1113,7 +1158,9 @@ static int slaudio_start(void)
 		goto err_out;
 	}
 
-	slaudio->instream->format = SoundIoFormatFloat32NE;
+	slaudio->instream->name = "StudioLinkIn";
+
+	slaudio->instream->format = *fmt;
 	slaudio->instream->read_callback = read_callback;
 	slaudio->instream->software_latency = microphone_latency;
 	slaudio->instream->error_callback = instream_error_callback;
@@ -1125,8 +1172,15 @@ static int slaudio_start(void)
 		goto err_out;
 	}
 
-	if (slaudio->instream->format != SoundIoFormatFloat32NE) {
-		warning("slaudio/start instream: only float supported\n");
+	for (fmt = prioritized_formats; *fmt != SoundIoFormatInvalid; fmt += 1) {
+		if (soundio_device_supports_format(slaudio->dev_out, *fmt))
+		{
+			break;
+		}
+	}
+	if (*fmt == SoundIoFormatInvalid) {
+		warning("slaudio/start: outstream SoundIoFormatInvalid\n");
+		err = 42;
 		goto err_out;
 	}
 
@@ -1138,8 +1192,9 @@ static int slaudio_start(void)
 		err = ENOMEM;
 		goto err_out;
 	}
+	slaudio->outstream->name = "StudioLinkOut";
 
-	slaudio->outstream->format = SoundIoFormatFloat32NE;
+	slaudio->outstream->format = *fmt;
 	slaudio->outstream->write_callback = write_callback;
 	slaudio->outstream->software_latency = microphone_latency;
 	slaudio->outstream->underflow_callback = underflow_callback;
@@ -1156,11 +1211,6 @@ static int slaudio_start(void)
 	if (slaudio->outstream->layout_error) {
 		warning("slaudio/start: unable to set channel layout: %s\n",
 			soundio_strerror(slaudio->outstream->layout_error));
-		goto err_out;
-	}
-
-	if (slaudio->outstream->format != SoundIoFormatFloat32NE) {
-		warning("slaudio/start outstream: only float supported\n");
 		goto err_out;
 	}
 
