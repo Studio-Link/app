@@ -12,7 +12,11 @@
 #include <soundio/soundio.h>
 #include "slaudio.h"
 
-#define BUFFER_LEN 7680 /* max buffer_len = 192kHz*2ch*20ms */
+#define BUFFER_LEN 15360 /* max buffer_len = 192kHz*2ch*20ms*2frames */
+
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 enum
 {
@@ -485,6 +489,7 @@ static int slaudio_devices(void)
 	struct odict *array_out;
 	struct SoundIoDevice *device;
 	char idx[2];
+	char device_name[256];
 
 	err = odict_alloc(&array_in, DICT_BSIZE);
 	if (err)
@@ -516,6 +521,14 @@ static int slaudio_devices(void)
 
 		device = soundio_get_input_device(soundio, i);
 		(void)re_snprintf(idx, sizeof(idx), "%d", i);
+
+		if (device->probe_error) {
+			info("slaudio/input device %s probe error\n",
+					device->name);
+			soundio_device_unref(device);
+			continue;
+		}
+#if 0
 		if (!device->sample_rate_current)
 		{
 			info("slaudio/input device %s has no sample_rate\n",
@@ -531,20 +544,27 @@ static int slaudio_devices(void)
 			soundio_device_unref(device);
 			continue;
 		}
-
+#endif
 		err = odict_alloc(&o, DICT_BSIZE);
 		if (err)
 			goto out1;
 
 		odict_entry_add(o, "id", ODICT_INT, (int64_t)i);
-		odict_entry_add(o, "display", ODICT_STRING, device->name);
+
+		if (device->is_raw) {
+			(void)re_snprintf(device_name, sizeof(device_name), "%s (Exclusiv)", device->name);
+		} else {
+			(void)re_snprintf(device_name, sizeof(device_name), "%s (Shared)", device->name);
+		}
+
+		odict_entry_add(o, "display", ODICT_STRING, device_name);
 		odict_entry_add(o, "channels", ODICT_INT,
 				(int64_t)device->current_layout.channel_count);
 		odict_entry_add(o, "first_input_channel",
 				ODICT_INT,
 				(int64_t)first_input_channel);
 
-		if (input == -1 && default_input == i)
+		if (input == -1 && default_input == i && !device->is_raw)
 		{
 			input = i;
 		}
@@ -568,7 +588,13 @@ static int slaudio_devices(void)
 
 		device = soundio_get_output_device(soundio, i);
 		(void)re_snprintf(idx, sizeof(idx), "%d", i);
-
+		if (device->probe_error) {
+			info("slaudio/input device %s probe error\n",
+					device->name);
+			soundio_device_unref(device);
+			continue;
+		}
+#if 0
 		if (!device->sample_rate_current)
 		{
 			info("slaudio/output device %s has no sample_rate\n",
@@ -584,15 +610,20 @@ static int slaudio_devices(void)
 			soundio_device_unref(device);
 			continue;
 		}
-
+#endif
 		err = odict_alloc(&o, DICT_BSIZE);
 		if (err)
 			goto out1;
 
 		odict_entry_add(o, "id", ODICT_INT, (int64_t)i);
-		odict_entry_add(o, "display", ODICT_STRING, device->name);
+		if (device->is_raw) {
+			(void)re_snprintf(device_name, sizeof(device_name), "%s (Exclusiv)", device->name);
+		} else {
+			(void)re_snprintf(device_name, sizeof(device_name), "%s (Shared)", device->name);
+		}
+		odict_entry_add(o, "display", ODICT_STRING, device_name);
 
-		if (output == -1 && default_output == i)
+		if (output == -1 && default_output == i && !device->is_raw)
 		{
 			output = i;
 		}
@@ -645,7 +676,7 @@ static void read_callback(struct SoundIoInStream *instream,
 	SRC_DATA src_data_in;
 	SRC_DATA src_data_out;
 
-//	warning("nframes read %d\n", nframes);
+	//warning("nframes read %d %d\n", frame_count_min, frame_count_max);
 	
 	if (frame_count_max > 960)
 		nframes = 960;
@@ -983,10 +1014,27 @@ static void write_callback(struct SoundIoOutStream *outstream,
 }
 
 
+static void slaudio_destruct(void *arg)
+{
+	if (slaudio) {
+		soundio_instream_destroy(slaudio->instream);
+		soundio_outstream_destroy(slaudio->outstream);
+		soundio_device_unref(slaudio->dev_in);
+		soundio_device_unref(slaudio->dev_out);
+		soundio_destroy(slaudio->soundio);
+		mem_deref(slaudio->inBuffer);
+		mem_deref(slaudio->inBufferFloat);
+		mem_deref(slaudio->inBufferOutFloat);
+		mem_deref(slaudio->outBufferFloat);
+		slaudio = mem_deref(slaudio);
+	}
+}
+
+
 static int slaudio_start(void)
 {
 	int err = 0;
-	double microphone_latency = 0.02;
+	double microphone_latency = 0.01;
 
 	if (input == -1) {
 		warning("slaudio/start: invalid input device\n");
@@ -998,7 +1046,7 @@ static int slaudio_start(void)
 		return 1;
 	}
 
-	slaudio = mem_zalloc(sizeof(*slaudio), NULL);
+	slaudio = mem_zalloc(sizeof(*slaudio), slaudio_destruct);
 	slaudio->inBuffer = mem_zalloc(sizeof(int16_t) * BUFFER_LEN,
 					NULL);
 	slaudio->inBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
@@ -1049,7 +1097,6 @@ static int slaudio_start(void)
 	if (!slaudio->dev_out) {
 		warning("slaudio/start: error soundio_get_output_device\n");
 		err = ENOMEM;
-		soundio_device_unref(slaudio->dev_in);
 		goto err_out;
 	}
 
@@ -1063,7 +1110,7 @@ static int slaudio_start(void)
 	if (!slaudio->instream) {
 		warning("slaudio/start: error soundio_instream_create\n");
 		err = ENOMEM;
-		goto err_out_stream;
+		goto err_out;
 	}
 
 	slaudio->instream->format = SoundIoFormatFloat32NE;
@@ -1075,12 +1122,12 @@ static int slaudio_start(void)
 	if (err) {
 		warning("slaudio/start: soundio_instream_open: %s\n",
 				soundio_strerror(err));
-		goto err_out_open;
+		goto err_out;
 	}
 
 	if (slaudio->instream->format != SoundIoFormatFloat32NE) {
 		warning("slaudio/start instream: only float supported\n");
-		goto err_out_open;
+		goto err_out;
 	}
 
 	/* Create output stream */
@@ -1089,8 +1136,7 @@ static int slaudio_start(void)
 	if (!slaudio->outstream) {
 		warning("slaudio/start: error soundio_outstream_create\n");
 		err = ENOMEM;
-		soundio_instream_destroy(slaudio->instream);
-		goto err_out_stream;
+		goto err_out;
 	}
 
 	slaudio->outstream->format = SoundIoFormatFloat32NE;
@@ -1104,18 +1150,18 @@ static int slaudio_start(void)
 	if (err) {
 		warning("slaudio/start: soundio_outstream_open: %s\n",
 				soundio_strerror(err));
-		goto err_out_open;
+		goto err_out;
 	}
 
 	if (slaudio->outstream->layout_error) {
 		warning("slaudio/start: unable to set channel layout: %s\n",
 			soundio_strerror(slaudio->outstream->layout_error));
-		goto err_out_open;
+		goto err_out;
 	}
 
 	if (slaudio->outstream->format != SoundIoFormatFloat32NE) {
 		warning("slaudio/start outstream: only float supported\n");
-		goto err_out_open;
+		goto err_out;
 	}
 
 	/* Prepare ring buffer */
@@ -1125,7 +1171,7 @@ static int slaudio_start(void)
 	if (!ring_buffer) {
 		warning("slaudio/start: error ring_buffer\n");
 		err = ENOMEM;
-		goto err_out_open;
+		goto err_out;
 	}
 
 	preferred_sample_rate_in = slaudio->instream->sample_rate;
@@ -1138,29 +1184,22 @@ static int slaudio_start(void)
 	if (err) {
 		warning("slaudio/start: soundio_instream_start: %s\n",
 				soundio_strerror(err));
-		goto err_out_open;
+		goto err_out;
 	}
 
 	err = soundio_outstream_start(slaudio->outstream);
 	if (err) {
 		warning("slaudio/start: soundio_outstream_start: %s\n",
 				soundio_strerror(err));
-		goto err_out_open;
+		goto err_out;
 	}
 
 
 	info("slaudio/start: success\n");
 	return 0;
 
-err_out_open:
-	soundio_instream_destroy(slaudio->instream);
-	soundio_outstream_destroy(slaudio->outstream);
-
-err_out_stream:
-	soundio_device_unref(slaudio->dev_in);
-	soundio_device_unref(slaudio->dev_out);
 err_out:
-	soundio_destroy(slaudio->soundio);
+	mem_deref(slaudio);
 
 	warning("slaudio/start: error %d\n", err);
 	return err;
@@ -1175,18 +1214,8 @@ static int slaudio_stop(void)
 	if (src_state_out)
 		src_state_out = src_delete(src_state_out);
 
-	if (slaudio) {
-		soundio_instream_destroy(slaudio->instream);
-		soundio_outstream_destroy(slaudio->outstream);
-		soundio_device_unref(slaudio->dev_in);
-		soundio_device_unref(slaudio->dev_out);
-		soundio_destroy(slaudio->soundio);
-		mem_deref(slaudio->inBuffer);
-		mem_deref(slaudio->inBufferFloat);
-		mem_deref(slaudio->inBufferOutFloat);
-		mem_deref(slaudio->outBufferFloat);
-		slaudio = mem_deref(slaudio);
-	}
+	if (slaudio)
+		mem_deref(slaudio);
 
 	if (ring_buffer) {
 		soundio_ring_buffer_destroy(ring_buffer);
@@ -1210,7 +1239,7 @@ static int slaudio_init(void)
 	if (err)
 		return ENOMEM;
 
-	playmix = mem_zalloc(sizeof(int16_t) * 1920, NULL);
+	playmix = mem_zalloc(sizeof(int16_t) * BUFFER_LEN, NULL);
 	if (!playmix)
 		return ENOMEM;
 
@@ -1263,6 +1292,11 @@ static int slaudio_init(void)
 	slaudio_record_init();
 	slaudio_start();
 
+
+#ifdef WIN32
+	/* Activate windows low latency timer */
+	timeBeginPeriod(1);
+#endif
 	info("slaudio ready\n");
 
 	return err;
