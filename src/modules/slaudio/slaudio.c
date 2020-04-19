@@ -554,6 +554,7 @@ static int slaudio_devices(void)
 	struct SoundIo *soundio;
 	int output_count, input_count, default_output, default_input;
 	bool default_input_err;
+	bool default_output_err;
 	struct odict *o;
 	struct odict *array_in;
 	struct odict *array_out;
@@ -585,6 +586,7 @@ static int slaudio_devices(void)
 	input_count = soundio_input_device_count(soundio);
 
 	default_output = soundio_default_output_device_index(soundio);
+	default_output_err = false;
 	default_input = soundio_default_input_device_index(soundio);
 	default_input_err = false;
 
@@ -629,9 +631,17 @@ static int slaudio_devices(void)
 		}
 
 		odict_entry_add(o, "display", ODICT_STRING, device_name);
-		//@TODO select highest channel count
-		odict_entry_add(o, "channels", ODICT_INT,
-				(int64_t)device->current_layout.channel_count);
+		info("slaudio: device: %s\n", device_name);
+
+		int64_t channels = device->current_layout.channel_count;
+		info("slaudio: default channels: %d\n", channels);
+		if (!channels) {
+			const struct SoundIoChannelLayout *layout = &device->layouts[0];
+			channels = layout->channel_count;
+			info("slaudio: fallback channels: %d\n", channels);
+		}
+
+		odict_entry_add(o, "channels", ODICT_INT, channels);
 		odict_entry_add(o, "first_input_channel",
 				ODICT_INT,
 				(int64_t)first_input_channel);
@@ -642,7 +652,7 @@ static int slaudio_devices(void)
 		}
 
 		if (input == -1 && default_input_err) {
-			info("set fallback input %d\n", i);
+			info("slaudio: set fallback input %s\n", device_name);
 			input = i;
 		}
 
@@ -668,6 +678,8 @@ static int slaudio_devices(void)
 
 		if (backend == SoundIoBackendAlsa && !device->is_raw) {
 			soundio_device_unref(device);
+			if (i == default_output)
+				default_output_err = true;
 			continue;
 		}
 
@@ -675,6 +687,8 @@ static int slaudio_devices(void)
 			info("slaudio/input device %s probe error\n",
 					device->name);
 			soundio_device_unref(device);
+			if (i == default_output)
+				default_output_err = true;
 			continue;
 		}
 
@@ -695,10 +709,16 @@ static int slaudio_devices(void)
 			(void)re_snprintf(device_name, sizeof(device_name), "%s", device->name);
 		}
 		odict_entry_add(o, "display", ODICT_STRING, device_name);
+		info("slaudio: output device %s\n", device_name);
 
-		if (output == -1 && default_output == i && !device->is_raw)
+		if (output == -1 && default_output == i)
 		{
 			output = i;
+		}
+
+		if (input == -1 && default_output_err) {
+			info("slaudio: set fallback ouput %s\n", device_name);
+			input = i;
 		}
 
 		if (output == i)
