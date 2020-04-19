@@ -267,33 +267,49 @@ static void convert_float(int16_t *sampv, float *f_sampv, size_t sampc)
 	}
 }
 
+
+static float format_float(char *src, enum SoundIoFormat fmt)
+{
+	float value = 0.0;
+
+	if (fmt == SoundIoFormatS32NE) {
+		value = (*((int32_t*)src) >> 8) / SAMPLE_24BIT_SCALING;
+	} else if (fmt == SoundIoFormatS16NE) {
+		value = (*((int16_t*)src)) / SAMPLE_16BIT_SCALING;
+	} else {
+		value = *((float*)src); 
+	}
+	return value;	
+}
+
+
 static void downsample_first_ch(float *outv, struct SoundIoChannelArea *areas,
 		int nframes, struct SoundIoInStream *instream)
 {
-	float value = 0;
-	const float scaling = 1.0/SAMPLE_16BIT_SCALING;
+	float value;
 
 	for (int frame = 0; frame < nframes; frame++) {
+		value = 0.0;
+
 		for (int ch = 0; ch < instream->layout.channel_count; ch++) {
 			if (ch == first_input_channel) {
-				/*stereo ch left*/
-				if (instream->format == SoundIoFormatS32NE) {
-					value = (*((int32_t*)areas[ch].ptr) >> 8) / SAMPLE_24BIT_SCALING;
-				} else if (instream->format == SoundIoFormatS16NE) {
-					value = (*((int16_t*)areas[ch].ptr)) * scaling;
-				} else {
-					value = *((float*)areas[ch].ptr); 
-				}
-				*outv = value;
-				outv += 1;
-
-				/*stereo ch right*/
-				*outv = value;
-				outv += 1;
-
-				areas[ch].ptr += areas[ch].step;
+				value = format_float(areas[ch].ptr, instream->format);
 			}
+
+			if (first_input_channel == 99) {
+				value += format_float(areas[ch].ptr, instream->format);
+			}
+
+			areas[ch].ptr += areas[ch].step;
 		}
+
+		/*stereo ch left*/
+		*outv = value;
+		outv += 1;
+
+		/*stereo ch right*/
+		*outv = value;
+		outv += 1;
 	}
 }
 
