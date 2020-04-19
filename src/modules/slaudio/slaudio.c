@@ -20,10 +20,18 @@
 
 #include <math.h>
 #define SAMPLE_24BIT_SCALING  8388607.0f
-#define NORMALIZED_FLOAT_MIN -1.0f
-#define NORMALIZED_FLOAT_MAX  1.0f
 #define SAMPLE_24BIT_MAX  8388607
 #define SAMPLE_24BIT_MIN  -8388607
+#define SAMPLE_16BIT_SCALING  32767.0f
+#define SAMPLE_16BIT_MAX  32767
+#define SAMPLE_16BIT_MIN  -32767
+#define SAMPLE_16BIT_MAX_F  32767.0f
+#define SAMPLE_16BIT_MIN_F  -32767.0f
+
+#define NORMALIZED_FLOAT_MIN -1.0f
+#define NORMALIZED_FLOAT_MAX  1.0f
+
+#define FLOAT_FRAME_BYTES 8 /* sizeof(float) * 2ch */
 
 #define f_round(f) lrintf (f)
 
@@ -34,6 +42,17 @@
 		(d) = SAMPLE_24BIT_MAX << 8; \
 	} else { \
 		(d) = f_round ((s) * SAMPLE_24BIT_SCALING) << 8; \
+	}
+
+#define float_16(s, d)\
+	if ((s) <= NORMALIZED_FLOAT_MIN) {\
+		(d) = SAMPLE_16BIT_MIN;\
+	}\
+	else if ((s) >= NORMALIZED_FLOAT_MAX) {\
+		(d) = SAMPLE_16BIT_MAX;\
+	}\
+	else {\
+		(d) = f_round ((s) * SAMPLE_16BIT_SCALING);\
 	}
 
 enum
@@ -252,6 +271,7 @@ static void downsample_first_ch(float *outv, struct SoundIoChannelArea *areas,
 		int nframes, struct SoundIoInStream *instream)
 {
 	float value = 0;
+	const float scaling = 1.0/SAMPLE_16BIT_SCALING;
 
 	for (int frame = 0; frame < nframes; frame++) {
 		for (int ch = 0; ch < instream->layout.channel_count; ch++) {
@@ -259,6 +279,8 @@ static void downsample_first_ch(float *outv, struct SoundIoChannelArea *areas,
 				/*stereo ch left*/
 				if (instream->format == SoundIoFormatS32NE) {
 					value = (*((int32_t*)areas[ch].ptr) >> 8) / SAMPLE_24BIT_SCALING;
+				} else if (instream->format == SoundIoFormatS16NE) {
+					value = (*((int16_t*)areas[ch].ptr)) * scaling;
 				} else {
 					value = *((float*)areas[ch].ptr); 
 				}
@@ -571,6 +593,13 @@ static int slaudio_devices(void)
 			continue;
 		}
 
+		debug("slaudio/input device %s formats:\n", device->name);
+		for (int y = 0; y < device->format_count; y += 1) {
+			const char *comma = (y == device->format_count - 1) ? "\n" : ", ";
+			debug("%s%s", soundio_format_string(device->formats[y]), comma);
+		}
+
+
 		err = odict_alloc(&o, DICT_BSIZE);
 		if (err)
 			goto out1;
@@ -631,6 +660,12 @@ static int slaudio_devices(void)
 					device->name);
 			soundio_device_unref(device);
 			continue;
+		}
+
+		debug("slaudio/output device %s formats:\n", device->name);
+		for (int y = 0; y < device->format_count; y += 1) {
+			const char *comma = (y == device->format_count - 1) ? "\n" : ", ";
+			debug("%s%s", soundio_format_string(device->formats[y]), comma);
 		}
 
 		err = odict_alloc(&o, DICT_BSIZE);
@@ -712,7 +747,7 @@ static void read_callback(struct SoundIoInStream *instream,
 
 	if (!areas) {
 		/* Due to an overflow there is a hole. Fill with silence */
-		memset(slaudio->inBufferFloat, 0, samples * instream->bytes_per_frame);
+		memset(slaudio->inBufferFloat, 0, samples * sizeof(float));
 		warning("slaudio/read_callback:"
 				"Dropped %d frames overflow\n", nframes);
 	} else {
@@ -727,7 +762,7 @@ static void read_callback(struct SoundIoInStream *instream,
 
 	if (mute)
 	{
-		memset(slaudio->inBufferFloat, 0, samples * instream->bytes_per_frame);
+		memset(slaudio->inBufferFloat, 0, samples * sizeof(float));
 	}
 	
 	ws_meter_process(0, slaudio->inBufferFloat, (unsigned long)samples);
@@ -906,7 +941,7 @@ static void read_callback(struct SoundIoInStream *instream,
 
 	char *write_ptr = soundio_ring_buffer_write_ptr(ring_buffer);
 	int free_bytes = soundio_ring_buffer_free_count(ring_buffer);
-	int free_count = free_bytes / instream->bytes_per_sample;
+	int free_count = free_bytes / FLOAT_FRAME_BYTES;
 
 	if (samples > free_count) {
 		warning("ring buffer overflow %d/%d/%d\n", samples, free_count, frame_count_max);
@@ -942,7 +977,7 @@ static void read_callback(struct SoundIoInStream *instream,
 				playmix, samples);
 	}
 
-	int advance_bytes = samples * instream->bytes_per_sample;
+	int advance_bytes = samples * sizeof(float);
 	soundio_ring_buffer_advance_write_ptr(ring_buffer, advance_bytes);
 }
 
@@ -956,7 +991,7 @@ static void write_callback(struct SoundIoOutStream *outstream,
 
 	char *read_ptr = soundio_ring_buffer_read_ptr(ring_buffer);
 	int fill_bytes = soundio_ring_buffer_fill_count(ring_buffer);
-	int fill_count = fill_bytes / outstream->bytes_per_frame;
+	int fill_count = fill_bytes / FLOAT_FRAME_BYTES;
 	int frames_left;
 	int frame_count;
 	int samples;
@@ -1001,14 +1036,16 @@ static void write_callback(struct SoundIoOutStream *outstream,
 
 	samples = nframes * 2;
 
-	memcpy(slaudio->outBufferFloat, read_ptr, samples * outstream->bytes_per_sample);
-	soundio_ring_buffer_advance_read_ptr(ring_buffer, samples * outstream->bytes_per_sample);
+	memcpy(slaudio->outBufferFloat, read_ptr, samples * sizeof(float));
+	soundio_ring_buffer_advance_read_ptr(ring_buffer, samples * sizeof(float));
 
 	float *outBufferFloat = slaudio->outBufferFloat;
 
 	for (int frame = 0; frame < nframes; frame += 1) {
 		if (outstream->format == SoundIoFormatS32NE) {
 			float_24u32(*outBufferFloat, *((int32_t*)areas[0].ptr));
+		} else if (outstream->format == SoundIoFormatS16NE) {
+			float_16(*outBufferFloat, *((int16_t*)areas[0].ptr));
 		} else {
 			memcpy(areas[0].ptr, outBufferFloat, outstream->bytes_per_sample);
 		}
@@ -1020,6 +1057,8 @@ static void write_callback(struct SoundIoOutStream *outstream,
 
 		if (outstream->format == SoundIoFormatS32NE) {
 			float_24u32(*outBufferFloat, *((int32_t*)areas[1].ptr));
+		} else if (outstream->format == SoundIoFormatS16NE) {
+			float_16(*outBufferFloat, *((int16_t*)areas[1].ptr));
 		} else {
 			memcpy(areas[1].ptr, outBufferFloat, outstream->bytes_per_sample);
 		}
@@ -1208,7 +1247,7 @@ static int slaudio_start(void)
 
 	/* Prepare ring buffer */
 
-	int capacity = microphone_latency * 2 * 3 * slaudio->outstream->sample_rate * slaudio->instream->bytes_per_frame;
+	int capacity = microphone_latency * 2 * 3 * slaudio->outstream->sample_rate * sizeof(float);
 	ring_buffer = soundio_ring_buffer_create(slaudio->soundio, capacity);
 	if (!ring_buffer) {
 		warning("slaudio/start: error ring_buffer\n");
