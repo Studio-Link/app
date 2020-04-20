@@ -1,5 +1,5 @@
 /**
- * @file slaudio.c RTAUDIO
+ * @file slaudio.c SLAUDIO (libsoundio)
  *
  * Copyright (C) 2020 studio-link.de
  */
@@ -787,10 +787,9 @@ static void read_callback(struct SoundIoInStream *instream,
 
 	if (startup_count < 16 || nframes > 1920) {
 		/* 
-		 * Handles Coreaudio full buffer (first access) case
-		 * and keeps other buffers small
+		 * drop first frames (keeps buffers small)
 		 */
-		info("slaudio: drop %d frames due startup %d\n", nframes, startup_count);
+		debug("slaudio: drop %d frames due startup %d\n", nframes, startup_count);
 		if ((err = soundio_instream_end_read(instream))) {
 			warning("slaudio/read_callback:"
 					"end read error: %s\n", soundio_strerror(err));
@@ -1387,7 +1386,7 @@ static int slaudio_init(void)
 
 	/* add local/recording session
 	 */
-	sess = mem_alloc(sizeof(*sess), sess_destruct);
+	sess = mem_zalloc(sizeof(*sess), sess_destruct);
 	if (!sess)
 		return ENOMEM;
 	sess->local = true;
@@ -1398,7 +1397,7 @@ static int slaudio_init(void)
 	 */
 	for (uint32_t cnt = 0; cnt < MAX_REMOTE_CHANNELS; cnt++)
 	{
-		sess = mem_alloc(sizeof(*sess), sess_destruct);
+		sess = mem_zalloc(sizeof(*sess), sess_destruct);
 		if (!sess)
 			return ENOMEM;
 		sess->vumeter = mem_zalloc(BUFFER_LEN * sizeof(float), NULL);
