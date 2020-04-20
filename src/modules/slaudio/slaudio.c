@@ -1319,9 +1319,6 @@ static int slaudio_start(void)
 
 err_out:
 	mem_deref(slaudio);
-	output = -1;
-	input = -1;
-	first_input_channel = 0;
 
 	warning("slaudio/start: error %d\n", err);
 	return err;
