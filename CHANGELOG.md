@@ -6,6 +6,7 @@
 
 - **Standalone** New Audio Framework (libsoundio)
 - **Standalone** Mute-Button repositioned
+- **Standalone** Make recording more robust (not rely on system timer anymore)
 
 ### Removed
 
