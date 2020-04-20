@@ -648,11 +648,12 @@ static int slaudio_devices(void)
 
 		if (input == -1 && default_input == i)
 		{
+			info("slaudio: set input %s (%d)\n", device_name, i);
 			input = i;
 		}
 
 		if (input == -1 && default_input_err) {
-			info("slaudio: set fallback input %s\n", device_name);
+			info("slaudio: set fallback input %s (%d)\n", device_name, i);
 			input = i;
 		}
 
@@ -713,12 +714,13 @@ static int slaudio_devices(void)
 
 		if (output == -1 && default_output == i)
 		{
+			info("slaudio: set ouput %s (%d)\n", device_name, i);
 			output = i;
 		}
 
 		if (input == -1 && default_output_err) {
-			info("slaudio: set fallback ouput %s\n", device_name);
-			input = i;
+			info("slaudio: set fallback ouput %s (%d)\n", device_name, i);
+			output = i;
 		}
 
 		if (output == i)
@@ -1317,6 +1319,9 @@ static int slaudio_start(void)
 
 err_out:
 	mem_deref(slaudio);
+	output = -1;
+	input = -1;
+	first_input_channel = 0;
 
 	warning("slaudio/start: error %d\n", err);
 	return err;
