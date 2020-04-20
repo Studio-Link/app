@@ -143,6 +143,8 @@ static bool mono = false;
 static bool mute = false;
 static bool monitor = true;
 
+static int16_t startup_count = 0;
+
 
 /* webapp/jitter.c */
 void webapp_jitter(struct session *sess, int16_t *sampv,
@@ -214,6 +216,8 @@ static int slaudio_reset(void)
 	info("slaudio/reset\n");
 
 	slaudio_stop();
+	startup_count = 0;
+
 	slaudio_drivers();
 	slaudio_devices();
 	webapp_ws_rtaudio_sync();
@@ -777,9 +781,24 @@ static void read_callback(struct SoundIoInStream *instream,
 		return; /*@TODO handle error */
 	}
 
-
 	if (!nframes)
 		return;
+
+
+	if (startup_count < 16 || nframes > 1920) {
+		/* 
+		 * Handles Coreaudio full buffer (first access) case
+		 * and keeps other buffers small
+		 */
+		info("slaudio: drop %d frames due startup %d\n", nframes, startup_count);
+		if ((err = soundio_instream_end_read(instream))) {
+			warning("slaudio/read_callback:"
+					"end read error: %s\n", soundio_strerror(err));
+		}
+		++startup_count;
+
+		return;
+	}
 
 	samples = nframes * 2; /* Stereo (2 ch) only */
 
