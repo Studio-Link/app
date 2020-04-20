@@ -5,6 +5,7 @@
 ### Changed
 
 - **Standalone** New Audio Framework (libsoundio)
+- **Standalone** Mute-Button repositioned
 
 ### Removed
 
