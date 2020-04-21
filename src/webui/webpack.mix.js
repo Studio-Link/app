@@ -15,7 +15,6 @@ require('laravel-mix-purgecss');
 
 mix.js([
 	'src/init.js', 
-	'src/websockets/ws_rtaudio.js',
 	'src/app.js', 
 	'src/notify.js', 
 	'src/websockets/ws_baresip.js',
@@ -23,6 +22,7 @@ mix.js([
 	'src/websockets/ws_meter.js',
 	'src/websockets/ws_contacts.js',
 	'src/websockets/ws_options.js',
+	'src/websockets/ws_rtaudio.js',
 	'src/onboarding.js'
 ], 'dist/app.js');
 

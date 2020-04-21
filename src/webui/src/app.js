@@ -61,6 +61,7 @@ $(function() {
 
   $.get("/swvariant", function(data) {
     var swvariant = data;
+    window.swvariant = swvariant;
 
     if (swvariant == "standalone") {
       $("#btn-record").removeClass("d-none");
@@ -71,7 +72,6 @@ $(function() {
     if (swvariant == "plugin") {
       $("#btn-interface").addClass("d-none");
     }
-    window.swvariant = swvariant;
   });
 
   $.get("/version", function(data) {
