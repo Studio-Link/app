@@ -426,7 +426,7 @@ index 39827a2..82c2b86 100644
 +#endif
  	(void)re_fprintf(f, "\n# Opus codec parameters\n");
 -	(void)re_fprintf(f, "opus_bitrate\t\t28000 # 6000-510000\n");
-+	(void)re_fprintf(f, "opus_bitrate\t\t64000 # 6000-510000\n");
++	(void)re_fprintf(f, "opus_bitrate\t\t128000 # 6000-510000\n");
  	(void)re_fprintf(f, "#opus_stereo\t\tyes\n");
  	(void)re_fprintf(f, "#opus_sprop_stereo\tyes\n");
  	(void)re_fprintf(f, "#opus_cbr\t\tno\n");
