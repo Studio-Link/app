@@ -24,6 +24,7 @@ struct session {
 	bool talk;
 	int16_t bufsz;
 	int16_t jb_max;
+	FLAC__StreamMetadata *meta[2];
 };
 
 extern struct list sessionl;
