@@ -502,18 +502,18 @@ static int slaudio_drivers(void)
 	for (int i = 0; i < soundio_backend_count(soundio); i++)
 	{
 		(void)re_snprintf(idx, sizeof(idx), "%d", i);
-		err = odict_alloc(&o, DICT_BSIZE);
-		if (err)
-			return ENOMEM;
 
 		backend_tmp = soundio_get_backend(soundio, i);
-
 
 		(void)re_snprintf(backend_name, sizeof(backend_name), "%s",
 				soundio_backend_name(backend_tmp));
 
 		if (!str_cmp(backend_name, "Dummy"))
 			continue;
+
+		err = odict_alloc(&o, DICT_BSIZE);
+		if (err)
+			return ENOMEM;
 
 		odict_entry_add(o, "display", ODICT_STRING,
 				backend_name);
@@ -625,7 +625,7 @@ static int slaudio_devices(void)
 
 		err = odict_alloc(&o, DICT_BSIZE);
 		if (err)
-			goto out1;
+			goto out;
 
 		odict_entry_add(o, "id", ODICT_INT, (int64_t)i);
 
@@ -706,7 +706,7 @@ static int slaudio_devices(void)
 
 		err = odict_alloc(&o, DICT_BSIZE);
 		if (err)
-			goto out1;
+			goto out;
 
 		odict_entry_add(o, "id", ODICT_INT, (int64_t)i);
 		if (device->is_raw) {
@@ -746,11 +746,10 @@ static int slaudio_devices(void)
 	odict_entry_add(interfaces, "input", ODICT_ARRAY, array_in);
 	odict_entry_add(interfaces, "output", ODICT_ARRAY, array_out);
 
-out1:
+out:
 	mem_deref(array_in);
 	mem_deref(array_out);
 
-out:
 	soundio_destroy(soundio);
 
 	return err;
@@ -1146,7 +1145,7 @@ static void slaudio_destruct(void *arg)
 		mem_deref(slaudio->inBufferFloat);
 		mem_deref(slaudio->inBufferOutFloat);
 		mem_deref(slaudio->outBufferFloat);
-		slaudio = mem_deref(slaudio);
+		slaudio = NULL;
 	}
 	if (fatal_error) {
 		output = -1;
