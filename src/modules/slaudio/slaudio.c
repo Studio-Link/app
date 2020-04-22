@@ -142,6 +142,7 @@ static int16_t *playmix;
 static bool mono = false;
 static bool mute = false;
 static bool monitor = true;
+static bool fatal_error = false;
 
 static int16_t startup_count = 0;
 
@@ -469,14 +470,14 @@ static void underflow_callback(struct SoundIoOutStream *outstream) {
 
 static void outstream_error_callback(struct SoundIoOutStream *os, int err) {
 	warning("slaudio/out_err_call: %s\n", soundio_strerror(err));
-	soundio_outstream_destroy(os);
+	fatal_error = true;
 	slaudio_reset();
 }
 
 
 static void instream_error_callback(struct SoundIoInStream *is, int err) {
 	warning("slaudio/in_err_call: %s\n", soundio_strerror(err));
-	soundio_instream_destroy(is);
+	fatal_error = true;
 	slaudio_reset();
 }
 
@@ -1134,8 +1135,10 @@ static void write_callback(struct SoundIoOutStream *outstream,
 static void slaudio_destruct(void *arg)
 {
 	if (slaudio) {
-		soundio_instream_destroy(slaudio->instream);
-		soundio_outstream_destroy(slaudio->outstream);
+		if (!fatal_error) {
+			soundio_instream_destroy(slaudio->instream);
+			soundio_outstream_destroy(slaudio->outstream);
+		}
 		soundio_device_unref(slaudio->dev_in);
 		soundio_device_unref(slaudio->dev_out);
 		soundio_destroy(slaudio->soundio);
@@ -1144,6 +1147,13 @@ static void slaudio_destruct(void *arg)
 		mem_deref(slaudio->inBufferOutFloat);
 		mem_deref(slaudio->outBufferFloat);
 		slaudio = mem_deref(slaudio);
+	}
+	if (fatal_error) {
+		output = -1;
+		input = -1;
+		first_input_channel = 0;
+		sys_msleep(500);
+		fatal_error = false;
 	}
 }
 
