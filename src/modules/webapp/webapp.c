@@ -266,49 +266,19 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 	}
 }
 
-static char * my_strtok_r (char *s, const char *delim, char **save_ptr)
-{
-	char *end;
-	if (s == NULL)
-		s = *save_ptr;
-	if (*s == '\0') {
-		*save_ptr = s;
-		return NULL;
-	}
-	/* Scan leading delimiters.  */
-	s += strspn (s, delim);
-	if (*s == '\0') {
-		*save_ptr = s;
-		return NULL;
-	}
-	/* Find the end of the token.  */
-	end = s + strcspn (s, delim);
-	if (*end == '\0') {
-		*save_ptr = end;
-		return s;
-	}
-	/* Terminate the token and make *SAVE_PTR point past it.  */
-	*end = '\0';
-	*save_ptr = end + 1;
-	return s;
-}
 
 static int http_port(void)
 {
-	char path[256] = "";
-	char filename[256] = "";
-	struct mbuf *mb;
+	char path[256] = {0};
+	char filename[256] = {0};
 	struct sa srv;
 	struct sa listen;
-	int port = 0;
-	char port_string[10];
+	uint32_t port = 0;
+	char port_string[10] = {0};
 	char bind[256] = "127.0.0.1";
 	char file_contents[256];
 	int err = 0;
-
-	mb = mbuf_alloc(20);
-	if (!mb)
-		return ENOMEM;
+	struct conf *conf_obj = NULL;
 
 	err = conf_path_get(path, sizeof(path));
 	if (err)
@@ -318,34 +288,10 @@ static int http_port(void)
 				"%s/webapp.conf", path) < 0)
 		return ENOMEM;
 
-	err = webapp_load_file(mb, filename);
-	if (err) {
-		port = 0;
-	}
-	else {
-		char *str = (char *)mb->buf;
-		char *p, *temp = {0};
-		p = my_strtok_r(str, "\n", &temp);
-		if(p) {
-			do {
-				char *tok_temp;
-				char *tok = my_strtok_r(p, " ", &tok_temp);
-				char *val = my_strtok_r(NULL, " ", &tok_temp);
-				if(tok && val) {
-					if(!str_cmp(tok, "http_listen")) {
-						char *tmp = strchr(val, ':');
-						if(tmp) {
-							*tmp = 0;
-							strcpy(bind, val);
-							tmp++;
-						}
-						port = atoi(tmp);
-					} else if(!str_cmp(tok, "auto_answer")) {
-						auto_answer=atoi(val);
-					}
-				}
-			} while ((p = my_strtok_r(NULL, "\n", &temp)) != NULL);
-		}
+	err = conf_alloc(&conf_obj, filename);
+	if (!err) {
+		conf_get_str(conf_obj, "sl_listen", bind, sizeof(bind));
+		conf_get_u32(conf_obj, "sl_port", &port);
 	}
 
 	err = sa_set_str(&srv, bind, port);
@@ -370,11 +316,12 @@ static int http_port(void)
 #endif
 	info("http listening on ip: %s port: %s\n", bind, port_string);
 
-	re_snprintf(file_contents, sizeof(file_contents), "http_listen %s:%s\nauto_answer %d\n", bind, port_string, auto_answer);
+	re_snprintf(file_contents, sizeof(file_contents), "sl_listen\t%s\nsl_port\t%s\nsl_auto_answer\t%d\n", bind, port_string, auto_answer);
 	webapp_write_file(file_contents, filename);
 
 out:
-	mem_deref(mb);
+	if (conf_obj)
+		mem_deref(conf_obj);
 	return err;
 }
 
