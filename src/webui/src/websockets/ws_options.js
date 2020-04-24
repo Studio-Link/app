@@ -1,5 +1,5 @@
 'use strict';
-$(function () {
+window.ws_options_init = function() {
 	var ws_options = new WebSocket('ws://'+window.ws_host+'/ws_options');
 
 	var bypass = false;
@@ -252,4 +252,4 @@ $(function () {
 			ws_options.send('{"key": "mute", "value": "'+mute+'"}');
 		}
 	}
-});
+};

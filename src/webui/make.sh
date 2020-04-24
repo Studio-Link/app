@@ -1,6 +1,7 @@
 #!/bin/bash -ex
 
-npm run dev
+#npm run dev
+npm run prod
 mkdir -p headers
 xxd -i dist/index.html > headers/index_html.h
 xxd -i dist/app.css > headers/css.h

@@ -1,8 +1,7 @@
 'use strict';
-$(function () {
+window.ws_baresip_init = function() {
 	
 	var ws_baresip_sip_accounts = {};
-
 
 	function ws_baresip_delete_sip(user, domain) {
 		ws_baresip.send('{"command": "deletesip", "user": "'+user+'", "domain": "'+domain+'"}');
@@ -184,4 +183,4 @@ $(function () {
 
 
 	RefreshEventListener();
-});
+};

@@ -1,5 +1,5 @@
 'use strict';
-$(function () {
+window.ws_calls_init = function() {
 
 	function RefreshEventListener() {
 		var addcontact = require("../templates/addcontact.handlebars");
@@ -169,4 +169,4 @@ $(function () {
 	};
 
 	RefreshEventListener();
-});
+};

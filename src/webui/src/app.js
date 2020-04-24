@@ -72,6 +72,13 @@ $(function() {
     if (swvariant == "plugin") {
       $("#btn-interface").addClass("d-none");
     }
+
+    ws_baresip_init();
+    ws_calls_init();
+    ws_meter_init();
+    ws_contacts_init();
+    ws_options_init();
+
   });
 
   $.get("/version", function(data) {

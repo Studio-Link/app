@@ -1,5 +1,5 @@
 'use strict';
-$(function () {
+window.ws_meter_init = function() {
 
 	function iec_scale(db) {
 		var def = 0.0;
@@ -125,4 +125,4 @@ $(function () {
 		$("#headphonesbar17").html('<div class="progress-bar '+rainbow(head9)+'" style="width: '+head9+'%"> <span class="sr-only">'+head9+'% Complete (success)</span></div>');
 		$("#headphonesbar19").html('<div class="progress-bar '+rainbow(head10)+'" style="width: '+head10+'%"> <span class="sr-only">'+head10+'% Complete (success)</span></div>');
 	};
-});
+};
