@@ -11,49 +11,13 @@
 #include <samplerate.h>
 #include <soundio/soundio.h>
 #include "slaudio.h"
-
-#define BUFFER_LEN 15360 /* max buffer_len = 192kHz*2ch*20ms*2frames */
-
+#include "convert.h"
 #ifdef WIN32
 #include <windows.h>
 #endif
 
-#include <math.h>
-#define SAMPLE_24BIT_SCALING  8388607.0f
-#define SAMPLE_24BIT_MAX  8388607
-#define SAMPLE_24BIT_MIN  -8388607
-#define SAMPLE_16BIT_SCALING  32767.0f
-#define SAMPLE_16BIT_MAX  32767
-#define SAMPLE_16BIT_MIN  -32767
-#define SAMPLE_16BIT_MAX_F  32767.0f
-#define SAMPLE_16BIT_MIN_F  -32767.0f
-
-#define NORMALIZED_FLOAT_MIN -1.0f
-#define NORMALIZED_FLOAT_MAX  1.0f
-
+#define BUFFER_LEN 15360 /* max buffer_len = 192kHz*2ch*20ms*2frames */
 #define FLOAT_FRAME_BYTES 8 /* sizeof(float) * 2ch */
-
-#define f_round(f) lrintf (f)
-
-#define float_24u32(s, d) \
-	if ((s) <= NORMALIZED_FLOAT_MIN) { \
-		(d) = SAMPLE_24BIT_MIN << 8; \
-	} else if ((s) >= NORMALIZED_FLOAT_MAX) { \
-		(d) = SAMPLE_24BIT_MAX << 8; \
-	} else { \
-		(d) = f_round ((s) * SAMPLE_24BIT_SCALING) << 8; \
-	}
-
-#define float_16(s, d)\
-	if ((s) <= NORMALIZED_FLOAT_MIN) {\
-		(d) = SAMPLE_16BIT_MIN;\
-	}\
-	else if ((s) >= NORMALIZED_FLOAT_MAX) {\
-		(d) = SAMPLE_16BIT_MAX;\
-	}\
-	else {\
-		(d) = f_round ((s) * SAMPLE_16BIT_SCALING);\
-	}
 
 enum
 {
@@ -63,9 +27,10 @@ enum
 };
 
 static enum SoundIoFormat prioritized_formats[] = {
-	SoundIoFormatFloat32NE,
-	SoundIoFormatS32NE,
-	SoundIoFormatS16NE,
+	SoundIoFormatFloat32LE,
+	SoundIoFormatS32LE,
+	SoundIoFormatS24LE,
+	SoundIoFormatS16LE,
 	SoundIoFormatInvalid,
 };
 
@@ -277,9 +242,14 @@ static float format_float(char *src, enum SoundIoFormat fmt)
 {
 	float value = 0.0;
 
-	if (fmt == SoundIoFormatS32NE) {
-		value = (*((int32_t*)src) >> 8) / SAMPLE_24BIT_SCALING;
-	} else if (fmt == SoundIoFormatS16NE) {
+	if (fmt == SoundIoFormatS32LE) {
+		value = (*((int32_t*)src)) / SAMPLE_32BIT_SCALING;
+	} else if (fmt == SoundIoFormatS24LE) {
+		int x;
+		memcpy ((char*)&x + 1, src, 3);
+		x >>= 8;
+		value = x / SAMPLE_24BIT_SCALING;
+	} else if (fmt == SoundIoFormatS16LE) {
 		value = (*((int16_t*)src)) / SAMPLE_16BIT_SCALING;
 	} else {
 		value = *((float*)src); 
@@ -1098,9 +1068,11 @@ static void write_callback(struct SoundIoOutStream *outstream,
 	float *outBufferFloat = slaudio->outBufferFloat;
 
 	for (int frame = 0; frame < nframes; frame += 1) {
-		if (outstream->format == SoundIoFormatS32NE) {
-			float_24u32(*outBufferFloat, *((int32_t*)areas[0].ptr));
-		} else if (outstream->format == SoundIoFormatS16NE) {
+		if (outstream->format == SoundIoFormatS32LE) {
+			float_32(*outBufferFloat, *((int32_t*)areas[0].ptr));
+		} else if (outstream->format == SoundIoFormatS24LE) {
+			float_24(*outBufferFloat, *((int32_t*)areas[0].ptr));
+		} else if (outstream->format == SoundIoFormatS16LE) {
 			float_16(*outBufferFloat, *((int16_t*)areas[0].ptr));
 		} else {
 			memcpy(areas[0].ptr, outBufferFloat, outstream->bytes_per_sample);
@@ -1111,9 +1083,11 @@ static void write_callback(struct SoundIoOutStream *outstream,
 		if (outstream->layout.channel_count == 1)
 			continue;
 
-		if (outstream->format == SoundIoFormatS32NE) {
-			float_24u32(*outBufferFloat, *((int32_t*)areas[1].ptr));
-		} else if (outstream->format == SoundIoFormatS16NE) {
+		if (outstream->format == SoundIoFormatS32LE) {
+			float_32(*outBufferFloat, *((int32_t*)areas[1].ptr));
+		} else if (outstream->format == SoundIoFormatS24LE) {
+			float_24(*outBufferFloat, *((int32_t*)areas[1].ptr));
+		} else if (outstream->format == SoundIoFormatS16LE) {
 			float_16(*outBufferFloat, *((int16_t*)areas[1].ptr));
 		} else {
 			memcpy(areas[1].ptr, outBufferFloat, outstream->bytes_per_sample);
@@ -1380,6 +1354,8 @@ static int slaudio_init(void)
 	err = ausrc_register(&ausrc, baresip_ausrcl(), "slaudio", src_alloc);
 	err |= auplay_register(&auplay, baresip_auplayl(),
 						   "slaudio", play_alloc);
+	if (err)
+		return ENOMEM;
 
 	err = odict_alloc(&interfaces, DICT_BSIZE);
 	if (err)
