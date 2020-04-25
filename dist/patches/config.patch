@@ -85,7 +85,7 @@ index bfe59ba..dc8fa62 100644
 +	if(reset_conf) {
 +		char old_name[FS_PATH_MAX];
 +		info("Configuration Reset\n");
-+		snprintf(old_name, sizeof(old_name), "%s.old", file);
++		re_snprintf(old_name, sizeof(old_name), "%s.old", file);
 +		unlink(old_name);
 +		rename(file, old_name);
 +	}
