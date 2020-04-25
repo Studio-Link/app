@@ -277,7 +277,7 @@ static void jitter_buffer(void *arg)
 			buffers, talks);
 
 	ws_send_all(WS_CALLS, json);
-	tmr_start(&tmr_jitter_buffer, 200, jitter_buffer, NULL);
+	tmr_start(&tmr_jitter_buffer, 250, jitter_buffer, NULL);
 }
 
 

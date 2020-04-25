@@ -24,6 +24,7 @@ struct session {
 	bool talk;
 	int16_t bufsz;
 	int16_t jb_max;
+	int16_t silence_count;
 	FLAC__StreamMetadata *meta[2];
 };
 

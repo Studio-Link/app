@@ -3,7 +3,10 @@
 #include <baresip.h>
 #include <string.h>
 #include "webapp.h"
-	
+
+
+#define STIME 192 /* 192 = 48 Samples * 2ch * 2 Bytes = 1ms */
+
 static int16_t *dummy[3840];
 
 /* src/audio.c */
@@ -53,16 +56,19 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 	struct aurx *rx = arg;
 	size_t bufsz = 0;
 
+	/* set threshold to 500ms */
+	int16_t silence_threshold = 48000/sampc/2;
+
 	bufsz = aubuf_cur_size(rx->aubuf);
 
 	if (bufsz <= 1920*2*3 && !sess->talk) { /* <=60ms */
 		debug("webapp_jitter: increase latency %dms\n",
-				bufsz/3840*20);
+				bufsz/STIME);
 		memset(sampv, 0, sampc * sizeof(int16_t));
 		return;
 	}
 
-	sess->bufsz = 100.0/76800.0*bufsz; /* 100% = 400ms */
+	sess->bufsz = bufsz/STIME;
 
 	wh(sampv, sampc, arg);
 
@@ -72,28 +78,27 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 		if (sampv[pos] > max)
 			max = sampv[pos];
 	}
-
-	sess->talk = false;
-
 	sess->jb_max = (sess->jb_max + max) / 2;
 
-	if (sess->jb_max > 400) {
-		sess->talk = true;
-	//	debug("talk %dms\n", aubuf_cur_size(rx->aubuf)/3840*20);
+	if (sess->jb_max < 400) {
+		if (sess->silence_count < silence_threshold) {
+			sess->silence_count++;
+		} else {
+			sess->talk = false;
+		}
 	} else {
-	//	debug("webapp_jitter: latency %dms\n",
-	//			aubuf_cur_size(rx->aubuf)/3840*20);
+		sess->talk = true;
+		sess->silence_count = 0;
 	}
 
 	if (sess->talk)
 		return;
-#if 1
+
 	bufsz = aubuf_cur_size(rx->aubuf);
-	/* Reduce latency */
-	if (bufsz >= 1920*2*10) { // >=200ms
+	/* Reduce latency >= 160ms */
+	if (bufsz >= 1920*2*8 ) {
 		debug("webapp_jitter: reduce latency %dms\n",
-				bufsz/3840*20);
+				bufsz/STIME);
 		wh(dummy, 3840, arg);
 	}
-#endif
 }
