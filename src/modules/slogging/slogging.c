@@ -14,15 +14,25 @@ static char url[255] = {0};
 static struct http_req *req = NULL;
 enum { UUID_LEN = 36 };
 static char myid[9] = {0};
-static struct lock *lock;
+static struct mqueue *mq;
+static char *fmt;
+
+
+static void mqueue_handler(int id, void *data, void *arg)
+{
+	char *msg = data;	
+	http_request(&req, cli, "POST", url, NULL,
+			NULL, NULL, msg);
+
+	mem_deref(msg);
+}
 
 
 static const int lmap[] = { LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
 
 static void log_handler(uint32_t level, const char *msg)
 {
-	char fmt[2048] = {0};
-	char gelf[2048] = {0};
+	char *gelf;
 	int time_ms = 0, timestamp = 0;
 
 	timestamp = time(NULL);
@@ -35,7 +45,10 @@ static void log_handler(uint32_t level, const char *msg)
 	time_ms = (int)(tmr_jiffies() - (uint64_t)timestamp * (uint64_t)1000);
 #endif
 
-	re_snprintf(gelf, sizeof(gelf),
+	fmt = mem_zalloc(8192 * sizeof(char), NULL);
+	gelf = mem_zalloc(8192 * sizeof(char), NULL);
+
+	re_snprintf(gelf, 8191,
 		"{\"version\": \"1.1\",\
 		\"timestamp\":\"%d.%03d\",\
 		\"short_message\":\"%s\",\
@@ -47,16 +60,16 @@ static void log_handler(uint32_t level, const char *msg)
 		lmap[MIN(level, ARRAY_SIZE(lmap)-1)]
 	);
 
-	re_snprintf(fmt, sizeof(fmt),
+	re_snprintf(fmt, 8191,
 			"Content-Length: %d\r\n"
 			"Content-Type: application/x-www-form-urlencoded\r\n"
 			"\r\n"
 			"%s",
 			str_len(gelf), gelf);
-	lock_write_get(lock);
-	http_request(&req, cli, "POST", url, NULL,
-			NULL, NULL, fmt);
-	lock_rel(lock);
+
+	mem_deref(gelf);
+
+	mqueue_push(mq, 0, fmt);
 }
 
 
@@ -177,11 +190,14 @@ static int module_init(void)
 
 	str_ncpy(myid, uuidtmp, sizeof(myid));
 
-	lock_alloc(&lock);
+	err = mqueue_alloc(&mq, mqueue_handler, NULL);
+	if (err)
+		return err;
 
 	net = baresip_network();
 	re_snprintf(url, sizeof(url), "https://log.studio.link/gelf");
 	http_client_alloc(&cli, net_dnsc(net));
+
 
 	log_register_handler(&lg);
 
@@ -205,7 +221,8 @@ static int module_close(void)
 	log_unregister_handler(&lg);
 	req = mem_deref(req);
 	cli = mem_deref(cli);
-	lock = mem_deref(lock);
+	mq = mem_deref(mq);
+	fmt = mem_deref(fmt);
 
 	return 0;
 }
