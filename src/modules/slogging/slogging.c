@@ -20,7 +20,7 @@ static char *fmt;
 
 static void mqueue_handler(int id, void *data, void *arg)
 {
-	char *msg = data;	
+	char *msg = data;
 	http_request(&req, cli, "POST", url, NULL,
 			NULL, NULL, msg);
 
