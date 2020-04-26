@@ -412,9 +412,9 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	if (!stp || !as || !prm)
 		return EINVAL;
 
+	struct session *sess = NULL;
 	for (le = sessionl.head; le; le = le->next) {
-		struct session *sess = le->data;
-
+		sess = le->data;
 		if (sess->ch == -1)
 			continue;
 
@@ -425,12 +425,11 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 				return ENOMEM;
 			st_src = sess->st_src;
 			st_src->sess = sess;
-			sess->run_src = true;
 			break;
 		}
 	}
 
-	if (!st_src)
+	if (!st_src || !sess)
 		return EINVAL;
 
 	st_src->run = false;
@@ -446,10 +445,13 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	}
 
 out:
-	if (err)
+	if (err) {
 		mem_deref(st_src);
-	else
-		st_src->run = true;
+		return err;
+	}
+
+	st_src->run = true;
+	sess->run_src = true;
 	*stp = st_src;
 
 	return err;
@@ -467,9 +469,9 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 		return EINVAL;
 	size_t sampc = prm->srate * prm->ch * prm->ptime / 1000;
 
+	struct session *sess = NULL;
 	for (le = sessionl.head; le; le = le->next) {
-		struct session *sess = le->data;
-
+		sess = le->data;
 		if (sess->ch == -1)
 			continue;
 
@@ -483,12 +485,11 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 				return ENOMEM;
 			st_play = sess->st_play;
 			st_play->sess = sess;
-			sess->run_play = true;
 			break;
 		}
 	}
 
-	if (!st_play)
+	if (!st_play || !sess)
 		return EINVAL;
 
 	st_play->run = false;
@@ -503,10 +504,13 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 	}
 
 out:
-	if (err)
+	if (err) {
 		mem_deref(st_play);
-	else
-		st_play->run = true;
+		return err;
+	}
+
+	st_play->run = true;
+	sess->run_play = true;
 	*stp = st_play;
 
 	return err;
