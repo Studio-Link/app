@@ -6,7 +6,9 @@
 	<tbody>
 {{#each this}}
 	<tr>
-		<td>{{capitalize @key}}</td>
+		{{#ifeq @key "monitoring"}}<td>Monitoring</td>{{/ifeq}}
+		{{#ifeq @key "monorecord"}}<td>Mono Local Recording</td>{{/ifeq}}
+		{{#ifeq @key "monostream"}}<td>Mono Remote Streaming</td>{{/ifeq}}
 		<td>
 			<p>
 			{{#if this}}

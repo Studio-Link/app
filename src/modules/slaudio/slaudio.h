@@ -32,7 +32,8 @@ extern struct list sessionl;
 void slaudio_record_init(void);
 
 void slaudio_record_set(bool status);
-void slaudio_mono_set(bool status);
+void slaudio_monorecord_set(bool status);
+void slaudio_monostream_set(bool status);
 void slaudio_mute_set(bool status);
 void slaudio_monitor_set(bool status);
 

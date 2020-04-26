@@ -37,12 +37,22 @@ void webapp_options_set(char *key, char *value)
 			slaudio_monitor_set(false);
 		}
 	}
-	if (!str_cmp(key, "mono")) {
+	if (!str_cmp(key, "monostream")) {
 		if (!str_cmp(value, "true")) {
-			slaudio_mono_set(true);
+			slaudio_monostream_set(true);
 		}
 		else {
-			slaudio_mono_set(false);
+			slaudio_monostream_set(false);
+			webapp_options_set("monorecord", "");
+		}
+	}
+	if (!str_cmp(key, "monorecord")) {
+		if (!str_cmp(value, "true")) {
+			slaudio_monorecord_set(true);
+			webapp_options_set("monostream", "true");
+		}
+		else {
+			slaudio_monorecord_set(false);
 		}
 	}
 	if (!str_cmp(key, "record")) {
@@ -164,7 +174,8 @@ int webapp_options_init(void)
 	odict_entry_del(options, "afk");
 	odict_entry_del(options, "mute");
 
-	webapp_options_set("mono", webapp_options_getv("mono", "true"));
+	webapp_options_set("monorecord", webapp_options_getv("monorecord", "true"));
+	webapp_options_set("monostream", webapp_options_getv("monostream", "true"));
 	webapp_options_set("monitoring", webapp_options_getv("monitoring", ""));
 
 out:

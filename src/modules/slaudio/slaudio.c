@@ -104,7 +104,8 @@ void webapp_ws_rtaudio_sync(void);
 
 static int16_t *playmix;
 
-static bool mono = false;
+static bool monorecord = true;
+static bool monostream = true;
 static bool mute = false;
 static bool monitor = true;
 static bool fatal_error = false;
@@ -117,9 +118,15 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 		auplay_write_h *wh, unsigned int sampc, void *arg);
 
 
-void slaudio_mono_set(bool status)
+void slaudio_monorecord_set(bool status)
 {
-	mono = status;
+	monorecord = status;
+}
+
+
+void slaudio_monostream_set(bool status)
+{
+	monostream = status;
 }
 
 
@@ -244,6 +251,17 @@ static void convert_float(int16_t *sampv, float *f_sampv, size_t sampc)
 }
 
 
+static void stereo2mono(int16_t *buf, size_t sampc)
+{
+	while (sampc--) {
+		buf[0] = buf[0]/2 + buf[1]/2;
+		buf[1] = buf[0];
+		
+		buf += 2;
+	}
+}
+
+
 static float format_float(char *src, enum SoundIoFormat fmt)
 {
 	float value = 0.0;
@@ -285,9 +303,10 @@ static void downsample_first_ch(float *outv, struct SoundIoChannelArea *areas,
 
 			if (first_input_channel == 99) {
 				left += format_float(areas[ch].ptr, instream->format);
+				right = left;
 			}
 
-			if (mono)
+			if (monorecord)
 				right = left;
 
 			areas[ch].ptr += areas[ch].step;
@@ -807,7 +826,7 @@ static void read_callback(struct SoundIoInStream *instream,
 	}
 	
 	ws_meter_process(0, slaudio->inBufferFloat, (unsigned long)samples);
-	if (!mono)
+	if (!monorecord)
 		ws_meter_process(2, slaudio->inBufferFloat+1, (unsigned long)samples-1);
 
 	/**<-- Input Samplerate conversion */
@@ -846,14 +865,17 @@ static void read_callback(struct SoundIoInStream *instream,
 
 	//warning("samples: %d %d\n", nframes, instream->layout.channel_count);
 	
-	if (monitor)
-	{
-		memcpy(playmix, slaudio->inBuffer, samples * sizeof(int16_t));
-	}
 
 	for (le = sessionl.head; le; le = le->next)
 	{
 		sess = le->data;
+		if (sess && sess->local)
+		{
+			/* write local audio to flac record buffer */
+			(void)aubuf_write_samp(sess->aubuf,
+					slaudio->inBuffer, samples);
+		}
+
 		if (!sess || !sess->run_play || sess->local)
 			continue;
 
@@ -861,6 +883,18 @@ static void read_callback(struct SoundIoInStream *instream,
 
 		webapp_jitter(sess, st_play->sampv,
 				st_play->wh, samples, st_play->arg);
+	}
+
+	if (monostream && !monorecord)
+	{
+		stereo2mono(slaudio->inBuffer, nframes);
+	}
+
+	if (monitor)
+	{
+		memcpy(playmix, slaudio->inBuffer, samples * sizeof(int16_t));
+	} else {
+		memset(playmix, 0, samples * sizeof(int16_t));
 	}
 
 	for (le = sessionl.head; le; le = le->next)
@@ -881,19 +915,12 @@ static void read_callback(struct SoundIoInStream *instream,
 		for (uint16_t pos = 0; pos < samples; pos++)
 		{
 			int32_t val = 0;
-			if (cntplay < 1)
-			{
-				playmix[pos] = st_play->sampv[pos];
-			}
-			else
-			{
-				val = playmix[pos] + st_play->sampv[pos];
-				if (val >= 32767)
-					val = 32767;
-				if (val <= -32767)
-					val = -32767;
-				playmix[pos] = val;
-			}
+			val = playmix[pos] + st_play->sampv[pos];
+			if (val >= 32767)
+				val = 32767;
+			if (val <= -32767)
+				val = -32767;
+			playmix[pos] = val;
 		}
 
 		/* write remote streams to flac record buffer */
@@ -969,12 +996,6 @@ static void read_callback(struct SoundIoInStream *instream,
 			st_src->rh(st_src->sampv, samples, st_src->arg);
 		}
 
-		if (sess && sess->local)
-		{
-			/* write local audio to flac record buffer */
-			(void)aubuf_write_samp(sess->aubuf,
-					slaudio->inBuffer, samples);
-		}
 	}
 
 	if (!cntplay && !monitor)

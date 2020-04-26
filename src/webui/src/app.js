@@ -23,6 +23,13 @@ Handlebars.registerHelper("capitalize", function(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 });
 
+Handlebars.registerHelper("ifeq", function(a, b, options) {
+  if (a == b) {
+    return options.fn(this);
+  }
+  return options.inverse(this);
+});
+
 Handlebars.registerHelper("times", function(n, block) {
   var accum = "";
   for (var i = 0; i < n; ++i) {
