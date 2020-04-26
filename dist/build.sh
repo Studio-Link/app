@@ -7,7 +7,7 @@ make_opts="-j4"
 
 if [ "$BUILD_OS" == "ccheck" ]; then
     #dist/tools/ccheck.py src/modules/webapp
-    dist/tools/ccheck.py src/modules/slrtaudio
+    dist/tools/ccheck.py src/modules/slaudio
     dist/tools/ccheck.py src/modules/slogging
     exit 0
 fi
