@@ -18,6 +18,7 @@ const struct odict* webapp_options_get(void)
 void webapp_options_set(char *key, char *value)
 {
 	int err = 0;
+	info("webapp/option: %s: %s\n", key, value);
 #ifdef SLPLUGIN
 	if (!str_cmp(key, "bypass")) {
 		if (!str_cmp(value, "false")) {
@@ -28,22 +29,28 @@ void webapp_options_set(char *key, char *value)
 		}
 	}
 #else
-	if (!str_cmp(key, "mono")) {
-		if (!str_cmp(value, "false")) {
-			slaudio_mono_set(false);
+	if (!str_cmp(key, "monitoring")) {
+		if (!str_cmp(value, "true")) {
+			slaudio_monitor_set(true);
 		}
 		else {
+			slaudio_monitor_set(false);
+		}
+	}
+	if (!str_cmp(key, "mono")) {
+		if (!str_cmp(value, "true")) {
 			slaudio_mono_set(true);
+		}
+		else {
+			slaudio_mono_set(false);
 		}
 	}
 	if (!str_cmp(key, "record")) {
 		if (!str_cmp(value, "false")) {
 			slaudio_record_set(false);
-			info("webapp/option: stop record\n");
 		}
 		else {
 			slaudio_record_set(true);
-			info("webapp/option: start record\n");
 		}
 	}
 	if (!str_cmp(key, "mute")) {
@@ -108,14 +115,14 @@ void webapp_options_set(char *key, char *value)
 }
 
 
-char* webapp_options_getv(char *key)
+char* webapp_options_getv(char *key, char *def)
 {
 	const struct odict_entry *e = NULL;
 
 	e = odict_lookup(options, key);
 
 	if (!e)
-		return NULL;
+		return def;
 
 	return e->u.str;
 }
@@ -157,7 +164,8 @@ int webapp_options_init(void)
 	odict_entry_del(options, "afk");
 	odict_entry_del(options, "mute");
 
-	webapp_options_set("mono", webapp_options_getv("mono"));
+	webapp_options_set("mono", webapp_options_getv("mono", "true"));
+	webapp_options_set("monitoring", webapp_options_getv("monitoring", ""));
 
 out:
 	mem_deref(mb);

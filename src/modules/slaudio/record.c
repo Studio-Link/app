@@ -26,9 +26,9 @@ static char command[256];
 static int record_timer = 0;
 
 
-void slaudio_record_set(bool active)
+void slaudio_record_set(bool status)
 {
-	record = active;
+	record = status;
 }
 
 

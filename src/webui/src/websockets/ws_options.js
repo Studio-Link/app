@@ -3,7 +3,6 @@ window.ws_options_init = function() {
   var ws_options = new WebSocket("ws://" + window.ws_host + "/ws_options");
 
   var bypass = false;
-  var mono = false;
   var record = false;
   var onair = false;
   var raisehand = false;
@@ -19,28 +18,6 @@ window.ws_options_init = function() {
     } else {
       $("#btn-bypass").removeClass("btn-danger");
       $("#btn-bypass").addClass("btn-secondary");
-    }
-  }
-
-  function RefreshMono() {
-    if (mono) {
-      $("#btn-mono").removeClass("btn-secondary");
-      $("#btn-mono").addClass("btn-primary");
-
-      $("#btn-stereo").removeClass("btn-primary");
-      $("#btn-stereo").addClass("btn-secondary");
-
-      $("#btn-stereo").attr("aria-pressed", false);
-      $("#btn-mono").attr("aria-pressed", true);
-    } else {
-      $("#btn-mono").removeClass("btn-primary");
-      $("#btn-mono").addClass("btn-secondary");
-
-      $("#btn-stereo").removeClass("btn-secondary");
-      $("#btn-stereo").addClass("btn-primary");
-
-      $("#btn-stereo").attr("aria-pressed", true);
-      $("#btn-mono").attr("aria-pressed", false);
     }
   }
 
@@ -106,8 +83,19 @@ window.ws_options_init = function() {
     }
   }
 
+  function RefreshMonitor() {
+    if (mute) {
+      $("#btn-monitor").removeClass("btn-primary");
+      $("#btn-monitor").addClass("btn-danger");
+    } else {
+      $("#btn-monitor").removeClass("btn-danger");
+      $("#btn-monitor").addClass("btn-primary");
+    }
+  }
+
   ws_options.onmessage = function(message) {
     var msg = JSON.parse(message.data);
+
     if (msg.bypass) {
       if (msg.bypass == "true") {
         bypass = true;
@@ -116,14 +104,7 @@ window.ws_options_init = function() {
       }
       RefreshBypass();
     }
-    if (msg.mono) {
-      if (msg.mono == "true") {
-        mono = true;
-      } else {
-        mono = false;
-      }
-      RefreshMono();
-    }
+
     if (msg.record) {
       if (msg.record == "true") {
         record = true;
@@ -132,6 +113,7 @@ window.ws_options_init = function() {
       }
       RefreshRecord();
     }
+
     if (msg.onair) {
       if (msg.onair == "true") {
         onair = true;
@@ -140,6 +122,7 @@ window.ws_options_init = function() {
       }
       RefreshOnair();
     }
+
     if (msg.raisehand) {
       if (msg.raisehand == "true") {
         raisehand = true;
@@ -148,6 +131,7 @@ window.ws_options_init = function() {
       }
       RefreshRaisehand();
     }
+
     if (msg.afk) {
       if (msg.afk == "true") {
         afk = true;
@@ -156,6 +140,7 @@ window.ws_options_init = function() {
       }
       RefreshAFK();
     }
+
     if (msg.mute) {
       if (msg.mute == "true") {
         mute = true;
@@ -166,12 +151,19 @@ window.ws_options_init = function() {
     }
 
     delete msg.bypass;
-    delete msg.mono;
     delete msg.record;
     delete msg.onair;
     delete msg.raisehand;
     delete msg.afk;
     delete msg.mute;
+
+    Object.keys(msg)
+      .sort()
+      .forEach(function(key) {
+        var value = msg[key];
+        delete msg[key];
+        msg[key] = value;
+      });
 
     $("#options").html(hoptions(msg));
 
@@ -189,13 +181,16 @@ window.ws_options_init = function() {
 
     ws_options.send('{"key": "bypass", "value": "' + bypass + '"}');
   });
+
   $("#btn-mono").on("click", function() {
     ws_options.send('{"key": "mono", "value": "true"}');
   });
+
   $("#btn-stereo").on("click", function() {
     mono = false;
     ws_options.send('{"key": "mono", "value": "false"}');
   });
+
   $("#btn-record").on("click", function() {
     if (record) {
       record = false;
@@ -205,6 +200,7 @@ window.ws_options_init = function() {
 
     ws_options.send('{"key": "record", "value": "' + record + '"}');
   });
+
   $("#btn-onair").on("click", function() {
     if (onair) {
       onair = false;
@@ -214,6 +210,7 @@ window.ws_options_init = function() {
 
     ws_options.send('{"key": "onair", "value": "' + onair + '"}');
   });
+
   $("#btn-raise-hand").on("click", function() {
     if (raisehand) {
       raisehand = false;
@@ -223,6 +220,7 @@ window.ws_options_init = function() {
 
     ws_options.send('{"key": "raisehand", "value": "' + raisehand + '"}');
   });
+
   $("#btn-afk").on("click", function() {
     if (afk) {
       afk = false;
@@ -232,6 +230,7 @@ window.ws_options_init = function() {
 
     ws_options.send('{"key": "afk", "value": "' + afk + '"}');
   });
+
   $("#btn-mute").on("click", function() {
     if (mute) {
       mute = false;

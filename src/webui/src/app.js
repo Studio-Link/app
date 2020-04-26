@@ -15,8 +15,12 @@ Handlebars.registerHelper("inc", function(value, options) {
 });
 
 Handlebars.registerHelper("myselect", function(channel, index, options) {
-  if (channel == index)
-    return 'selected';
+  if (channel == index) return "selected";
+});
+
+Handlebars.registerHelper("capitalize", function(str) {
+  if (typeof str !== "string") return "";
+  return str.charAt(0).toUpperCase() + str.slice(1);
 });
 
 Handlebars.registerHelper("times", function(n, block) {
@@ -48,11 +52,11 @@ $.fn.serializeObject = function() {
   return obj;
 };
 
-window.addEventListener("beforeunload", function (e) {
-	if (window.callactive) {
-		e.preventDefault();
-		e.returnValue = '';
-	}
+window.addEventListener("beforeunload", function(e) {
+  if (window.callactive) {
+    e.preventDefault();
+    e.returnValue = "";
+  }
 });
 
 $(function() {
@@ -78,7 +82,6 @@ $(function() {
     ws_meter_init();
     ws_contacts_init();
     ws_options_init();
-
   });
 
   $.get("/version", function(data) {
@@ -89,7 +92,7 @@ $(function() {
     $("#changelog").on("click", function() {
       bootbox.alert({
         message: changelog(),
-        size: "large"
+        size: "large",
       });
     });
   });

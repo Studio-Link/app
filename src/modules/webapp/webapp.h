@@ -94,7 +94,7 @@ int webapp_options_init(void);
 void webapp_options_close(void);
 const struct odict* webapp_options_get(void);
 void webapp_options_set(char *key, char *value);
-char* webapp_options_getv(char *key);
+char* webapp_options_getv(char *key, char *def);
 
 /*
  * chat.c
@@ -157,9 +157,10 @@ bool webapp_active_calls(void);
  * slaudio module
  */
 const struct odict* slaudio_get_interfaces(void);
-void slaudio_record_set(bool active);
-void slaudio_mono_set(bool active);
-void slaudio_mute_set(bool active);
+void slaudio_record_set(bool status);
+void slaudio_mono_set(bool status);
+void slaudio_mute_set(bool status);
+void slaudio_monitor_set(bool status);
 
 #ifndef SLPLUGIN 
 /*

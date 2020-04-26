@@ -117,15 +117,21 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 		auplay_write_h *wh, unsigned int sampc, void *arg);
 
 
-void slaudio_mono_set(bool active)
+void slaudio_mono_set(bool status)
 {
-	mono = active;
+	mono = status;
 }
 
 
-void slaudio_mute_set(bool active)
+void slaudio_mute_set(bool status)
 {
-	mute = active;
+	mute = status;
+}
+
+
+void slaudio_monitor_set(bool status)
+{
+	monitor = status;
 }
 
 
@@ -261,29 +267,38 @@ static float format_float(char *src, enum SoundIoFormat fmt)
 static void downsample_first_ch(float *outv, struct SoundIoChannelArea *areas,
 		int nframes, struct SoundIoInStream *instream)
 {
-	float value;
+	float left;
+	float right;
 
 	for (int frame = 0; frame < nframes; frame++) {
-		value = 0.0;
+		left = 0.0;
+		right = 0.0;
 
 		for (int ch = 0; ch < instream->layout.channel_count; ch++) {
 			if (ch == first_input_channel) {
-				value = format_float(areas[ch].ptr, instream->format);
+				left = format_float(areas[ch].ptr, instream->format);
+			}
+
+			if (ch == first_input_channel + 1) {
+				right = format_float(areas[ch].ptr, instream->format);
 			}
 
 			if (first_input_channel == 99) {
-				value += format_float(areas[ch].ptr, instream->format);
+				left += format_float(areas[ch].ptr, instream->format);
 			}
+
+			if (mono)
+				right = left;
 
 			areas[ch].ptr += areas[ch].step;
 		}
 
 		/*stereo ch left*/
-		*outv = value;
+		*outv = left;
 		outv += 1;
 
 		/*stereo ch right*/
-		*outv = value;
+		*outv = right;
 		outv += 1;
 	}
 }
@@ -792,6 +807,8 @@ static void read_callback(struct SoundIoInStream *instream,
 	}
 	
 	ws_meter_process(0, slaudio->inBufferFloat, (unsigned long)samples);
+	if (!mono)
+		ws_meter_process(2, slaudio->inBufferFloat+1, (unsigned long)samples-1);
 
 	/**<-- Input Samplerate conversion */
 	if (preferred_sample_rate_in != 48000)
