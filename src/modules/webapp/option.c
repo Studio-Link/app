@@ -118,7 +118,8 @@ void webapp_options_set(char *key, char *value)
 		}
 	}
 
-	odict_entry_del(options, key);
+	char *key2 = key;
+	odict_entry_del(options, key2);
 	odict_entry_add(options, key, ODICT_STRING, value);
 	ws_send_json(WS_OPTIONS, options);
 	webapp_write_file_json(options, filename);
@@ -140,7 +141,8 @@ char* webapp_options_getv(char *key, char *def)
 
 int webapp_options_init(void)
 {
-	char path[256] = "";
+	char path[256] = {0};
+	char *key;
 	struct mbuf *mb;
 	int err = 0;
 
@@ -174,9 +176,17 @@ int webapp_options_init(void)
 	odict_entry_del(options, "afk");
 	odict_entry_del(options, "mute");
 
-	webapp_options_set("monorecord", webapp_options_getv("monorecord", "true"));
-	webapp_options_set("monostream", webapp_options_getv("monostream", "true"));
-	webapp_options_set("monitoring", webapp_options_getv("monitoring", ""));
+	str_dup(&key, webapp_options_getv("monorecord", "true"));
+	webapp_options_set("monorecord", key);
+	mem_deref(key);
+
+	str_dup(&key, webapp_options_getv("monostream", "true"));
+	webapp_options_set("monostream", key);
+	mem_deref(key);
+
+	str_dup(&key, webapp_options_getv("monitoring", ""));
+	webapp_options_set("monitoring", key);
+	mem_deref(key);
 
 out:
 	mem_deref(mb);
