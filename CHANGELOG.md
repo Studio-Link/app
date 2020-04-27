@@ -1,6 +1,6 @@
 # Changelog
 
-## [v20.04.2-beta] - 2020-04-xx
+## [v20.04.2-beta] - 2020-04-27
 
 ### Added
 
@@ -181,6 +181,7 @@ Debug only Release
 
 
 
+[v20.04.2-beta]: https://github.com/Studio-Link/app/compare/v20.04.1-beta1...v20.04.2-beta
 [v20.03.8-stable]: https://github.com/Studio-Link/app/compare/v20.03.7-stable...v20.03.8-stable
 [v20.03.7-stable]: https://github.com/Studio-Link/app/compare/v20.03.6-stable...v20.03.7-stable
 [v20.03.6-stable]: https://github.com/Studio-Link/app/compare/v20.03.5-stable...v20.03.6-stable
