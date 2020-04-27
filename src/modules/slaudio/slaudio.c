@@ -348,6 +348,7 @@ static void auplay_destructor(void *arg)
 	sess->run_play = false;
 	sys_msleep(20);
 	mem_deref(st->sampv);
+	mem_deref(sess->dstmix);
 }
 
 
