@@ -118,8 +118,7 @@ void webapp_options_set(char *key, char *value)
 		}
 	}
 
-	char *key2 = key;
-	odict_entry_del(options, key2);
+	odict_entry_del(options, key);
 	odict_entry_add(options, key, ODICT_STRING, value);
 	ws_send_json(WS_OPTIONS, options);
 	webapp_write_file_json(options, filename);
