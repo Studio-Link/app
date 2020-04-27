@@ -175,6 +175,7 @@ int webapp_options_init(void)
 	odict_entry_del(options, "afk");
 	odict_entry_del(options, "mute");
 
+#ifndef SLPLUGIN
 	str_dup(&key, webapp_options_getv("monorecord", "true"));
 	webapp_options_set("monorecord", key);
 	mem_deref(key);
@@ -186,6 +187,7 @@ int webapp_options_init(void)
 	str_dup(&key, webapp_options_getv("monitoring", ""));
 	webapp_options_set("monitoring", key);
 	mem_deref(key);
+#endif
 
 out:
 	mem_deref(mb);
