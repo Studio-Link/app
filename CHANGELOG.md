@@ -1,6 +1,29 @@
 # Changelog
 
-## [v20.04.1-beta] - 2020-04-xx
+## [v20.04.2-beta] - 2020-04-xx
+
+### Added
+
+- **Standalone** Mono/Stereo Support (Streaming and Recording)
+
+### Changed
+
+- **Misc** jitter buffer: implement silence counter with 500ms threshold
+- **Misc** jitter buffer: reduce max latency optimization from 200ms to 160ms
+- **Misc** jitter buffer: display buffer in ms instead of %
+
+### Fixed
+
+- **Standalone** slaudio/flac: fix metadata memory leak
+- **Standalone** slaudio: some memory leaks
+- **Misc** effect/slaudio: possible crash with new call
+- **Misc** slogging: thread safe (libre mqueue) / prevent dns crashes
+- **Misc** webui: early websockets bugs (better init handling)
+- **Misc** webapp: rewrite webapp.conf parsing
+- **Standalone** slaudio: rewrite format conversion
+
+
+## [v20.04.1-beta1] - 2020-04-22
 
 ### Changed
 
@@ -20,7 +43,7 @@ and high network jitter (caused by new jitter buffer)
 
 ---
 
-## [v20.04.0-beta] - 2020-03-xx
+## [v20.04.0-beta] - 2020-03-28
 
 ### Changed
 
