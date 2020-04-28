@@ -620,6 +620,13 @@ static int slaudio_devices(void)
 			continue;
 		}
 
+		if (backend == SoundIoBackendWasapi && device->is_raw) {
+			soundio_device_unref(device);
+			if (i == default_input)
+				default_input_err = true;
+			continue;
+		}
+
 		if (device->probe_error) {
 			info("slaudio/input device %s probe error\n",
 					device->name);
@@ -705,6 +712,13 @@ static int slaudio_devices(void)
 		(void)re_snprintf(idx, sizeof(idx), "%d", i);
 
 		if (backend == SoundIoBackendAlsa && !device->is_raw) {
+			soundio_device_unref(device);
+			if (i == default_output)
+				default_output_err = true;
+			continue;
+		}
+
+		if (backend == SoundIoBackendWasapi && device->is_raw) {
 			soundio_device_unref(device);
 			if (i == default_output)
 				default_output_err = true;
