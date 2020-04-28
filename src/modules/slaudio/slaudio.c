@@ -1162,8 +1162,10 @@ static void write_callback(struct SoundIoOutStream *outstream,
 		outBufferFloat += 1;
 		areas[0].ptr += areas[0].step;
 
-		if (outstream->layout.channel_count == 1)
+		if (outstream->layout.channel_count == 1) {
+			outBufferFloat += 1;
 			continue;
+		}
 
 		if (outstream->format == SoundIoFormatS32LE) {
 			float_32(*outBufferFloat, *((int32_t*)areas[1].ptr));
@@ -1402,13 +1404,13 @@ static int slaudio_start(void)
 		goto err_out;
 	}
 
-
 	info("slaudio/start: success\n");
 	return 0;
 
 err_out:
+	fatal_error = true;
 	mem_deref(slaudio);
-
+	
 	warning("slaudio/start: error %d\n", err);
 	return err;
 }
