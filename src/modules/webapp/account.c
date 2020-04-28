@@ -14,10 +14,12 @@ const struct odict* webapp_accounts_get(void) {
 	return (const struct odict *)accs;
 }
 
+
 static void update(void *arg)
 {
 	ws_send_all(WS_BARESIP, "update");
 }
+
 
 static int sip_register(const struct odict_entry *o)
 {
@@ -68,12 +70,10 @@ static int sip_register(const struct odict_entry *o)
 		else if (!str_cmp(e->key, "status")) {
 			continue;
 		}
-		else if (!str_cmp(e->key, "version")) {
-			/* Version Check disabled */
-			continue;
-			if (str_cmp(e->u.str, (const char*)SLVERSION)) {
+		else if (!str_cmp(e->key, "update")) {
+			if (!str_cmp(e->u.str, "true"))
 				tmr_start(&tmr, 2000, update, NULL);
-			}
+			continue;
 		}
 		else {
 			re_snprintf(opt, sizeof(opt), "%s;%s=%s",
@@ -271,17 +271,22 @@ out:
 	mem_deref(o);
 }
 
+
 static void provisioning(void)
 {
 	char url[255] = {0};
 	char host[] = "my.studio.link";
-	char path[] = "api/v1/provisioning";
+	char path[] = "api/v2/provisioning";
 	struct config *cfg = conf_config();
 	const struct network *net = baresip_network();
 
 	info("webapp/account: start provisioning\n");
-
-	re_snprintf(url, sizeof(url), "https://%s/%s/%s?version=%s",
+	re_snprintf(url, sizeof(url),
+#ifdef SLPLUGIN
+			"https://%s/%s/%s?version=%s&client=plugin",
+#else
+			"https://%s/%s/%s?version=%s&client=standalone",
+#endif
 			host, path, cfg->sip.uuid, SLVERSION);
 
 	http_client_alloc(&cli, net_dnsc(net));
@@ -289,6 +294,7 @@ static void provisioning(void)
 	http_request(&req, cli, "GET", url, http_resp_handler,
 			NULL, NULL, NULL);
 }
+
 
 static void startup(void *arg)
 {
@@ -298,6 +304,7 @@ static void startup(void *arg)
 	}
 	provisioning();
 }
+
 
 int webapp_accounts_init(void)
 {
