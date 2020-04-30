@@ -487,13 +487,19 @@ static void outstream_error_callback(struct SoundIoOutStream *os, int err) {
 	slaudio_reset();
 }
 
-
+#ifdef DARWIN
+static void instream_error_callback(struct SoundIoInStream *is, int err, const char *msg) {
+	warning("slaudio/in_err_call: %s %s\n", soundio_strerror(err), msg);
+	fatal_error = true;
+	slaudio_reset();
+}
+#else
 static void instream_error_callback(struct SoundIoInStream *is, int err) {
 	warning("slaudio/in_err_call: %s\n", soundio_strerror(err));
 	fatal_error = true;
 	slaudio_reset();
 }
-
+#endif
 
 static int slaudio_drivers(void)
 {
