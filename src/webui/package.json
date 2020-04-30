@@ -23,7 +23,7 @@
     "cross-env": "^7.0.2",
     "handlebars": "^4.7.6",
     "handlebars-loader": "^1.7.1",
-    "jquery": "3.4.1",
+    "jquery": "3.5.0",
     "laravel-mix": "^5.0.4",
     "laravel-mix-copy-watched": "^2.2.4",
     "laravel-mix-purgecss": "^4.2.0",
