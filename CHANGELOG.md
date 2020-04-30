@@ -1,5 +1,12 @@
 # Changelog
 
+## [v20.04.3-beta] - 2020-0x-xx
+
+### Fixed
+
+- **Standalone** slaudio: mono output
+
+
 ## [v20.04.2-beta] - 2020-04-27
 
 ### Added
