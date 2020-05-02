@@ -1043,7 +1043,7 @@ static void read_callback(struct SoundIoInStream *instream,
 						sess->dstmix[pos];
 				}
 			}
-			
+
 			af.fmt = st_src->prm.fmt;
 			af.sampv = st_src->sampv;
 			af.sampc = samples;
