@@ -217,7 +217,7 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 						call_peeruri(call), key);
 			} else {
 				debug("auto answering call\n");
-				ua_answer(uag_current(), call);
+				ua_answer(uag_current(), call, VIDMODE_OFF);
 			}
 			ws_send_all(WS_CALLS, webapp_call_json);
 			break;

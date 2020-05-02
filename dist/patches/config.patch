@@ -1,8 +1,8 @@
 diff --git a/include/baresip.h b/include/baresip.h
-index 9bfab8a..0651d01 100644
+index 0d3f84c..a3e4bb3 100644
 --- a/include/baresip.h
 +++ b/include/baresip.h
-@@ -183,7 +183,7 @@ int custom_hdrs_apply(const struct list *hdrs, custom_hdrs_h *h, void *arg);
+@@ -214,7 +214,7 @@ int custom_hdrs_apply(const struct list *hdrs, custom_hdrs_h *h, void *arg);
  /** Defines the configuration line handler */
  typedef int (confline_h)(const struct pl *addr, void *arg);
  
@@ -11,7 +11,7 @@ index 9bfab8a..0651d01 100644
  int  conf_modules(void);
  void conf_path_set(const char *path);
  int  conf_path_get(char *path, size_t sz);
-@@ -288,9 +288,13 @@ struct config_net {
+@@ -319,9 +319,13 @@ struct config_net {
  	size_t nsc;             /**< Number of DNS nameservers      */
  };
  
@@ -26,7 +26,7 @@ index 9bfab8a..0651d01 100644
  	struct config_sip sip;
  
 diff --git a/src/conf.c b/src/conf.c
-index bfe59ba..dc8fa62 100644
+index bfe59ba..1b39f1e 100644
 --- a/src/conf.c
 +++ b/src/conf.c
 @@ -11,6 +11,7 @@
@@ -118,7 +118,7 @@ index bfe59ba..dc8fa62 100644
   out:
  	return err;
 diff --git a/src/config.c b/src/config.c
-index 61a3137..51b03ce 100644
+index 8cafa46..fdda5da 100644
 --- a/src/config.c
 +++ b/src/config.c
 @@ -15,10 +15,21 @@
@@ -161,7 +161,7 @@ index 61a3137..51b03ce 100644
  	},
  
  	/** Video */
-@@ -205,6 +216,9 @@ int config_parse_conf(struct config *cfg, const struct conf *conf)
+@@ -204,6 +215,9 @@ int config_parse_conf(struct config *cfg, const struct conf *conf)
  		return EINVAL;
  
  	/* Core */
@@ -171,7 +171,7 @@ index 61a3137..51b03ce 100644
  	if (0 == conf_get(conf, "poll_method", &pollm)) {
  		if (0 == poll_method_type(&method, &pollm)) {
  			err = poll_method_set(method);
-@@ -346,6 +360,8 @@ int config_print(struct re_printf *pf, const struct config *cfg)
+@@ -341,6 +355,8 @@ int config_print(struct re_printf *pf, const struct config *cfg)
  		return 0;
  
  	err = re_hprintf(pf,
@@ -180,7 +180,7 @@ index 61a3137..51b03ce 100644
  			 "\n"
  			 "# SIP\n"
  			 "sip_listen\t\t%s\n"
-@@ -390,6 +406,8 @@ int config_print(struct re_printf *pf, const struct config *cfg)
+@@ -385,6 +401,8 @@ int config_print(struct re_printf *pf, const struct config *cfg)
  			 "\n"
  			 ,
  
@@ -189,7 +189,7 @@ index 61a3137..51b03ce 100644
  			 cfg->sip.local, cfg->sip.cert, cfg->sip.cafile,
  
  			 cfg->call.local_timeout,
-@@ -437,18 +455,22 @@ static const char *default_cafile(void)
+@@ -432,18 +450,22 @@ static const char *default_cafile(void)
  
  static const char *default_audio_device(void)
  {
@@ -219,7 +219,7 @@ index 61a3137..51b03ce 100644
  #endif
  }
  
-@@ -517,6 +539,7 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
+@@ -512,6 +534,7 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
  
  	err |= re_hprintf(pf,
  			  "\n# Core\n"
@@ -227,7 +227,7 @@ index 61a3137..51b03ce 100644
  			  "poll_method\t\t%s\t\t# poll, select"
  #ifdef HAVE_EPOLL
  				", epoll .."
-@@ -526,7 +549,7 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
+@@ -521,7 +544,7 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
  #endif
  				"\n"
  			  "\n# SIP\n"
@@ -236,7 +236,7 @@ index 61a3137..51b03ce 100644
  			  "#sip_certificate\tcert.pem\n"
  			  "#sip_cafile\t\t%s\n"
  			  "\n"
-@@ -545,26 +568,26 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
+@@ -540,26 +563,26 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
  			  "audio_player\t\t%s\n"
  			  "audio_source\t\t%s\n"
  			  "audio_alert\t\t%s\n"
@@ -272,7 +272,7 @@ index 61a3137..51b03ce 100644
  
  	err |= re_hprintf(pf,
  			  "\n# Video\n"
-@@ -588,14 +611,14 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
+@@ -583,14 +606,14 @@ static int core_config_template(struct re_printf *pf, const struct config *cfg)
  			  "#rtp_ports\t\t10000-20000\n"
  			  "#rtp_bandwidth\t\t512-1024 # [kbit/s]\n"
  			  "rtcp_mux\t\tno\n"
@@ -291,7 +291,7 @@ index 61a3137..51b03ce 100644
  			  default_interface_print, NULL);
  
  	return err;
-@@ -712,20 +735,23 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -707,20 +730,23 @@ int config_write_template(const char *file, const struct config *cfg)
  			 modpath_valid ? "" : "#", modpath);
  
  	(void)re_fprintf(f, "\n# UI Modules\n");
@@ -317,7 +317,7 @@ index 61a3137..51b03ce 100644
  	(void)re_fprintf(f, "#module\t\t\t" "g726" MOD_EXT "\n");
  	(void)re_fprintf(f, "module\t\t\t" "g711" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" "gsm" MOD_EXT "\n");
-@@ -742,27 +768,20 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -737,27 +763,20 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "#module\t\t\t" "plc" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" "webrtc_aec" MOD_EXT "\n");
  
@@ -356,7 +356,7 @@ index 61a3137..51b03ce 100644
  
  	(void)re_fprintf(f, "\n# Video codec Modules (in order)\n");
  	(void)re_fprintf(f, "#module\t\t\t" "avcodec" MOD_EXT "\n");
-@@ -779,13 +798,13 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -774,13 +793,13 @@ int config_write_template(const char *file, const struct config *cfg)
  #if defined (DARWIN)
  
  #ifdef QTCAPTURE_RUNLOOP
@@ -373,7 +373,7 @@ index 61a3137..51b03ce 100644
  
  #else
  	(void)re_fprintf(f, "#module\t\t\t" "v4l2" MOD_EXT "\n");
-@@ -819,7 +838,7 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -817,7 +836,7 @@ int config_write_template(const char *file, const struct config *cfg)
  
  	(void)re_fprintf(f, "\n# Media encryption modules\n");
  	(void)re_fprintf(f, "#module\t\t\t" "srtp" MOD_EXT "\n");
@@ -382,7 +382,7 @@ index 61a3137..51b03ce 100644
  	(void)re_fprintf(f, "#module\t\t\t" "zrtp" MOD_EXT "\n");
  	(void)re_fprintf(f, "\n");
  
-@@ -828,33 +847,41 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -826,33 +845,41 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "# Temporary Modules (loaded then unloaded)\n");
  	(void)re_fprintf(f, "\n");
  	(void)re_fprintf(f, "module_tmp\t\t" "uuid" MOD_EXT "\n");
@@ -431,7 +431,7 @@ index 61a3137..51b03ce 100644
  	(void)re_fprintf(f, "\n# UI Modules parameters\n");
  	(void)re_fprintf(f, "cons_listen\t\t0.0.0.0:5555 # cons\n");
  
-@@ -866,9 +893,9 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -864,9 +891,9 @@ int config_write_template(const char *file, const struct config *cfg)
  
  	(void)re_fprintf(f, "\n");
  	(void)re_fprintf(f, "evdev_device\t\t/dev/input/event0\n");
@@ -443,7 +443,7 @@ index 61a3137..51b03ce 100644
  	(void)re_fprintf(f, "#opus_stereo\t\tyes\n");
  	(void)re_fprintf(f, "#opus_sprop_stereo\tyes\n");
  	(void)re_fprintf(f, "#opus_cbr\t\tno\n");
-@@ -876,8 +903,8 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -874,8 +901,8 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "#opus_dtx\t\tno\n");
  	(void)re_fprintf(f, "#opus_mirror\t\tno\n");
  	(void)re_fprintf(f, "#opus_complexity\t10\n");
@@ -454,20 +454,11 @@ index 61a3137..51b03ce 100644
  	(void)re_fprintf(f, "#opus_packet_loss\t10\t# 0-100 percent\n");
  
  	(void)re_fprintf(f, "\n# Opus Multistream codec parameters\n");
-@@ -901,7 +928,7 @@ int config_write_template(const char *file, const struct config *cfg)
- 
- 	(void)re_fprintf(f,
- 			"\n# ICE\n"
--			"ice_debug\t\tno\n"
-+			"ice_debug\t\tyes\n"
- 			"ice_nomination\t\tregular\t# {regular,aggressive}\n");
- 
- 	(void)re_fprintf(f,
 diff --git a/src/main.c b/src/main.c
-index 610f1e8..5222253 100644
+index c9b8d9c..989af66 100644
 --- a/src/main.c
 +++ b/src/main.c
-@@ -78,6 +78,7 @@ static void usage(void)
+@@ -76,6 +76,7 @@ static void usage(void)
  			 "\t-m <module>      Pre-load modules (repeat)\n"
  			 "\t-p <path>        Audio files\n"
  			 "\t-h -?            Help\n"
@@ -475,7 +466,7 @@ index 610f1e8..5222253 100644
  			 "\t-s               Enable SIP trace\n"
  			 "\t-t <sec>         Quit after <sec> seconds\n"
  			 "\t-n <net_if>      Specify network interface\n"
-@@ -102,6 +103,7 @@ int main(int argc, char *argv[])
+@@ -100,6 +101,7 @@ int main(int argc, char *argv[])
  	size_t i;
  	uint32_t tmo = 0;
  	int err;
@@ -483,16 +474,16 @@ index 610f1e8..5222253 100644
  
  	/*
  	 * turn off buffering on stdout
-@@ -123,7 +125,7 @@ int main(int argc, char *argv[])
+@@ -120,7 +122,7 @@ int main(int argc, char *argv[])
+ 	tmr_init(&tmr_quit);
  
- #ifdef HAVE_GETOPT
  	for (;;) {
 -		const int c = getopt(argc, argv, "46de:f:p:hu:n:vst:m:");
 +		const int c = getopt(argc, argv, "46de:f:p:hu:n:vrst:m:");
  		if (0 > c)
  			break;
  
-@@ -196,6 +198,10 @@ int main(int argc, char *argv[])
+@@ -193,12 +195,16 @@ int main(int argc, char *argv[])
  			log_enable_debug(true);
  			break;
  
@@ -503,9 +494,7 @@ index 610f1e8..5222253 100644
  		default:
  			break;
  		}
-@@ -205,7 +211,7 @@ int main(int argc, char *argv[])
- 	(void)argv;
- #endif
+ 	}
  
 -	err = conf_configure();
 +	err = conf_configure(reset_conf);
