@@ -76,7 +76,7 @@ sl_get_libre() {
     ln -s re-$re re
     pushd re
     patch --ignore-whitespace -p1 < ../../dist/patches/bluetooth_conflict.patch
-    patch --ignore-whitespace -p1 < ../../dist/patches/re_ice_bug.patch
+    patch --ignore-whitespace -p1 < ../../dist/patches/re-ice-fixes.patch
     patch --ignore-whitespace -p1 < ../../dist/patches/re_fix_authorization.patch
     patch --ignore-whitespace -p1 < ../../dist/patches/re_recv_handler_win_patch.patch
     if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then

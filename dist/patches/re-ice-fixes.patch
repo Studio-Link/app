@@ -1,0 +1,448 @@
+diff --git a/include/re_ice.h b/include/re_ice.h
+index 6c72856..aafd6db 100644
+--- a/include/re_ice.h
++++ b/include/re_ice.h
+@@ -24,12 +24,6 @@ enum ice_compid {
+ 	ICE_COMPID_RTCP = 2
+ };
+ 
+-/** ICE Nomination */
+-enum ice_nomination {
+-	ICE_NOMINATION_REGULAR = 0,
+-	ICE_NOMINATION_AGGRESSIVE
+-};
+-
+ /** ICE Candidate type */
+ enum ice_cand_type {
+ 	ICE_CAND_TYPE_HOST,   /**< Host candidate             */
+@@ -61,7 +55,6 @@ struct turnc;
+ 
+ /** ICE Configuration */
+ struct ice_conf {
+-	enum ice_nomination nom;  /**< Nomination algorithm        */
+ 	uint32_t rto;             /**< STUN Retransmission TimeOut */
+ 	uint32_t rc;              /**< STUN Retransmission Count   */
+ 	bool debug;               /**< Enable ICE debugging        */
+diff --git a/src/ice/candpair.c b/src/ice/candpair.c
+index d095ca7..76d9fba 100644
+--- a/src/ice/candpair.c
++++ b/src/ice/candpair.c
+@@ -181,6 +181,9 @@ void icem_candpair_make_valid(struct ice_candpair *cp)
+ 	if (!cp)
+ 		return;
+ 
++	re_printf(".... make_valid: [valid=%d] %H\n",
++		  cp->valid, icem_candpair_debug, cp);
++
+ 	cp->err = 0;
+ 	cp->scode = 0;
+ 	cp->valid = true;
+diff --git a/src/ice/chklist.c b/src/ice/chklist.c
+index 24e4f34..db70c1c 100644
+--- a/src/ice/chklist.c
++++ b/src/ice/chklist.c
+@@ -163,12 +163,6 @@ int icem_checklist_form(struct icem *icem)
+ 	if (!icem)
+ 		return EINVAL;
+ 
+-	if (ICE_MODE_LITE == icem->lmode) {
+-		DEBUG_WARNING("%s: Checklist: only valid for full-mode\n",
+-			      icem->name);
+-		return EINVAL;
+-	}
+-
+ 	if (!list_isempty(&icem->checkl))
+ 		return EALREADY;
+ 
+@@ -211,6 +205,7 @@ static bool iscompleted(const struct icem *icem)
+ static void concluding_ice(struct icem_comp *comp)
+ {
+ 	struct ice_candpair *cp;
++	bool use_cand;
+ 
+ 	if (!comp || comp->concluded)
+ 		return;
+@@ -228,12 +223,13 @@ static void concluding_ice(struct icem_comp *comp)
+ 
+ 	icem_comp_set_selected(comp, cp);
+ 
+-	if (comp->icem->conf.nom == ICE_NOMINATION_REGULAR) {
++	/* Regular nomination */
+ 
+-		/* send STUN request with USE_CAND flag via triggered qeueue */
+-		(void)icem_conncheck_send(cp, true, true);
+-		icem_conncheck_schedule_check(comp->icem);
+-	}
++	use_cand = comp->icem->lrole == ICE_ROLE_CONTROLLING;
++
++	/* send STUN request with USE_CAND flag via triggered qeueue */
++	(void)icem_conncheck_send(cp, use_cand, true);
++	icem_conncheck_schedule_check(comp->icem);
+ 
+ 	comp->concluded = true;
+ }
+diff --git a/src/ice/comp.c b/src/ice/comp.c
+index 1e5c69f..b210a44 100644
+--- a/src/ice/comp.c
++++ b/src/ice/comp.c
+@@ -199,9 +199,11 @@ void icem_comp_set_selected(struct icem_comp *comp, struct ice_candpair *cp)
+ 		return;
+ 
+ 	if (cp->state != ICE_CANDPAIR_SUCCEEDED) {
+-		DEBUG_WARNING("{%s.%u} set_selected: invalid state %s\n",
++		DEBUG_WARNING("{%s.%u} set_selected: invalid state '%s'"
++			      " [%H]\n",
+ 			      comp->icem->name, comp->id,
+-			      ice_candpair_state2name(cp->state));
++			      ice_candpair_state2name(cp->state),
++			      icem_candpair_debug, cp);
+ 	}
+ 
+ 	mem_deref(comp->cp_sel);
+diff --git a/src/ice/connchk.c b/src/ice/connchk.c
+index d101d5a..26a1441 100644
+--- a/src/ice/connchk.c
++++ b/src/ice/connchk.c
+@@ -81,6 +81,7 @@ static struct ice_candpair *construct_valid_pair(struct icem *icem,
+ 		 * pair is of type 'host' and the implicit pair is 'srflx'
+ 		 */
+ 
++		re_printf(".... connchk: construct 1: make valid\n");
+ 		icem_candpair_make_valid(cp);
+ 
+ 		cp2 = icem_candpair_find(&icem->validl, lcand, rcand);
+@@ -91,6 +92,7 @@ static struct ice_candpair *construct_valid_pair(struct icem *icem,
+ 		if (err)
+ 			return NULL;
+ 
++		re_printf(".... connchk: construct 2: make valid\n");
+ 		icem_candpair_make_valid(cp2);
+ 		/*icem_candpair_failed(cp, EINTR, 0);*/
+ 
+@@ -98,6 +100,8 @@ static struct ice_candpair *construct_valid_pair(struct icem *icem,
+ 	}
+ 	else {
+ 		/* Add to VALID LIST, the pair that generated the check */
++		re_printf(".... connchk: construct 3: make valid\n");
++
+ 		icem_candpair_make_valid(cp);
+ 
+ 		return cp;
+@@ -129,6 +133,7 @@ static void handle_success(struct icem *icem, struct ice_candpair *cp,
+ 		return;
+ 	}
+ 
++	re_printf(".... connchk: success: make valid\n");
+ 	icem_candpair_make_valid(cp);
+ 	icem_comp_set_selected(cp->comp, cp);
+ 
+@@ -225,13 +230,20 @@ int icem_conncheck_send(struct ice_candpair *cp, bool use_cand, bool trigged)
+ 
+ 	case ICE_ROLE_CONTROLLING:
+ 		ctrl_attr = STUN_ATTR_CONTROLLING;
+-
+-		if (icem->conf.nom == ICE_NOMINATION_AGGRESSIVE)
+-			use_cand = true;
+ 		break;
+ 
+ 	case ICE_ROLE_CONTROLLED:
+ 		ctrl_attr = STUN_ATTR_CONTROLLED;
++
++#if 1
++		if (use_cand) {
++			DEBUG_WARNING("send: use_cand=true, but"
++				      " role is controlled (trigged=%d)"
++				      " [%H]\n", trigged,
++				      icem_candpair_debug, cp);
++			return EINVAL;
++		}
++#endif
+ 		break;
+ 
+ 	default:
+@@ -396,9 +408,6 @@ int icem_conncheck_start(struct icem *icem)
+ 	if (!icem)
+ 		return EINVAL;
+ 
+-	if (ICE_MODE_FULL != icem->lmode)
+-		return EINVAL;
+-
+ 	err = icem_checklist_form(icem);
+ 	if (err)
+ 		return err;
+diff --git a/src/ice/ice.h b/src/ice/ice.h
+index b61d362..9e5864b 100644
+--- a/src/ice/ice.h
++++ b/src/ice/ice.h
+@@ -60,7 +60,6 @@ struct icem {
+ 	struct list validl;          /**< Valid List of cand pairs (sorted)  */
+ 	uint64_t tiebrk;             /**< Tie-break value for roleconflict   */
+ 	bool mismatch;               /**< ICE mismatch flag                  */
+-	enum ice_mode lmode;         /**< Local mode                         */
+ 	enum ice_mode rmode;         /**< Remote mode                        */
+ 	enum ice_role lrole;         /**< Local role                         */
+ 	struct tmr tmr_pace;         /**< Timer for pacing STUN requests     */
+diff --git a/src/ice/icem.c b/src/ice/icem.c
+index 940c858..cee0481 100644
+--- a/src/ice/icem.c
++++ b/src/ice/icem.c
+@@ -27,7 +27,6 @@
+ 
+ 
+ static const struct ice_conf conf_default = {
+-	ICE_NOMINATION_REGULAR,
+ 	ICE_DEFAULT_RTO_RTP,
+ 	ICE_DEFAULT_RC,
+ 	false
+@@ -40,12 +39,10 @@ static void ice_determine_role(struct icem *icem, enum ice_role role)
+ 	if (!icem)
+ 		return;
+ 
+-	if (icem->lmode == icem->rmode)
+-		icem->lrole = role;
+-	else if (icem->lmode == ICE_MODE_FULL)
++	if (icem->rmode == ICE_MODE_LITE)
+ 		icem->lrole = ICE_ROLE_CONTROLLING;
+ 	else
+-		icem->lrole = ICE_ROLE_CONTROLLED;
++		icem->lrole = role;
+ }
+ 
+ 
+@@ -95,6 +92,9 @@ int  icem_alloc(struct icem **icemp,
+ 	if (!icemp || !tiebrk || !lufrag || !lpwd)
+ 		return EINVAL;
+ 
++	if (mode != ICE_MODE_FULL)
++		return EINVAL;
++
+ 	if (str_len(lufrag) < 4 || str_len(lpwd) < 22) {
+ 		DEBUG_WARNING("alloc: lufrag/lpwd is too short\n");
+ 		return EINVAL;
+@@ -124,7 +124,6 @@ int  icem_alloc(struct icem **icemp,
+ 	if (err)
+ 		goto out;
+ 
+-	icem->lmode = mode;
+ 	icem->tiebrk = tiebrk;
+ 
+ 	err |= str_dup(&icem->lufrag, lufrag);
+@@ -134,16 +133,13 @@ int  icem_alloc(struct icem **icemp,
+ 
+ 	ice_determine_role(icem, role);
+ 
+-	if (ICE_MODE_FULL == icem->lmode) {
++	err = stun_alloc(&icem->stun, NULL, NULL, NULL);
++	if (err)
++		goto out;
+ 
+-		err = stun_alloc(&icem->stun, NULL, NULL, NULL);
+-		if (err)
+-			goto out;
+-
+-		/* Update STUN Transport */
+-		stun_conf(icem->stun)->rto = icem->conf.rto;
+-		stun_conf(icem->stun)->rc = icem->conf.rc;
+-	}
++	/* Update STUN Transport */
++	stun_conf(icem->stun)->rto = icem->conf.rto;
++	stun_conf(icem->stun)->rc = icem->conf.rc;
+ 
+  out:
+ 	if (err)
+@@ -458,8 +454,7 @@ int icem_debug(struct re_printf *pf, const struct icem *icem)
+ 
+ 	err |= re_hprintf(pf, "----- ICE Media <%s> -----\n", icem->name);
+ 
+-	err |= re_hprintf(pf, " local_mode=%s, remote_mode=%s",
+-			  ice_mode2name(icem->lmode),
++	err |= re_hprintf(pf, " local_mode=Full, remote_mode=%s",
+ 			  ice_mode2name(icem->rmode));
+ 	err |= re_hprintf(pf, ", local_role=%s\n", ice_role2name(icem->lrole));
+ 	err |= re_hprintf(pf, " local_ufrag=\"%s\" local_pwd=\"%s\"\n",
+@@ -540,32 +535,6 @@ struct list *icem_validl(const struct icem *icem)
+ }
+ 
+ 
+-/**
+- * Set the default local candidates, for ICE-lite mode only
+- *
+- * @param icem ICE Media object
+- *
+- * @return 0 if success, otherwise errorcode
+- */
+-int icem_lite_set_default_candidates(struct icem *icem)
+-{
+-	struct le *le;
+-	int err = 0;
+-
+-	if (icem->lmode != ICE_MODE_LITE)
+-		return EINVAL;
+-
+-	for (le = icem->compl.head; le; le = le->next) {
+-
+-		struct icem_comp *comp = le->data;
+-
+-		err |= icem_comp_set_default_cand(comp);
+-	}
+-
+-	return err;
+-}
+-
+-
+ int icem_comps_set_default_cand(struct icem *icem)
+ {
+ 	struct le *le;
+diff --git a/src/ice/icesdp.c b/src/ice/icesdp.c
+index f05f935..66a6841 100644
+--- a/src/ice/icesdp.c
++++ b/src/ice/icesdp.c
+@@ -265,10 +265,6 @@ int ice_sdp_decode(struct icem *icem, const char *name, const char *value)
+ 		return EINVAL;
+ 
+ 	if (0 == str_casecmp(name, ice_attr_lite)) {
+-		if (ICE_MODE_LITE == icem->lmode) {
+-			DEBUG_WARNING("we are lite, peer is also lite!\n");
+-			return EPROTO;
+-		}
+ 		icem->rmode = ICE_MODE_LITE;
+ 		icem->lrole = ICE_ROLE_CONTROLLING;
+ 	}
+diff --git a/src/ice/stunsrv.c b/src/ice/stunsrv.c
+index 5f73f1d..7e9081c 100644
+--- a/src/ice/stunsrv.c
++++ b/src/ice/stunsrv.c
+@@ -31,6 +31,10 @@ static void triggered_check(struct icem *icem, struct ice_cand *lcand,
+ 	struct ice_candpair *cp = NULL;
+ 	int err;
+ 
++	re_printf(".... stun: send triggered check\n");
++	re_printf("     lcand: %H\n", icem_cand_print, lcand);
++	re_printf("     rcand: %H\n", icem_cand_print, rcand);
++
+ 	if (lcand && rcand)
+ 		cp = icem_candpair_find(&icem->checkl, lcand, rcand);
+ 
+@@ -68,6 +72,9 @@ static void triggered_check(struct icem *icem, struct ice_cand *lcand,
+ 		}
+ 	}
+ 	else {
++		re_printf("trigger: candpair not found on checklist,"
++			  " not sending\n");
++
+ 
+ #if 0
+ 		err = icem_candpair_alloc(&cp, icem, lcand, rcand);
+@@ -100,6 +107,8 @@ static int handle_stun_full(struct icem *icem,
+ 	struct ice_candpair *cp = NULL;
+ 	int err;
+ 
++	re_printf(".... stun: recv from %J (use_cand=%d)\n", src, use_cand);
++
+ 	rcand = icem_cand_find(&icem->rcandl, comp->id, src);
+ 	if (!rcand) {
+ 		err = icem_rcand_add_prflx(&rcand, icem, comp->id, prio, src);
+@@ -145,9 +154,12 @@ static int handle_stun_full(struct icem *icem,
+ 
+ 	/* 7.2.1.5.  Updating the Nominated Flag */
+ 	if (use_cand) {
++
+ 		if (icem->lrole == ICE_ROLE_CONTROLLED &&
+ 		    cp->state == ICE_CANDPAIR_SUCCEEDED) {
+ 
++			re_printf(".... controlled and success -> nom=1\n");
++
+ 			if (!cp->nominated) {
+ 				icecomp_printf(comp, "setting NOMINATED"
+ 					       " flag on candpair [%H]\n",
+@@ -156,64 +168,12 @@ static int handle_stun_full(struct icem *icem,
+ 
+ 			cp->nominated = true;
+ 		}
+-
+-		/* Cancel conncheck. Choose Selected Pair */
+-		icem_candpair_make_valid(cp);
+-
+-		if (icem->conf.nom == ICE_NOMINATION_REGULAR) {
+-			icem_candpair_cancel(cp);
+-			icem_comp_set_selected(comp, cp);
+-		}
+ 	}
+ 
+ 	return 0;
+ }
+ 
+ 
+-/*
+- * 7.2.2.  Additional Procedures for Lite Implementations
+- */
+-static int handle_stun_lite(struct icem *icem,
+-			    struct icem_comp *comp, const struct sa *src,
+-			    bool use_cand)
+-{
+-	struct ice_cand *lcand, *rcand;
+-	struct ice_candpair *cp;
+-	int err;
+-
+-	if (!use_cand)
+-		return 0;
+-
+-	rcand = icem_cand_find(&icem->rcandl, comp->id, src);
+-	if (!rcand) {
+-		DEBUG_WARNING("lite: could not find remote candidate\n");
+-		return 0;
+-	}
+-
+-	/* find the local host candidate with the same component */
+-	lcand = icem_cand_find(&icem->lcandl, comp->id, NULL);
+-	if (!lcand) {
+-		DEBUG_WARNING("lite: could not find local candidate\n");
+-		return 0;
+-	}
+-
+-	/* search validlist for existing candpair's */
+-	if (icem_candpair_find(&icem->validl, lcand, rcand))
+-		return 0;
+-
+-	err = icem_candpair_alloc(&cp, icem, lcand, rcand);
+-	if (err) {
+-		DEBUG_WARNING("lite: failed to created candidate pair\n");
+-		return err;
+-	}
+-
+-	icem_candpair_make_valid(cp);
+-	cp->nominated = true;
+-
+-	return 0;
+-}
+-
+-
+ static int stunsrv_ereply(struct icem_comp *comp, const struct sa *src,
+ 			  size_t presz, const struct stun_msg *req,
+ 			  uint16_t scode, const char *reason)
+@@ -294,17 +254,18 @@ int icem_stund_recv(struct icem_comp *comp, const struct sa *src,
+ 		goto badmsg;
+ 
+ 	attr = stun_msg_attr(req, STUN_ATTR_USE_CAND);
+-	if (attr)
++	if (attr) {
+ 		use_cand = true;
+-
+-	if (icem->lmode == ICE_MODE_FULL) {
+-		err = handle_stun_full(icem, comp, src, prio_prflx,
+-				       use_cand, presz > 0);
+ 	}
+-	else {
+-		err = handle_stun_lite(icem, comp, src, use_cand);
++
++	if (rrole == ICE_ROLE_CONTROLLED && use_cand) {
++		DEBUG_NOTICE("remote peer is Controlled and"
++			      " should not send USE-CANDIDATE\n");
+ 	}
+ 
++	err = handle_stun_full(icem, comp, src, prio_prflx,
++			       use_cand, presz > 0);
++
+ 	if (err)
+ 		goto badmsg;
+ 
