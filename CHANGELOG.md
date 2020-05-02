@@ -5,6 +5,11 @@
 ### Fixed
 
 - **Standalone** slaudio: fix mono output
+- **Plugin** webapp: fix options 
+
+### Changed
+
+- **Standalone** Disable WASAPI exclusiv devices
 
 
 ## [v20.04.2-beta] - 2020-04-27
