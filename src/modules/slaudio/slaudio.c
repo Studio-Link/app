@@ -1328,6 +1328,7 @@ static int slaudio_start(void)
 		goto err_out;
 	}
 
+
 	/* Create input stream */
 
 	slaudio->instream = soundio_instream_create(slaudio->dev_in);
@@ -1363,6 +1364,7 @@ static int slaudio_start(void)
 		goto err_out;
 	}
 
+
 	/* Create output stream */
 
 	slaudio->outstream = soundio_outstream_create(slaudio->dev_out);
@@ -1393,6 +1395,7 @@ static int slaudio_start(void)
 		goto err_out;
 	}
 
+
 	/* Prepare ring buffer */
 
 	int capacity = microphone_latency * 2 * 3 *
@@ -1413,6 +1416,7 @@ static int slaudio_start(void)
 			preferred_sample_rate_out,
 			slaudio->outstream->layout.channel_count,
 			soundio_format_string(slaudio->outstream->format));
+
 
 	/* Start streams */
 
