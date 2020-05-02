@@ -673,7 +673,7 @@ static int slaudio_devices(void)
 		info("slaudio: device: %s\n", device_name);
 
 		int64_t channels = device->current_layout.channel_count;
-		info("slaudio: default channels: %d\n", channels);
+		info("slaudio/in: default channels: %d\n", channels);
 		if (!channels) {
 			const struct SoundIoChannelLayout *layout =
 				&device->layouts[0];
@@ -1406,8 +1406,13 @@ static int slaudio_start(void)
 
 	preferred_sample_rate_in = slaudio->instream->sample_rate;
 	preferred_sample_rate_out = slaudio->outstream->sample_rate;
-	info("slaudio/start: sample_rate in: %d out: %d\n",
-			preferred_sample_rate_in, preferred_sample_rate_out);
+	info("slaudio/start: in: %dhz (%dch %s) out: %dhz (%dch %s)\n",
+			preferred_sample_rate_in,
+			slaudio->instream->layout.channel_count,
+			soundio_format_string(slaudio->instream->format),
+			preferred_sample_rate_out,
+			slaudio->outstream->layout.channel_count,
+			soundio_format_string(slaudio->outstream->format));
 
 	/* Start streams */
 
