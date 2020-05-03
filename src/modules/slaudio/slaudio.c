@@ -48,9 +48,9 @@ struct slaudio_st
 	struct SoundIoOutStream *outstream;
 };
 
-int16_t *empty_buffer;
-
 static struct slaudio_st *slaudio;
+
+int16_t *empty_buffer;
 
 struct auplay_st
 {
@@ -109,6 +109,7 @@ static bool monostream = true;
 static bool mute = false;
 static bool monitor = true;
 static bool fatal_error = false;
+char error_msg[512] = {0};
 
 static int16_t startup_count = 0;
 
@@ -181,7 +182,7 @@ const struct odict *slaudio_get_interfaces(void)
 }
 
 
-static int slaudio_reset(void)
+int slaudio_reset(void)
 {
 	int err;
 
@@ -1234,9 +1235,10 @@ static void slaudio_destruct(void *arg)
 		output = -1;
 		input = -1;
 		first_input_channel = 0;
-		sys_msleep(500);
+		sys_msleep(400);
 		fatal_error = false;
 	}
+	sys_msleep(100);
 }
 
 
@@ -1245,16 +1247,6 @@ static int slaudio_start(void)
 	int err = 0;
 	double microphone_latency = 0.02;
 	enum SoundIoFormat *fmt;
-
-	if (input == -1) {
-		warning("slaudio/start: invalid input device\n");
-		return 1;
-	}
-
-	if (output == -1) {
-		warning("slaudio/start: invalid output device\n");
-		return 1;
-	}
 
 	slaudio = mem_zalloc(sizeof(*slaudio), slaudio_destruct);
 	slaudio->inBuffer = mem_zalloc(sizeof(int16_t) * BUFFER_LEN,
@@ -1281,6 +1273,18 @@ static int slaudio_start(void)
 				src_strerror(err));
 		return err;
 	};
+
+	if (input == -1) {
+		warning("slaudio/start: invalid input device\n");
+		err = 1;
+		goto err_out;
+	}
+
+	if (output == -1) {
+		warning("slaudio/start: invalid output device\n");
+		err = 1;
+		goto err_out;
+	}
 
 	slaudio->soundio = soundio_create();
 
@@ -1438,6 +1442,9 @@ static int slaudio_start(void)
 	return 0;
 
 err_out:
+	re_snprintf(error_msg, sizeof(error_msg), "Error starting Audio, please try reload or select another device...");
+	odict_entry_add(interfaces, "error_msg", ODICT_STRING, error_msg);
+	webapp_ws_rtaudio_sync();
 	fatal_error = true;
 	mem_deref(slaudio);
 	warning("slaudio/start: error %d\n", err);

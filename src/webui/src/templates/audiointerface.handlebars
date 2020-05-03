@@ -40,20 +40,7 @@
 					{{/each}}
 				</select>
 			</div>
-			<!--
-			<div class="form-group"> 
-				<label class="col-sm-4 control-label" for="input">Monitor</label> 
-				<div class="col-sm-6"> 
-					<select id="interface_monitor" class="form-control">
-{{#each this.monitor}}
-						<option{{#if selected}} selected{{/if}} value="{{id}}">{{display}}</option>
-{{/each}}
-					</select>
-				</div> 
-				<div class="help-block with-errors"></div>
-			</div>
-			-->
-
+			<div style="color: #ff3737;">{{this.error_msg}}</div>
 		</form>
 	</div>
 </div>

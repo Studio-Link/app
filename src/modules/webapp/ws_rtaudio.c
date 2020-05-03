@@ -9,12 +9,6 @@
 #include "webapp.h"
 
 
-void slaudio_set_driver(int value);
-void slaudio_set_input(int value);
-void slaudio_set_first_input_channel(int value);
-void slaudio_set_output(int value);
-
-
 void webapp_ws_rtaudio_sync(void)
 {
 #ifndef SLPLUGIN
@@ -62,6 +56,11 @@ void webapp_ws_rtaudio(const struct websock_hdr *hdr,
 	if (!str_cmp(e->u.str, "output")) {
 		e = odict_lookup(cmd, "id");
 		slaudio_set_output(e->u.integer);
+		goto out;
+	}
+
+	if (!str_cmp(e->u.str, "reload")) {
+		slaudio_reset();
 		goto out;
 	}
 
