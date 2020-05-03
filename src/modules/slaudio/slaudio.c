@@ -574,10 +574,68 @@ static int slaudio_drivers(void)
 }
 
 
+static void slaudio_destruct(void *arg)
+{
+	if (slaudio) {
+		if (!fatal_error) {
+			soundio_instream_destroy(slaudio->instream);
+			soundio_outstream_destroy(slaudio->outstream);
+		}
+		soundio_device_unref(slaudio->dev_in);
+		soundio_device_unref(slaudio->dev_out);
+		soundio_destroy(slaudio->soundio);
+		mem_deref(slaudio->inBuffer);
+		mem_deref(slaudio->inBufferFloat);
+		mem_deref(slaudio->inBufferOutFloat);
+		mem_deref(slaudio->outBufferFloat);
+		slaudio = NULL;
+	}
+	if (fatal_error) {
+		output = -1;
+		input = -1;
+		first_input_channel = 0;
+		sys_msleep(400);
+		fatal_error = false;
+	}
+}
+
+
+static int slaudio_construct(void) {
+	int err = 0;
+
+	slaudio = mem_zalloc(sizeof(*slaudio), slaudio_destruct);
+	slaudio->inBuffer = mem_zalloc(sizeof(int16_t) * BUFFER_LEN,
+					NULL);
+	slaudio->inBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
+					NULL);
+	slaudio->inBufferOutFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
+					NULL);
+	slaudio->outBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
+					NULL);
+
+	/** Initialize the sample rate converter for input */
+	if ((src_state_in = src_new(SRC_SINC_FASTEST, 2, &err)) == NULL)
+	{
+		warning("slaudio/start: Samplerate::src_new failed : %s.\n",
+				src_strerror(err));
+		return err;
+	};
+
+	/** Initialize the sample rate converter for output */
+	if ((src_state_out = src_new(SRC_SINC_FASTEST, 2, &err)) == NULL)
+	{
+		warning("slaudio/start: Samplerate::src_new failed : %s.\n",
+				src_strerror(err));
+		return err;
+	};
+
+	return err;
+}
+
+
 static int slaudio_devices(void)
 {
 	int err = 0;
-	struct SoundIo *soundio;
 	int output_count, input_count, default_output, default_input;
 	bool default_input_err;
 	bool default_output_err;
@@ -596,29 +654,35 @@ static int slaudio_devices(void)
 	if (err)
 		return ENOMEM;
 
-	if (!(soundio = soundio_create()))
+	err = slaudio_construct();
+	if (err)
+		return err; 
+
+	if (!(slaudio->soundio = soundio_create()))
 		return ENOMEM;
 
-	err = soundio_connect_backend(soundio, backend);
+	slaudio->soundio->app_name = "StudioLink";
+
+	err = soundio_connect_backend(slaudio->soundio, backend);
 	if (err) {
 		warning("slaudio/soundio_connect_backend err: %s\n",
 				soundio_strerror(err));
 		goto out;
 	}
 
-	soundio_flush_events(soundio);
+	soundio_flush_events(slaudio->soundio);
 
-	output_count = soundio_output_device_count(soundio);
-	input_count = soundio_input_device_count(soundio);
+	output_count = soundio_output_device_count(slaudio->soundio);
+	input_count = soundio_input_device_count(slaudio->soundio);
 
-	default_output = soundio_default_output_device_index(soundio);
+	default_output = soundio_default_output_device_index(slaudio->soundio);
 	default_output_err = false;
-	default_input = soundio_default_input_device_index(soundio);
+	default_input = soundio_default_input_device_index(slaudio->soundio);
 	default_input_err = false;
 
 	for (int i = 0; i < input_count; i += 1) {
 
-		device = soundio_get_input_device(soundio, i);
+		device = soundio_get_input_device(slaudio->soundio, i);
 		(void)re_snprintf(idx, sizeof(idx), "%d", i);
 
 		if (backend == SoundIoBackendAlsa && !device->is_raw) {
@@ -716,7 +780,7 @@ static int slaudio_devices(void)
 
 	for (int i = 0; i < output_count; i += 1) {
 
-		device = soundio_get_output_device(soundio, i);
+		device = soundio_get_output_device(slaudio->soundio, i);
 		(void)re_snprintf(idx, sizeof(idx), "%d", i);
 
 		if (backend == SoundIoBackendAlsa && !device->is_raw) {
@@ -800,8 +864,6 @@ static int slaudio_devices(void)
 out:
 	mem_deref(array_in);
 	mem_deref(array_out);
-
-	soundio_destroy(soundio);
 
 	return err;
 }
@@ -1215,64 +1277,12 @@ static void write_callback(struct SoundIoOutStream *outstream,
 }
 
 
-static void slaudio_destruct(void *arg)
-{
-	if (slaudio) {
-		if (!fatal_error) {
-			soundio_instream_destroy(slaudio->instream);
-			soundio_outstream_destroy(slaudio->outstream);
-		}
-		soundio_device_unref(slaudio->dev_in);
-		soundio_device_unref(slaudio->dev_out);
-		soundio_destroy(slaudio->soundio);
-		mem_deref(slaudio->inBuffer);
-		mem_deref(slaudio->inBufferFloat);
-		mem_deref(slaudio->inBufferOutFloat);
-		mem_deref(slaudio->outBufferFloat);
-		slaudio = NULL;
-	}
-	if (fatal_error) {
-		output = -1;
-		input = -1;
-		first_input_channel = 0;
-		sys_msleep(400);
-		fatal_error = false;
-	}
-	sys_msleep(100);
-}
-
-
 static int slaudio_start(void)
 {
 	int err = 0;
 	double microphone_latency = 0.02;
 	enum SoundIoFormat *fmt;
 
-	slaudio = mem_zalloc(sizeof(*slaudio), slaudio_destruct);
-	slaudio->inBuffer = mem_zalloc(sizeof(int16_t) * BUFFER_LEN,
-					NULL);
-	slaudio->inBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
-					NULL);
-	slaudio->inBufferOutFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
-					NULL);
-	slaudio->outBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
-					NULL);
-
-	/** Initialize the sample rate converter for input */
-	if ((src_state_in = src_new(SRC_SINC_FASTEST, 2, &err)) == NULL)
-	{
-		warning("slaudio/start: Samplerate::src_new failed : %s.\n",
-				src_strerror(err));
-		return err;
-	};
-
-	/** Initialize the sample rate converter for output */
-	if ((src_state_out = src_new(SRC_SINC_FASTEST, 2, &err)) == NULL)
-	{
-		warning("slaudio/start: Samplerate::src_new failed : %s.\n",
-				src_strerror(err));
-		return err;
-	};
 
 	if (input == -1) {
 		warning("slaudio/start: invalid input device\n");
@@ -1285,22 +1295,6 @@ static int slaudio_start(void)
 		err = 1;
 		goto err_out;
 	}
-
-	slaudio->soundio = soundio_create();
-
-	if (!slaudio->soundio)
-		return ENOMEM;
-
-	slaudio->soundio->app_name = "StudioLink";
-
-	err = soundio_connect_backend(slaudio->soundio, backend);
-	if (err) {
-		warning("slaudio/start: soundio_connect err: %s\n",
-				soundio_strerror(err));
-		goto err_out;
-	}
-
-	soundio_flush_events(slaudio->soundio);
 
 	slaudio->dev_in = soundio_get_input_device(slaudio->soundio, input);
 	if (!slaudio->dev_in) {
