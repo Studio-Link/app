@@ -1442,7 +1442,9 @@ static int slaudio_start(void)
 	return 0;
 
 err_out:
-	re_snprintf(error_msg, sizeof(error_msg), "Error starting Audio, please try reload or select another device...");
+	re_snprintf(error_msg, sizeof(error_msg),
+		"Error starting Audio, please try reload "
+		"or select another device...");
 	odict_entry_add(interfaces, "error_msg", ODICT_STRING, error_msg);
 	webapp_ws_rtaudio_sync();
 	fatal_error = true;
