@@ -656,7 +656,7 @@ static int slaudio_devices(void)
 
 	err = slaudio_construct();
 	if (err)
-		return err;
+		return err; 
 
 	if (!(slaudio->soundio = soundio_create()))
 		return ENOMEM;
