@@ -1,5 +1,16 @@
 # Changelog
 
+## [v20.04.4-beta] - 2020-05-03
+
+### Added
+
+- **Standalone** slaudio/webapp/ui: audio interface reload button and error message
+
+### Fixed
+
+- **Standalone** slaudio: macOS device switch error
+
+
 ## [v20.04.3-beta] - 2020-05-02
 
 ### Fixed
@@ -193,6 +204,7 @@ Debug only Release
 
 
 
+[v20.04.4-beta]: https://github.com/Studio-Link/app/compare/v20.04.3-beta...v20.04.4-beta
 [v20.04.3-beta]: https://github.com/Studio-Link/app/compare/v20.04.2-beta...v20.04.3-beta
 [v20.04.2-beta]: https://github.com/Studio-Link/app/compare/v20.04.1-beta1...v20.04.2-beta
 [v20.03.8-stable]: https://github.com/Studio-Link/app/compare/v20.03.7-stable...v20.03.8-stable
