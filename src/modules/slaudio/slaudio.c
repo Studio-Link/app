@@ -584,6 +584,7 @@ static void slaudio_destruct(void *arg)
 		soundio_device_unref(slaudio->dev_in);
 		soundio_device_unref(slaudio->dev_out);
 		soundio_destroy(slaudio->soundio);
+		sys_msleep(25);
 		mem_deref(slaudio->inBuffer);
 		mem_deref(slaudio->inBufferFloat);
 		mem_deref(slaudio->inBufferOutFloat);
@@ -979,7 +980,7 @@ static void read_callback(struct SoundIoInStream *instream,
 	for (le = sessionl.head; le; le = le->next)
 	{
 		sess = le->data;
-		if (sess && sess->local)
+		if (sess->local)
 		{
 			/* write local audio to flac record buffer */
 			(void)aubuf_write_samp(sess->aubuf,
@@ -1086,7 +1087,7 @@ static void read_callback(struct SoundIoInStream *instream,
 	for (le = sessionl.head; le; le = le->next)
 	{
 		sess = le->data;
-		if (sess && sess->run_src && !sess->local)
+		if (sess->run_src && sess->run_play && !sess->local)
 		{
 			st_src = sess->st_src;
 
@@ -1450,14 +1451,14 @@ err_out:
 
 static int slaudio_stop(void)
 {
+	if (slaudio)
+		mem_deref(slaudio);
+
 	if (src_state_in)
 		src_state_in = src_delete(src_state_in);
 
 	if (src_state_out)
 		src_state_out = src_delete(src_state_out);
-
-	if (slaudio)
-		mem_deref(slaudio);
 
 	if (ring_buffer) {
 		soundio_ring_buffer_destroy(ring_buffer);
@@ -1515,6 +1516,8 @@ static int slaudio_init(void)
 		sess->track = cnt + 1;
 		sess->call = NULL;
 		sess->jb_max = 0;
+		sess->run_src = false;
+		sess->run_play = false;
 
 		list_append(&sessionl, &sess->le, sess);
 	}
