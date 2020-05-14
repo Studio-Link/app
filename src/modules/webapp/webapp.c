@@ -291,7 +291,7 @@ static int http_port(void)
 	if (!err) {
 		conf_get_str(conf_obj, "sl_listen", bind, sizeof(bind));
 		conf_get_u32(conf_obj, "sl_port", &port);
-		conf_get_u32(conf_obj, "sl_auto_answer", &auto_answer);
+		conf_get_bool(conf_obj, "sl_auto_answer", &auto_answer);
 	}
 
 	err = sa_set_str(&srv, bind, port);
