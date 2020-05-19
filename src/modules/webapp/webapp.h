@@ -39,8 +39,8 @@ struct webapp {
 	enum ws_type ws_type;
 };
 
-enum webapp_call_state webapp_call_status;
-struct odict *webapp_calls;
+extern enum webapp_call_state webapp_call_status;
+extern struct odict *webapp_calls;
 
 
 /*
