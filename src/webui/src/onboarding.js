@@ -1,6 +1,6 @@
 import Shepherd from 'shepherd.js';
 
-const tour = new Shepherd.Tour({
+window.tour = new Shepherd.Tour({
 	defaultStepOptions: {
 		classes: 'shadow-md bg-purple-dark',
 		scrollTo: true,
@@ -61,11 +61,4 @@ tour.on('cancel', function() {
 
 tour.on('complete', function() {
 	localStorage.setItem('slonboarding', 'completed');
-});
-
-$(function () {
-	var onboarding = localStorage.getItem('slonboarding');
-	if (onboarding != 'completed' ) {
-		tour.start();
-	}
 });

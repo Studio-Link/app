@@ -75,10 +75,14 @@ $(function() {
     window.swvariant = swvariant;
 
     if (swvariant == "standalone") {
+      $("#btn-interface").removeClass("d-none");
       $("#btn-record").removeClass("d-none");
       $("#btn-onair").removeClass("d-none");
       $("#btn-mute").removeClass("d-none");
       ws_rtaudio_init();
+      if (localStorage.getItem("slonboarding") != "completed") {
+        window.tour.start();
+      }
     }
     if (swvariant == "plugin") {
       $("#btn-interface").addClass("d-none");
