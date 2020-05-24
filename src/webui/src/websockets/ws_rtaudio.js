@@ -62,7 +62,6 @@ window.ws_rtaudio_init = function() {
 
   ws_rtaudio.onmessage = function(message) {
     audio_config = JSON.parse(message.data);
-    console.log(audio_config);
     $(".bootbox-body").html(audiointerface(audio_config));
     RefreshEventListener();
   };
