@@ -1,5 +1,20 @@
 # Changelog
 
+## [v20.05.0-stable] - 2020-05-31
+
+### Changed
+
+- **Misc** improve jitter buffer (less latency)
+
+### Fixed
+
+- **Standalone** slaudio: multi streams macOS
+- **Standalone** slaudio: possible crash
+- **Misc** webapp: config bool read
+- **Misc** webapp: gcc 10 linking
+- **Plug-in** webui: onboarding and interface 
+
+
 ## [v20.04.4-beta] - 2020-05-03
 
 ### Added
@@ -204,6 +219,7 @@ Debug only Release
 
 
 
+[v20.05.0-stable]: https://github.com/Studio-Link/app/compare/v20.04.4-beta...v20.05.0-stable
 [v20.04.4-beta]: https://github.com/Studio-Link/app/compare/v20.04.3-beta...v20.04.4-beta
 [v20.04.3-beta]: https://github.com/Studio-Link/app/compare/v20.04.2-beta...v20.04.3-beta
 [v20.04.2-beta]: https://github.com/Studio-Link/app/compare/v20.04.1-beta1...v20.04.2-beta
