@@ -11,7 +11,7 @@
 		<title>Studio Link</title>
 	</head>
 	<body>
-		<div class="container">
+		<div id="app" class="container">
 			<div class="row mt-2">
 				<div class="col-12">
 					<h2 class="float-left">
@@ -29,7 +29,7 @@
 					<div class="card mb-3">
 						<div class="card-header">
 							<div class="float-left mt-1"><b>Audio</b></div>
-							<button class="btn btn-secondary btn-sm float-left ml-2 d-none" style="margin-left: 0px" id="btn-interface">
+							<button id="btn-interface" class="btn btn-secondary btn-sm float-left ml-2 d-none">
 								<i class="fa fa-cog" aria-hidden="true"></i> Interface
 							</button>
 							<button type="button" class="btn btn-secondary btn-sm float-right d-none" style="margin-left: 6px" id="btn-record">
@@ -117,6 +117,7 @@
 
 				</div><!-- /col-4 -->
 			</div><!-- /row -->
+		<onboarding></onboarding>
 		</div><!-- /container -->
 		<script src="/app.js"></script>
 	</body>

@@ -80,8 +80,9 @@ $(function() {
       $("#btn-onair").removeClass("d-none");
       $("#btn-mute").removeClass("d-none");
       ws_rtaudio_init();
+
       if (localStorage.getItem("slonboarding") != "completed") {
-        window.tour.start();
+        window.Vue.prototype.$tours["slTour"].start();
       }
     }
     if (swvariant == "plugin") {

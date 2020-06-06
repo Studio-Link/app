@@ -22,8 +22,7 @@ mix.js([
 	'src/websockets/ws_meter.js',
 	'src/websockets/ws_contacts.js',
 	'src/websockets/ws_options.js',
-	'src/websockets/ws_rtaudio.js',
-	'src/onboarding.js'
+	'src/websockets/ws_rtaudio.js'
 ], 'dist/app.js');
 
 mix.sass('src/app.scss', 'dist/')
