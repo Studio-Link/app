@@ -82,14 +82,14 @@ class ccheck:
             'java': ['*.java'],
             }
         self.maxsize = {
-            'c':    (79, 3000),
-            'h':    (79, 1000),
-            'cpp':  (79, 3000),
-            'mk':   (79, 1000),
-            'm4':   (79, 3000),
-            'py':   (79, 3000),
-            'm':    (79, 3000),
-            's':    (79, 3000),
+            'c':    (89, 3000),
+            'h':    (89, 1000),
+            'cpp':  (89, 3000),
+            'mk':   (89, 1000),
+            'm4':   (89, 3000),
+            'py':   (89, 3000),
+            'm':    (89, 3000),
+            's':    (89, 3000),
             'java': (179, 3000),
             }
 
@@ -218,7 +218,7 @@ class ccheck:
     def check_xy_max(self, line, line_len, max_x):
 
         # expand TAB to 8 spaces
-        l = len(line.expandtabs())
+        l = len(line.expandtabs(4))
 
         if l > max_x:
             self.error("line is too wide (" + str(l) + " - max " \

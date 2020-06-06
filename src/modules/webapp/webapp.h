@@ -1,5 +1,5 @@
 #define SLVERSION "SLVERSION_T"
-#ifndef SLPLUGIN 
+#ifndef SLPLUGIN
 #include <pthread.h>
 #include "FLAC/stream_encoder.h"
 #endif
@@ -54,19 +54,6 @@ int webapp_session_stop_stream(void);
 struct call* webapp_session_get_call(char * const sess_id);
 bool webapp_session_available(void);
 
-
-/*
- * vumeter.c
- */
-int webapp_vu_encode_update(struct aufilt_enc_st **stp, void **ctx,
-			 const struct aufilt *af, struct aufilt_prm *prm,
-			 const struct audio *au);
-int webapp_vu_decode_update(struct aufilt_dec_st **stp, void **ctx,
-			 const struct aufilt *af, struct aufilt_prm *prm,
-			 const struct audio *au);
-int webapp_vu_encode(struct aufilt_enc_st *st, void *sampv, size_t *sampc);
-int webapp_vu_decode(struct aufilt_dec_st *st, void *sampv, size_t *sampc);
-
 /*
  * account.c
  */
@@ -95,15 +82,6 @@ void webapp_options_close(void);
 const struct odict* webapp_options_get(void);
 void webapp_options_set(char *key, char *value);
 char* webapp_options_getv(char *key, char *def);
-
-/*
- * chat.c
- */
-int webapp_chat_init(void);
-void webapp_chat_close(void);
-int webapp_chat_add(const char *peer, const char *message, bool self);
-int webapp_chat_send(char *message, char *exclude_peer);
-const struct odict* webapp_messages_get(void);
 
 /*
  * ws_*.c
@@ -168,7 +146,7 @@ void slaudio_set_input(int value);
 void slaudio_set_first_input_channel(int value);
 void slaudio_set_output(int value);
 
-#ifndef SLPLUGIN 
+#ifndef SLPLUGIN
 /*
  * session standalone slaudio.h
  */

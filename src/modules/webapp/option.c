@@ -79,13 +79,16 @@ void webapp_options_set(char *key, char *value)
 		else {
 			struct config *cfg = conf_config();
 	#if defined (DARWIN)
-			re_snprintf(command, sizeof(command), "open https://stream.studio-link.de/stream/login/%s?version=2",
+			re_snprintf(command, sizeof(command),
+					"open https://stream.studio-link.de/stream/login/%s?version=2",
 					cfg->sip.uuid);
 	#elif defined (WIN32)
-			re_snprintf(command, sizeof(command), "start https://stream.studio-link.de/stream/login/%s?version=2",
+			re_snprintf(command, sizeof(command),
+					"start https://stream.studio-link.de/stream/login/%s?version=2",
 					cfg->sip.uuid);
 	#else
-			re_snprintf(command, sizeof(command), "xdg-open https://stream.studio-link.de/stream/login/%s?version=2",
+			re_snprintf(command, sizeof(command),
+					"xdg-open https://stream.studio-link.de/stream/login/%s?version=2",
 					cfg->sip.uuid);
 	#endif
 			err = system(command);
@@ -99,24 +102,6 @@ void webapp_options_set(char *key, char *value)
 		}
 	}
 #endif
-	if (!str_cmp(key, "raisehand")) {
-		if (!str_cmp(value, "true")) {
-			webapp_chat_send("raisehandon", NULL);
-			odict_entry_del(options, "afk");
-			odict_entry_add(options, "afk", ODICT_STRING, "false");
-		} else {
-			webapp_chat_send("raisehandoff", NULL);
-		}
-	}
-	if (!str_cmp(key, "afk")) {
-		if (!str_cmp(value, "true")) {
-			webapp_chat_send("afkon", NULL);
-			odict_entry_del(options, "raisehand");
-			odict_entry_add(options, "raisehand", ODICT_STRING, "false");
-		} else {
-			webapp_chat_send("afkoff", NULL);
-		}
-	}
 
 	odict_entry_del(options, key);
 	odict_entry_add(options, key, ODICT_STRING, value);

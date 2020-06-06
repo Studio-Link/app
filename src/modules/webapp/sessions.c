@@ -169,7 +169,7 @@ int8_t webapp_call_update(struct call *call, char *state)
 	char id[64] = {0};
 	int err = 0;
 	int8_t track = 0;
-	bool new = true; 
+	bool new = true;
 
 
 	err = odict_alloc(&o, DICT_BSIZE);
@@ -258,16 +258,16 @@ static void jitter_buffer(void *arg)
 
 		if (sess->local || sess->stream)
 			continue;
-	
+
 		re_snprintf(bufsz, sizeof(bufsz), "%d ", sess->bufsz);
 		re_snprintf(talk, sizeof(talk), "%d ", sess->talk);
 		strcat((char*)buffers, bufsz);
 		strcat((char*)talks, talk);
 	}
-	n = strlen(buffers); 
+	n = strlen(buffers);
 	buffers[n-1] = '\0'; /* remove trailing space */
 
-	n = strlen(talks); 
+	n = strlen(talks);
 	talks[n-1] = '\0'; /* remove trailing space */
 
 	re_snprintf(json, sizeof(json),

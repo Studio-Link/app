@@ -70,11 +70,6 @@ static void http_req_handler(struct http_conn *conn,
 		ws_send_json(WS_CONTACT, webapp_contacts_get());
 		return;
 	}
-	if (0 == pl_strcasecmp(&msg->path, "/ws_chat")) {
-		webapp_ws_handler(conn, WS_CHAT, msg, webapp_ws_chat);
-		ws_send_json(WS_CHAT, webapp_messages_get());
-		return;
-	}
 	if (0 == pl_strcasecmp(&msg->path, "/ws_rtaudio")) {
 		webapp_ws_handler(conn, WS_RTAUDIO, msg, webapp_ws_rtaudio);
 #ifndef SLPLUGIN
@@ -200,7 +195,7 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 		case UA_EVENT_CALL_INCOMING:
 			ua_event_current_set(ua);
 
-			if(!webapp_session_available()) {
+			if (!webapp_session_available()) {
 				ua_hangup(uag_current(), call, 486, "Max Calls");
 				return;
 			}
@@ -209,13 +204,14 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			if (!key)
 				return;
 
-			if(!auto_answer) {
+			if (!auto_answer) {
 				re_snprintf(webapp_call_json, sizeof(webapp_call_json),
 						"{ \"callback\": \"INCOMING\",\
 						\"peeruri\": \"%s\",\
 						\"key\": \"%d\" }",
 						call_peeruri(call), key);
-			} else {
+			}
+			else {
 				debug("auto answering call\n");
 				ua_answer(uag_current(), call);
 			}
@@ -316,7 +312,9 @@ static int http_port(void)
 #endif
 	info("http listening on ip: %s port: %s\n", bind, port_string);
 
-	re_snprintf(file_contents, sizeof(file_contents), "sl_listen\t%s\nsl_port\t%s\nsl_auto_answer\t%d\n", bind, port_string, auto_answer);
+	re_snprintf(file_contents, sizeof(file_contents),
+			"sl_listen\t%s\nsl_port\t%s\nsl_auto_answer\t%d\n",
+			bind, port_string, auto_answer);
 	webapp_write_file(file_contents, filename);
 
 out:
@@ -361,7 +359,6 @@ static int module_init(void)
 	webapp_accounts_init();
 	webapp_contacts_init();
 	webapp_options_init();
-	//webapp_chat_init();
 	webapp_ws_meter_init();
 	webapp_sessions_init();
 
@@ -391,7 +388,6 @@ static int module_close(void)
 	webapp_accounts_close();
 	webapp_contacts_close();
 	webapp_options_close();
-	//webapp_chat_close();
 #ifndef SLPLUGIN
 	webapp_ws_rtaudio_close();
 #endif

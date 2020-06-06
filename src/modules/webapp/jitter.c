@@ -18,34 +18,34 @@ struct timestamp_recv {
 };
 
 struct aurx {
-        struct auplay_st *auplay;     /**< Audio Player                    */
-        struct auplay_prm auplay_prm; /**< Audio Player parameters         */
-        const struct aucodec *ac;     /**< Current audio decoder           */
-        struct audec_state *dec;      /**< Audio decoder state (optional)  */
-        struct aubuf *aubuf;          /**< Incoming audio buffer           */
-        size_t aubuf_maxsz;           /**< Maximum aubuf size in [bytes]   */
-        volatile bool aubuf_started;  /**< Aubuf was started flag          */
-        struct auresamp resamp;       /**< Optional resampler for DSP      */
-        struct list filtl;            /**< Audio filters in decoding order */
-        char *module;                 /**< Audio player module name        */
-        char *device;                 /**< Audio player device name        */
-        void *sampv;                  /**< Sample buffer                   */
-        int16_t *sampv_rs;            /**< Sample buffer for resampler     */
-        uint32_t ptime;               /**< Packet time for receiving       */
-        int pt;                       /**< Payload type for incoming RTP   */
-        double level_last;            /**< Last audio level value [dBov]   */
-        bool level_set;               /**< True if level_last is set       */
-        enum aufmt play_fmt;          /**< Sample format for audio playback*/
-        enum aufmt dec_fmt;           /**< Sample format for decoder       */
-        bool need_conv;               /**< Sample format conversion needed */
-        struct timestamp_recv ts_recv;/**< Receive timestamp state         */
-        size_t last_sampc;
+	struct auplay_st *auplay;     /**< Audio Player                    */
+	struct auplay_prm auplay_prm; /**< Audio Player parameters         */
+	const struct aucodec *ac;     /**< Current audio decoder           */
+	struct audec_state *dec;      /**< Audio decoder state (optional)  */
+	struct aubuf *aubuf;          /**< Incoming audio buffer           */
+	size_t aubuf_maxsz;           /**< Maximum aubuf size in [bytes]   */
+	volatile bool aubuf_started;  /**< Aubuf was started flag          */
+	struct auresamp resamp;       /**< Optional resampler for DSP      */
+	struct list filtl;            /**< Audio filters in decoding order */
+	char *module;                 /**< Audio player module name        */
+	char *device;                 /**< Audio player device name        */
+	void *sampv;                  /**< Sample buffer                   */
+	int16_t *sampv_rs;            /**< Sample buffer for resampler     */
+	uint32_t ptime;               /**< Packet time for receiving       */
+	int pt;                       /**< Payload type for incoming RTP   */
+	double level_last;            /**< Last audio level value [dBov]   */
+	bool level_set;               /**< True if level_last is set       */
+	enum aufmt play_fmt;          /**< Sample format for audio playback*/
+	enum aufmt dec_fmt;           /**< Sample format for decoder       */
+	bool need_conv;               /**< Sample format conversion needed */
+	struct timestamp_recv ts_recv;/**< Receive timestamp state         */
+	size_t last_sampc;
 
-        struct {
-                uint64_t aubuf_overrun;
-                uint64_t aubuf_underrun;
-                uint64_t n_discard;
-        } stats;
+	struct {
+		uint64_t aubuf_overrun;
+		uint64_t aubuf_underrun;
+		uint64_t n_discard;
+	} stats;
 };
 
 
@@ -83,10 +83,12 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 	if (sess->jb_max < 400) {
 		if (sess->silence_count < silence_threshold) {
 			sess->silence_count++;
-		} else {
+		}
+		else {
 			sess->talk = false;
 		}
-	} else {
+	}
+	else {
 		sess->talk = true;
 		sess->silence_count = 0;
 	}
