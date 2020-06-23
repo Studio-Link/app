@@ -64,7 +64,7 @@ static int openfile(struct session *sess)
 	char win32_path[MAX_PATH];
 
 	if (S_OK != SHGetFolderPath(NULL,
-				CSIDL_DESKTOPDIRECTORY,
+				CSIDL_DESKTOP,
 				NULL,
 				0,
 				win32_path)) {
