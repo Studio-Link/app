@@ -1,13 +1,13 @@
 # Studio Link
 
-<p align="center">
+<div align="center">
 	<a href="https://studio-link.de" target="_blank">
 		<img src="https://studio-link.de/assets/webbanner/sl_button-234x60@3x.png" width="500">
 	</a>
-</p>
-<p align="center">
+</div>
+<div align="center">
 <a href="https://travis-ci.org/Studio-Link/app"><img src="https://travis-ci.org/Studio-Link/app.svg?branch=v19.xx.x" alt="Build Status"></a>
-</p>
+</div>
 
 ## About Studio Link
 
