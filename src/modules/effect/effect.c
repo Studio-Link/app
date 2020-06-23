@@ -664,7 +664,7 @@ static int effect_init(void)
 		sess->ch = -1;
 		sess->call = NULL;
 
-		sess->run_auto_mix = true;
+		sess->run_auto_mix = false;
 		sess->stream = false;
 		sess->local = false;
 		sess->track = cnt + 1;
