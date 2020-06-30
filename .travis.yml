@@ -8,7 +8,7 @@ language: c
 
 os: linux
 dist: xenial
-osx_image: xcode10.1
+osx_image: xcode12
 
 before_install:
   - sudo ./dist/before_build.sh
