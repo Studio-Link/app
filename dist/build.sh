@@ -158,7 +158,8 @@ if [ "$TRAVIS_OS_NAME" == "osx" ]; then
         cd overlay-audio-unit
         sed -i '' s/SLVERSION_N/$version_n/ StudioLink/StudioLink.jucer
         #wget https://github.com/julianstorer/JUCE/archive/$juce.tar.gz
-        wget https://d30pueezughrda.cloudfront.net/juce/juce-$juce-osx.zip
+        wget https://github.com/juce-framework/JUCE/releases/download/$juce/juce-$juce-osx.zip
+        #wget https://d30pueezughrda.cloudfront.net/juce/juce-$juce-osx.zip
         unzip juce-$juce-osx.zip
         ./build.sh
         cd ..
