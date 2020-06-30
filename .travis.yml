@@ -26,6 +26,7 @@ jobs:
     - os: osx
       stage: build
       env: BUILD_OS="osx"
+      osx_image: xcode12
     - os: linux
       stage: build
       env: BUILD_OS="windows32"
