@@ -1,5 +1,15 @@
 # Changelog
 
+## [v20.05.2-stable] - 2020-06-01
+
+### Fixed
+
+- **Misc** webui: ie11 javascript error
+
+
+## [v20.05.1-stable] [YANKED]
+
+
 ## [v20.05.0-stable] - 2020-05-31
 
 ### Changed
