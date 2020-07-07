@@ -93,7 +93,7 @@ static int openfile(struct session *sess)
 	re_snprintf(command, sizeof(command), "open %s",
 			filename);
 #elif defined (WIN32)
-	re_snprintf(command, sizeof(command), "start %s",
+	re_snprintf(command, sizeof(command), "explorer.exe %s",
 			filename);
 #else
 	re_snprintf(command, sizeof(command), "xdg-open %s",
