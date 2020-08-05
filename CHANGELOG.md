@@ -1,14 +1,30 @@
 # Changelog
 
+## [v20.05.3-stable] - 2020-08-05
+
+### Fixed
+
+- **Standalone** Windows: Fixed Desktop folder selection on some systems
+- **Standalone** Windows: Open record folder uses explicit explorer.exe
+- **Standalone** Clear ring buffer, if full
+
+### Changed
+
+- **Misc** g722 Codec disabled (has to be fixed, analyzed)
+
+---
+
 ## [v20.05.2-stable] - 2020-06-01
 
 ### Fixed
 
 - **Misc** webui: ie11 javascript error
 
+---
 
 ## [v20.05.1-stable] [YANKED]
 
+---
 
 ## [v20.05.0-stable] - 2020-05-31
 
@@ -24,6 +40,7 @@
 - **Misc** webapp: gcc 10 linking
 - **Plug-in** webui: onboarding and interface 
 
+---
 
 ## [v20.04.4-beta] - 2020-05-03
 
