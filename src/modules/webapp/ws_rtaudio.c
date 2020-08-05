@@ -79,5 +79,5 @@ int webapp_ws_rtaudio_init(void)
 
 
 void webapp_ws_rtaudio_close(void)
-{	
+{
 }

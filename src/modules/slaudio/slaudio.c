@@ -16,7 +16,7 @@
 #include <windows.h>
 #endif
 
-#define BUFFER_LEN 15360 /* max buffer_len = 192kHz*2ch*20ms*2frames */
+#define BUFFER_LEN 19200 /* max buffer_len = 192kHz*2ch*25ms*2frames */
 #define FLOAT_FRAME_BYTES 8 /* sizeof(float) * 2ch */
 
 enum
@@ -1123,7 +1123,9 @@ static void read_callback(struct SoundIoInStream *instream,
 	if (samples > free_count) {
 		warning("ring buffer overflow %d/%d/%d\n", samples,
 				free_count, frame_count_max);
-		return;
+		soundio_ring_buffer_clear(ring_buffer);
+		free_bytes = soundio_ring_buffer_free_count(ring_buffer);
+		free_count = free_bytes / FLOAT_FRAME_BYTES;
 	}
 
 	if (preferred_sample_rate_out != 48000)
@@ -1281,9 +1283,10 @@ static void write_callback(struct SoundIoOutStream *outstream,
 static int slaudio_start(void)
 {
 	int err = 0;
-	double microphone_latency = 0.02;
+	double microphone_latency;
 	enum SoundIoFormat *fmt;
 
+	microphone_latency = 0.02;
 
 	if (input == -1) {
 		warning("slaudio/start: invalid input device\n");

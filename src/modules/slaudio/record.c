@@ -64,7 +64,7 @@ static int openfile(struct session *sess)
 	char win32_path[MAX_PATH];
 
 	if (S_OK != SHGetFolderPath(NULL,
-				CSIDL_DESKTOPDIRECTORY,
+				CSIDL_DESKTOP,
 				NULL,
 				0,
 				win32_path)) {
@@ -93,7 +93,7 @@ static int openfile(struct session *sess)
 	re_snprintf(command, sizeof(command), "open %s",
 			filename);
 #elif defined (WIN32)
-	re_snprintf(command, sizeof(command), "start %s",
+	re_snprintf(command, sizeof(command), "explorer.exe %s",
 			filename);
 #else
 	re_snprintf(command, sizeof(command), "xdg-open %s",

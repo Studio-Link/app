@@ -129,7 +129,7 @@ void webapp_account_delete(char *user, char *domain)
 			webapp_write_file_json(accs, filename);
 			info("webapp/account: delete user %s\n", aor);
 
-			if (user) 
+			if (user)
 				break;
 
 			le = accs->lst.head;

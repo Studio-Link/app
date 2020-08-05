@@ -26,7 +26,7 @@ index 9bfab8a..0651d01 100644
  	struct config_sip sip;
  
 diff --git a/src/conf.c b/src/conf.c
-index bfe59ba..dc8fa62 100644
+index bfe59ba..1b39f1e 100644
 --- a/src/conf.c
 +++ b/src/conf.c
 @@ -11,6 +11,7 @@
@@ -118,7 +118,7 @@ index bfe59ba..dc8fa62 100644
   out:
  	return err;
 diff --git a/src/config.c b/src/config.c
-index 61a3137..51b03ce 100644
+index 61a3137..347cd2c 100644
 --- a/src/config.c
 +++ b/src/config.c
 @@ -15,10 +15,21 @@
@@ -291,7 +291,7 @@ index 61a3137..51b03ce 100644
  			  default_interface_print, NULL);
  
  	return err;
-@@ -712,20 +735,23 @@ int config_write_template(const char *file, const struct config *cfg)
+@@ -712,17 +735,20 @@ int config_write_template(const char *file, const struct config *cfg)
  			 modpath_valid ? "" : "#", modpath);
  
  	(void)re_fprintf(f, "\n# UI Modules\n");
@@ -312,11 +312,7 @@ index 61a3137..51b03ce 100644
 +	(void)re_fprintf(f, "module\t\t\t" "opus" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" "amr" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" "g7221" MOD_EXT "\n");
--	(void)re_fprintf(f, "#module\t\t\t" "g722" MOD_EXT "\n");
-+	(void)re_fprintf(f, "module\t\t\t" "g722" MOD_EXT "\n");
- 	(void)re_fprintf(f, "#module\t\t\t" "g726" MOD_EXT "\n");
- 	(void)re_fprintf(f, "module\t\t\t" "g711" MOD_EXT "\n");
- 	(void)re_fprintf(f, "#module\t\t\t" "gsm" MOD_EXT "\n");
+ 	(void)re_fprintf(f, "#module\t\t\t" "g722" MOD_EXT "\n");
 @@ -742,27 +768,20 @@ int config_write_template(const char *file, const struct config *cfg)
  	(void)re_fprintf(f, "#module\t\t\t" "plc" MOD_EXT "\n");
  	(void)re_fprintf(f, "#module\t\t\t" "webrtc_aec" MOD_EXT "\n");
