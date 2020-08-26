@@ -124,6 +124,7 @@ window.ws_baresip_init = function() {
 						callback: function () {
 							if (window.swvariant == "standalone") {
 								window.open("https://doku.studio-link.de/standalone/installation-standalone.html");
+								return false;
 							}
 							window.open("https://doku.studio-link.de/plugin/installation-plugin-neu.html");
 							return false;
