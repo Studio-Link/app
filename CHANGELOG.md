@@ -1,5 +1,11 @@
 # Changelog
 
+## [v20.05.4-stable] - 2020-08-25
+
+### Added
+
+- **Misc** Update notification
+
 ## [v20.05.3-stable] - 2020-08-05
 
 ### Fixed
@@ -225,9 +231,9 @@ Debug only Release
 
 ---
 
-# Syntax
+## Syntax
 
-## Types
+### Types
 
 - **Added** for new features
 - **Changed** for changes in existing functionality
@@ -236,7 +242,7 @@ Debug only Release
 - **Fixed** for any bug fixes
 - **Security** in case of vulnerabilities
 
-## Labels
+### Labels
 
 - **Standalone** Changes to the standalone OS X, Windows and Linux Version
 - **Plugin** Changes to the effect plugins (Audio Unit, LV2 and VST)

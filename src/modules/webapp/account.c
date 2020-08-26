@@ -8,6 +8,7 @@ static struct odict *accs = NULL;
 static char filename[256] = "";
 static struct http_req *req = NULL;
 static struct http_cli *cli = NULL;
+static char version[64] = "";
 
 
 const struct odict* webapp_accounts_get(void) {
@@ -16,7 +17,16 @@ const struct odict* webapp_accounts_get(void) {
 
 static void update(void *arg)
 {
-	ws_send_all(WS_BARESIP, "update");
+	char json[512];
+
+	re_snprintf(json, sizeof(json),
+			"{\
+			\"callback\": \"UPDATE\",\
+			\"version\": \"%s\"\
+			}",
+			version);
+
+	ws_send_all(WS_BARESIP, json);
 }
 
 static int sip_register(const struct odict_entry *o)
@@ -68,12 +78,14 @@ static int sip_register(const struct odict_entry *o)
 		else if (!str_cmp(e->key, "status")) {
 			continue;
 		}
-		else if (!str_cmp(e->key, "version")) {
-			/* Version Check disabled */
-			continue;
-			if (str_cmp(e->u.str, (const char*)SLVERSION)) {
-				tmr_start(&tmr, 2000, update, NULL);
+		else if (!str_cmp(e->key, "update")) {
+			if (!str_cmp(e->u.str, "false")) {
+				mem_deref(e);
+				continue;
 			}
+			str_ncpy(version, e->u.str, sizeof(version));
+			mem_deref(e);
+			tmr_start(&tmr, 8000, update, NULL);
 		}
 		else {
 			re_snprintf(opt, sizeof(opt), "%s;%s=%s",
@@ -281,8 +293,15 @@ static void provisioning(void)
 
 	info("webapp/account: start provisioning\n");
 
-	re_snprintf(url, sizeof(url), "https://%s/%s/%s?version=%s",
+#ifdef SLPLUGIN
+	re_snprintf(url, sizeof(url),
+			"https://%s/%s/%s?version=%s&type=plugin",
 			host, path, cfg->sip.uuid, SLVERSION);
+#else
+	re_snprintf(url, sizeof(url),
+			"https://%s/%s/%s?version=%s&type=standalone",
+			host, path, cfg->sip.uuid, SLVERSION);
+#endif
 
 	http_client_alloc(&cli, net_dnsc(net));
 

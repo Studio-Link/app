@@ -105,10 +105,12 @@ window.ws_baresip_init = function() {
 	};
 
 	ws_baresip.onmessage = function (message) {
-		if (message.data == "update") {
+		var msg = JSON.parse(message.data);
+
+		if (msg.callback == "UPDATE") {
 			bootbox.dialog({
 				title: "Update available",
-				message: "Please update",
+				message: "Please update to " + msg.version,
 				buttons: {
 					close: {
 						label: 'Cancel',
@@ -120,7 +122,10 @@ window.ws_baresip_init = function() {
 						label: "Download",
 						className: "btn-success",
 						callback: function () {
-							window.open("https://doku.studio-link.de");
+							if (window.swvariant == "standalone") {
+								window.open("https://doku.studio-link.de/standalone/installation-standalone.html");
+							}
+							window.open("https://doku.studio-link.de/plugin/installation-plugin-neu.html");
 							return false;
 						}
 					}
@@ -130,7 +135,6 @@ window.ws_baresip_init = function() {
 			return;
 		}
 
-		var msg = JSON.parse(message.data);
 		var listsip = require("../templates/listsip.handlebars");
 		var currentlist = require("../templates/currentlist.handlebars");
 
