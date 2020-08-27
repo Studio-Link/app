@@ -1,10 +1,16 @@
 # Changelog
 
-## [v20.05.4-stable] - 2020-08-25
+## [v20.05.5-stable] - 2020-08-27
 
 ### Added
 
 - **Misc** Update notification
+
+---
+
+## [v20.05.4-stable] - 2020-08-25 [YANKED]
+
+---
 
 ## [v20.05.3-stable] - 2020-08-05
 
@@ -252,6 +258,8 @@ Debug only Release
 
 
 
+[v20.05.5-stable]: https://github.com/Studio-Link/app/compare/v20.05.3...v20.05.5-stable
+[v20.05.3-stable]: https://github.com/Studio-Link/app/compare/aa9d2df...v20.05.3
 [v20.05.0-stable]: https://github.com/Studio-Link/app/compare/v20.04.4-beta...v20.05.0-stable
 [v20.04.4-beta]: https://github.com/Studio-Link/app/compare/v20.04.3-beta...v20.04.4-beta
 [v20.04.3-beta]: https://github.com/Studio-Link/app/compare/v20.04.2-beta...v20.04.3-beta
