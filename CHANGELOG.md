@@ -1,14 +1,42 @@
 # Changelog
 
+## [v20.05.5-stable] - 2020-08-27
+
+### Added
+
+- **Misc** Update notification
+
+---
+
+## [v20.05.4-stable] - 2020-08-25 [YANKED]
+
+---
+
+## [v20.05.3-stable] - 2020-08-05
+
+### Fixed
+
+- **Standalone** Windows: Fixed Desktop folder selection on some systems
+- **Standalone** Windows: Open record folder uses explicit explorer.exe
+- **Standalone** Clear ring buffer, if full
+
+### Changed
+
+- **Misc** g722 Codec disabled (has to be fixed, analyzed)
+
+---
+
 ## [v20.05.2-stable] - 2020-06-01
 
 ### Fixed
 
 - **Misc** webui: ie11 javascript error
 
+---
 
 ## [v20.05.1-stable] [YANKED]
 
+---
 
 ## [v20.05.0-stable] - 2020-05-31
 
@@ -24,6 +52,7 @@
 - **Misc** webapp: gcc 10 linking
 - **Plug-in** webui: onboarding and interface 
 
+---
 
 ## [v20.04.4-beta] - 2020-05-03
 
@@ -208,9 +237,9 @@ Debug only Release
 
 ---
 
-# Syntax
+## Syntax
 
-## Types
+### Types
 
 - **Added** for new features
 - **Changed** for changes in existing functionality
@@ -219,7 +248,7 @@ Debug only Release
 - **Fixed** for any bug fixes
 - **Security** in case of vulnerabilities
 
-## Labels
+### Labels
 
 - **Standalone** Changes to the standalone OS X, Windows and Linux Version
 - **Plugin** Changes to the effect plugins (Audio Unit, LV2 and VST)
@@ -229,6 +258,8 @@ Debug only Release
 
 
 
+[v20.05.5-stable]: https://github.com/Studio-Link/app/compare/v20.05.3...v20.05.5-stable
+[v20.05.3-stable]: https://github.com/Studio-Link/app/compare/aa9d2df...v20.05.3
 [v20.05.0-stable]: https://github.com/Studio-Link/app/compare/v20.04.4-beta...v20.05.0-stable
 [v20.04.4-beta]: https://github.com/Studio-Link/app/compare/v20.04.3-beta...v20.04.4-beta
 [v20.04.3-beta]: https://github.com/Studio-Link/app/compare/v20.04.2-beta...v20.04.3-beta
