@@ -2,7 +2,7 @@ sl_prepare_version() {
     vminor_t=$(printf "%02d" $vminor)
     version_t="v$vmajor.$vminor_t.$vpatch-$release"
     version_tc="v$vmajor.$vminor_t.$vpatch"
-    version_n="$vmajor.$vminor.$vpatch"
+    version_n="$vmajor.$vminor_t.$vpatch"
 }
 
 sl_prepare() {
