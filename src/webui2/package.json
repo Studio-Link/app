@@ -1,0 +1,19 @@
+{
+  "name": "webui2",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "NODE_ENV=production vite --assetsDir assets build"
+  },
+  "dependencies": {
+    "tailwindcss": "^1.7.5",
+    "vue": "^3.0.0-rc.1"
+  },
+  "devDependencies": {
+    "@vue/compiler-sfc": "^3.0.0-rc.1",
+    "prettier-eslint": "^11.0.0",
+    "vite": "^1.0.0-rc.1",
+    "eslint": "^7.7.0",
+    "eslint-plugin-vue": "^7.0.0-beta.3"
+  }
+}
