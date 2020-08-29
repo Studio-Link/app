@@ -1,11 +1,13 @@
 <template>
-  <div class="w-full sm:w-1/3 text-right mt-4 sm:mt-0 text-sm sm:text-base text-sl-on_surface_2">
-    Version: v20.05.5-alpha
+  <div class="items-end sm:w-1/3">
+    <div
+      class="text-right mt-4 sm:mt-0 text-sm text-sl-on_surface_2"
+    >
+      v20.05.5-alpha
+    </div>
   </div>
 </template>
 
 <script>
-export default {
-    
-}
+export default {};
 </script>
