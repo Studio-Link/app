@@ -1,15 +1,17 @@
 <template>
   <header class="flex flex-wrap items-end justify-between sm:mb-4 sm:mt-4 p-2">
-    <img src="/logo_standalone.svg" class="h-10" />
+    <a href="/">
+      <img src="/logo_standalone.svg" class="h-10" />
+    </a>
     <HeadStatus />
   </header>
   <Tracks class="p-2" />
 
-  <footer class="bottom-0 container fixed mb-8">
+  <footer class="bottom-0 container fixed mb-4">
     <div class="flex flex-wrap justify-between items-end px-2">
-    <Navbar></Navbar>
-    <BottomActions></BottomActions>
-    <Version></Version>
+      <Navbar></Navbar>
+      <BottomActions></BottomActions>
+      <Version></Version>
     </div>
   </footer>
 </template>
@@ -19,7 +21,7 @@ import Version from "./components/Version.vue";
 import BottomActions from "./components/BottomActions.vue";
 import Tracks from "./components/Tracks.vue";
 import HeadStatus from "./components/HeadStatus.vue";
-import Navbar from "./components/Navbar.vue"
+import Navbar from "./components/Navbar.vue";
 
 export default {
   name: "App",
@@ -28,7 +30,7 @@ export default {
     Version,
     Tracks,
     HeadStatus,
-    Navbar
+    Navbar,
   },
 };
 </script>
