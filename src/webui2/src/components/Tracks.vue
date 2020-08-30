@@ -6,7 +6,7 @@
       >Select Audio</button>
     </li>
     <li
-      v-for="index in 0"
+      v-for="index in 2"
       class="flex items-center justify-center col-span-1 bg-sl-02dp rounded-lg shadow h-40"
     ></li>
   </ul>

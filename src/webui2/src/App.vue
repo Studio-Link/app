@@ -1,14 +1,16 @@
 <template>
-  <header class="flex items-end justify-between mb-8 mt-4">
+  <header class="flex flex-wrap items-end justify-between sm:mb-4 sm:mt-4 p-2">
     <img src="/logo_standalone.svg" class="h-10" />
     <HeadStatus />
   </header>
-  <Tracks />
+  <Tracks class="p-2" />
 
-  <footer class="flex flex-wrap justify-between items-end container bottom-0 fixed mb-6">
+  <footer class="bottom-0 container fixed mb-8">
+    <div class="flex flex-wrap justify-between items-end px-2">
     <Navbar></Navbar>
     <BottomActions></BottomActions>
     <Version></Version>
+    </div>
   </footer>
 </template>
 
