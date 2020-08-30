@@ -6,8 +6,10 @@
     "build": "NODE_ENV=production vite --assetsDir assets build"
   },
   "dependencies": {
+    "@tailwindcss/ui": "^0.5.0",
     "tailwindcss": "^1.7.5",
     "typeface-roboto": "0.0.75",
+    "typeface-roboto-mono": "0.0.75",
     "vue": "^3.0.0-rc.1"
   },
   "devDependencies": {
