@@ -1,6 +1,6 @@
 <template>
   <header class="flex flex-wrap items-end justify-between sm:mb-4 sm:mt-4 p-2">
-    <a href="/">
+    <a aria-hidden="true" href="/">
       <img src="/logo_standalone.svg" class="h-10" />
     </a>
     <HeadStatus />
