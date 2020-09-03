@@ -16,14 +16,15 @@
   </footer>
 </template>
 
-<script>
+<script lang='ts'>
 import Version from "./components/Version.vue";
 import BottomActions from "./components/BottomActions.vue";
 import Tracks from "./components/Tracks.vue";
 import HeadStatus from "./components/HeadStatus.vue";
 import Navbar from "./components/Navbar.vue";
+import { defineComponent } from "vue";
 
-export default {
+export default defineComponent({
   name: "App",
   components: {
     BottomActions,
@@ -32,5 +33,5 @@ export default {
     HeadStatus,
     Navbar,
   },
-};
+});
 </script>
