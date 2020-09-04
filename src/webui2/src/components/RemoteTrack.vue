@@ -2,7 +2,7 @@
   <li
     aria-label="Empty Remote Call"
     class="col-span-1"
-    @mouseenter="settingsVisible = true; setActive()"
+    @mouseenter="setActive()"
   >
     <div class="flex justify-between px-1">
       <div class="font-semibold text-sl-on_surface_2 text-sm">{{ getTrackName() }}</div>
@@ -16,8 +16,7 @@
           <button
             aria-label="Track Settings"
             class="w-8 h-8 inline-flex items-center justify-center text-gray-400 rounded-full bg-transparent hover:text-gray-500 focus:outline-none focus:text-sl-surface focus:bg-sl-on_surface_2 transition ease-in-out duration-150"
-            @focus="settingsVisible = true; setActive()"
-            @focusout="settingsVisible = false"
+            @focus="setActive()"
           >
             <svg aria-hidden="true" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
               <path
@@ -35,7 +34,7 @@
         >Enter Partner ID</label>
         <div class="mt-1 relative rounded-md shadow-sm">
           <input
-            :id="pkey"
+            :id="pkey" ref="slid"
             class="form-input block w-full sm:text-sm sm:leading-5 text-sl-on_surface_1 bg-sl-surface mb-2 border-none focus:shadow-outline-orange"
             placeholder="xyz@studio.link"
           />
@@ -51,7 +50,7 @@
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, onMounted } from "vue";
+import { ref, defineComponent } from "vue";
 
 import TrackSettings from "./TrackSettings.vue";
 
@@ -61,17 +60,6 @@ export default defineComponent({
   },
   props: { pkey: Number },
   setup(props) {
-    const settingsVisible = ref(false);
-    const showOpenCall = ref(false);
-
-    function OpenCall(status) {
-      if (props.pkey == 1) {
-        showOpenCall.value = true;
-        return;
-      }
-      showOpenCall.value = status;
-    }
-
     function isActive() {
       return window.tracks.isActive(props.pkey);
     }
@@ -84,11 +72,7 @@ export default defineComponent({
       return window.tracks.getTrackName(props.pkey);
     }
 
-    onMounted(() => {
-      OpenCall();
-    });
-
-    return { settingsVisible, showOpenCall, OpenCall, isActive, setActive, getTrackName };
+    return { isActive, setActive, getTrackName };
   },
 });
 </script>

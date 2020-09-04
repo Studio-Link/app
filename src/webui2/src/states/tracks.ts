@@ -1,10 +1,10 @@
 import { reactive } from "vue";
 export const tracks = {
   state: reactive([
+    { name: "Local", active: false },
     { name: "Remote Track 1", active: false },
     { name: "Remote Track 2", active: false },
     { name: "Remote Track 3", active: false },
-    { name: "Remote Track 4", active: false },
     { name: "Remote Track Test", active: false },
     { name: "Remote Track 6", active: false },
     { name: "Remote Track 7", active: false },

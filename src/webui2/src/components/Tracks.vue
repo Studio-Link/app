@@ -71,7 +71,7 @@ export default defineComponent({
     function newRemoteTrack() {
       let next = remoteTracks.value + 1;
       if (window.tracks.isValid(next)) {
-        remoteTracks.value++;
+        remoteTracks.value = next;
         window.tracks.setActive(remoteTracks.value);
       }
       if (!window.tracks.isValid(next+1)) {
