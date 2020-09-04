@@ -1,6 +1,6 @@
 <template>
   <header class="flex flex-wrap items-end justify-between sm:mb-4 sm:mt-4 p-2">
-    <a aria-hidden="true" href="/">
+    <a aria-label="Logo Reload App" href="javascript:window.location.reload(true)">
       <img src="/logo_standalone.svg" class="h-10" />
     </a>
     <HeadStatus />
@@ -23,6 +23,7 @@ import Tracks from "./components/Tracks.vue";
 import HeadStatus from "./components/HeadStatus.vue";
 import Navbar from "./components/Navbar.vue";
 import { defineComponent } from "vue";
+
 
 export default defineComponent({
   name: "App",

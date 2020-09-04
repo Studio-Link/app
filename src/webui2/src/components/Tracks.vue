@@ -1,8 +1,7 @@
 <template>
   <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-36 sm:mb-24">
-    <!-- Local Track(s) -->
     <li class="col-span-1">
-      <div class="pl-1 font-bold text-sl-on_surface_2 text-sm">Local</div>
+      <div class="pl-1 font-bold text-sl-on_surface_2 text-sm">Local Track</div>
       <div class="flex items-center justify-center bg-sl-02dp rounded-lg shadow h-44">
         <button
           class="inline-flex items-center bg-sl-primary rounded-lg px-4 py-3 text-black font-bold leading-none uppercase tracking-wide"
@@ -14,12 +13,13 @@
               clip-rule="evenodd"
             />
           </svg>
-          Select Audio
+          Select Microphone
         </button>
       </div>
     </li>
     <RemoteTrack v-for="index in remoteTracks" :key="index" :pkey="index" />
     <li
+      v-if="!newTrackDisabled"
       class="col-span-1"
       @mouseenter="newTrackVisible = true"
       @mouseleave="newTrackVisible = false"
@@ -28,7 +28,7 @@
         <button
           @focus="newTrackVisible = true"
           @focusout="newTrackVisible = false"
-          @click="remoteTracks++; newTrackVisible = false"
+          @click="newRemoteTrack(); newTrackVisible = false"
           accesskey="t"
           aria-label="Add Remote Track"
           :class="{'text-sl-disabled': newTrackVisible, 'text-sl-01dp': !newTrackVisible}"
@@ -65,9 +65,21 @@ export default defineComponent({
   },
   setup() {
     const newTrackVisible = ref(false);
+    const newTrackDisabled = ref(false);
     const remoteTracks = ref(0);
 
-    return { newTrackVisible, remoteTracks };
+    function newRemoteTrack() {
+      let next = remoteTracks.value + 1;
+      if (window.tracks.isValid(next)) {
+        remoteTracks.value++;
+        window.tracks.setActive(remoteTracks.value);
+      }
+      if (!window.tracks.isValid(next+1)) {
+        newTrackDisabled.value = true;
+      }
+    }
+
+    return { newTrackDisabled, newTrackVisible, remoteTracks, newRemoteTrack };
   },
 });
 </script>
