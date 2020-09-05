@@ -3,13 +3,14 @@
     <a aria-label="Logo Reload App" href="javascript:window.location.reload(true)">
       <img src="/logo_standalone.svg" class="h-10" />
     </a>
-    <HeadStatus />
+    <!--HeadStatus /-->
+    <Navbar></Navbar>
   </header>
   <Tracks class="p-2" />
 
   <footer class="bottom-0 container fixed mb-4">
     <div class="flex flex-wrap justify-between items-end px-2">
-      <Navbar></Navbar>
+      <div class="w-1/3">Chat | Hand</div>
       <BottomActions></BottomActions>
       <Version></Version>
     </div>

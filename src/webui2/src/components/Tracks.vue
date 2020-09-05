@@ -3,9 +3,8 @@
     <li class="col-span-1">
       <div class="pl-1 font-bold text-sl-on_surface_2 text-sm">Local Track</div>
       <div class="flex items-center justify-center bg-sl-02dp rounded-lg shadow h-44">
-        <button
-          class="inline-flex items-center bg-sl-primary rounded-lg px-4 py-3 text-black font-bold leading-none uppercase tracking-wide"
-        >
+
+        <Button>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-6 mr-1">
             <path
               fill-rule="evenodd"
@@ -14,7 +13,7 @@
             />
           </svg>
           Select Microphone
-        </button>
+        </Button>
       </div>
     </li>
     <RemoteTrack v-for="index in remoteTracks" :key="index" :pkey="index" />
