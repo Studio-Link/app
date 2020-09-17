@@ -122,31 +122,16 @@ static uint64_t sl_jiffies(void)
 	li.LowPart = ft.dwLowDateTime;
 	li.HighPart = ft.dwHighDateTime;
 	jfs = li.QuadPart/10;
-/* macos */
-//clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW);
 #else
 	struct timespec now;
 
 	clock_gettime(CLOCK_MONOTONIC_RAW, &now);
 
-	jfs  = (long)now.tv_sec * (uint64_t)1000 * (uint64_t)1000;
+	jfs  = (long)now.tv_sec * (uint64_t)1000000;
 	jfs += now.tv_nsec/1000;
 #endif
 
 	return jfs;
-}
-
-static uint64_t microseconds(void)
-{
-	uint64_t usecs;
-	struct timespec now;
-
-	clock_gettime(CLOCK_MONOTONIC_RAW, &now);
-
-	usecs = (long)now.tv_sec * (uint64_t)1000000;
-	usecs += (long)now.tv_nsec/1000;
-
-	return usecs;
 }
 
 
@@ -383,7 +368,7 @@ void effect_src(struct session *sess, const float* const input0,
 	if(!sess)
 		return;
 
-	sess->trev = microseconds();
+	sess->trev = sl_jiffies();
 
 	if (sess->run_src) {
 		struct ausrc_st *st_src = sess->st_src;
