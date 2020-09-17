@@ -105,6 +105,51 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 		auplay_write_h *wh, unsigned int sampc, void *arg);
 
 
+/**
+ * Get the timer jiffies in microseconds
+ *
+ * @return Jiffies in [us]
+ */
+
+static uint64_t sl_jiffies(void)
+{
+	uint64_t jfs;
+
+#if defined(WIN32)
+	FILETIME ft;
+	ULARGE_INTEGER li;
+	GetSystemTimeAsFileTime(&ft);
+	li.LowPart = ft.dwLowDateTime;
+	li.HighPart = ft.dwHighDateTime;
+	jfs = li.QuadPart/10;
+/* macos */
+//clock_gettime_nsec_np(CLOCK_MONOTONIC_RAW);
+#else
+	struct timespec now;
+
+	clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+
+	jfs  = (long)now.tv_sec * (uint64_t)1000 * (uint64_t)1000;
+	jfs += now.tv_nsec/1000;
+#endif
+
+	return jfs;
+}
+
+static uint64_t microseconds(void)
+{
+	uint64_t usecs;
+	struct timespec now;
+
+	clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+
+	usecs = (long)now.tv_sec * (uint64_t)1000000;
+	usecs += (long)now.tv_nsec/1000;
+
+	return usecs;
+}
+
+
 static void sess_destruct(void *arg)
 {
 	struct session *sess = arg;
@@ -134,8 +179,6 @@ struct session* effect_session_start(void)
 
 		if (sess->ch == -1) {
 			sess->ch = pos * 2;
-			sess->trev = 0;
-			sess->prev = 0;
 			return sess;
 		}
 		pos++;
@@ -199,14 +242,16 @@ static void sample_move_dS_s16(float *dst, char *src, unsigned long nsamples,
 static void play_process(struct session *sess, unsigned long nframes, uint64_t trev)
 {
 	struct auplay_st *st_play = sess->st_play;
-	uint64_t next = sess->prev + nframes / 48000.0 * (uint64_t)1000 - 1; 
+	//uint64_t next = sess->prev + nframes / 48000.0 * (uint64_t)1000000; 
+	uint64_t next = sess->prev + 800;
+	//warning("%x: %u > %u\n", sess, trev, next);
 
-	if (trev > next) {
+	if (trev >= next) {
 		webapp_jitter(sess, st_play->sampv,
 				st_play->wh, nframes*2, st_play->arg);
 
 		sess->prev = trev;
-	}
+	} 
 }
 
 
@@ -338,7 +383,7 @@ void effect_src(struct session *sess, const float* const input0,
 	if(!sess)
 		return;
 
-	sess->trev = tmr_jiffies();
+	sess->trev = microseconds();
 
 	if (sess->run_src) {
 		struct ausrc_st *st_src = sess->st_src;
