@@ -10,7 +10,7 @@
 
   <footer class="bottom-0 container fixed mb-4">
     <div class="flex flex-wrap justify-between items-end px-2">
-      <div class="w-1/3">Chat | Hand</div>
+      <div class="w-1/3 invisible">Chat | Hand</div>
       <BottomActions></BottomActions>
       <Version></Version>
     </div>

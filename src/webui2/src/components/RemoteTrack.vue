@@ -57,7 +57,7 @@
       <div v-if="!isActive()" class="text-center mt-10 text-sl-disabled">No call</div>
       <div class="text-right bottom-0">
         <button @focus="setActive()">
-          <svg class="w-5 h-5 text-sl-disabled" viewBox="0 0 20 20" fill="currentColor">
+          <svg class="invisible w-5 h-5 text-sl-disabled" viewBox="0 0 20 20" fill="currentColor">
             <path
             v-if="isActive()"
             fill-rule="evenodd"
