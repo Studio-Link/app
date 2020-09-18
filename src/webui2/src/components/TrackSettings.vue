@@ -11,9 +11,29 @@
           aria-orientation="vertical"
           aria-labelledby="options-menu"
         >
+                <p class="px-4 pt-2 text-sm leading-5 text-sl-on_surface_2">
+          SIP Account
+        </p>
           <a
             href="#"
-            class="group flex items-center px-4 py-2 text-sm leading-5  text-sl-on_surface_2 hover:bg-sl-surface focus:outline-none focus:bg-sl-surface"
+            class="group flex items-center px-4 py-2 text-sm leading-5  text-sl-on_surface_2 hover:bg-sl-surface focus:outline-none focus:bg-sl-surface truncate"
+            role="menuitem"
+          >
+          <svg class="mr-3 view-grid w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <div class="truncate">sebastian@studio.link</div>
+          </a>
+          <a
+            href="#"
+            class="group flex items-center px-4 py-2 text-sm leading-5 text-sl-on_surface_2 hover:bg-sl-surface focus:outline-none focus:bg-sl-surface"
+            role="menuitem"
+          >
+          <svg class="mr-3 view-grid w-5 h-5 text-green-500 invisible" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+           <span class="truncate">+4957763930000@sipgate.de</span>
+          </a>
+        <div class="border-t border-sl-disabled"></div>
+          <a
+            href="#"
+            class="group flex items-center px-4 py-2 text-sm leading-5 text-sl-on_surface_2 hover:bg-sl-surface focus:outline-none focus:bg-sl-surface"
             role="menuitem"
           >
             <svg
