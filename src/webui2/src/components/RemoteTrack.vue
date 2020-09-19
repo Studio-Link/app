@@ -1,7 +1,13 @@
 <template>
-  <li aria-label="Empty Remote Call" class="col-span-1" @mouseenter="setActive()">
+  <li
+    aria-label="Empty Remote Call"
+    class="col-span-1"
+    @mouseenter="setActive()"
+  >
     <div class="flex justify-between px-1">
-      <div class="font-semibold text-sl-on_surface_2 text-sm">{{ getTrackName() }}</div>
+      <div class="font-semibold text-sl-on_surface_2 text-sm">
+        {{ getTrackName() }}
+      </div>
       <div class="font-semibold text-sm text-green-500 uppercase"></div>
     </div>
     <div class="bg-sl-02dp rounded-lg shadow h-44">
@@ -13,17 +19,28 @@
             @focus="setActive()"
             @click="settingsOpen=!settingsOpen"
           >
-            <svg aria-hidden="true" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+            <svg
+              aria-hidden="true"
+              class="w-5 h-5"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
               <path
                 v-if="isActive()"
                 d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"
               />
             </svg>
           </button>
-          <TrackSettings v-if="isActive()" :active="settingsOpen" />
+          <TrackSettings
+            v-if="isActive()"
+            :active="settingsOpen"
+          />
         </div>
       </div>
-      <div v-if="isActive()" class="flex-1 px-4 grid grid-cols-1">
+      <div
+        v-if="isActive()"
+        class="flex-1 px-4 grid grid-cols-1"
+      >
         <label
           :for="pkey"
           class="block text-sm font-medium leading-5 text-sl-on_surface_2"
@@ -54,15 +71,24 @@
           </Button>
         </div>
       </div>
-      <div v-if="!isActive()" class="text-center mt-10 text-sl-disabled">No call</div>
+      <div
+        v-if="!isActive()"
+        class="text-center mt-10 text-sl-disabled"
+      >
+        No call
+      </div>
       <div class="text-right bottom-0">
         <button @focus="setActive()">
-          <svg class="invisible w-5 h-5 text-sl-disabled" viewBox="0 0 20 20" fill="currentColor">
+          <svg
+            class="invisible w-5 h-5 text-sl-disabled"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
             <path
-            v-if="isActive()"
-            fill-rule="evenodd"
-            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-            clip-rule="evenodd"
+              v-if="isActive()"
+              fill-rule="evenodd"
+              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+              clip-rule="evenodd"
             />
           </svg>
         </button>
@@ -73,8 +99,8 @@
 
 <script lang="ts">
 import { ref, defineComponent } from "vue";
-
 import TrackSettings from "./TrackSettings.vue";
+import { tracks } from "../states/tracks";
 
 export default defineComponent({
   components: {
@@ -85,15 +111,15 @@ export default defineComponent({
     const settingsOpen = ref(false);
 
     function isActive() {
-      return window.tracks.isActive(props.pkey);
+      return tracks.isActive(props.pkey);
     }
 
     function setActive() {
-      window.tracks.setActive(props.pkey);
+      tracks.setActive(props.pkey);
     }
 
     function getTrackName() {
-      return window.tracks.getTrackName(props.pkey);
+      return tracks.getTrackName(props.pkey);
     }
 
     return { isActive, setActive, getTrackName, settingsOpen };

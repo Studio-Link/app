@@ -10,10 +10,10 @@
     "tailwindcss": "^1.8.10",
     "typeface-roboto": "0.0.75",
     "typeface-roboto-mono": "0.0.75",
-    "vue": "^3.0.0-rc.11"
+    "vue": "^3.0.0"
   },
   "devDependencies": {
-    "@vue/compiler-sfc": "^3.0.0-rc.11",
+    "@vue/compiler-sfc": "^3.0.0",
     "eslint": "^7.9.0",
     "eslint-plugin-vue": "^7.0.0-beta.3",
     "prettier-eslint": "^11.0.0",

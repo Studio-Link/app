@@ -1,14 +1,7 @@
 import { reactive } from "vue";
 export const tracks = {
-  state: reactive([
-    { name: "Local", active: false },
-    { name: "Remote Track 1", active: false },
-    { name: "Remote Track 2", active: false },
-    { name: "Remote Track 3", active: false },
-    { name: "Remote Track Test", active: false },
-    { name: "Remote Track 6", active: false },
-    { name: "Remote Track 7", active: false },
-  ]),
+  socket: Object,
+  state: reactive([]),
 
   getTrackName(id) {
     if (this.state[id]) {
@@ -18,21 +11,41 @@ export const tracks = {
     return "error";
   },
 
-  isValid(id) {
+  init_websocket() {
+    this.socket = new WebSocket("ws://" + window.ws_host + "/ws_tracks");
+    this.socket.onerror = function () {
+      console.log("Websocket error");
+    };
+    tracks.update();
+  },
+
+  update() {
+
+    let i: number;
+    for (i = 0; i < this.state.length; i++) {
+      this.state.pop();
+    }
+
+    this.state.push({ name: "Local", active: false });
+    this.state.push({ name: "Remote 1", active: false });
+    this.state.push({ name: "Remote 2", active: false });
+  },
+
+  isValid(id: number) {
     if (this.state[id]) {
       return true;
     }
     return false;
   },
 
-  isActive(id) {
+  isActive(id: number) {
     if (this.state[id]) {
       return this.state[id].active;
     }
     return false;
   },
 
-  setActive(id) {
+  setActive(id: number) {
     for (let i = 0; i < this.state.length; i++) {
       if (i == id) {
         this.state[i].active = true;
