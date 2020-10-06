@@ -14,8 +14,8 @@
   },
   "devDependencies": {
     "@vue/compiler-sfc": "^3.0.0",
-    "eslint": "^7.9.0",
-    "eslint-plugin-vue": "^7.0.0-beta.3",
+    "eslint": "^7.10.0",
+    "eslint-plugin-vue": "^7.0.1",
     "prettier-eslint": "^11.0.0",
     "vite": "^1.0.0-rc.1"
   }
