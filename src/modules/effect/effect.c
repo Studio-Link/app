@@ -116,15 +116,15 @@ static uint64_t sl_jiffies(void)
 	uint64_t jfs;
 
 #if defined(WIN32)
-	LARE_INTEGER li;
+	LARGE_INTEGER li;
 	static LARGE_INTEGER freq;
 
-	if(!freq)
+	if (!freq.QuadPart)
 		QueryPerformanceFrequency(&freq);
 
 	QueryPerformanceCounter(&li);
 	li.QuadPart *= 1000000;
-	li.QuadPart /= Frequency.QuadPart;
+	li.QuadPart /= freq.QuadPart;
 
 	jfs = li.QuadPart;
 #else
@@ -364,21 +364,16 @@ static void mix_n_minus_1(struct session *sess, int16_t *dst,
 }
 
 void effect_src(struct session *sess, const float* const input0,
-		const float* const input1, unsigned long nframes, uint64_t time);
+		const float* const input1, unsigned long nframes);
 
 void effect_src(struct session *sess, const float* const input0,
-		const float* const input1, unsigned long nframes, uint64_t time)
+		const float* const input1, unsigned long nframes)
 {
 	/* check max sessions reached*/
 	if (!sess)
 		return;
 
-	if (time) {
-		sess->trev = time;
-	} else {
-		sess->trev = sl_jiffies();
-	}
-	warning("time: %x %lu\n", sess, sess->trev);
+	sess->trev = sl_jiffies();
 
 	if (sess->run_src) {
 		struct ausrc_st *st_src = sess->st_src;
