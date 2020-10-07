@@ -232,9 +232,7 @@ static void sample_move_dS_s16(float *dst, char *src, unsigned long nsamples,
 static void play_process(struct session *sess, unsigned long nframes, uint64_t trev)
 {
 	struct auplay_st *st_play = sess->st_play;
-	//uint64_t next = sess->prev + nframes / 48000.0 * (uint64_t)1000000; 
 	uint64_t next = sess->prev + 800;
-	//warning("%x: %u > %u\n", sess, trev, next);
 
 	if (trev >= next) {
 		webapp_jitter(sess, st_play->sampv,
