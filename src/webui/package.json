@@ -19,7 +19,7 @@
     "@fortawesome/free-regular-svg-icons": "^5.15.1",
     "@fortawesome/free-solid-svg-icons": "^5.15.1",
     "bootbox": "^5.4.1",
-    "bootstrap": "~4.4",
+    "bootstrap": "~4.5",
     "cross-env": "^7.0.2",
     "handlebars": "^4.7.6",
     "handlebars-loader": "^1.7.1",
