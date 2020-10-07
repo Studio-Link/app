@@ -183,8 +183,8 @@ struct session {
 	struct le le;
 	struct ausrc_st *st_src;
 	struct auplay_st *st_play;
-	uint32_t trev;
-	uint32_t prev;
+	uint64_t trev;
+	uint64_t prev;
 	int32_t *dstmix;
 	int8_t ch;
 	bool run_src;
