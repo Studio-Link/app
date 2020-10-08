@@ -3,7 +3,7 @@ sl_extra_modules="alsa jack slaudio slogging dtls_srtp menu debug_cmd"
 
 if [ "$1" == "" ]; then
 export CC=gcc
-make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+make -j4 RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
     MODULES="opus stdio ice g711 g722 turn stun uuid auloop webapp menu $sl_extra_modules" \
     EXTRA_CFLAGS="-I ../my_include" \
     EXTRA_LFLAGS="$sl_extra_lflags -L ../openssl"
