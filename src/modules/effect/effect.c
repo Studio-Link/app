@@ -74,8 +74,8 @@ struct session {
 	struct le le;
 	struct ausrc_st *st_src;
 	struct auplay_st *st_play;
-	uint32_t trev;
-	uint32_t prev;
+	uint64_t trev;
+	uint64_t prev;
 	int32_t *dstmix;
 	int8_t ch;
 	bool run_src;
@@ -103,6 +103,41 @@ static bool bypass = false;
 /* webapp/jitter.c */
 void webapp_jitter(struct session *sess, int16_t *sampv,
 		auplay_write_h *wh, unsigned int sampc, void *arg);
+
+
+/**
+ * Get the timer jiffies in microseconds
+ *
+ * @return Jiffies in [us]
+ */
+
+static uint64_t sl_jiffies(void)
+{
+	uint64_t jfs;
+
+#if defined(WIN32)
+	LARGE_INTEGER li;
+	static LARGE_INTEGER freq;
+
+	if (!freq.QuadPart)
+		QueryPerformanceFrequency(&freq);
+
+	QueryPerformanceCounter(&li);
+	li.QuadPart *= 1000000;
+	li.QuadPart /= freq.QuadPart;
+
+	jfs = li.QuadPart;
+#else
+	struct timespec now;
+
+	clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+
+	jfs  = (long)now.tv_sec * (uint64_t)1000000;
+	jfs += now.tv_nsec/1000;
+#endif
+
+	return jfs;
+}
 
 
 static void sess_destruct(void *arg)
@@ -134,8 +169,6 @@ struct session* effect_session_start(void)
 
 		if (sess->ch == -1) {
 			sess->ch = pos * 2;
-			sess->trev = 0;
-			sess->prev = 0;
 			return sess;
 		}
 		pos++;
@@ -196,14 +229,17 @@ static void sample_move_dS_s16(float *dst, char *src, unsigned long nsamples,
 }
 
 
-static void play_process(struct session *sess, unsigned long nframes)
+static void play_process(struct session *sess, unsigned long nframes, uint64_t trev)
 {
 	struct auplay_st *st_play = sess->st_play;
+	uint64_t next = sess->prev + 800;
 
-	webapp_jitter(sess, st_play->sampv,
-			st_play->wh, nframes, st_play->arg);
+	if (trev >= next) {
+		webapp_jitter(sess, st_play->sampv,
+				st_play->wh, nframes*2, st_play->arg);
 
-	++sess->prev;
+		sess->prev = trev;
+	} 
 }
 
 
@@ -225,8 +261,7 @@ void effect_play(struct session *sess, float* const output0,
 	struct auplay_st *st_play = sess->st_play;
 
 	lock_write_get(sess->plock);
-	if (sess->trev > sess->prev)
-		play_process(sess, nframes*2);
+	play_process(sess, nframes, sess->trev);
 
 	sample_move_dS_s16(output0, (char*)st_play->sampv,
 			nframes, 4);
@@ -235,7 +270,6 @@ void effect_play(struct session *sess, float* const output0,
 	lock_rel(sess->plock);
 
 	ws_meter_process(sess->ch+1, (float*)output0, nframes);
-	++sess->trev;
 }
 
 
@@ -253,10 +287,6 @@ void effect_bypass(struct session *sess,
 		const float* const input1,
 		unsigned long nframes)
 {
-	struct le *le;
-	struct session *msess;
-	int32_t counter;
-
 	/* check max sessions reached*/
 	if(!sess)
 		return;
@@ -276,37 +306,18 @@ void effect_bypass(struct session *sess,
 			output1[pos] = 0;
 		}
 	}
-
-	for (le = sessionl.head; le; le = le->next) {
-		msess = le->data;
-		if (msess->ch == -1)
-			continue;
-
-		if (msess != sess) {
-			counter = msess->trev - sess->trev;
-			if (counter > 1) {
-				sess->trev = msess->trev;
-				sess->prev = msess->prev;
-				debug("sync thread %d\n", counter);
-				return;
-			}
-		}
-	}
-
-	++sess->trev;
-	++sess->prev;
-
 }
 
 
 static void mix_n_minus_1(struct session *sess, int16_t *dst,
-		unsigned long nsamples)
+		unsigned long nframes)
 {
 	struct le *le;
 	int32_t *dstmixv;
 	int16_t *dstv = dst;
 	int16_t *mixv;
 	unsigned active = 0;
+	unsigned long nsamples = nframes * 2;
 
 	for (le = sessionl.head; le; le = le->next) {
 		struct session *msess = le->data;
@@ -316,8 +327,7 @@ static void mix_n_minus_1(struct session *sess, int16_t *dst,
 			dstmixv = sess->dstmix;
 
 			lock_write_get(msess->plock);
-			if (sess->trev > msess->prev)
-				play_process(msess, nsamples);
+			play_process(msess, nframes, sess->trev);
 			for (unsigned n = 0; n < nsamples; n++) {
 				*dstmixv = *dstmixv + *mixv;
 				++mixv;
@@ -358,8 +368,10 @@ void effect_src(struct session *sess, const float* const input0,
 		const float* const input1, unsigned long nframes)
 {
 	/* check max sessions reached*/
-	if(!sess)
+	if (!sess)
 		return;
+
+	sess->trev = sl_jiffies();
 
 	if (sess->run_src) {
 		struct ausrc_st *st_src = sess->st_src;
@@ -369,7 +381,7 @@ void effect_src(struct session *sess, const float* const input0,
 		sample_move_d16_sS((char*)st_src->sampv+2, (float*)input1,
 				nframes, 4);
 		if (sess->run_auto_mix)
-			mix_n_minus_1(sess, st_src->sampv, nframes * 2);
+			mix_n_minus_1(sess, st_src->sampv, nframes);
 		st_src->rh(st_src->sampv, nframes * 2, st_src->arg);
 	}
 	ws_meter_process(sess->ch, (float*)input0, nframes);
