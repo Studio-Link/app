@@ -63,7 +63,7 @@ if [ ! -d re-$re ]; then
 
     # WARNING build releases with RELEASE=1, because otherwise its MEM Debug
     # statements are not THREAD SAFE! on every platform, especilly windows.
-    make -C re $make_opts $debug $use_ssl EXTRA_CFLAGS="-I ../my_include/" libre.a
+    make -C re $make_opt $use_ssl EXTRA_CFLAGS="-I ../my_include/ -DRE_TRACE_ENABLED" libre.a
     mkdir -p my_include/re
     cp -a re/include/* my_include/re/
 fi
@@ -86,16 +86,16 @@ if [ ! -d baresip-$baresip ]; then
     # Standalone
     if [ "$BUILD_OS" == "linux" ] || [ "$BUILD_OS" == "linuxjack" ]; then
         make $debug $make_opts $use_ssl  LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
-            MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
+            MODULES="opus stdio g711 turn stun uuid auloop webapp $sl_extra_modules" \
             EXTRA_CFLAGS="-I ../my_include" \
-            EXTRA_LFLAGS="$sl_extra_lflags -L ../openssl"
+            EXTRA_LFLAGS="$sl_extra_lflags -L ../openssl -DRE_TRACE_ENABLED"
 
         cp -a baresip ../studio-link-standalone
     fi
 
     # libbaresip.a without effect plugin
     make $debug $make_opts $use_ssl LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
-        MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
+        MODULES="opus stdio g711 turn stun uuid auloop webapp $sl_extra_modules" \
         EXTRA_CFLAGS="-I ../my_include" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
     cp -a libbaresip.a ../my_include/libbaresip_standalone.a
@@ -103,7 +103,7 @@ if [ ! -d baresip-$baresip ]; then
     # Effectonair Plugin
     make clean
     make $debug $make_opts $use_ssl LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
-        MODULES="opus stdio ice g711 turn stun uuid auloop apponair effectonair slogging g722 dtls_srtp" \
+        MODULES="opus stdio g711 turn stun uuid auloop apponair effectonair slogging g722 dtls_srtp" \
         EXTRA_CFLAGS="-I ../my_include -DSLIVE" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
     cp -a libbaresip.a ../my_include/libbaresip_onair.a
@@ -111,7 +111,7 @@ if [ ! -d baresip-$baresip ]; then
     # Effect Plugin
     make clean
     make $debug $make_opts $use_ssl LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
-        MODULES="opus stdio ice g711 turn stun uuid auloop webapp effect g722 slogging dtls_srtp" \
+        MODULES="opus stdio g711 turn stun uuid auloop webapp effect g722 slogging dtls_srtp" \
         EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
 

@@ -982,6 +982,7 @@ static void read_callback(struct SoundIoInStream *instream,
 		sess = le->data;
 		if (sess->local)
 		{
+			RE_TRACE_INSTANT_I("slaudio", "write_local", sess->ch);
 			/* write local audio to flac record buffer */
 			(void)aubuf_write_samp(sess->aubuf,
 					slaudio->inBuffer, samples);
@@ -1038,6 +1039,7 @@ static void read_callback(struct SoundIoInStream *instream,
 
 		/* write remote streams to flac record buffer */
 		(void)aubuf_write_samp(sess->aubuf, st_play->sampv, samples);
+		RE_TRACE_INSTANT_I("slaudio", "write_remote", sess->ch);
 
 		/* vumeter */
 		if (!sess->stream) {
@@ -1477,6 +1479,8 @@ static int slaudio_init(void)
 	int err;
 	struct session *sess;
 
+	re_trace_init("/tmp/slaudio_trace.json");
+
 	err = ausrc_register(&ausrc, baresip_ausrcl(), "slaudio", src_alloc);
 	err |= auplay_register(&auplay, baresip_auplayl(),
 						   "slaudio", play_alloc);
@@ -1518,7 +1522,6 @@ static int slaudio_init(void)
 		sess->ch = cnt * 2 + 1;
 		sess->track = cnt + 1;
 		sess->call = NULL;
-		sess->jb_max = 0;
 		sess->run_src = false;
 		sess->run_play = false;
 
@@ -1533,8 +1536,8 @@ static int slaudio_init(void)
 	sess->local = false;
 	sess->stream = true;
 	sess->call = NULL;
-	sess->jb_max = 0;
-	sess->ch = MAX_REMOTE_CHANNELS + 1;
+	sess->ch = MAX_REMOTE_CHANNELS * 2 + 1;
+	sess->track = MAX_REMOTE_CHANNELS + 1;
 	list_append(&sessionl, &sess->le, sess);
 
 	slaudio_drivers();
@@ -1547,7 +1550,7 @@ static int slaudio_init(void)
 	/* Activate windows low latency timer */
 	timeBeginPeriod(1);
 #endif
-	info("slaudio ready\n");
+	info("slaudio ready 2.0\n");
 
 	return err;
 }
@@ -1573,6 +1576,9 @@ static int slaudio_close(void)
 
 	playmix = mem_deref(playmix);
 	empty_buffer = mem_deref(empty_buffer);
+
+	info("slaudio bye bye\n");
+	re_trace_close();
 
 	return 0;
 }

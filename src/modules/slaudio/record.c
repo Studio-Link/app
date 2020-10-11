@@ -180,9 +180,15 @@ static void *record_thread(void *arg)
 	size_t bufsz;
 	FLAC__StreamEncoderState encstate;
 	size_t num_bytes = SAMPC * sizeof(int16_t);
+	char thread_name[64];
+
+	re_snprintf(thread_name, sizeof(thread_name), "Record Thread %d (CH %d)", sess->track, sess->ch);
+	RE_TRACE_THREAD_NAME(thread_name);
 
 	while (sess->run_record) {
 		bufsz = aubuf_cur_size(sess->aubuf);
+
+		RE_TRACE_INSTANT_I("slaudio", "bufsz", num_bytes);
 		if (bufsz < num_bytes) {
 			goto sleep;
 		}
