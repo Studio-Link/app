@@ -182,11 +182,14 @@ static void *record_thread(void *arg)
 	size_t num_bytes = SAMPC * sizeof(int16_t);
 	char thread_name[64];
 
-	re_snprintf(thread_name, sizeof(thread_name), "Record Thread %d (CH %d)", sess->track, sess->ch);
+	re_snprintf(thread_name, sizeof(thread_name), "Record Thread %d (CH %d)",
+			sess->track, sess->ch);
 	RE_TRACE_THREAD_NAME(thread_name);
 
 	while (sess->run_record) {
+		RE_TRACE_BEGIN("slaudio", "aubuf_cur_size");
 		bufsz = aubuf_cur_size(sess->aubuf);
+		RE_TRACE_END("slaudio", "aubuf_cur_size");
 
 		RE_TRACE_INSTANT_I("slaudio", "bufsz", num_bytes);
 		if (bufsz < num_bytes) {
@@ -196,6 +199,7 @@ static void *record_thread(void *arg)
 
 		if (record) {
 			if (!sess->flac) {
+				RE_TRACE_BEGIN("slaudio", "openfile");
 				if (sess->local)
 					info("slaudio/record: open \
 						session record file\n");
@@ -206,14 +210,17 @@ static void *record_thread(void *arg)
 					webapp_options_set("record", "false");
 					continue;
 				}
+				RE_TRACE_END("slaudio", "openfile");
 			}
 
 			for (i = 0; i < SAMPC; i++) {
 				sess->pcm[i] = (FLAC__int32)sess->sampv[i];
 			}
 
+			RE_TRACE_BEGIN("slaudio", "flac_encoding");
 			ok = FLAC__stream_encoder_process_interleaved(
 					sess->flac, sess->pcm, SAMPC/2);
+			RE_TRACE_END("slaudio", "flac_encoding");
 
 			if (sess->local)
 				record_timer += PTIME;
