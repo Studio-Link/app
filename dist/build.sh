@@ -87,8 +87,8 @@ if [ ! -d baresip-$baresip ]; then
     if [ "$BUILD_OS" == "linux" ] || [ "$BUILD_OS" == "linuxjack" ]; then
         make $debug $make_opts $use_ssl  LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
             MODULES="opus stdio g711 turn stun uuid auloop webapp $sl_extra_modules" \
-            EXTRA_CFLAGS="-I ../my_include" \
-            EXTRA_LFLAGS="$sl_extra_lflags -L ../openssl -DRE_TRACE_ENABLED"
+            EXTRA_CFLAGS="-I ../my_include -DRE_TRACE_ENABLED" \
+            EXTRA_LFLAGS="$sl_extra_lflags -L ../openssl"
 
         cp -a baresip ../studio-link-standalone
     fi
