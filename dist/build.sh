@@ -63,7 +63,7 @@ if [ ! -d re-$re ]; then
 
     # WARNING build releases with RELEASE=1, because otherwise its MEM Debug
     # statements are not THREAD SAFE! on every platform, especilly windows.
-    make -C re $make_opt $use_ssl EXTRA_CFLAGS="-I ../my_include/ -DRE_TRACE_ENABLED" libre.a
+    make -C re $make_opts $debug $use_ssl EXTRA_CFLAGS="-I ../my_include/ -DRE_TRACE_ENABLED" libre.a
     mkdir -p my_include/re
     cp -a re/include/* my_include/re/
 fi
