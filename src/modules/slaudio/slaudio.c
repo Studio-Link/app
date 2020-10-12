@@ -1534,7 +1534,7 @@ static int slaudio_init(void)
 	sess->stream = true;
 	sess->call = NULL;
 	sess->jb_max = 0;
-	sess->ch = MAX_REMOTE_CHANNELS + 1;
+	sess->ch = MAX_REMOTE_CHANNELS * 2 + 1;
 	list_append(&sessionl, &sess->le, sess);
 
 	slaudio_drivers();
