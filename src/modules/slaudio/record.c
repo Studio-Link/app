@@ -102,8 +102,10 @@ static int openfile(struct session *sess)
 	if (sess->local) {
 		(void)re_snprintf(filename, sizeof(filename), "%s"
 			DIR_SEP "local.flac", filename);
+#if 0
 		ret = system(command);
-		if (ret) {}
+		if (ret) {
+#endif
 	}
 	else {
 		(void)re_snprintf(filename, sizeof(filename), "%s"
@@ -217,10 +219,8 @@ static void *record_thread(void *arg)
 				sess->pcm[i] = (FLAC__int32)sess->sampv[i];
 			}
 
-			RE_TRACE_BEGIN("slaudio", "flac_encoding");
 			ok = FLAC__stream_encoder_process_interleaved(
 					sess->flac, sess->pcm, SAMPC/2);
-			RE_TRACE_END("slaudio", "flac_encoding");
 
 			if (sess->local)
 				record_timer += PTIME;
@@ -238,6 +238,7 @@ static void *record_thread(void *arg)
 
 				sess->flac = NULL;
 
+#if 0
 				/* open folder on stop record
 				 * if record_time > 5min
 				 */
@@ -245,6 +246,7 @@ static void *record_thread(void *arg)
 					ret = system(command);
 					if (ret) {}
 				}
+#endif
 			}
 			record_timer = 0;
 		}
