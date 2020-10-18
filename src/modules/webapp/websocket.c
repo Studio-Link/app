@@ -6,6 +6,8 @@ static struct list ws_srv_conns;
 static struct websock *ws;
 static struct tmr tmr_exit;
 
+static int ws_count = 0;
+
 
 int webapp_ws_handler(struct http_conn *conn, enum ws_type type,
 		const struct http_msg *msg, websock_recv_h *recvh)
@@ -19,6 +21,7 @@ int webapp_ws_handler(struct http_conn *conn, enum ws_type type,
 	debug("websocket created: %p\n", webapp->wc_srv);
 	webapp->ws_type = type;
 
+	++ws_count;
 	tmr_cancel(&tmr_exit);
 
 	return 0;
@@ -81,9 +84,11 @@ void srv_websock_close_handler(int err, void *arg)
 	mem_deref(webapp_p->wc_srv);
 	list_unlink(&webapp_p->le);
 	mem_deref(webapp_p);
+
+	--ws_count;
 #ifndef SLPLUGIN
 	/* close studio link if browser is closed */
-	if (!webapp_active_calls()) {
+	if (!webapp_active_calls() && !ws_count) {
 		tmr_start(&tmr_exit, 800, exit_baresip, NULL);
 	}
 #endif
