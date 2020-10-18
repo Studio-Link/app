@@ -5,10 +5,12 @@
     @mouseenter="setActive()"
   >
     <div class="flex justify-between px-1">
-      <div class="font-semibold text-sl-on_surface_2 text-sm">
+      <h2 class="font-semibold text-sl-on_surface_2 text-sm truncate pr-2">
         {{ getTrackName() }}
-      </div>
-      <div class="font-semibold text-sm text-green-500 uppercase"></div>
+      </h2>
+      <!-- <div class="font-semibold text-sm text-green-500 uppercase">Connected</div> -->
+      <!-- <div class="font-semibold text-sm text-yellow-500 uppercase">Calling</div> -->
+      <!-- <div class="font-semibold text-sm text-red-500 uppercase">Error</div> -->
     </div>
     <div class="bg-sl-02dp rounded-lg shadow h-44">
       <div class="flex justify-end">
@@ -112,7 +114,7 @@ export default defineComponent({
   components: {
     TrackSettings,
   },
-  props: { pkey: Number },
+  props: { pkey: { type: Number, required: true } },
   setup(props) {
     const settingsOpen = ref(false);
 
@@ -129,10 +131,16 @@ export default defineComponent({
     }
 
     function settingsClose() {
-        settingsOpen.value = false;
+      settingsOpen.value = false;
     }
 
-    return { isActive, setActive, getTrackName, settingsOpen, settingsClose };
+    return {
+      isActive,
+      setActive,
+      getTrackName,
+      settingsOpen,
+      settingsClose,
+    };
   },
 });
 </script>

@@ -1,9 +1,9 @@
 <template>
   <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-36 sm:mb-24">
     <li class="col-span-1">
-      <div class="pl-1 font-bold text-sl-on_surface_2 text-sm">
+      <h2 class="pl-1 font-bold text-sl-on_surface_2 text-sm">
         Local Track
-      </div>
+      </h2>
       <div class="flex items-center justify-center bg-sl-02dp rounded-lg shadow h-44">
         <Button>
           <svg
@@ -83,8 +83,8 @@ export default defineComponent({
     function newRemoteTrack() {
       let next = remoteTracks.value + 1;
       if (tracks.isValid(next)) {
+        tracks.setActive(next);
         remoteTracks.value = next;
-        tracks.setActive(remoteTracks.value);
       }
       if (!tracks.isValid(next+1)) {
         newTrackDisabled.value = true;
