@@ -14,10 +14,15 @@
       <div class="flex justify-end">
         <div class="flex-shrink-0 pr-2 text-right mt-1">
           <button
+            ref="settings"
+            v-click-outside="{
+              exclude: ['settings'],
+              handler: settingsClose,
+            }"
             aria-label="Track Settings"
             class="w-8 h-8 inline-flex items-center justify-center text-gray-400 rounded-full bg-transparent hover:text-gray-500 focus:outline-none focus:text-sl-surface focus:bg-sl-on_surface_2 transition ease-in-out duration-150"
             @focus="setActive()"
-            @click="settingsOpen=!settingsOpen"
+            @click="settingsOpen = !settingsOpen"
           >
             <svg
               aria-hidden="true"
@@ -67,7 +72,8 @@
               <path
                 d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"
               />
-            </svg> Call
+            </svg>
+            Call
           </Button>
         </div>
       </div>
@@ -122,7 +128,11 @@ export default defineComponent({
       return tracks.getTrackName(props.pkey);
     }
 
-    return { isActive, setActive, getTrackName, settingsOpen };
+    function settingsClose() {
+        settingsOpen.value = false;
+    }
+
+    return { isActive, setActive, getTrackName, settingsOpen, settingsClose };
   },
 });
 </script>
