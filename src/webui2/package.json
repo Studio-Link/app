@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "@tailwindcss/ui": "^0.6.2",
-    "tailwindcss": "^1.9.4",
+    "tailwindcss": "^1.9.5",
     "typeface-roboto": "0.0.75",
     "typeface-roboto-mono": "0.0.75",
     "vue": "^3.0.1"
@@ -15,7 +15,7 @@
   "devDependencies": {
     "@vue/compiler-sfc": "^3.0.1",
     "eslint": "^7.11.0",
-    "eslint-plugin-vue": "^7.0.1",
+    "eslint-plugin-vue": "^7.1.0",
     "prettier-eslint": "^11.0.0",
     "vite": "^1.0.0-rc.1"
   }
