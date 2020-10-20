@@ -888,6 +888,8 @@ static void read_callback(struct SoundIoInStream *instream,
 	int cntplay = 0, msessplay = 0, sessplay = 0;
 	SRC_DATA src_data_in;
 	SRC_DATA src_data_out;
+	struct auframe af;
+	static uint64_t frames = 0;
 
 	if ((err = soundio_instream_begin_read(instream, &areas, &nframes))) {
 		warning("slaudio/read_callback:"
@@ -1106,7 +1108,14 @@ static void read_callback(struct SoundIoInStream *instream,
 				}
 			}
 
-			st_src->rh(st_src->sampv, samples, st_src->arg);
+			af.fmt = st_src->prm.fmt;
+			af.sampv = st_src->sampv;
+			af.sampc = samples;
+			af.timestamp = frames * AUDIO_TIMEBASE / 48000;
+
+			frames += nframes;
+
+			st_src->rh(&af, st_src->arg);
 		}
 
 	}

@@ -98,12 +98,23 @@ void effectlive_src(const float* const input0, const float* const input1,
 void effectlive_src(const float* const input0, const float* const input1,
 		unsigned long nframes)
 {
+	struct auframe af;
+	static uint64_t frames = 0;
+
 	if (st_src) {
 		sample_move_d16_sS((char*)st_src->sampv, (float*)input0,
 				nframes, 4);
 		sample_move_d16_sS((char*)st_src->sampv+2, (float*)input1,
 				nframes, 4);
-		st_src->rh(st_src->sampv, nframes * 2, st_src->arg);
+
+		af.fmt = st_src->prm.fmt;
+		af.sampv = st_src->sampv;
+		af.sampc = nframes * 2;
+		af.timestamp = frames * AUDIO_TIMEBASE / 48000;
+
+		frames += nframes;
+
+		st_src->rh(&af, st_src->arg);
 	}
 }
 

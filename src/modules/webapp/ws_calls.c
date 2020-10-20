@@ -32,7 +32,7 @@ void webapp_ws_calls(const struct websock_hdr *hdr,
 		goto out;
 
 	if (!str_cmp(e->u.str, "accept")) {
-		ua_answer(uag_current(), call);
+		ua_answer(uag_current(), call, VIDMODE_OFF);
 	}
 	else if (!str_cmp(e->u.str, "hangup")) {
 		webapp_session_delete(key->u.str, NULL);

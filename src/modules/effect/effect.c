@@ -367,6 +367,9 @@ void effect_src(struct session *sess, const float* const input0,
 void effect_src(struct session *sess, const float* const input0,
 		const float* const input1, unsigned long nframes)
 {
+	struct auframe af;
+	static uint64_t frames = 0;
+
 	/* check max sessions reached*/
 	if (!sess)
 		return;
@@ -382,7 +385,15 @@ void effect_src(struct session *sess, const float* const input0,
 				nframes, 4);
 		if (sess->run_auto_mix)
 			mix_n_minus_1(sess, st_src->sampv, nframes);
-		st_src->rh(st_src->sampv, nframes * 2, st_src->arg);
+
+		af.fmt = st_src->prm.fmt;
+		af.sampv = st_src->sampv;
+		af.sampc = nframes * 2;
+		af.timestamp = frames * AUDIO_TIMEBASE / 48000;
+
+		frames += nframes;
+
+		st_src->rh(&af, st_src->arg);
 	}
 	ws_meter_process(sess->ch, (float*)input0, nframes);
 

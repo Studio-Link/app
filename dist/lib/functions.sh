@@ -70,15 +70,15 @@ sl_build_webui() {
 
 sl_get_libre() {
     #wget -N "http://www.creytiv.com/pub/re-${re}.tar.gz"
-    libre_url="https://github.com/studio-link-3rdparty/re/archive/v"
+    libre_url="https://github.com/baresip/re/archive/v"
     wget ${libre_url}${re}.tar.gz -O re-${re}.tar.gz
     tar -xzf re-${re}.tar.gz
     ln -s re-$re re
     pushd re
     patch --ignore-whitespace -p1 < ../../dist/patches/bluetooth_conflict.patch
-    patch --ignore-whitespace -p1 < ../../dist/patches/re_ice_bug.patch
+#    patch --ignore-whitespace -p1 < ../../dist/patches/re_ice_bug.patch
     patch --ignore-whitespace -p1 < ../../dist/patches/re_fix_authorization.patch
-    patch --ignore-whitespace -p1 < ../../dist/patches/re_recv_handler_win_patch.patch
+#    patch --ignore-whitespace -p1 < ../../dist/patches/re_recv_handler_win_patch.patch
     if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
         patch -p1 < ../../dist/patches/fix_windows_ssize_t_bug.patch
         #patch -p1 < ../../dist/patches/re_wsapoll.patch
@@ -95,8 +95,8 @@ sl_get_librem() {
 
 sl_get_baresip() {
     sl_get_webui
-    baresip_url="https://github.com/studio-link-3rdparty/baresip/archive/v"
-    #baresip_url="https://github.com/alfredh/baresip/archive/v"
+    #baresip_url="https://github.com/studio-link-3rdparty/baresip/archive/v"
+    baresip_url="https://github.com/baresip/baresip/archive/v"
 
     wget ${baresip_url}${baresip}.tar.gz -O baresip-${baresip}.tar.gz
     tar -xzf baresip-${baresip}.tar.gz
