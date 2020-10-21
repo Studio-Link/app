@@ -39,6 +39,7 @@ static int sip_register(const struct odict_entry *o)
 	char transport[4] = "udp";
 	char opt[300] = {0};
 	struct ua *ua;
+	struct odict_entry *e_update = NULL;
 
 	int err = 0;
 
@@ -79,12 +80,11 @@ static int sip_register(const struct odict_entry *o)
 			continue;
 		}
 		else if (!str_cmp(e->key, "update")) {
+			e_update = e;
 			if (!str_cmp(e->u.str, "false")) {
-				mem_deref(e);
 				continue;
 			}
 			str_ncpy(version, e->u.str, sizeof(version));
-			mem_deref(e);
 			tmr_start(&tmr, 8000, update, NULL);
 		}
 		else {
@@ -92,6 +92,9 @@ static int sip_register(const struct odict_entry *o)
 					opt, e->key, e->u.str);
 		}
 	}
+
+	if (e_update)
+		mem_deref(e_update);
 
 	re_snprintf(buf, sizeof(buf), "<sip:%s@%s;transport=%s>;auth_pass=%s;%s",
 			user, domain, transport, password, opt);
