@@ -200,6 +200,8 @@ struct session {
 	int16_t bufsz;
 	int16_t jb_max;
 	int16_t silence_count;
+	bool effect_ready;
+	bool primary;
 };
 #endif
 

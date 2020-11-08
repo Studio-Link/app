@@ -42,6 +42,8 @@ enum {
 	MAX_CHANNELS = 10
 };
 
+struct lock *sync_lock;
+
 struct auplay_st {
 	const struct auplay *ap;  /* pointer to base-class (inheritance) */
 	pthread_t thread;
@@ -91,6 +93,8 @@ struct session {
 	int16_t bufsz;
 	int16_t jb_max;
 	int16_t silence_count;
+	bool effect_ready;
+	bool primary;
 };
 
 static struct list sessionl;
@@ -143,7 +147,7 @@ static uint64_t sl_jiffies(void)
 static void sess_destruct(void *arg)
 {
 	struct session *sess = arg;
-
+	
 	list_unlink(&sess->le);
 	mem_deref(sess->plock);
 	info("effect: destruct session\n");
@@ -232,14 +236,11 @@ static void sample_move_dS_s16(float *dst, char *src, unsigned long nsamples,
 static void play_process(struct session *sess, unsigned long nframes, uint64_t trev)
 {
 	struct auplay_st *st_play = sess->st_play;
-	uint64_t next = sess->prev + 800;
 
-	if (trev >= next) {
-		webapp_jitter(sess, st_play->sampv,
-				st_play->wh, nframes*2, st_play->arg);
+	webapp_jitter(sess, st_play->sampv,
+			st_play->wh, nframes*2, st_play->arg);
 
-		sess->prev = trev;
-	} 
+	sess->effect_ready = true;
 }
 
 
@@ -251,6 +252,8 @@ void effect_play(struct session *sess, float* const output0,
 void effect_play(struct session *sess, float* const output0,
 		float* const output1, unsigned long nframes)
 {
+	struct auplay_st *st_play;
+
 	/* check max sessions reached*/
 	if(!sess)
 		return;
@@ -258,7 +261,7 @@ void effect_play(struct session *sess, float* const output0,
 	if (!sess->run_play)
 		return;
 
-	struct auplay_st *st_play = sess->st_play;
+	st_play = sess->st_play;
 
 	lock_write_get(sess->plock);
 	play_process(sess, nframes, sess->trev);
@@ -270,6 +273,24 @@ void effect_play(struct session *sess, float* const output0,
 	lock_rel(sess->plock);
 
 	ws_meter_process(sess->ch+1, (float*)output0, nframes);
+}
+
+
+static bool check_sessions_stopped(struct session *sess)
+{
+	struct session *msess;
+	struct le *le;
+
+	for (le = sessionl.head; le; le = le->next) {
+		msess = le->data;
+
+		if (msess->run_play && msess != sess && sess->ch != -1) {
+			if (msess->effect_ready)
+				return false;
+		}
+	}
+
+	return true;
 }
 
 
@@ -287,9 +308,26 @@ void effect_bypass(struct session *sess,
 		const float* const input1,
 		unsigned long nframes)
 {
+	uint64_t loop_start;
+
 	/* check max sessions reached*/
 	if(!sess)
 		return;
+
+
+	if (sess->primary) {
+		/* wait until all threads finished */
+        	loop_start = sl_jiffies();
+		while (1) {
+			if (check_sessions_stopped(sess))
+				break;
+                        if ((sl_jiffies() - loop_start) > 100)
+                        	break;
+                }
+		sess->primary = false;
+	}
+
+	sess->effect_ready = false;
 
 	if (sess->run_play)
 		return;
@@ -309,6 +347,44 @@ void effect_bypass(struct session *sess,
 }
 
 
+static void promote_primary(struct session *sess)
+{
+	struct session *msess;
+	struct le *le;
+
+	/* check for another active primary */
+	for (le = sessionl.head; le; le = le->next) {
+		msess = le->data;
+		if (msess->primary) {
+			sess->primary = false;
+			return;
+		}
+	}
+
+	sess->primary = true;
+}
+
+
+static bool check_sessions_ready(struct session *sess)
+{
+	struct session *msess;
+	struct le *le;
+
+	for (le = sessionl.head; le; le = le->next) {
+		msess = le->data;
+
+		if (msess->run_play && msess != sess && sess->ch != -1) {
+			if (!msess->effect_ready)
+				return false;
+		}
+	}
+
+	return true;
+}
+
+
+
+
 static void mix_n_minus_1(struct session *sess, int16_t *dst,
 		unsigned long nframes)
 {
@@ -318,6 +394,23 @@ static void mix_n_minus_1(struct session *sess, int16_t *dst,
 	int16_t *mixv;
 	unsigned active = 0;
 	unsigned long nsamples = nframes * 2;
+	unsigned i;
+	uint64_t loop_start;
+
+        loop_start = sl_jiffies();
+	lock_write_get(sync_lock);
+	promote_primary(sess);
+	
+	while (1) {
+		if (!sess->primary)
+			break;
+		if (check_sessions_ready(sess))
+			break;
+		if ((sl_jiffies() - loop_start) > 800)
+			break;
+	}
+
+	lock_rel(sync_lock);
 
 	for (le = sessionl.head; le; le = le->next) {
 		struct session *msess = le->data;
@@ -327,8 +420,7 @@ static void mix_n_minus_1(struct session *sess, int16_t *dst,
 			dstmixv = sess->dstmix;
 
 			lock_write_get(msess->plock);
-			play_process(msess, nframes, sess->trev);
-			for (unsigned n = 0; n < nsamples; n++) {
+			for (i = 0; i < nsamples; i++) {
 				*dstmixv = *dstmixv + *mixv;
 				++mixv;
 				++dstmixv;
@@ -341,14 +433,14 @@ static void mix_n_minus_1(struct session *sess, int16_t *dst,
 
 	if (active) {
 		dstmixv = sess->dstmix;
-		for (unsigned i = 0; i < nsamples; i++) {
+		for (i = 0; i < nsamples; i++) {
 			*dstmixv = *dstmixv + *dstv;
 			++dstv;
 			++dstmixv;
 		}
 
 		dstmixv = sess->dstmix;
-		for (unsigned i = 0; i < nsamples; i++) {
+		for (i = 0; i < nsamples; i++) {
 			if (*dstmixv > SAMPLE_16BIT_MAX)
 				*dstmixv = SAMPLE_16BIT_MAX;
 			if (*dstmixv < SAMPLE_16BIT_MIN)
@@ -373,8 +465,6 @@ void effect_src(struct session *sess, const float* const input0,
 	/* check max sessions reached*/
 	if (!sess)
 		return;
-
-	sess->trev = sl_jiffies();
 
 	if (sess->run_src) {
 		struct ausrc_st *st_src = sess->st_src;
@@ -561,6 +651,8 @@ static int effect_init(void)
 	err  = ausrc_register(&ausrc, baresip_ausrcl(), "effect", src_alloc);
 	err |= auplay_register(&auplay, baresip_auplayl(), "effect", play_alloc);
 
+	lock_alloc(&sync_lock);
+
 	for (uint32_t cnt = 0; cnt < MAX_CHANNELS; cnt++)
 	{
 		sess = mem_zalloc(sizeof(*sess), sess_destruct);
@@ -580,6 +672,8 @@ static int effect_init(void)
 		sess->stream = false;
 		sess->local = false;
 		sess->track = cnt + 1;
+		sess->effect_ready = false;
+		sess->primary = false;
 		list_append(&sessionl, &sess->le, sess);
 	}
 
@@ -601,6 +695,8 @@ static int effect_close(void)
 		le = le->next;
 		mem_deref(sess);
 	}
+
+	mem_deref(sync_lock);
 
 	return 0;
 }
