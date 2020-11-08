@@ -147,7 +147,7 @@ static uint64_t sl_jiffies(void)
 static void sess_destruct(void *arg)
 {
 	struct session *sess = arg;
-	
+
 	list_unlink(&sess->le);
 	mem_deref(sess->plock);
 	info("effect: destruct session\n");
@@ -175,7 +175,7 @@ struct session* effect_session_start(void)
 			sess->ch = pos * 2;
 			return sess;
 		}
-		pos++;
+		++pos;
 	}
 
 	return NULL;
@@ -200,7 +200,7 @@ int effect_session_stop(struct session *session)
 		sess = le->data;
 
 		if (sess->ch > -1) {
-			count++;
+			++count;
 		}
 	}
 	info("effect: debug session_stop count: %d\n", count);
@@ -255,7 +255,7 @@ void effect_play(struct session *sess, float* const output0,
 	struct auplay_st *st_play;
 
 	/* check max sessions reached*/
-	if(!sess)
+	if (!sess)
 		return;
 
 	if (!sess->run_play)
@@ -311,19 +311,19 @@ void effect_bypass(struct session *sess,
 	uint64_t loop_start;
 
 	/* check max sessions reached*/
-	if(!sess)
+	if (!sess)
 		return;
 
 
 	if (sess->primary) {
 		/* wait until all threads finished */
-        	loop_start = sl_jiffies();
+		loop_start = sl_jiffies();
 		while (1) {
 			if (check_sessions_stopped(sess))
 				break;
-                        if ((sl_jiffies() - loop_start) > 100)
-                        	break;
-                }
+			if ((sl_jiffies() - loop_start) > 100)
+				break;
+		}
 		sess->primary = false;
 	}
 
@@ -383,8 +383,6 @@ static bool check_sessions_ready(struct session *sess)
 }
 
 
-
-
 static void mix_n_minus_1(struct session *sess, int16_t *dst,
 		unsigned long nframes)
 {
@@ -397,10 +395,10 @@ static void mix_n_minus_1(struct session *sess, int16_t *dst,
 	unsigned i;
 	uint64_t loop_start;
 
-        loop_start = sl_jiffies();
+	loop_start = sl_jiffies();
 	lock_write_get(sync_lock);
 	promote_primary(sess);
-	
+
 	while (1) {
 		if (!sess->primary)
 			break;
