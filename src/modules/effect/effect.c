@@ -464,7 +464,7 @@ void effect_src(struct session *sess, const float* const input0,
 	if (!sess)
 		return;
 
-	if (sess->run_src) {
+	if (sess->run_src && sess->run_play) {
 		struct ausrc_st *st_src = sess->st_src;
 
 		sample_move_d16_sS((char*)st_src->sampv, (float*)input0,
