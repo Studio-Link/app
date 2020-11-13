@@ -76,13 +76,10 @@ struct session {
 	struct le le;
 	struct ausrc_st *st_src;
 	struct auplay_st *st_play;
-	uint64_t trev;
-	uint64_t prev;
 	int32_t *dstmix;
 	int8_t ch;
 	bool run_src;
 	bool run_play;
-	struct lock *plock;
 	bool run_auto_mix;
 	bool bypass;
 	struct call *call;
@@ -149,7 +146,6 @@ static void sess_destruct(void *arg)
 	struct session *sess = arg;
 
 	list_unlink(&sess->le);
-	mem_deref(sess->plock);
 	info("effect: destruct session\n");
 }
 
@@ -193,8 +189,6 @@ int effect_session_stop(struct session *session)
 		return MAX_CHANNELS;
 
 	session->ch = -1;
-	session->trev = 0;
-	session->prev = 0;
 
 	for (le = sessionl.head; le; le = le->next) {
 		sess = le->data;
@@ -233,7 +227,7 @@ static void sample_move_dS_s16(float *dst, char *src, unsigned long nsamples,
 }
 
 
-static void play_process(struct session *sess, unsigned long nframes, uint64_t trev)
+static void play_process(struct session *sess, unsigned long nframes)
 {
 	struct auplay_st *st_play = sess->st_play;
 
@@ -263,14 +257,12 @@ void effect_play(struct session *sess, float* const output0,
 
 	st_play = sess->st_play;
 
-	lock_write_get(sess->plock);
-	play_process(sess, nframes, sess->trev);
+	play_process(sess, nframes);
 
 	sample_move_dS_s16(output0, (char*)st_play->sampv,
 			nframes, 4);
 	sample_move_dS_s16(output1, (char*)st_play->sampv+2,
 			nframes, 4);
-	lock_rel(sess->plock);
 
 	ws_meter_process(sess->ch+1, (float*)output0, nframes);
 }
@@ -417,13 +409,11 @@ static void mix_n_minus_1(struct session *sess, int16_t *dst,
 			mixv = msess->st_play->sampv;
 			dstmixv = sess->dstmix;
 
-			lock_write_get(msess->plock);
 			for (i = 0; i < nsamples; i++) {
 				*dstmixv = *dstmixv + *mixv;
 				++mixv;
 				++dstmixv;
 			}
-			lock_rel(msess->plock);
 
 			++active;
 		}
@@ -662,9 +652,6 @@ static int effect_init(void)
 		sess->bypass = false;
 		sess->ch = -1;
 		sess->call = NULL;
-		sess->trev = 0;
-		sess->prev = 0;
-		lock_alloc(&sess->plock);
 
 		sess->run_auto_mix = true;
 		sess->stream = false;

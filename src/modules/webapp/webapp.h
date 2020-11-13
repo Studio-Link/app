@@ -183,13 +183,10 @@ struct session {
 	struct le le;
 	struct ausrc_st *st_src;
 	struct auplay_st *st_play;
-	uint64_t trev;
-	uint64_t prev;
 	int32_t *dstmix;
 	int8_t ch;
 	bool run_src;
 	bool run_play;
-	struct lock *plock;
 	bool run_auto_mix;
 	bool bypass;
 	struct call *call;
