@@ -9,6 +9,14 @@ make -j4 RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
     EXTRA_LFLAGS="$sl_extra_lflags -L ../openssl"
 fi
 
+if [ "$1" == "assembler" ]; then
+export CC=gcc
+make -j4 RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
+    MODULES="opus stdio ice g711 g722 turn stun uuid auloop webapp menu $sl_extra_modules" \
+    EXTRA_CFLAGS="-I ../my_include -save-temps=obj" \
+    EXTRA_LFLAGS="$sl_extra_lflags -L ../openssl"
+fi
+
 if [ "$1" == "stack" ]; then
 export CC=gcc
 make RELEASE=1 LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
