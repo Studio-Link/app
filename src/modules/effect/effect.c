@@ -258,12 +258,12 @@ void effect_play(struct session *sess, float* const output0,
 	st_play = sess->st_play;
 
 	play_process(sess, nframes);
-
+/*
 	sample_move_dS_s16(output0, (char*)st_play->sampv,
 			nframes, 4);
 	sample_move_dS_s16(output1, (char*)st_play->sampv+2,
 			nframes, 4);
-
+*/
 	ws_meter_process(sess->ch+1, (float*)output0, nframes);
 }
 
@@ -301,11 +301,11 @@ void effect_bypass(struct session *sess,
 		unsigned long nframes)
 {
 	uint64_t loop_start;
+	struct auplay_st *st_play;
 
 	/* check max sessions reached*/
 	if (!sess)
 		return;
-
 
 	if (sess->primary) {
 		/* wait until all threads finished */
@@ -323,6 +323,12 @@ void effect_bypass(struct session *sess,
 
 	if (sess->run_play)
 		return;
+
+	st_play = sess->st_play;
+	sample_move_dS_s16(output0, (char*)st_play->sampv,
+			nframes, 4);
+	sample_move_dS_s16(output1, (char*)st_play->sampv+2,
+			nframes, 4);
 
 	if (sess->run_auto_mix && sess->bypass) {
 		for (uint32_t pos = 0; pos < nframes; pos++) {
