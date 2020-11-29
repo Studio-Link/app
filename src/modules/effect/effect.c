@@ -258,12 +258,17 @@ void effect_play(struct session *sess, float* const output0,
 	st_play = sess->st_play;
 
 	play_process(sess, nframes);
-/*
+
+#if 0
+	/*
+	* Do not write to output here
+	* Audiounit output = input 
+	*/
 	sample_move_dS_s16(output0, (char*)st_play->sampv,
 			nframes, 4);
 	sample_move_dS_s16(output1, (char*)st_play->sampv+2,
 			nframes, 4);
-*/
+#endif
 	ws_meter_process(sess->ch+1, (float*)output0, nframes);
 }
 
@@ -321,14 +326,14 @@ void effect_bypass(struct session *sess,
 
 	sess->effect_ready = false;
 
-	if (sess->run_play)
+	if (sess->run_play) {
+		st_play = sess->st_play;
+		sample_move_dS_s16(output0, (char*)st_play->sampv,
+				nframes, 4);
+		sample_move_dS_s16(output1, (char*)st_play->sampv+2,
+				nframes, 4);
 		return;
-
-	st_play = sess->st_play;
-	sample_move_dS_s16(output0, (char*)st_play->sampv,
-			nframes, 4);
-	sample_move_dS_s16(output1, (char*)st_play->sampv+2,
-			nframes, 4);
+	}
 
 	if (sess->run_auto_mix && sess->bypass) {
 		for (uint32_t pos = 0; pos < nframes; pos++) {
