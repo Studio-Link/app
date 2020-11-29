@@ -262,7 +262,7 @@ void effect_play(struct session *sess, float* const output0,
 #if 0
 	/*
 	* Do not write to output here
-	* Audiounit output = input 
+	* Audiounit output = input
 	*/
 	sample_move_dS_s16(output0, (char*)st_play->sampv,
 			nframes, 4);
