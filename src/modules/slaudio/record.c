@@ -20,8 +20,8 @@
 #define SAMPC 1920  /* Max samples, 48000Hz 2ch at 20ms */
 #include "slaudio.h"
 
-static bool record = false;
-static char command[256];
+static volatile bool record = false;
+static char foldername[256] = {0};
 static int record_timer = 0;
 
 
@@ -37,6 +37,12 @@ int slaudio_record_get_timer()
 }
 
 
+void slaudio_record_get_folder(char *folder)
+{
+	folder = foldername;
+}
+
+
 static int timestamp_print(struct re_printf *pf, const struct tm *tm)
 {
 	if (!tm)
@@ -48,17 +54,10 @@ static int timestamp_print(struct re_printf *pf, const struct tm *tm)
 }
 
 
-static int openfile(struct session *sess)
+static int folder_init()
 {
-	char filename[256];
-	char buf[256];
-	time_t tnow = time(0);
-	struct tm *tm = localtime(&tnow);
-	FLAC__bool ok = true;
-	FLAC__StreamEncoderInitStatus init_status;
-	FLAC__StreamMetadata_VorbisComment_Entry entry;
 	int err;
-	int ret;
+	char buf[256];
 #ifdef WIN32
 	char win32_path[MAX_PATH];
 
@@ -76,33 +75,34 @@ static int openfile(struct session *sess)
 		return err;
 #endif
 
+	(void)re_snprintf(foldername, sizeof(foldername), "%s"
+			DIR_SEP "studio-link");
+	fs_mkdir(foldername, 0700);
 
-	(void)re_snprintf(filename, sizeof(filename), "%s"
-			DIR_SEP "studio-link", buf, timestamp_print, tm);
+	return 0;
+}
 
-	fs_mkdir(filename, 0700);
+
+static int openfile(struct session *sess)
+{
+	char filename[256];
+	time_t tnow = time(0);
+	struct tm *tm = localtime(&tnow);
+	FLAC__bool ok = true;
+	FLAC__StreamEncoderInitStatus init_status;
+	FLAC__StreamMetadata_VorbisComment_Entry entry;
+	int err;
+	int ret;
 
 	(void)re_snprintf(filename, sizeof(filename), "%s"
 			DIR_SEP "studio-link"
-			DIR_SEP "%H", buf, timestamp_print, tm);
+			DIR_SEP "%H", foldername, timestamp_print, tm);
 
 	fs_mkdir(filename, 0700);
 
-#if defined (DARWIN)
-	re_snprintf(command, sizeof(command), "open %s",
-			filename);
-#elif defined (WIN32)
-	re_snprintf(command, sizeof(command), "explorer.exe %s",
-			filename);
-#else
-	re_snprintf(command, sizeof(command), "xdg-open %s",
-			filename);
-#endif
 	if (sess->local) {
 		(void)re_snprintf(filename, sizeof(filename), "%s"
 			DIR_SEP "local.flac", filename);
-		ret = system(command);
-		if (ret) {}
 	}
 	else {
 		(void)re_snprintf(filename, sizeof(filename), "%s"
@@ -164,7 +164,6 @@ static int openfile(struct session *sess)
 			  FLAC__StreamEncoderInitStatusString[init_status]);
 	}
 
-
 	return 0;
 }
 
@@ -223,14 +222,6 @@ static void *record_thread(void *arg)
 				FLAC__metadata_object_delete(sess->meta[1]);
 
 				sess->flac = NULL;
-
-				/* open folder on stop record
-				 * if record_time > 5min
-				 */
-				if (sess->local && record_timer > 300000) {
-					ret = system(command);
-					if (ret) {}
-				}
 			}
 			record_timer = 0;
 		}
@@ -252,6 +243,13 @@ void slaudio_record_init(void) {
 
 	struct session *sess;
 	struct le *le;
+	int err;
+
+	err = folder_init();
+	if (err) {
+		warning("slaudio/record: folder_init error %d\n", err);
+		return;
+	}
 
 	for (le = sessionl.head; le; le = le->next) {
 		sess = le->data;
