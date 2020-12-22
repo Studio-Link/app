@@ -37,7 +37,7 @@ int slaudio_record_get_timer()
 }
 
 
-void slaudio_record_get_folder(char *folder)
+void slaudio_record_open_folder(char *folder)
 {
 	folder = foldername;
 }
