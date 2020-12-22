@@ -2,9 +2,8 @@
 #include <re.h>
 #include <rem.h>
 #include <baresip.h>
-#include "share/compat.h"
-#include "FLAC/metadata.h"
-#include "FLAC/stream_encoder.h"
+#include <FLAC/metadata.h>
+#include <FLAC/stream_encoder.h>
 #include <pthread.h>
 
 #if defined (WIN32)

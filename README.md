@@ -52,12 +52,6 @@ And current nodejs/npm (Node.js v10.x v11.x or v12.x):
 
 https://github.com/nodesource/distributions/blob/master/README.md
 
-### Build Requirements on macOS 10.14
-
-Install /usr/include Header File with:
-/Library/Developer/CommandLineTools/Packages/macOS_SDK_headers_for_macOS_10.14.pkg
-
-
 ### Build on Linux
 
 ```bash
@@ -65,11 +59,25 @@ mdkir studio-link
 cd studio-link
 git clone https://github.com/Studio-Link/3rdparty.git
 cd 3rdparty
-export TRAVIS_OS_NAME="linux"; dist/build.sh
+export BUILD_TARGET="linux"; dist/build.sh
 cd ..
 git clone https://github.com/Studio-Link/app.git
 cd app
 export TRAVIS_OS_NAME="linux"; dist/build.sh
+```
+
+### Build on Linux with JACK support
+
+```bash
+mdkir studio-link
+cd studio-link
+git clone https://github.com/Studio-Link/3rdparty.git
+cd 3rdparty
+export BUILD_TARGET="linuxjack"; dist/build.sh
+cd ..
+git clone https://github.com/Studio-Link/app.git
+cd app
+export TRAVIS_OS_NAME="linux"; export BUILD_OS="linuxjack"; dist/build.sh
 ```
 
 ### Build on macOS

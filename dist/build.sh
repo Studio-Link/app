@@ -3,7 +3,7 @@
 source dist/lib/versions.sh
 source dist/lib/functions.sh
 
-make_opts="-j4"
+make_opts="-j4 SYSROOT_ALT=../3rdparty"
 
 if [ "$BUILD_OS" == "ccheck" ]; then
     dist/tools/ccheck.sh
