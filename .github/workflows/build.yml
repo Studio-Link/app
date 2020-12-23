@@ -22,6 +22,7 @@ jobs:
         ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }} 
         local_path: './build/s3_upload/*'
         remote_path: '/home/slupload/htdocs/'
+        port: '2222'
 
   build:
     needs: webui
