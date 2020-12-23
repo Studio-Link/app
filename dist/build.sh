@@ -5,12 +5,12 @@ source dist/lib/functions.sh
 
 make_opts="-j4 SYSROOT_ALT=../3rdparty"
 
-if [ "$BUILD_OS" == "ccheck" ]; then
+if [ "$BUILD_TARGET" == "ccheck" ]; then
     dist/tools/ccheck.sh
     exit 0
 fi
 
-if [ "$BUILD_OS" == "linuxarm" ]; then
+if [ "$BUILD_TARGET" == "linuxarm" ]; then
     git clone https://github.com/raspberrypi/tools $HOME/rpi-tools
     export PATH=$PATH:$HOME/rpi-tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
     export ARCH=arm
@@ -20,12 +20,6 @@ if [ "$BUILD_OS" == "linuxarm" ]; then
     export RPI_CROSS_COMPILE=true
 fi
 
-if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
-    curl -s https://raw.githubusercontent.com/studio-link-3rdparty/arch-travis/master/arch-travis.sh | bash
-    #curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash
-    exit 0
-fi
-
 # Start build
 #-----------------------------------------------------------------------------
 sl_prepare
@@ -33,19 +27,19 @@ sl_3rdparty
 
 sl_extra_lflags="-L ../opus -L ../my_include "
 
-if [ "$TRAVIS_OS_NAME" == "osx" ]; then 
+if [ "$BUILD_OS" == "macos" ]; then 
 use_ssl='USE_OPENSSL="yes" USE_OPENSSL_DTLS="yes" USE_OPENSSL_SRTP="yes"'
 else
 use_ssl='USE_OPENSSL="yes"'
 fi
 
-if [ "$BUILD_OS" == "linux" ]; then
+if [ "$BUILD_TARGET" == "linux" ]; then
     sl_extra_modules="alsa slaudio"
 fi
-if [ "$BUILD_OS" == "linuxjack" ]; then
+if [ "$BUILD_TARGET" == "linuxjack" ]; then
     sl_extra_modules="jack alsa slaudio"
 fi
-if [ "$TRAVIS_OS_NAME" == "osx" ]; then 
+if [ "$BUILD_OS" == "macos" ]; then 
     export MACOSX_DEPLOYMENT_TARGET=10.10
     sl_extra_lflags+="-L ../openssl ../openssl/libssl.a ../openssl/libcrypto.a "
     sl_extra_lflags+="-framework SystemConfiguration "
@@ -84,7 +78,7 @@ if [ ! -d baresip-$baresip ]; then
 
     pushd baresip-$baresip
     # Standalone
-    if [ "$BUILD_OS" == "linux" ] || [ "$BUILD_OS" == "linuxjack" ]; then
+    if [ "$BUILD_TARGET" == "linux" ] || [ "$BUILD_TARGET" == "linuxjack" ]; then
         make $debug $make_opts $use_ssl  LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
             MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
             EXTRA_CFLAGS="-I ../my_include" \
@@ -120,7 +114,7 @@ fi
 
 # Build overlay-lv2 plugin (linux only)
 #-----------------------------------------------------------------------------
-if [ "$BUILD_OS" == "linux" ]; then
+if [ "$BUILD_TARGET" == "linux" ]; then
     if [ ! -d overlay-lv2 ]; then
         git clone $github_org/overlay-lv2.git overlay-lv2
         cd overlay-lv2; ./build.sh; cd ..
@@ -129,7 +123,7 @@ fi
 
 # Build overlay-onair-lv2 plugin (linux only)
 #-----------------------------------------------------------------------------
-if [ "$BUILD_OS" == "linux" ]; then
+if [ "$BUILD_TARGET" == "linux" ]; then
     if [ ! -d overlay-onair-lv2 ]; then
         git clone $github_org/overlay-onair-lv2.git overlay-onair-lv2
         cd overlay-onair-lv2; ./build.sh; cd ..
@@ -138,7 +132,7 @@ fi
 
 # Build Reaper Linux overlay-vst
 #-----------------------------------------------------------------------------
-if [ "$BUILD_OS" == "linux" ]; then
+if [ "$BUILD_TARGET" == "linux" ]; then
     if [ ! -d overlay-vst ]; then
         sl_get_overlay-vst
         pushd overlay-vst
@@ -151,7 +145,7 @@ fi
 
 # Build overlay-audio-unit plugin (osx only)
 #-----------------------------------------------------------------------------
-if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+if [ "$BUILD_OS" == "macos" ]; then
     if [ ! -d overlay-audio-unit ]; then
         git clone \
             $github_org/overlay-audio-unit.git overlay-audio-unit
@@ -167,7 +161,7 @@ fi
 
 # Build overlay-onair-au plugin (osx only)
 #-----------------------------------------------------------------------------
-if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+if [ "$BUILD_OS" == "macos" ]; then
     if [ ! -d overlay-onair-au ]; then
         git clone \
             $github_org/overlay-onair-au.git overlay-onair-au
@@ -182,7 +176,7 @@ fi
 
 # Build standalone app bundle (osx only)
 #-----------------------------------------------------------------------------
-if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+if [ "$BUILD_OS" == "macos" ]; then
     if [ ! -d overlay-standalone-osx ]; then
         git clone \
             $github_org/overlay-standalone-osx.git overlay-standalone-osx
@@ -200,10 +194,10 @@ fi
 # Testing and prepare release upload
 #-----------------------------------------------------------------------------
 
-s3_path="s3_upload/$TRAVIS_BRANCH/$version_t/$BUILD_OS"
+s3_path="s3_upload/$GIT_BRANCH/$version_t/$BUILD_TARGET"
 mkdir -p $s3_path
 
-if [ "$BUILD_OS" == "linuxjack" ]; then
+if [ "$BUILD_TARGET" == "linuxjack" ]; then
     #./studio-link-standalone -t 5
     ldd studio-link-standalone
 
@@ -216,7 +210,7 @@ if [ "$BUILD_OS" == "linuxjack" ]; then
     cp -a studio-link-standalone-$version_tc.tar.gz $s3_path
 fi
 
-if [ "$BUILD_OS" == "linux" ]; then
+if [ "$BUILD_TARGET" == "linux" ]; then
     #./studio-link-standalone -t 5
     ldd studio-link-standalone
 
@@ -253,7 +247,7 @@ if [ "$BUILD_OS" == "linux" ]; then
     cp -a vst $s3_path
 fi
 
-if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+if [ "$BUILD_OS" == "macos" ]; then
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLink.component StudioLink.component
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLinkOnAir.component StudioLinkOnAir.component
     mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app

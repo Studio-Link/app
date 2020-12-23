@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-if [ "$BUILD_OS" == "linux" ] || [ "$BUILD_OS" == "linuxjack" ]; then
+if [ "$BUILD_OS" == "linux" ]; then
     if [ "$(id -u)" == "0" ]; then
         apt-get update -qq
         apt-get install -y libasound2-dev libjack-jackd2-dev libpulse-dev libpulse0 vim-common
@@ -8,7 +8,7 @@ if [ "$BUILD_OS" == "linux" ] || [ "$BUILD_OS" == "linuxjack" ]; then
         tar xjf lv2-1.14.0.tar.bz2 
         pushd lv2-1.14.0 && ./waf configure && ./waf build && sudo ./waf install && popd
     fi
-elif [ "$BUILD_OS" == "osx" ]; then
+elif [ "$BUILD_OS" == "macos" ]; then
     if [ "$(id -u)" != "0" ] && [ "$CIRCLECI" != "true" ]; then
 #        brew update
 #        brew install openssl

@@ -6,10 +6,7 @@ sl_prepare_version() {
 }
 
 sl_prepare() {
-    if [ -z $BUILD_OS ]; then
-        export BUILD_OS="$TRAVIS_OS_NAME"
-    fi
-    echo "start build on $TRAVIS_OS_NAME ($BUILD_OS)"
+    echo "start build on $BUILD_TARGET ($BUILD_TARGET)"
     sed_opt="-i"
 
     sl_prepare_version
@@ -18,18 +15,19 @@ sl_prepare() {
     pushd build
     mkdir -p my_include
 
+    GIT_BRANCH=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }'))
 
     SHASUM=$(which shasum)
 }
 
 sl_3rdparty() {
     #Get 3rdparty prebuilds
-    if [ -f ../../3rdparty/build/$BUILD_OS.zip ]; then
-        cp ../../3rdparty/build/$BUILD_OS.zip $BUILD_OS.zip
+    if [ -f ../../3rdparty/build/$BUILD_TARGET.zip ]; then
+        cp ../../3rdparty/build/$BUILD_TARGET.zip $BUILD_TARGET.zip
     else
-        wget https://github.com/Studio-Link/3rdparty/releases/download/${sl3rdparty}/$BUILD_OS.zip
+        wget https://github.com/Studio-Link/3rdparty/releases/download/${sl3rdparty}/$BUILD_TARGET.zip
     fi
-    unzip $BUILD_OS.zip
+    unzip $BUILD_TARGET.zip
 }
 
 sl_get_webui() {
@@ -48,7 +46,7 @@ sl_get_overlay-vst() {
     wget http://www.steinberg.net/sdk_downloads/$vstsdk.zip
     unzip -q $vstsdk.zip
     mv VST_SDK/VST2_SDK overlay-vst/vstsdk2.4
-    if [ "$BUILD_OS" == "linux" ]; then
+    if [ "$BUILD_TARGET" == "linux" ]; then
         pushd overlay-vst/vstsdk2.4
         patch --ignore-whitespace -p1 < ../vst2_linux.patch
         popd
@@ -79,7 +77,7 @@ sl_get_libre() {
 #    patch --ignore-whitespace -p1 < ../../dist/patches/re_ice_bug.patch
     patch --ignore-whitespace -p1 < ../../dist/patches/re_fix_authorization.patch
 #    patch --ignore-whitespace -p1 < ../../dist/patches/re_recv_handler_win_patch.patch
-    if [ "$BUILD_OS" == "windows32" ] || [ "$BUILD_OS" == "windows64" ]; then
+    if [ "$BUILD_TARGET" == "windows32" ] || [ "$BUILD_TARGET" == "windows64" ]; then
         patch -p1 < ../../dist/patches/fix_windows_ssize_t_bug.patch
         #patch -p1 < ../../dist/patches/re_wsapoll.patch
     fi
