@@ -8,8 +8,9 @@ jobs:
     env:
       BUILD_TARGET: webui 
       BUILD_OS: linux
-  steps:
+    steps:
     - uses: actions/checkout@v2
+
     - name: build webui
       run: ./dist/build_webui.sh
 
