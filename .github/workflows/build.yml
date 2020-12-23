@@ -14,6 +14,15 @@ jobs:
     - name: build webui
       run: ./dist/build_webui.sh
 
+    - name: SFTP Upload
+      uses: sreimers/sftp-deploy-action@main
+      with:
+        username: 'downloadstudio'
+        server: 'download.studio.link'
+        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }} 
+        local_path: './build/s3_upload/*'
+        remote_path: '/home/slupload/htdocs/'
+
   build:
     needs: webui
     runs-on: ${{ matrix.os }}

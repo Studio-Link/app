@@ -31,8 +31,8 @@ sl_3rdparty() {
 }
 
 sl_get_webui() {
-    s3_path="$TRAVIS_BRANCH/$version_t"
-    wget https://s3.eu-central-1.amazonaws.com/studio-link-artifacts/$s3_path/webui.zip
+    s3_path="$GIT_BRANCH/$version_t"
+    wget https://download.studio.link/devel/$s3_path/webui.zip
     unzip webui.zip
     mkdir -p ../src/modules/webapp/assets
     cp -a webui/headers/*.h ../src/modules/webapp/assets/
