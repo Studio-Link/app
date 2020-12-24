@@ -34,8 +34,8 @@ sl_3rdparty() {
         mkdir -p 3rdparty/lib
         cp -a macos_x86_64/3rdparty/include 3rdparty
 
-        for p in libcrypto.a libssl.a libsoundio.a libFLAC.a libopus.a; do
-            lipo -create macos_arm64/lib/$p macos_x86_64/lib/$p -output 3rdparty/lib/$p
+        for p in libcrypto.a libssl.a libsoundio.a libFLAC.a libopus.a libsamplerate.a; do
+            lipo -create macos_arm64/3rdparty/lib/$p macos_x86_64/3rdparty/lib/$p -output 3rdparty/lib/$p
             lipo -info 3rdparty/lib/$p
         done
         
