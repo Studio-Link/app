@@ -53,6 +53,7 @@ jobs:
     env:
       BUILD_TARGET: ${{ matrix.target }}
       BUILD_OS: ${{ matrix.os_name }}
+      KEY_PASSWORD_2020: ${{ secrets.KEY_PASSWORD_2020 }}
 
     steps:
     - uses: actions/checkout@v2
@@ -64,8 +65,6 @@ jobs:
 
     - name: prepare build
       if: ${{ matrix.os_name == 'linux' || matrix.os_name == 'macos' }}
-      env:
-        KEY_PASSWORD_2020: ${{ secrets.KEY_PASSWORD_2020 }}
       run: |
         sudo ./dist/before_build.sh
         ./dist/before_build.sh
