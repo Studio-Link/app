@@ -26,6 +26,7 @@ sl_prepare
 sl_3rdparty
 
 sl_extra_lflags="-L ../opus -L ../my_include "
+sl_extra_cflags=""
 
 if [ "$BUILD_OS" == "macos" ]; then 
 use_ssl='USE_OPENSSL="yes" USE_OPENSSL_DTLS="yes" USE_OPENSSL_SRTP="yes"'
@@ -45,6 +46,7 @@ if [ "$BUILD_OS" == "macos" ]; then
     sl_extra_lflags+="-framework SystemConfiguration "
     sl_extra_lflags+="-framework CoreFoundation"
     sl_extra_modules="slaudio"
+    sl_extra_cflags+="-arch x86_64 -arch arm64"
     sed_opt="-i ''"
 fi
 
@@ -57,7 +59,8 @@ if [ ! -d re-$re ]; then
 
     # WARNING build releases with RELEASE=1, because otherwise its MEM Debug
     # statements are not THREAD SAFE! on every platform, especilly windows.
-    make -C re $make_opts $debug $use_ssl EXTRA_CFLAGS="-I ../my_include/" libre.a
+    make -C re $make_opts $debug $use_ssl \
+        EXTRA_CFLAGS="-I ../my_include/ $sl_extra_cflags" libre.a
     mkdir -p my_include/re
     cp -a re/include/* my_include/re/
 fi
@@ -67,7 +70,7 @@ fi
 if [ ! -d rem-$rem ]; then
     sl_get_librem
     cd rem
-    make $debug librem.a 
+    make $debug EXTRA_CFLAGS="$sl_extra_cflags" librem.a 
     cd ..
 fi
 
