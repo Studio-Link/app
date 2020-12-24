@@ -64,9 +64,7 @@ jobs:
 
     - name: prepare build
       if: ${{ matrix.os_name == 'linux' || matrix.os_name == 'macos' }}
-      run: |
-        sudo ./dist/before_build.sh
-        ./dist/before_build.sh
+      run: ./dist/before_build.sh
       env:
         KEY_PASSWORD_2020: ${{ secrets.KEY_PASSWORD_2020 }}
 
