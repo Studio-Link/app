@@ -22,6 +22,26 @@ sl_prepare() {
 
 sl_3rdparty() {
     #Get 3rdparty prebuilds
+
+    if [ $BUILD_TARGET == "macos" ]; then
+        for arch in macos_arm64 macos_x86_64; do
+            mkdir -p $arch && pushd $arch
+            wget https://github.com/Studio-Link/3rdparty/releases/download/${sl3rdparty}/$arch.zip
+            unzip $arch.zip
+            popd
+        done
+
+        mkdir -p 3rdparty/lib
+        cp -a macos_x86_64/3rdparty/include 3rdparty
+
+        for p in libcrypto.a libssl.a libsoundio.a libFLAC.a libopus.a; do
+            lipo -create macos_arm64/lib/$p macos_x86_64/lib/$p -output 3rdparty/lib/$p
+            lipo -info 3rdparty/lib/$p
+        done
+        
+        return
+    fi
+
     if [ -f ../../3rdparty/build/$BUILD_TARGET.zip ]; then
         cp ../../3rdparty/build/$BUILD_TARGET.zip $BUILD_TARGET.zip
     else
