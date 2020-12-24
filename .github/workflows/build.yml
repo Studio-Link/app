@@ -21,7 +21,7 @@ jobs:
         server: 'download.studio.link'
         ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }} 
         local_path: './build/s3_upload/*'
-        remote_path: '/home/downloadstudio/htdocs/'
+        remote_path: '/htdocs/'
         port: '2222'
 
   build:
