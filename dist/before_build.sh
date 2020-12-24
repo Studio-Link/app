@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
 if [ "$BUILD_OS" == "linux" ]; then
+    id -u
     if [ "$(id -u)" == "0" ]; then
         apt-get update -qq
         apt-get install -y libasound2-dev libjack-jackd2-dev libpulse-dev libpulse0 vim-common
