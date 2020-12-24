@@ -17,7 +17,7 @@ jobs:
     - name: SFTP Upload
       uses: sreimers/sftp-deploy-action@main
       with:
-        username: 'downloadstudio'
+        username: 'slgithub'
         server: 'download.studio.link'
         ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }} 
         local_path: './build/s3_upload/*'
