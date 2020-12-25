@@ -32,9 +32,9 @@ struct webapp {
 	enum ws_type ws_type;
 };
 
-enum webapp_call_state webapp_call_status;
+extern enum webapp_call_state webapp_call_status;
 
-struct odict *webapp_calls;
+extern struct odict *webapp_calls;
 
 int webapp_call_delete(struct call *call);
 int webapp_call_update(struct call *call, char *state);
