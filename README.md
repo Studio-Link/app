@@ -59,11 +59,11 @@ mdkir studio-link
 cd studio-link
 git clone https://github.com/Studio-Link/3rdparty.git
 cd 3rdparty
-export BUILD_TARGET="linux"; dist/build.sh
+export BUILD_OS="linux"; export BUILD_TARGET="linux"; dist/build.sh
 cd ..
 git clone https://github.com/Studio-Link/app.git
 cd app
-export TRAVIS_OS_NAME="linux"; dist/build.sh
+export BUILD_OS="linux"; export BUILD_TARGET="linux"; dist/build.sh
 ```
 
 ### Build on Linux with JACK support
@@ -73,11 +73,11 @@ mdkir studio-link
 cd studio-link
 git clone https://github.com/Studio-Link/3rdparty.git
 cd 3rdparty
-export BUILD_TARGET="linuxjack"; dist/build.sh
+export BUILD_OS="linux"; export BUILD_TARGET="linuxjack"; dist/build.sh
 cd ..
 git clone https://github.com/Studio-Link/app.git
 cd app
-export TRAVIS_OS_NAME="linux"; export BUILD_OS="linuxjack"; dist/build.sh
+export BUILD_OS="linux"; export BUILD_TARGET="linuxjack"; dist/build.sh
 ```
 
 ### Build on macOS
@@ -87,11 +87,11 @@ mdkir studio-link
 cd studio-link
 git clone https://github.com/Studio-Link/3rdparty.git
 cd 3rdparty
-export TRAVIS_OS_NAME="osx"; dist/build.sh
+export BUILD_OS="macos"; export BUILD_TARGET="macos_x86_64"; dist/build.sh
 cd ..
 git clone https://github.com/Studio-Link/app.git
 cd app
-export TRAVIS_OS_NAME="osx"; dist/build.sh
+export BUILD_OS="macos"; export BUILD_TARGET="macos_x86_64"; dist/build.sh
 ```
 
 ### Build for Windows on Arch Linux (only)
@@ -101,11 +101,11 @@ mdkir studio-link
 cd studio-link
 git clone https://github.com/Studio-Link/3rdparty.git
 cd 3rdparty
-export TRAVIS_OS_NAME="windows64"; dist/build_windows.sh
+export BUILD_OS="mingw"; export BUILD_TARGET="windows64"; dist/build.sh
 cd ..
 git clone https://github.com/Studio-Link/app.git
 cd app
-export TRAVIS_OS_NAME="windows64"; dist/build_windows.sh
+export BUILD_OS="mingw"; export BUILD_TARGET="windows64"; dist/build_windows.sh
 ```
 
 ## License
