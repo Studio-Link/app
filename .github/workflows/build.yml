@@ -72,3 +72,13 @@ jobs:
     - name: build
       if: ${{ matrix.os_name == 'linux' || matrix.os_name == 'macos' }}
       run: ./dist/build.sh
+
+    - name: SFTP Upload
+      uses: sreimers/sftp-deploy-action@main
+      with:
+        username: 'slgithub'
+        server: 'download.studio.link'
+        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }} 
+        local_path: './build/s3_upload/*'
+        remote_path: '/htdocs/'
+        port: '2222'
