@@ -155,6 +155,13 @@ if [ "$BUILD_OS" == "macos" ]; then
         sed -i '' s/SLVERSION_N/$version_n/ StudioLink/StudioLink.jucer
         wget https://github.com/juce-framework/JUCE/releases/download/$juce/juce-$juce-osx.zip
         unzip juce-$juce-osx.zip
+
+        if [ "$BUILD_TARGET" == "macos_x86_64"]; then
+            echo "VALID_ARCHS = x86_64" >> build.xconfig
+        else
+            echo "VALID_ARCHS = arm64" >> build.xconfig
+        fi
+
         ./build.sh
         cd ..
     fi
@@ -169,6 +176,13 @@ if [ "$BUILD_OS" == "macos" ]; then
         cd overlay-onair-au
         sed -i '' s/SLVERSION_N/$version_n/ StudioLinkOnAir/StudioLinkOnAir.jucer
         mv ../overlay-audio-unit/JUCE .
+
+        if [ "$BUILD_TARGET" == "macos_x86_64"]; then
+            echo "VALID_ARCHS = x86_64" >> build.xconfig
+        else
+            echo "VALID_ARCHS = arm64" >> build.xconfig
+        fi
+
         ./build.sh
         cd ..
     fi
@@ -186,6 +200,13 @@ if [ "$BUILD_OS" == "macos" ]; then
             overlay-standalone-osx/StudioLinkStandalone/
         cd overlay-standalone-osx
         sed -i '' s/SLVERSION_N/$version_n/ StudioLinkStandalone/Info.plist
+
+        if [ "$BUILD_TARGET" == "macos_x86_64"]; then
+            echo "VALID_ARCHS = x86_64" >> build.xconfig
+        else
+            echo "VALID_ARCHS = arm64" >> build.xconfig
+        fi
+
         ./build.sh
         cd ..
     fi
