@@ -29,6 +29,16 @@ jobs:
         remote_path: '/htdocs/'
         port: '2222'
 
+  ccheck:
+    runs-on: ubuntu-20.04
+    env:
+      BUILD_TARGET: ccheck
+      BUILD_OS: linux
+    steps:
+    - uses: actions/checkout@v2
+    - name: ccheck
+      run: ./dist/build.sh 
+
   build:
     needs: webui
     runs-on: ${{ matrix.os }}
@@ -43,9 +53,6 @@ jobs:
           - target: windows32
             os: ubuntu-20.04
             os_name: mingw
-          - target: ccheck
-            os: ubuntu-16.04
-            os_name: linux
           - target: linux
             os: ubuntu-16.04
             os_name: linux
