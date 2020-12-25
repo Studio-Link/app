@@ -30,11 +30,7 @@ PWD       := $(shell pwd)
 CFLAGS    := -DFD_SETSIZE=8192 \
 	-isystem $(PWD)/openssl/include -I$(PWD) -I $(PWD)/my_include -g -gdwarf-2
 
-LFLAGS    := -L$(SYSROOT)/lib/ \
-	-L$(PWD)/openssl \
-	-L$(PWD)/rem \
-	-L$(PWD)/opus \
-	-L$(PWD)/my_include -fstack-protector
+LFLAGS    := -L$(SYSROOT)/lib/ -L$(PWD)/my_include -fstack-protector
 
 # workaround for linker order (note, the order is important)
 LIBS	:= -lrem -lssl -lcrypto -lwsock32 -lws2_32 -liphlpapi -lcrypt32 -lopus -lFLAC -lsamplerate -lsoundio -lstdc++ -lole32 -lwinmm -lksuser -lmfplat -lmfuuid -lwmcodecdspuuid -ldsound
@@ -47,7 +43,7 @@ COMMON_FLAGS := CC=$(CC) \
 		EXTRA_LFLAGS="$(LFLAGS) -static" \
 		LIBS="$(LIBS)" \
 		SYSROOT=$(SYSROOT) \
-		SYSROOT_ALT= \
+		SYSROOT_ALT="../3rdparty" \
 		HAVE_GETOPT=1 \
 		HAVE_LIBRESOLV= \
 		HAVE_PTHREAD= \
