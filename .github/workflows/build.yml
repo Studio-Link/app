@@ -43,6 +43,9 @@ jobs:
           - target: windows32
             os: ubuntu-20.04
             os_name: mingw
+          - target: ccheck
+            os: ubuntu-16.04
+            os_name: linux
           - target: linux
             os: ubuntu-16.04
             os_name: linux
