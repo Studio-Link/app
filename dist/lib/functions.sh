@@ -15,7 +15,11 @@ sl_prepare() {
     pushd build
     mkdir -p my_include
 
-    GIT_BRANCH=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+    if [ -z "${GITHUB_REF}" ]; then
+        GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    else
+        GIT_BRANCH=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+    fi
 
     SHASUM=$(which shasum)
 }
