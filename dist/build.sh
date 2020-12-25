@@ -315,8 +315,8 @@ if [ "$BUILD_OS" == "macos" ]; then
     rm -Rf StudioLink.component StudioLinkOnAir.component StudioLinkStandalone.app
     popd
 
-    cp -a studio-link-standalone.zip $s3_path/studio-link-standalone-$version_t.zip
-    cp -a studio-link-plugin.zip $s3_path
-    cp -a studio-link-plugin-onair.zip $s3_path
-    cp -a hardened $s3_path
+    #cp -a studio-link-standalone.zip $s3_path/studio-link-standalone-$version_t.zip
+    #cp -a studio-link-plugin.zip $s3_path
+    #cp -a studio-link-plugin-onair.zip $s3_path
+    cp -a hardened/* $s3_path
 fi
