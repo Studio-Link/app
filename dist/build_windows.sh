@@ -10,19 +10,19 @@ sl_3rdparty
 
 make_opts="-j4"
 
-mkdir -p mingw
-pushd mingw
-mingwurl="https://github.com/Studio-Link/mingw/releases/download/v20.03.0"
-wget -N $mingwurl/mingw-w64-binutils-2.34-1-x86_64.pkg.tar.xz
-wget -N $mingwurl/mingw-w64-configure-0.1.1-9-any.pkg.tar.xz
-wget -N $mingwurl/mingw-w64-crt-7.0.0-1-any.pkg.tar.xz
-wget -N $mingwurl/mingw-w64-environment-1-2-any.pkg.tar.xz
-wget -N $mingwurl/mingw-w64-gcc-9.3.0-1-x86_64.pkg.tar.xz
-wget -N $mingwurl/mingw-w64-headers-7.0.0-1-any.pkg.tar.xz
-wget -N $mingwurl/mingw-w64-pkg-config-2-4-any.pkg.tar.xz
-wget -N $mingwurl/mingw-w64-winpthreads-7.0.0-1-any.pkg.tar.xz
-yes | LANG=C sudo pacman -U *.pkg.tar.xz
-popd
+#mkdir -p mingw
+#pushd mingw
+#mingwurl="https://github.com/Studio-Link/mingw/releases/download/v20.03.0"
+#wget -N $mingwurl/mingw-w64-binutils-2.34-1-x86_64.pkg.tar.xz
+#wget -N $mingwurl/mingw-w64-configure-0.1.1-9-any.pkg.tar.xz
+#wget -N $mingwurl/mingw-w64-crt-7.0.0-1-any.pkg.tar.xz
+#wget -N $mingwurl/mingw-w64-environment-1-2-any.pkg.tar.xz
+#wget -N $mingwurl/mingw-w64-gcc-9.3.0-1-x86_64.pkg.tar.xz
+#wget -N $mingwurl/mingw-w64-headers-7.0.0-1-any.pkg.tar.xz
+#wget -N $mingwurl/mingw-w64-pkg-config-2-4-any.pkg.tar.xz
+#wget -N $mingwurl/mingw-w64-winpthreads-7.0.0-1-any.pkg.tar.xz
+#yes | LANG=C sudo pacman -U *.pkg.tar.xz
+#popd
 
 if [ "$BUILD_TARGET" == "windows32" ]; then
     _arch="i686-w64-mingw32"
