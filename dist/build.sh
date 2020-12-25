@@ -57,9 +57,8 @@ if [ "$BUILD_OS" == "macos" ]; then
         #export CFLAGS=$BUILD_CFLAGS
         #export CXXFLAGS=$BUILD_CXXFLAGS
         #_arch="arm64-apple-darwin"
-        sl_extra_cflags+=" -arch arm64"
+        sl_extra_cflags+=" -arch arm64 -isysroot $sysroot"
         sl_extra_lflags+=" -arch arm64"
-        make_opts+=" SYSROOT=$sysroot"
     fi
 fi
 
