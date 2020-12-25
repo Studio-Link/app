@@ -1,5 +1,5 @@
 vmajor=20; vminor=12; vpatch=0
-vbuild="$(git rev-list HEAD --count).$(git rev-parse --short HEAD)"
+vbuild="$(git rev-parse --short HEAD)"
 release="beta2-${vbuild}"
 #release="beta1"
 baresip="1.0.0"
