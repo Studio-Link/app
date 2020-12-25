@@ -47,6 +47,19 @@ if [ "$BUILD_OS" == "macos" ]; then
     sl_extra_lflags+="-framework CoreFoundation"
     sl_extra_modules="slaudio"
     sed_opt="-i ''"
+
+    if [ "$BUILD_TARGET" == "macos_arm64" ]; then
+        xcode="/Applications/Xcode_12.2.app/Contents/Developer"
+        sysroot="$xcode/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+        sudo xcode-select --switch $xcode
+        #BUILD_CFLAGS="$CFLAGS -arch arm64 -isysroot $sysroot"
+        #BUILD_CXXFLAGS="$CXXFLAGS -arch arm64 -isysroot $sysroot"
+        #export CFLAGS=$BUILD_CFLAGS
+        #export CXXFLAGS=$BUILD_CXXFLAGS
+        #_arch="arm64-apple-darwin"
+        sl_extra_cflags+=" -arch arm64"
+        sl_extra_lflags+=" -arch arm64"
+    fi
 fi
 
 sl_extra_modules="$sl_extra_modules g722 slogging dtls_srtp"
@@ -58,7 +71,7 @@ if [ ! -d re-$re ]; then
 
     # WARNING build releases with RELEASE=1, because otherwise its MEM Debug
     # statements are not THREAD SAFE! on every platform, especilly windows.
-    make -C re $make_opts $debug $use_ssl \
+    make -C re $make_opts $debug $use_ssl EXTRA_LFLAGS="$sl_extra_lflags" \
         EXTRA_CFLAGS="-I ../my_include/ $sl_extra_cflags" libre.a
     mkdir -p my_include/re
     cp -a re/include/* my_include/re/
@@ -69,7 +82,7 @@ fi
 if [ ! -d rem-$rem ]; then
     sl_get_librem
     cd rem
-    make $debug EXTRA_CFLAGS="$sl_extra_cflags" librem.a 
+    make $debug EXTRA_CFLAGS="$sl_extra_cflags" EXTRA_LFLAGS="$sl_extra_lflags" librem.a 
     cd ..
 fi
 
@@ -83,7 +96,7 @@ if [ ! -d baresip-$baresip ]; then
     if [ "$BUILD_TARGET" == "linux" ] || [ "$BUILD_TARGET" == "linuxjack" ]; then
         make $debug $make_opts $use_ssl  LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
             MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
-            EXTRA_CFLAGS="-I ../my_include" \
+            EXTRA_CFLAGS="-I ../my_include $sl_extra_cflags" \
             EXTRA_LFLAGS="$sl_extra_lflags -L ../openssl"
 
         cp -a baresip ../studio-link-standalone
@@ -92,7 +105,7 @@ if [ ! -d baresip-$baresip ]; then
     # libbaresip.a without effect plugin
     make $debug $make_opts $use_ssl LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
-        EXTRA_CFLAGS="-I ../my_include" \
+        EXTRA_CFLAGS="-I ../my_include $sl_extra_cflags" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
     cp -a libbaresip.a ../my_include/libbaresip_standalone.a
 
@@ -100,7 +113,7 @@ if [ ! -d baresip-$baresip ]; then
     make clean
     make $debug $make_opts $use_ssl LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop apponair effectonair slogging g722 dtls_srtp" \
-        EXTRA_CFLAGS="-I ../my_include -DSLIVE" \
+        EXTRA_CFLAGS="-I ../my_include -DSLIVE $sl_extra_cflags" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
     cp -a libbaresip.a ../my_include/libbaresip_onair.a
 
@@ -108,7 +121,7 @@ if [ ! -d baresip-$baresip ]; then
     make clean
     make $debug $make_opts $use_ssl LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
         MODULES="opus stdio ice g711 turn stun uuid auloop webapp effect g722 slogging dtls_srtp" \
-        EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN" \
+        EXTRA_CFLAGS="-I ../my_include -DSLPLUGIN $sl_extra_cflags" \
         EXTRA_LFLAGS="$sl_extra_lflags" libbaresip.a
 
     popd
@@ -156,7 +169,7 @@ if [ "$BUILD_OS" == "macos" ]; then
         wget https://github.com/juce-framework/JUCE/releases/download/$juce/juce-$juce-osx.zip
         unzip juce-$juce-osx.zip
 
-        if [ "$BUILD_TARGET" == "macos_x86_64"]; then
+        if [ "$BUILD_TARGET" == "macos_x86_64" ]; then
             echo "VALID_ARCHS = x86_64" >> build.xconfig
         else
             echo "VALID_ARCHS = arm64" >> build.xconfig
@@ -177,7 +190,7 @@ if [ "$BUILD_OS" == "macos" ]; then
         sed -i '' s/SLVERSION_N/$version_n/ StudioLinkOnAir/StudioLinkOnAir.jucer
         mv ../overlay-audio-unit/JUCE .
 
-        if [ "$BUILD_TARGET" == "macos_x86_64"]; then
+        if [ "$BUILD_TARGET" == "macos_x86_64" ]; then
             echo "VALID_ARCHS = x86_64" >> build.xconfig
         else
             echo "VALID_ARCHS = arm64" >> build.xconfig
@@ -201,7 +214,7 @@ if [ "$BUILD_OS" == "macos" ]; then
         cd overlay-standalone-osx
         sed -i '' s/SLVERSION_N/$version_n/ StudioLinkStandalone/Info.plist
 
-        if [ "$BUILD_TARGET" == "macos_x86_64"]; then
+        if [ "$BUILD_TARGET" == "macos_x86_64" ]; then
             echo "VALID_ARCHS = x86_64" >> build.xconfig
         else
             echo "VALID_ARCHS = arm64" >> build.xconfig
