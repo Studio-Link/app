@@ -60,7 +60,7 @@ sl_get_overlay-vst() {
 sl_build_webui() {
     cp -a ../src/webui .
     pushd webui
-    npm ci
+    npm install
     npm run prod
     mkdir -p headers
     xxd -i dist/index.html > headers/index_html.h
