@@ -59,7 +59,7 @@ if [ "$BUILD_OS" == "macos" ]; then
         #_arch="arm64-apple-darwin"
         sl_extra_cflags+=" -arch arm64"
         sl_extra_lflags+=" -arch arm64"
-        make_opts+="SYSROOT=$sysroot"
+        make_opts+=" SYSROOT=$sysroot"
     fi
 fi
 
