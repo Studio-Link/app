@@ -46,7 +46,6 @@ if [ "$BUILD_OS" == "macos" ]; then
     sl_extra_lflags+="-framework SystemConfiguration "
     sl_extra_lflags+="-framework CoreFoundation"
     sl_extra_modules="slaudio"
-    sl_extra_cflags+="-arch x86_64 -arch arm64"
     sed_opt="-i ''"
 fi
 
