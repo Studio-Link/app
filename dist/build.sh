@@ -287,8 +287,6 @@ if [ "$BUILD_OS" == "macos" ]; then
     cp -a ~/Library/Audio/Plug-Ins/Components/StudioLinkOnAir.component StudioLinkOnAir.component
     mv overlay-standalone-osx/build/Release/StudioLinkStandalone.app StudioLinkStandalone.app
 
-    #sed $sed_opt s/ITSR:\ StudioLinkOnAir/StudioLinkOnAir\ \(ITSR\)/ StudioLinkOnAir.component/Contents/Info.plist # Reaper 5.70 Fix
-
     mkdir hardened
     cp -a StudioLinkStandalone.app hardened
 
