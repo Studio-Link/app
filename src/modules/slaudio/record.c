@@ -1,3 +1,4 @@
+#include <string.h>
 #include <time.h>
 #include <re.h>
 #include <rem.h>
@@ -21,27 +22,10 @@
 #include "slaudio.h"
 
 static volatile bool record = false;
-static char foldername[256] = {0};
+static char basefolder[256] = {0};
+static char record_folder[256] = {0};
 static int record_timer = 0;
-
-
-void slaudio_record_set(bool status)
-{
-	record = status;
-}
-
-
-int slaudio_record_get_timer()
-{
-	return record_timer;
-}
-
-
-void slaudio_record_open_folder(char *folder)
-{
-	folder = foldername;
-}
-
+static pthread_t open_folder;
 
 static int timestamp_print(struct re_printf *pf, const struct tm *tm)
 {
@@ -54,7 +38,53 @@ static int timestamp_print(struct re_printf *pf, const struct tm *tm)
 }
 
 
-static int folder_init()
+void slaudio_record_set(bool status)
+{
+	time_t tnow = time(0);
+	struct tm *tm = localtime(&tnow);
+
+	if (status) {
+		(void)re_snprintf(record_folder, sizeof(record_folder),
+			"%s" DIR_SEP "%H", basefolder, timestamp_print, tm);
+
+		fs_mkdir(record_folder, 0700);
+	}
+	record = status;
+}
+
+
+int slaudio_record_get_timer(void)
+{
+	return record_timer;
+}
+
+
+static void *record_open_folder(void *arg)
+{
+	int err;
+	char command[256] = {0};
+
+#if defined (DARWIN)
+	re_snprintf(command, sizeof(command), "open %s", record_folder);
+#elif defined (WIN32)
+	re_snprintf(command, sizeof(command), "explorer.exe %s", record_folder);
+#else
+	re_snprintf(command, sizeof(command), "xdg-open %s", record_folder);
+#endif
+	err = system(command);
+	if (err) {};
+
+	return NULL;
+}
+
+
+void slaudio_record_open_folder(void)
+{
+	pthread_create(&open_folder, NULL, record_open_folder, NULL);
+}
+
+
+static int folder_init(void)
 {
 	int err;
 	char buf[256];
@@ -75,9 +105,15 @@ static int folder_init()
 		return err;
 #endif
 
-	(void)re_snprintf(foldername, sizeof(foldername), "%s"
-			DIR_SEP "studio-link");
-	fs_mkdir(foldername, 0700);
+	(void)re_snprintf(basefolder, sizeof(basefolder), "%s"
+			DIR_SEP "studio-link", buf);
+	fs_mkdir(basefolder, 0700);
+
+	str_ncpy(record_folder, basefolder, sizeof(record_folder));
+
+	(void)re_snprintf(basefolder, sizeof(basefolder), "%s"
+			DIR_SEP "studio-link", buf);
+
 
 	return 0;
 }
@@ -86,19 +122,11 @@ static int folder_init()
 static int openfile(struct session *sess)
 {
 	char filename[256];
-	time_t tnow = time(0);
-	struct tm *tm = localtime(&tnow);
 	FLAC__bool ok = true;
 	FLAC__StreamEncoderInitStatus init_status;
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
-	int err;
-	int ret;
 
-	(void)re_snprintf(filename, sizeof(filename), "%s"
-			DIR_SEP "studio-link"
-			DIR_SEP "%H", foldername, timestamp_print, tm);
-
-	fs_mkdir(filename, 0700);
+	str_ncpy(filename, record_folder, sizeof(filename));
 
 	if (sess->local) {
 		(void)re_snprintf(filename, sizeof(filename), "%s"
@@ -108,7 +136,6 @@ static int openfile(struct session *sess)
 		(void)re_snprintf(filename, sizeof(filename), "%s"
 			DIR_SEP "remote-track-%d.flac", filename, sess->track);
 	}
-
 
 	/* Basic Encoder */
 	if((sess->flac = FLAC__stream_encoder_new()) == NULL) {

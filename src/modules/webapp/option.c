@@ -102,21 +102,7 @@ void webapp_options_set(char *key, char *value)
 		}
 	}
 	if (!str_cmp(key, "record-folder")) {
-		char *filename;
-
-		slaudio_record_get_folder(filename);
-
-#if defined (DARWIN)
-		re_snprintf(command, sizeof(command), "open %s",
-				filename);
-#elif defined (WIN32)
-		re_snprintf(command, sizeof(command), "explorer.exe %s",
-				filename);
-#else
-		re_snprintf(command, sizeof(command), "xdg-open %s",
-				filename);
-#endif
-
+		slaudio_record_open_folder();
 	}
 #endif
 

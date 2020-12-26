@@ -136,6 +136,7 @@ bool webapp_active_calls(void);
  */
 const struct odict* slaudio_get_interfaces(void);
 void slaudio_record_set(bool status);
+void slaudio_record_open_folder(void);
 void slaudio_monorecord_set(bool status);
 void slaudio_monostream_set(bool status);
 void slaudio_mute_set(bool status);

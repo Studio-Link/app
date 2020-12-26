@@ -25,7 +25,7 @@
     "handlebars-loader": "^1.7.1",
     "jquery": "^3.5.1",
     "laravel-mix": "^5.0.9",
-    "laravel-mix-copy-watched": "^2.2.4",
+    "laravel-mix-copy-watched": "^2.3.0",
     "laravel-mix-purgecss": "^4.2.0",
     "parsleyjs": "^2.9.2",
     "popper.js": "^1.16.1",
