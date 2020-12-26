@@ -77,6 +77,7 @@ $(function() {
     if (swvariant == "standalone") {
       $("#btn-interface").removeClass("d-none");
       $("#btn-record").removeClass("d-none");
+      $("#btn-record-folder").removeClass("d-none");
       $("#btn-onair").removeClass("d-none");
       $("#btn-mute").removeClass("d-none");
       ws_rtaudio_init();

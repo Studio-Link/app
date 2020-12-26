@@ -1,5 +1,25 @@
 # Changelog
 
+## [Unreleased]
+
+## [v20.12.0-stable] - 2020-12-xx
+
+### Added
+
+- **Misc** DNS Server Fallback (8.8.8.8)
+
+### Changed
+
+- **Misc** baresip 1.0.0 and libre 1.1.0
+- **Misc** npm updates
+- **Plugin** new thread sync algorithm
+
+### Fixed
+
+- **Misc** webapp/websocket: count ws connections and exit only if all closed
+- **Standalone** slaudio: fix stream ch
+
+
 ## [v20.05.5-stable] - 2020-08-27
 
 ### Added
@@ -258,6 +278,8 @@ Debug only Release
 
 
 
+[Unreleased]: https://github.com/Studio-Link/app/compare/v20.12.0-beta1...HEAD
+[v20.12.0-beta1]: https://github.com/Studio-Link/app/compare/v20.05.5...v20.12.0-beta1
 [v20.05.5-stable]: https://github.com/Studio-Link/app/compare/v20.05.3...v20.05.5-stable
 [v20.05.3-stable]: https://github.com/Studio-Link/app/compare/aa9d2df...v20.05.3
 [v20.05.0-stable]: https://github.com/Studio-Link/app/compare/v20.04.4-beta...v20.05.0-stable
@@ -269,5 +291,4 @@ Debug only Release
 [v20.03.6-stable]: https://github.com/Studio-Link/app/compare/v20.03.5-stable...v20.03.6-stable
 [v20.03.5-stable]: https://github.com/Studio-Link/app/compare/v20.03.4-stable...v20.03.5-stable
 [v20.03.4-stable]: https://github.com/Studio-Link/app/compare/v20.03.3-stable...v20.03.4-stable
-[Unreleased]: https://github.com/Studio-Link/app/compare/v20.03.3-stable...HEAD
 [v20.02.1-rc0]: https://github.com/Studio-Link/app/compare/v20.02.0-rc0...v20.02.1-rc0

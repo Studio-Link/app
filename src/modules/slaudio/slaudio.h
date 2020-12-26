@@ -29,6 +29,7 @@ struct session {
 
 extern struct list sessionl;
 void slaudio_record_init(void);
+void slaudio_record_open_folder(void);
 
 void slaudio_record_set(bool status);
 void slaudio_monorecord_set(bool status);
