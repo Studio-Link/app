@@ -201,6 +201,10 @@ window.ws_options_init = function() {
     ws_options.send('{"key": "record", "value": "' + record + '"}');
   });
 
+  $("#btn-record-folder").on("click", function() {
+    ws_options.send('{"key": "record-folder", "value": "1"}');
+  });
+
   $("#btn-onair").on("click", function() {
     if (onair) {
       onair = false;

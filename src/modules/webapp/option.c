@@ -101,6 +101,9 @@ void webapp_options_set(char *key, char *value)
 			webapp_call_update(call, "Outgoing");
 		}
 	}
+	if (!str_cmp(key, "record-folder")) {
+		slaudio_record_open_folder();
+	}
 #endif
 
 	odict_entry_del(options, key);
