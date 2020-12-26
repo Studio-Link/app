@@ -7,6 +7,8 @@
 ### Added
 
 - **Misc** DNS Server Fallback (8.8.8.8)
+- **Misc** macOS arm64 (Apple Silicon) beta
+- **Standalone** Open record folder button (replaces auto open)
 
 ### Changed
 
