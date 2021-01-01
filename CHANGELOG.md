@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [v20.12.0-stable] - 2020-12-xx
+## [v20.12.0-stable] - 2021-01-01
 
 ### Added
 
@@ -20,6 +20,7 @@
 
 - **Misc** webapp/websocket: count ws connections and exit only if all closed
 - **Standalone** slaudio: fix stream ch
+- **Misc** Fix add contact sip address validation
 
 
 ## [v20.05.5-stable] - 2020-08-27
