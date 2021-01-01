@@ -281,8 +281,8 @@ Debug only Release
 
 
 
-[Unreleased]: https://github.com/Studio-Link/app/compare/v20.12.0-beta1...HEAD
-[v20.12.0-beta1]: https://github.com/Studio-Link/app/compare/v20.05.5...v20.12.0-beta1
+[Unreleased]: https://github.com/Studio-Link/app/compare/v20.12.0-stable...HEAD
+[v20.12.0-stable]: https://github.com/Studio-Link/app/compare/v20.05.5-stable...v20.12.0-stable
 [v20.05.5-stable]: https://github.com/Studio-Link/app/compare/v20.05.3...v20.05.5-stable
 [v20.05.3-stable]: https://github.com/Studio-Link/app/compare/aa9d2df...v20.05.3
 [v20.05.0-stable]: https://github.com/Studio-Link/app/compare/v20.04.4-beta...v20.05.0-stable
