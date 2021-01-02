@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [v20.12.1-stable] - 2021-01-01
+
+### Fixed
+
+- **Misc** Config version
+
+---
+
 ## [v20.12.0-stable] - 2021-01-01
 
 ### Added
@@ -281,7 +289,8 @@ Debug only Release
 
 
 
-[Unreleased]: https://github.com/Studio-Link/app/compare/v20.12.0-stable...HEAD
+[Unreleased]: https://github.com/Studio-Link/app/compare/v20.12.1-stable...HEAD
+[v20.12.1-stable]: https://github.com/Studio-Link/app/compare/v20.12.0-stable...v20.12.1-stable
 [v20.12.0-stable]: https://github.com/Studio-Link/app/compare/v20.05.5-stable...v20.12.0-stable
 [v20.05.5-stable]: https://github.com/Studio-Link/app/compare/v20.05.3...v20.05.5-stable
 [v20.05.3-stable]: https://github.com/Studio-Link/app/compare/aa9d2df...v20.05.3
