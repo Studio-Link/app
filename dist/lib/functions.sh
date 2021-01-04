@@ -110,6 +110,7 @@ sl_get_baresip() {
     patch -p1 < ../../dist/patches/fix_check_telev_and_pthread.patch
     patch -p1 < ../../dist/patches/dtls_aes256.patch
     patch -p1 < ../../dist/patches/rtcp_mux_softphone.patch
+    patch -p1 < ../../dist/patches/fallback_dns.patch
     #patch -p1 < ../../dist/patches/osx_sample_rate.patch
 
     #fixes multiple maxaverage lines in fmtp e.g.: 

@@ -1,0 +1,22 @@
+From 7762de0f5af65c0a620dea13d9156761a3346cc1 Mon Sep 17 00:00:00 2001
+From: Sebastian Reimers <hallo@studio-link.de>
+Date: Mon, 4 Jan 2021 23:40:29 +0100
+Subject: [PATCH] net: make fallback DNS ignored message debug only
+
+---
+ src/net.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/net.c b/src/net.c
+index c8d7f48f7..3dc87f46b 100644
+--- a/src/net.c
++++ b/src/net.c
+@@ -170,7 +170,7 @@ static int net_dns_srv_get(const struct network *net,
+ 	if (net->nsnf) {
+ 		offset = *n;
+ 		if ((offset + net->nsnf) > limit) {
+-			warning("net: too many DNS nameservers, "
++			debug("net: too many DNS nameservers, "
+ 					"fallback DNS ignored\n");
+ 			return 0;
+ 		}
