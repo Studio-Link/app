@@ -1,5 +1,5 @@
 diff --git a/src/stream.c b/src/stream.c
-index 99f3283..fd5008d 100644
+index 3634f0b..4e14df5 100644
 --- a/src/stream.c
 +++ b/src/stream.c
 @@ -470,6 +470,7 @@ int stream_alloc(struct stream **sp, struct list *streaml,
@@ -10,20 +10,22 @@ index 99f3283..fd5008d 100644
  
  	if (!sp || !prm || !cfg || !rtph)
  		return EINVAL;
-@@ -478,6 +479,12 @@ int stream_alloc(struct stream **sp, struct list *streaml,
+@@ -478,6 +479,14 @@ int stream_alloc(struct stream **sp, struct list *streaml,
  	if (!s)
  		return ENOMEM;
  
-+	if (mnat && str_cmp(mnat->id, "ice") == 0)
++	if (mnat && str_cmp(mnat->id, "ice") == 0) {
 +		rtcp_mux = true;
++	}
 +	else
 +		rtcp_mux = cfg->rtcp_mux;
 +
++	warning("rtcp_mux %d\n", rtcp_mux);
 +
  	MAGIC_INIT(s);
  
  	s->cfg   = *cfg;
-@@ -532,7 +539,7 @@ int stream_alloc(struct stream **sp, struct list *streaml,
+@@ -532,7 +541,7 @@ int stream_alloc(struct stream **sp, struct list *streaml,
  				   rtp_sess_ssrc(s->rtp), prm->cname);
  
  	/* RFC 5761 */
@@ -32,7 +34,7 @@ index 99f3283..fd5008d 100644
  	    (offerer || sdp_media_rattr(s->sdp, "rtcp-mux"))) {
  
  		err |= sdp_media_set_lattr(s->sdp, true, "rtcp-mux", NULL);
-@@ -545,7 +552,7 @@ int stream_alloc(struct stream **sp, struct list *streaml,
+@@ -545,7 +554,7 @@ int stream_alloc(struct stream **sp, struct list *streaml,
  		s->mnat = mnat;
  		err = mnat->mediah(&s->mns, mnat_sess,
  				   rtp_sock(s->rtp),
@@ -41,3 +43,24 @@ index 99f3283..fd5008d 100644
  				   s->sdp, mnat_connected_handler, s);
  		if (err)
  			goto out;
+@@ -630,11 +639,19 @@ int stream_send(struct stream *s, bool ext, bool marker, int pt, uint32_t ts,
+ 
+ static void stream_remote_set(struct stream *s)
+ {
++	bool rtcp_mux;
++
+ 	if (!s)
+ 		return;
+ 
++	if (s->mnat && str_cmp(s->mnat->id, "ice") == 0) {
++		rtcp_mux = true;
++	}
++	else
++		rtcp_mux = s->cfg.rtcp_mux;
++
+ 	/* RFC 5761 */
+-	if (s->cfg.rtcp_mux && sdp_media_rattr(s->sdp, "rtcp-mux")) {
++	if (rtcp_mux && sdp_media_rattr(s->sdp, "rtcp-mux")) {
+ 
+ 		if (!s->rtcp_mux)
+ 			info("%s: RTP/RTCP multiplexing enabled\n",

@@ -38,8 +38,10 @@ static int sip_register(const struct odict_entry *o)
 	char domain[50] = {0};
 	char transport[4] = "udp";
 	char opt[300] = {0};
+	char opt_quick[300] = {0};
 	struct ua *ua;
 	struct odict_entry *e_update = NULL;
+	bool quick = false;
 
 	int err = 0;
 
@@ -79,6 +81,10 @@ static int sip_register(const struct odict_entry *o)
 		else if (!str_cmp(e->key, "status")) {
 			continue;
 		}
+		else if (!str_cmp(e->key, "quick")) {
+			quick = true;
+			str_ncpy(opt_quick, e->u.str, sizeof(opt_quick));
+		}
 		else if (!str_cmp(e->key, "update")) {
 			e_update = e;
 			if (!str_cmp(e->u.str, "false")) {
@@ -100,6 +106,14 @@ static int sip_register(const struct odict_entry *o)
 			user, domain, transport, password, opt);
 	ua_alloc(&ua, buf);
 	ua_register(ua);
+
+	if (quick) {
+		re_snprintf(buf, sizeof(buf), "<sip:quick-%s@%s;transport=%s>;auth_pass=%s;%s",
+				user, domain, transport, password, opt_quick);
+		warning("register quick %s\n", buf);
+		ua_alloc(&ua, buf);
+		ua_register(ua);
+	}
 
 	return err;
 }
@@ -246,6 +260,7 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 	char message[8192] = {0};
 	char user[50] = {0};
 	char domain[50] = {0};
+	char user_quick[100] = {0};
 
 
 	if (!msg)
@@ -273,7 +288,13 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 	e = odict_lookup(o, "domain");
 	str_ncpy(domain, e->u.str, sizeof(domain));
 
+	(void)re_snprintf(user_quick, sizeof(user_quick), "sip:quick-%s@%s",
+			user, domain);
+
+	mem_deref(uag_find_aor(user_quick));
+
 	webapp_account_delete(user, domain);
+	webapp_account_delete(user_quick, domain);
 	webapp_account_delete(NULL, "studio-link.de");
 	webapp_account_delete(NULL, "studio.link");
 	webapp_account_delete(NULL, "studio.link:443");
