@@ -80,6 +80,7 @@ sl_get_libre() {
     patch --ignore-whitespace -p1 < ../../dist/patches/bluetooth_conflict.patch
 #    patch --ignore-whitespace -p1 < ../../dist/patches/re_ice_bug.patch
     patch --ignore-whitespace -p1 < ../../dist/patches/re_fix_authorization.patch
+    patch --ignore-whitespace -p1 < ../../dist/patches/re_pull_66.diff
 #    patch --ignore-whitespace -p1 < ../../dist/patches/re_recv_handler_win_patch.patch
     if [ "$BUILD_TARGET" == "windows32" ] || [ "$BUILD_TARGET" == "windows64" ]; then
         patch -p1 < ../../dist/patches/fix_windows_ssize_t_bug.patch
