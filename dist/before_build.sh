@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
 if [ "$BUILD_OS" == "linux" ]; then
-        sudo apt-get update -qq
-        sudo apt-get install -y libasound2-dev libjack-jackd2-dev libpulse-dev libpulse0 vim-common
+        #sudo apt-get update -qq #disabled until gitlab actions are fixed
+        sudo apt-get install -y libasound2-dev libjack-jackd2-dev libpulse-dev libpulse0
         wget http://lv2plug.in/spec/lv2-1.14.0.tar.bz2
         tar xjf lv2-1.14.0.tar.bz2 
         pushd lv2-1.14.0 && ./waf configure && ./waf build && sudo ./waf install && popd
