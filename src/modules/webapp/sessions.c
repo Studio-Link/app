@@ -12,10 +12,11 @@ static void stream_check(void *arg)
 {
 	struct session *sess = arg;
 
+
 	/* reconnect stream if active */
 	if (sess->stream && streaming) {
 		info("webapp/stream_check: reconnect\n");
-		ua_connect(uag_current(), &sess->call, NULL,
+		ua_connect(webapp_get_main_ua(), &sess->call, NULL,
 				"stream@studio.link", VIDMODE_OFF);
 	}
 }
@@ -126,7 +127,7 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 
 		if (sess_id) {
 			if (!str_cmp(id, sess_id)) {
-				ua_hangup(uag_current(), sess->call, 0, NULL);
+				ua_hangup(call_get_ua(sess->call), sess->call, 0, NULL);
 				sess->call = NULL;
 				odict_entry_del(webapp_calls, id);
 				break;

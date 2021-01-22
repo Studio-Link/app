@@ -9,7 +9,17 @@ static char filename[256] = "";
 static struct http_req *req = NULL;
 static struct http_cli *cli = NULL;
 static char version[64] = "";
+static struct ua *main_ua = NULL;
+static struct ua *quick_ua = NULL;
 
+
+struct ua* webapp_get_main_ua(void) {
+	return main_ua;
+}
+
+struct ua* webapp_get_quick_ua(void) {
+	return quick_ua;
+}
 
 const struct odict* webapp_accounts_get(void) {
 	return (const struct odict *)accs;
@@ -107,12 +117,15 @@ static int sip_register(const struct odict_entry *o)
 	ua_alloc(&ua, buf);
 	ua_register(ua);
 
+	main_ua = ua;
+
 	if (quick) {
 		re_snprintf(buf, sizeof(buf), "<sip:quick-%s@%s;transport=%s>;auth_pass=%s;%s",
 				user, domain, transport, password, opt_quick);
 		warning("register quick %s\n", buf);
 		ua_alloc(&ua, buf);
 		ua_register(ua);
+		quick_ua = ua;
 	}
 
 	return err;
@@ -302,6 +315,9 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 	if (e) {
 		webapp_account_add(e);
 	}
+	
+	uag_current_set(main_ua);
+	webapp_account_current();
 
 out:
 	mem_deref(o);
@@ -376,8 +392,6 @@ int webapp_accounts_init(void)
 
 	tmr_init(&tmr);
 	tmr_start(&tmr, 1000, startup, NULL);
-
-	webapp_account_current();
 
 out:
 	mem_deref(mb);

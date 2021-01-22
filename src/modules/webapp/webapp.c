@@ -178,14 +178,6 @@ static void http_req_handler(struct http_conn *conn,
 }
 
 
-static void ua_event_current_set(struct ua *ua)
-{
-	uag_current_set(ua);
-	webapp_account_current();
-	ws_send_json(WS_BARESIP, webapp_accounts_get());
-}
-
-
 static void ua_event_handler(struct ua *ua, enum ua_event ev,
 		struct call *call, const char *prm, void *arg)
 {
@@ -193,10 +185,8 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 
 	switch (ev) {
 		case UA_EVENT_CALL_INCOMING:
-			ua_event_current_set(ua);
-
 			if (!webapp_session_available()) {
-				ua_hangup(uag_current(), call, 486, "Max Calls");
+				ua_hangup(call_get_ua(call), call, 486, "Max Calls");
 				return;
 			}
 
@@ -213,13 +203,12 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			}
 			else {
 				debug("auto answering call\n");
-				ua_answer(uag_current(), call, VIDMODE_OFF);
+				ua_answer(call_get_ua(call), call, VIDMODE_OFF);
 			}
 			ws_send_all(WS_CALLS, webapp_call_json);
 			break;
 
 		case UA_EVENT_CALL_ESTABLISHED:
-			ua_event_current_set(ua);
 			webapp_call_update(call, "Established");
 #ifndef SLPLUGIN
 #if 0
@@ -230,7 +219,6 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			break;
 
 		case UA_EVENT_CALL_CLOSED:
-			ua_event_current_set(ua);
 			re_snprintf(webapp_call_json, sizeof(webapp_call_json),
 					"{ \"callback\": \"CLOSED\",\
 					\"message\": \"%s\" }", prm);

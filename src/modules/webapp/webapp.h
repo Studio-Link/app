@@ -57,6 +57,8 @@ bool webapp_session_available(void);
 /*
  * account.c
  */
+struct ua* webapp_get_main_ua(void);
+struct ua* webapp_get_quick_ua(void);
 int webapp_accounts_init(void);
 void webapp_accounts_close(void);
 const struct odict* webapp_accounts_get(void);

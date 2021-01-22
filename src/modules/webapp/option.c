@@ -95,7 +95,7 @@ void webapp_options_set(char *key, char *value)
 
 			if (err) {};
 
-			ua_connect(uag_current(), &call, NULL,
+			ua_connect(webapp_get_main_ua(), &call, NULL,
 					"stream@studio.link", VIDMODE_OFF);
 
 			webapp_call_update(call, "Outgoing");
