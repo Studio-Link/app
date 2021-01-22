@@ -315,7 +315,7 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 	if (e) {
 		webapp_account_add(e);
 	}
-	
+
 	uag_current_set(main_ua);
 	webapp_account_current();
 
