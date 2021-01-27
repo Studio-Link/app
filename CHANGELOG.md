@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [v21.01.0-beta] - 2021-01-27
+
+### Added
+
+- **Misc** QuickWeb Support
+
+### Fixed
+
+- **Misc** Disable DNS Fallback warnings (debug only now)
+- **Misc** Better support/detection for multiple network connections
+
+
 ## [v20.12.1-stable] - 2021-01-01
 
 ### Fixed
@@ -289,7 +301,8 @@ Debug only Release
 
 
 
-[Unreleased]: https://github.com/Studio-Link/app/compare/v20.12.1-stable...HEAD
+[Unreleased]: https://github.com/Studio-Link/app/compare/v21.01.0-beta...HEAD
+[v21.01.0-beta]: https://github.com/Studio-Link/app/compare/v20.12.1-stable...v21.01.0-beta
 [v20.12.1-stable]: https://github.com/Studio-Link/app/compare/v20.12.0-stable...v20.12.1-stable
 [v20.12.0-stable]: https://github.com/Studio-Link/app/compare/v20.05.5-stable...v20.12.0-stable
 [v20.05.5-stable]: https://github.com/Studio-Link/app/compare/v20.05.3...v20.05.5-stable
