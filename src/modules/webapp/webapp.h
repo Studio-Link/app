@@ -43,6 +43,8 @@ extern enum webapp_call_state webapp_call_status;
 extern struct odict *webapp_calls;
 
 
+char *webapp_provisioning_host(void);
+
 /*
  * sessions.c
  */

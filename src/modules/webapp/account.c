@@ -326,7 +326,6 @@ out:
 static void provisioning(void)
 {
 	char url[255] = {0};
-	char host[] = "my.studio.link";
 	char path[] = "api/v1/provisioning";
 	struct config *cfg = conf_config();
 	const struct network *net = baresip_network();
@@ -336,11 +335,11 @@ static void provisioning(void)
 #ifdef SLPLUGIN
 	re_snprintf(url, sizeof(url),
 			"https://%s/%s/%s?version=%s&type=plugin",
-			host, path, cfg->sip.uuid, SLVERSION);
+			webapp_provisioning_host(), path, cfg->sip.uuid, SLVERSION);
 #else
 	re_snprintf(url, sizeof(url),
 			"https://%s/%s/%s?version=%s&type=standalone",
-			host, path, cfg->sip.uuid, SLVERSION);
+			webapp_provisioning_host(), path, cfg->sip.uuid, SLVERSION);
 #endif
 
 	http_client_alloc(&cli, net_dnsc(net));

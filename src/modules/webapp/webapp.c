@@ -20,6 +20,12 @@ static char webapp_call_json[150] = {0};
 struct odict *webapp_calls = NULL;
 static char command[100] = {0};
 static bool auto_answer = false;
+static char provisioning_host[100] = "my.studio.link";
+
+char *webapp_provisioning_host(void)
+{
+	return provisioning_host;
+}
 
 static int http_sreply(struct http_conn *conn, uint16_t scode,
 		const char *reason, const char *ctype,
@@ -259,7 +265,7 @@ static int http_port(void)
 	uint32_t port = 0;
 	char port_string[10] = {0};
 	char bind[256] = "127.0.0.1";
-	char file_contents[256];
+	char file_contents[512];
 	int err = 0;
 	struct conf *conf_obj = NULL;
 
@@ -276,7 +282,11 @@ static int http_port(void)
 		conf_get_str(conf_obj, "sl_listen", bind, sizeof(bind));
 		conf_get_u32(conf_obj, "sl_port", &port);
 		conf_get_bool(conf_obj, "sl_auto_answer", &auto_answer);
+		conf_get_str(conf_obj, "sl_provisioning_host",
+			provisioning_host, sizeof(provisioning_host));
 	}
+
+	info("webapp.conf/provisioning_host: %s\n", provisioning_host);
 
 	err = sa_set_str(&srv, bind, port);
 
@@ -301,8 +311,11 @@ static int http_port(void)
 	info("http listening on ip: %s port: %s\n", bind, port_string);
 
 	re_snprintf(file_contents, sizeof(file_contents),
-			"sl_listen\t%s\nsl_port\t%s\nsl_auto_answer\t%d\n",
-			bind, port_string, auto_answer);
+			"sl_listen\t%s\n"
+			"sl_port\t%s\n"
+			"sl_auto_answer\t%d\n"
+			"sl_provisioning_host\t%s\n",
+			bind, port_string, auto_answer, provisioning_host);
 	webapp_write_file(file_contents, filename);
 
 out:
@@ -330,11 +343,11 @@ static int module_init(void)
 
 #ifdef SLPLUGIN
 	(void)re_fprintf(stderr, "Studio Link Webapp %s - Effect Plugin"
-			" Copyright (C) 2013-2020"
+			" Copyright (C) 2013-2021"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 #else
 	(void)re_fprintf(stderr, "Studio Link Webapp %s - Standalone"
-			" Copyright (C) 2013-2020"
+			" Copyright (C) 2013-2021"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 #endif
 
