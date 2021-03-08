@@ -105,6 +105,9 @@ static bool bypass = false;
 void webapp_jitter(struct session *sess, int16_t *sampv,
 		auplay_write_h *wh, unsigned int sampc, void *arg);
 
+/* webapp/sessions.c */
+int webapp_session_delete(char * const sess_id, struct call *call);
+
 
 /**
  * Get the timer jiffies in microseconds
@@ -184,6 +187,7 @@ int effect_session_stop(struct session *session)
 	struct session *sess;
 	struct le *le;
 	int count = 0;
+	char sess_id[64] = {0};
 
 	if (!session)
 		return MAX_CHANNELS;
@@ -197,6 +201,9 @@ int effect_session_stop(struct session *session)
 			++count;
 		}
 	}
+
+	re_snprintf(sess_id, sizeof(sess_id), "%d", session->track);
+	webapp_session_delete(sess_id, NULL);
 	info("effect: debug session_stop count: %d\n", count);
 
 	return count;
@@ -246,8 +253,6 @@ void effect_play(struct session *sess, float* const output0,
 void effect_play(struct session *sess, float* const output0,
 		float* const output1, unsigned long nframes)
 {
-	struct auplay_st *st_play;
-
 	/* check max sessions reached*/
 	if (!sess)
 		return;
@@ -255,20 +260,7 @@ void effect_play(struct session *sess, float* const output0,
 	if (!sess->run_play)
 		return;
 
-	st_play = sess->st_play;
-
 	play_process(sess, nframes);
-
-#if 0
-	/*
-	* Do not write to output here
-	* Audiounit output = input
-	*/
-	sample_move_dS_s16(output0, (char*)st_play->sampv,
-			nframes, 4);
-	sample_move_dS_s16(output1, (char*)st_play->sampv+2,
-			nframes, 4);
-#endif
 }
 
 
