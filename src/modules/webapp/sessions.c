@@ -61,7 +61,7 @@ int webapp_session_stop_stream(void)
 
 		if (sess->stream) {
 			streaming = false;
-			ua_hangup(uag_current(), sess->call, 0, NULL);
+			ua_hangup(webapp_get_main_ua(), sess->call, 0, NULL);
 			sess->call = NULL;
 
 			return err;
@@ -105,7 +105,6 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 	struct list *tsession;
 	struct session *sess;
 	struct le *le;
-	int active_calls = 0;
 
 	if (!sess_id && !call)
 		return EINVAL;
@@ -130,32 +129,17 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 				ua_hangup(call_get_ua(sess->call), sess->call, 0, NULL);
 				sess->call = NULL;
 				odict_entry_del(webapp_calls, id);
-				break;
+				return err;
 			}
 		}
 		if (call) {
 			if (sess->call == call) {
 				sess->call = NULL;
 				odict_entry_del(webapp_calls, id);
-				break;
+				return err;
 			}
 		}
 	}
-
-	/* Calculate active calls */
-	for (le = tsession->head; le; le = le->next) {
-		sess = le->data;
-		if (sess->call)
-			++active_calls;
-	}
-
-#ifndef SLPLUGIN
-#if 0
-	/* Auto-Record off if no call*/
-	if (!active_calls)
-		webapp_options_set("record", "false");
-#endif
-#endif
 
 	return err;
 }
