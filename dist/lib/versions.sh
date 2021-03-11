@@ -1,7 +1,7 @@
 vmajor=21; vminor=3; vpatch=0
 vbuild="$(git rev-parse --short HEAD)"
-#release="beta2-${vbuild}"
-release="beta2"
+release="beta3-${vbuild}"
+#release="beta2"
 baresip="1.0.0"
 baresip_lib="1.0.0"
 re="1.1.0"
