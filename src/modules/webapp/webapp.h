@@ -45,6 +45,47 @@ extern struct odict *webapp_calls;
 
 char *webapp_provisioning_host(void);
 
+enum sess_chmix {
+	CH_STEREO,
+	CH_MONO_L,
+	CH_MONO_R
+};
+
+struct session {
+	struct le le;
+	struct ausrc_st *st_src;
+	struct auplay_st *st_play;
+	int32_t *dstmix;
+	int8_t ch;
+	bool run_src;
+	bool run_play;
+	struct call *call;
+	bool stream; /* only used for standalone */
+	bool local; /* only used for standalone */
+	int8_t track;
+	bool talk;
+	int16_t bufsz;
+	int16_t jb_max;
+	int16_t silence_count;
+	enum sess_chmix chmix;
+	char *state;
+#ifdef SLPLUGIN
+	bool primary;
+	bool run_auto_mix;
+	bool bypass;
+	bool effect_ready;
+#else
+	bool run_record;
+	struct aubuf *aubuf;
+	pthread_t record_thread;
+	FLAC__StreamEncoder *flac;
+	int16_t *sampv;
+	FLAC__int32 *pcm;
+	float *vumeter;
+	FLAC__StreamMetadata *meta[2];
+#endif
+};
+
 /*
  * sessions.c
  */
@@ -55,6 +96,7 @@ int8_t webapp_call_update(struct call *call, char *state);
 int webapp_session_stop_stream(void);
 struct call* webapp_session_get_call(char * const sess_id);
 bool webapp_session_available(void);
+void webapp_session_chmix(char * const sess_id);
 
 /*
  * account.c
@@ -134,7 +176,6 @@ int webapp_load_file(struct mbuf *mb, char *filename);
 struct call* webapp_get_call(char *sid);
 bool webapp_active_calls(void);
 
-
 /*
  * slaudio module
  */
@@ -150,63 +191,6 @@ void slaudio_set_driver(int value);
 void slaudio_set_input(int value);
 void slaudio_set_first_input_channel(int value);
 void slaudio_set_output(int value);
-
-#ifndef SLPLUGIN
-/*
- * session standalone slaudio.h
- */
-struct session {
-	struct le le;
-	struct ausrc_st *st_src;
-	struct auplay_st *st_play;
-	bool local;
-	bool stream;
-	bool run_src;
-	bool run_play;
-	bool run_record;
-	int32_t *dstmix;
-	struct aubuf *aubuf;
-	pthread_t record_thread;
-	FLAC__StreamEncoder *flac;
-	int16_t *sampv;
-	FLAC__int32 *pcm;
-	int8_t ch;
-	float *vumeter;
-	struct call *call;
-	int8_t track;
-	bool talk;
-	int16_t bufsz;
-	int16_t jb_max;
-	int16_t silence_count;
-	FLAC__StreamMetadata *meta[2];
-};
-#else
-/*
- * session plugin effect.c
- */
-struct session {
-	struct le le;
-	struct ausrc_st *st_src;
-	struct auplay_st *st_play;
-	int32_t *dstmix;
-	int8_t ch;
-	bool run_src;
-	bool run_play;
-	bool run_auto_mix;
-	bool bypass;
-	struct call *call;
-	bool stream; /* only for standalone */
-	bool local;  /* only for standalone */
-	int8_t track;
-	bool talk;
-	int16_t bufsz;
-	int16_t jb_max;
-	int16_t silence_count;
-	bool effect_ready;
-	bool primary;
-};
-#endif
-
 
 /*
  * jitter.c

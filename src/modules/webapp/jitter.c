@@ -49,6 +49,20 @@ struct aurx {
 };
 
 
+static void stereo_mono_ch_select(int16_t *buf, size_t sampc, enum sess_chmix chmix)
+{
+	while (sampc--) {
+		if (chmix == CH_MONO_L) {
+			buf[1] = buf[0];
+		}
+		if (chmix == CH_MONO_R) {
+			buf[0] = buf[1];
+		}
+		buf += 2;
+	}
+}
+
+
 void webapp_jitter(struct session *sess, int16_t *sampv,
 		auplay_write_h *wh, unsigned int sampc, void *arg)
 {
@@ -71,6 +85,11 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 	sess->bufsz = bufsz/STIME;
 
 	wh(sampv, sampc, arg);
+
+	/* Mono chmix */
+	if (sess->chmix != CH_STEREO) {
+		stereo_mono_ch_select(sampv, sampc, sess->chmix);
+	}
 
 	/* Detect Talk spurt */
 	for (uint16_t pos = 0; pos < sampc; pos++)

@@ -15,6 +15,7 @@
 #ifdef WIN32
 #include <windows.h>
 #endif
+#include <webapp.h>
 
 #define BUFFER_LEN 19200 /* max buffer_len = 192kHz*2ch*25ms*2frames */
 #define FLOAT_FRAME_BYTES 8 /* sizeof(float) * 2ch */
@@ -22,8 +23,6 @@
 enum
 {
 	MAX_REMOTE_CHANNELS = 6,
-	DICT_BSIZE = 32,
-	MAX_LEVELS = 8,
 };
 
 static enum SoundIoFormat prioritized_formats[] = {

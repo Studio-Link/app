@@ -20,6 +20,7 @@
 #define PTIME 20
 #define SAMPC 1920  /* Max samples, 48000Hz 2ch at 20ms */
 #include "slaudio.h"
+#include <webapp.h>
 
 static volatile bool record = false;
 static char basefolder[256] = {0};

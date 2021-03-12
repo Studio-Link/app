@@ -13,6 +13,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <webapp.h>
 
 
 #define SAMPLE_16BIT_SCALING  32767.0f
@@ -72,41 +73,12 @@ struct ausrc_st {
 	struct session *sess;
 };
 
-struct session {
-	struct le le;
-	struct ausrc_st *st_src;
-	struct auplay_st *st_play;
-	int32_t *dstmix;
-	int8_t ch;
-	bool run_src;
-	bool run_play;
-	bool run_auto_mix;
-	bool bypass;
-	struct call *call;
-	bool stream; /* only for standalone */
-	bool local;  /* only for standalone */
-	int8_t track;
-	bool talk;
-	int16_t bufsz;
-	int16_t jb_max;
-	int16_t silence_count;
-	bool effect_ready;
-	bool primary;
-};
-
 static struct list sessionl;
 
 static struct ausrc *ausrc;
 static struct auplay *auplay;
 
 static bool bypass = false;
-
-/* webapp/jitter.c */
-void webapp_jitter(struct session *sess, int16_t *sampv,
-		auplay_write_h *wh, unsigned int sampc, void *arg);
-
-/* webapp/sessions.c */
-int webapp_session_delete(char * const sess_id, struct call *call);
 
 
 /**
@@ -244,8 +216,6 @@ static void play_process(struct session *sess, unsigned long nframes)
 	sess->effect_ready = true;
 }
 
-
-void ws_meter_process(unsigned int ch, float *in, unsigned long nframes);
 
 void effect_play(struct session *sess, float* const output0,
 		float* const output1, unsigned long nframes);

@@ -40,6 +40,9 @@ void webapp_ws_calls(const struct websock_hdr *hdr,
 			ws_send_all(WS_CALLS, SIP_CLOSED);
 		}
 	}
+	else if (!str_cmp(e->u.str, "chmix")) {
+	 	webapp_session_chmix(key->u.str);
+	}
 	else if (!str_cmp(e->u.str, "dtmf")) {
 		e = odict_lookup(cmd, "tone");
 		if (!e)

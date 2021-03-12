@@ -145,21 +145,45 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 }
 
 
+static void session_to_webapp_calls(struct session *sess)
+{
+	char id[64] = {0};
+	struct odict *o;
+	int err;
+
+	err = odict_alloc(&o, DICT_BSIZE);
+	if (err)
+		return;
+
+	re_snprintf(id, sizeof(id), "%d", sess->track);
+
+	odict_entry_del(webapp_calls, id);
+	odict_entry_add(o, "peer", ODICT_STRING, call_peeruri(sess->call));
+	odict_entry_add(o, "state", ODICT_STRING, sess->state);
+#ifdef SLPLUGIN
+	odict_entry_add(o, "ch", ODICT_INT, (int64_t)sess->ch+1);
+#else
+	odict_entry_add(o, "ch", ODICT_INT, (int64_t)sess->ch);
+#endif
+	if (sess->chmix == CH_STEREO)
+		odict_entry_add(o, "chmix", ODICT_STRING, "Stereo");
+	if (sess->chmix == CH_MONO_L)
+		odict_entry_add(o, "chmix", ODICT_STRING, "Mono L");
+	if (sess->chmix == CH_MONO_R)
+		odict_entry_add(o, "chmix", ODICT_STRING, "Mono R");
+	odict_entry_add(o, "track", ODICT_INT, (int64_t)sess->track);
+	odict_entry_add(webapp_calls, id, ODICT_OBJECT, o);
+	mem_deref(o);
+}
+
+
 int8_t webapp_call_update(struct call *call, char *state)
 {
 	struct list *tsession;
 	struct session *sess;
 	struct le *le;
-	struct odict *o;
-	char id[64] = {0};
-	int err = 0;
 	int8_t track = 0;
 	bool new = true;
-
-
-	err = odict_alloc(&o, DICT_BSIZE);
-	if (err)
-		return 0;
 
 	tsession = sl_sessions();
 
@@ -197,29 +221,19 @@ int8_t webapp_call_update(struct call *call, char *state)
 
 		if (new && !sess->call) {
 			sess->call = call;
-			new = false;
 		}
 
 		if (sess->call != call)
 			continue;
 
 		track = sess->track;
-		re_snprintf(id, sizeof(id), "%d", sess->track);
-
-		odict_entry_del(webapp_calls, id);
-		odict_entry_add(o, "peer", ODICT_STRING, call_peeruri(call));
-		odict_entry_add(o, "state", ODICT_STRING, state);
-#ifdef SLPLUGIN
-		odict_entry_add(o, "ch", ODICT_INT, (int64_t)sess->ch+1);
-#else
-		odict_entry_add(o, "ch", ODICT_INT, (int64_t)sess->ch);
-#endif
-		odict_entry_add(o, "track", ODICT_INT, (int64_t)sess->track);
-		odict_entry_add(webapp_calls, id, ODICT_OBJECT, o);
+		sess->state = state;
+		session_to_webapp_calls(sess);
+		goto out;
 	}
 
+out:
 	ws_send_json(WS_CALLS, webapp_calls);
-	mem_deref(o);
 	return track;
 }
 
@@ -263,6 +277,38 @@ static void jitter_buffer(void *arg)
 
 	ws_send_all(WS_CALLS, json);
 	tmr_start(&tmr_jitter_buffer, 250, jitter_buffer, NULL);
+}
+
+
+void webapp_session_chmix(char *const sess_id)
+{
+	char id[64] = {0};
+	struct list *tsession;
+	struct session *sess;
+	struct le *le;
+
+	tsession = sl_sessions();
+
+	for (le = tsession->head; le; le = le->next) {
+		sess = le->data;
+
+		if (sess->local)
+			continue;
+
+		re_snprintf(id, sizeof(id), "%d", sess->track);
+
+		if (!str_cmp(id, sess_id)) {
+			if (sess->chmix == CH_MONO_R) {
+				sess->chmix = CH_STEREO;
+			}
+			else {
+				sess->chmix++;
+			}
+			session_to_webapp_calls(sess);
+			ws_send_json(WS_CALLS, webapp_calls);
+			return;
+		}
+	}
 }
 
 

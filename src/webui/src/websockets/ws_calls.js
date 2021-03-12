@@ -10,6 +10,10 @@ window.ws_calls_init = function() {
 				$(this).attr('data-key')+'"}');
 		});
 
+		$( ".chmix" ).on( "click", function() {
+			ws_calls.send('{"command": "chmix", "key": "'+
+				$(this).attr('data-key')+'"}');
+		});
 
 		$( ".keyboard" ).on( "click", function() {
 			var call = $(this).attr('data-key');
