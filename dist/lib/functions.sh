@@ -121,18 +121,18 @@ sl_get_baresip() {
 
     ## Link backend modules
     rm -Rf modules/g722
-    ln -s $(realpath ../../src/modules/g722) modules/g722
-    ln -s $(realpath ../../src/modules/slogging) modules/slogging
-    ln -s $(realpath ../../src/modules/webapp) modules/webapp
-    ln -s $(realpath ../../src/modules/effect) modules/effect
-    ln -s $(realpath ../../src/modules/effectonair) modules/effectonair
-    ln -s $(realpath ../../src/modules/apponair) modules/apponair
-    ln -s $(realpath ../../src/modules/slaudio) modules/slaudio
+    ln -s $(pwd -P)/../../src/modules/g722 modules/g722
+    ln -s $(pwd -P)/../../src/modules/slogging modules/slogging
+    ln -s $(pwd -P)/../../src/modules/webapp modules/webapp
+    ln -s $(pwd -P)/../../src/modules/effect modules/effect
+    ln -s $(pwd -P)/../../src/modules/effectonair modules/effectonair
+    ln -s $(pwd -P)/../../src/modules/apponair modules/apponair
+    ln -s $(pwd -P)/../../src/modules/slaudio modules/slaudio
 
     sed $sed_opt s/SLVERSION_T/$version_t/ modules/webapp/webapp.h
     sed $sed_opt s/BARESIP_VERSION\ \"$baresip_lib\"/BARESIP_VERSION\ \"$version_n\"/ include/baresip.h
     cp -a include/baresip.h ../my_include/
-    ln -s $(realpath ../../src/modules/webapp.h) ../my_include/webapp.h
+    ln -s $(pwd -P)/../../src/modules/webapp.h ../my_include/webapp.h
 
     popd
 }
