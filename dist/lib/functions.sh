@@ -132,7 +132,7 @@ sl_get_baresip() {
     sed $sed_opt s/SLVERSION_T/$version_t/ modules/webapp/webapp.h
     sed $sed_opt s/BARESIP_VERSION\ \"$baresip_lib\"/BARESIP_VERSION\ \"$version_n\"/ include/baresip.h
     cp -a include/baresip.h ../my_include/
-    ln -s $(pwd -P)/../../src/modules/webapp.h ../my_include/webapp.h
+    ln -s $(pwd -P)/../../src/modules/webapp/webapp.h ../my_include/webapp.h
 
     popd
 }
