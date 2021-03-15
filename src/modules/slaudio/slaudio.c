@@ -1526,7 +1526,7 @@ static int slaudio_init(void)
 		sess->ch = cnt * 2 + 1;
 		sess->track = cnt + 1;
 		sess->call = NULL;
-		sess->jb_max = 0;
+		sess->jitter.max = 0;
 		sess->run_src = false;
 		sess->run_play = false;
 
@@ -1541,7 +1541,7 @@ static int slaudio_init(void)
 	sess->local = false;
 	sess->stream = true;
 	sess->call = NULL;
-	sess->jb_max = 0;
+	sess->jitter.max = 0;
 	sess->ch = MAX_REMOTE_CHANNELS * 2 + 1;
 	list_append(&sessionl, &sess->le, sess);
 

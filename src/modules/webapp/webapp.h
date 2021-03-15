@@ -51,6 +51,16 @@ enum sess_chmix {
 	CH_MONO_R
 };
 
+struct sess_jitter {
+	bool talk;
+	int16_t bufsz;
+	int16_t max;
+	int16_t max_l;
+	int16_t max_r;
+	int16_t startup;
+	int16_t silence_count;
+};
+
 struct session {
 	struct le le;
 	struct ausrc_st *st_src;
@@ -63,12 +73,10 @@ struct session {
 	bool stream; /* only used for standalone */
 	bool local; /* only used for standalone */
 	int8_t track;
-	bool talk;
-	int16_t bufsz;
-	int16_t jb_max;
-	int16_t silence_count;
+	struct sess_jitter jitter;
 	enum sess_chmix chmix;
 	char *state;
+	bool changed;
 #ifdef SLPLUGIN
 	bool primary;
 	bool run_auto_mix;
@@ -195,5 +203,6 @@ void slaudio_set_output(int value);
 /*
  * jitter.c
  */
+void webapp_jitter_reset(struct session *sess);
 void webapp_jitter(struct session *sess, int16_t *sampv,
 		auplay_write_h *wh, unsigned int sampc, void *arg);

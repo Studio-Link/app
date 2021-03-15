@@ -221,6 +221,7 @@ int8_t webapp_call_update(struct call *call, char *state)
 
 		if (new && !sess->call) {
 			sess->call = call;
+			webapp_jitter_reset(sess);
 		}
 
 		if (sess->call != call)
@@ -258,11 +259,18 @@ static void jitter_buffer(void *arg)
 		if (sess->local || sess->stream)
 			continue;
 
-		re_snprintf(bufsz, sizeof(bufsz), "%d ", sess->bufsz);
-		re_snprintf(talk, sizeof(talk), "%d ", sess->talk);
+		re_snprintf(bufsz, sizeof(bufsz), "%d ", sess->jitter.bufsz);
+		re_snprintf(talk, sizeof(talk), "%d ", sess->jitter.talk);
 		strcat((char*)buffers, bufsz);
 		strcat((char*)talks, talk);
+
+		if (sess->changed) {
+			session_to_webapp_calls(sess);
+			sess->changed = false;
+			ws_send_json(WS_CALLS, webapp_calls);
+		}
 	}
+
 	n = strlen(buffers);
 	buffers[n-1] = '\0'; /* remove trailing space */
 

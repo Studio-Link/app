@@ -6,6 +6,7 @@
 
 
 #define STIME 192 /* 192 = 48 Samples * 2ch * 2 Bytes = 1ms */
+#define STARTUP_COUNT 200
 
 static int16_t *dummy[1920];
 
@@ -63,56 +64,97 @@ static void stereo_mono_ch_select(int16_t *buf, size_t sampc, enum sess_chmix ch
 }
 
 
+void webapp_jitter_reset(struct session *sess)
+{
+	sess->jitter.startup = 0;
+	sess->jitter.max = 0;
+	sess->jitter.max_l = 0;
+	sess->jitter.max_r = 0;
+	sess->chmix = CH_STEREO;
+}
+
+
 void webapp_jitter(struct session *sess, int16_t *sampv,
 		auplay_write_h *wh, unsigned int sampc, void *arg)
 {
-	int16_t max = 0;
 	struct aurx *rx = arg;
-	size_t bufsz = 0;
+	size_t frames = sampc / 2;
+
+	int16_t max_l = 0, max_r = 0, max = 0;
+	size_t bufsz = 0, pos = 0;
 
 	/* set threshold to 500ms */
 	int16_t silence_threshold = 48000/sampc;
 
 	bufsz = aubuf_cur_size(rx->aubuf);
 
-	if (bufsz <= 7680 && !sess->talk) { /* >=40ms (1920*2*2) */
+	if (bufsz <= 7680 &&
+	    (!sess->jitter.talk ||
+	     sess->jitter.startup < STARTUP_COUNT)) { /* >=40ms (1920*2*2) */
 		debug("webapp_jitter: increase latency %dms\n",
 				bufsz/STIME);
 		memset(sampv, 0, sampc * sizeof(int16_t));
 		return;
 	}
 
-	sess->bufsz = bufsz/STIME;
+	sess->jitter.bufsz = bufsz/STIME;
 
 	wh(sampv, sampc, arg);
+
+	if (sess->jitter.startup == STARTUP_COUNT) {
+		if (sess->jitter.max_l > 400 && sess->jitter.max_r < 400) {
+			sess->chmix = CH_MONO_L;
+			sess->changed = true;
+		}
+		if (sess->jitter.max_r > 400 && sess->jitter.max_l < 400) {
+			sess->chmix = CH_MONO_R;
+			sess->changed = true;
+		}
+		sess->jitter.startup = STARTUP_COUNT+1;
+	}
 
 	/* Mono chmix */
 	if (sess->chmix != CH_STEREO) {
 		stereo_mono_ch_select(sampv, sampc, sess->chmix);
 	}
 
-	/* Detect Talk spurt */
-	for (uint16_t pos = 0; pos < sampc; pos++)
+	/* Detect Talk spurt and channel usage */
+	for (uint16_t frame = 0; frame < frames; frame++)
 	{
-		if (sampv[pos] > max)
-			max = sampv[pos];
+		if (sampv[pos] > max_l)
+			max_l = sampv[pos];
+		if (sampv[pos+1] > max_r)
+			max_r = sampv[pos+1];
+		pos += 2;
 	}
-	sess->jb_max = (sess->jb_max + max) / 2;
 
-	if (sess->jb_max < 400) {
-		if (sess->silence_count < silence_threshold) {
-			sess->silence_count++;
+	if (max_l > max_r)
+		max = max_l;
+	else
+		max = max_r;
+
+	sess->jitter.max = (sess->jitter.max + max) / 2;
+	if (max_l > sess->jitter.max_l)
+		sess->jitter.max_l = max_l;
+	if (max_r > sess->jitter.max_r)
+ 	       sess->jitter.max_r = max_r;
+	if (sess->jitter.startup <= STARTUP_COUNT)
+		sess->jitter.startup++;
+
+	if (sess->jitter.max < 400) {
+		if (sess->jitter.silence_count < silence_threshold) {
+			sess->jitter.silence_count++;
 		}
 		else {
-			sess->talk = false;
+			sess->jitter.talk = false;
 		}
 	}
 	else {
-		sess->talk = true;
-		sess->silence_count = 0;
+		sess->jitter.talk = true;
+		sess->jitter.silence_count = 0;
 	}
 
-	if (sess->talk)
+	if (sess->jitter.talk)
 		return;
 
 	bufsz = aubuf_cur_size(rx->aubuf);
