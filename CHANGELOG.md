@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [v21.03.2-stable] - 2021-03-20
+
+### Added
+
+- **Misc** Auto Mono Left/Right/Stereo detection on call start
+
+
 ## [v21.03.1-beta] - 2021-03-12
 
 ### Added
@@ -315,7 +322,8 @@ Debug only Release
 
 
 
-[Unreleased]: https://github.com/Studio-Link/app/compare/v21.03.0-beta2...HEAD
+[Unreleased]: https://github.com/Studio-Link/app/compare/v21.03.2-stable...HEAD
+[v21.03.2-stable]: https://github.com/Studio-Link/app/compare/v21.03.1-beta...v21.03.2-stable
 [v21.03.1-beta]: https://github.com/Studio-Link/app/compare/v21.03.0-beta2...v21.03.1-beta
 [v21.03.0-beta2]: https://github.com/Studio-Link/app/compare/v21.01.0-beta...v21.03.0-beta2
 [v21.01.0-beta]: https://github.com/Studio-Link/app/compare/v20.12.1-stable...v21.01.0-beta
