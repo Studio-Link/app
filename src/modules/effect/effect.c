@@ -40,7 +40,7 @@
 
 
 enum {
-	MAX_CHANNELS = 10
+	MAX_CHANNELS = 12
 };
 
 struct lock *sync_lock;

@@ -22,7 +22,7 @@
 
 enum
 {
-	MAX_REMOTE_CHANNELS = 6,
+	MAX_REMOTE_CHANNELS = 11,
 };
 
 static enum SoundIoFormat prioritized_formats[] = {

@@ -126,9 +126,9 @@ index 39827a2..82c2b86 100644
  #endif
  
 +#if defined (SLPLUGIN)
-+#define SL_MAX_CALLS 10
++#define SL_MAX_CALLS 12
 +#else
-+#define SL_MAX_CALLS 7
++#define SL_MAX_CALLS 12
 +#endif
 +
  
