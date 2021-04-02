@@ -34,6 +34,6 @@
     "sass-loader": "^10.1.1",
     "vue": "^2.6.12",
     "vue-template-compiler": "^2.6.12",
-    "vue-tour": "^1.5.0"
+    "vue-tour": "^2.0.0"
   }
 }
