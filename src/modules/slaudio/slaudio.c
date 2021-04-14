@@ -20,8 +20,7 @@
 #define BUFFER_LEN 19200 /* max buffer_len = 192kHz*2ch*25ms*2frames */
 #define FLOAT_FRAME_BYTES 8 /* sizeof(float) * 2ch */
 
-enum
-{
+enum {
 	MAX_REMOTE_CHANNELS = 6,
 };
 
@@ -45,6 +44,8 @@ struct slaudio_st
 	struct SoundIoDevice *dev_out;
 	struct SoundIoInStream *instream;
 	struct SoundIoOutStream *outstream;
+	int32_t underflows;
+	int32_t overflows;
 };
 
 static struct slaudio_st *slaudio;
@@ -476,8 +477,7 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 
 
 static void underflow_callback(struct SoundIoOutStream *outstream) {
-	static int count = 0;
-	warning("slaudio/underflow %d\n", ++count);
+	++slaudio->underflows;
 }
 
 
@@ -735,7 +735,7 @@ static int slaudio_devices(void)
 		}
 
 		odict_entry_add(o, "display", ODICT_STRING, device_name);
-		info("slaudio: device: %s\n", device_name);
+		info("slaudio/in: device: %s\n", device_name);
 
 		int64_t channels = device->current_layout.channel_count;
 		info("slaudio/in: default channels: %d\n", channels);
@@ -829,7 +829,7 @@ static int slaudio_devices(void)
 					"%s", device->name);
 		}
 		odict_entry_add(o, "display", ODICT_STRING, device_name);
-		info("slaudio: output device %s\n", device_name);
+		info("slaudio/out: device %s\n", device_name);
 
 		if (output == -1 && default_output == i)
 		{
@@ -1129,8 +1129,7 @@ static void read_callback(struct SoundIoInStream *instream,
 	int free_count = free_bytes / FLOAT_FRAME_BYTES;
 
 	if (samples > free_count) {
-		warning("ring buffer overflow %d/%d/%d\n", samples,
-				free_count, frame_count_max);
+		++slaudio->overflows;
 		soundio_ring_buffer_clear(ring_buffer);
 		free_bytes = soundio_ring_buffer_free_count(ring_buffer);
 		free_count = free_bytes / FLOAT_FRAME_BYTES;
