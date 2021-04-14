@@ -88,7 +88,7 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 
 	bufsz = aubuf_cur_size(rx->aubuf);
 
-	if (bufsz <= 7680 &&
+	if (bufsz <= 30000 &&
 	    (!sess->jitter.talk ||
 	     sess->jitter.startup < STARTUP_COUNT)) { /* >=40ms (1920*2*2) */
 		debug("webapp_jitter: increase latency %dms\n",
