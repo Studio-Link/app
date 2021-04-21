@@ -92,8 +92,6 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 	    (!sess->jitter.talk ||
 	     sess->jitter.startup < STARTUP_COUNT)) {
 		memset(sampv, 0, sampc * sizeof(int16_t));
-		sess->jitter.talk = true;
-		sess->jitter.silence_count = 0;
 		return;
 	}
 
