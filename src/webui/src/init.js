@@ -1,7 +1,7 @@
 require('bootstrap');
 require('./icons');
 
-window.Vue = require("vue");
+import Vue from 'vue';
 import VueTour from 'vue-tour'
 
 require('vue-tour/dist/vue-tour.css')
@@ -9,6 +9,7 @@ require('vue-tour/dist/vue-tour.css')
 var $ = require('jquery');
 window.jQuery = $;
 window.$ = $;
+window.Vue = Vue;
 
 import Parsley from 'parsleyjs'
 

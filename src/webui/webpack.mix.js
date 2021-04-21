@@ -23,7 +23,7 @@ mix.js([
 	'src/websockets/ws_contacts.js',
 	'src/websockets/ws_options.js',
 	'src/websockets/ws_rtaudio.js'
-], 'dist/app.js');
+], 'dist/app.js').vue({version: 2});
 
 mix.sass('src/app.scss', 'dist/')
    .purgeCss({
