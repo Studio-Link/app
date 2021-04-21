@@ -1,27 +1,56 @@
 {{#each this}}
 <div class="card mb-2">
-	<div class="card-header card-header-sm"><b>Remote Track {{track}}</b>
-					<button aria-label="Add Contact" data-key="{{mysip peer}}" class="btn btn-success btn-sm addcontactshort {{contacthide}}" style="margin-top: -2px;">
-						<span class="fa fa-user-plus" aria-hidden="true"></span>
-					</button>
-					<button aria-label="DTMF" data-key="{{@key}}" class="btn btn-primary btn-sm keyboard" style="margin-top: -2px;">
-						<span class="fas fa-th" aria-hidden="true"></span>
-					</button>
-					<button aria-label="Channel Mix" data-key="{{@key}}" class="btn btn-primary btn-sm chmix" style="margin-top: -2px;">
-                       {{chmix}}
-					</button>
-		<div class="float-right">
-					<span class="badge badge-primary">{{state}}</span>
-					<button aria-label="Cancel Call" data-key="{{@key}}" class="btn btn-danger btn-sm hangup" style="margin-top: -2px;">
-						<i class="fas fa-phone-slash"></i>
-					</button>
-		</div>
-	</div>
-	<div class="card-body">
-		ID: {{mysip peer}}
-		(Buffer: <span id="jitter{{track}}"></span> ms)
-		Talk: <span id="talk{{track}}"></span>
-		<div id="headphonesbar{{ch}}" class="progress progress-sm"></div>
-	</div>
+    <div class="card-header card-header-sm"><b>Remote Track {{track}}</b>
+        <button aria-label="Channel Mix" data-key="{{@key}}" class="btn btn-primary btn-sm chmix"
+            style="margin-top: -2px;">
+            {{chmix}}
+        </button>
+
+        <div class="dropdown btn-group" style="margin-top: -2px;">
+            <button title="Options" aria-label="Options" class="btn btn-primary btn-sm dropdown-toggle" type="button"
+                id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="fa fa-cog" aria-hidden="true"></span> Options
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                <button aria-label="Add Contact" data-key="{{mysip peer}}"
+                    class="dropdown-item addcontactshort {{contacthide}}" style="margin-top: -2px;">
+                    <span class="fa fa-user-plus" aria-hidden="true"></span> Add Contact
+                </button>
+                <button aria-label="DTMF" data-key="{{@key}}" class="dropdown-item keyboard" style="margin-top: -2px;">
+                    <span class="fas fa-th" aria-hidden="true"></span> DTMF Keyboard
+                </button>
+                <div class="dropdown-divider"></div>
+                <h6 class="dropdown-header">Latency/Buffer (60ms)</h6>
+                <div class="px-4 pb-2">
+                    <form action="#" onsubmit="yourJsFunction();return false">
+                        <button type="button" class="btn btn-secondary btn-sm btn-block">+20ms</button>
+                        <button type="button" class="btn btn-secondary btn-sm btn-block">-20ms</button>
+                    </form>
+                </div>
+                <div class="dropdown-divider"></div>
+                <form class="px-4">
+                    <div class="form-group">
+                        <label for="formControlRange">Volume</label>
+                        <input type="range" min="0" max="11" value="8" class="form-control-range"
+                            id="formControlRange">
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="float-right">
+            <span class="badge badge-primary">{{state}}</span>
+            <button aria-label="Cancel Call" data-key="{{@key}}" class="btn btn-danger btn-sm hangup"
+                style="margin-top: -2px;">
+                <i class="fas fa-phone-slash"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        ID: {{mysip peer}}
+        (Buffer: <span id="jitter{{track}}"></span> ms)
+        Talk: <span id="talk{{track}}"></span>
+        <div id="headphonesbar{{ch}}" class="progress progress-sm"></div>
+    </div>
 </div>
 {{/each}}
