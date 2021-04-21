@@ -2,6 +2,7 @@
 #include <baresip.h>
 #include <string.h>
 #include "webapp.h"
+#include <stdlib.h>
 
 static struct tmr tmr_stream;
 static struct tmr tmr_jitter_buffer;
@@ -171,6 +172,9 @@ static void session_to_webapp_calls(struct session *sess)
 		odict_entry_add(o, "chmix", ODICT_STRING, "Mono L");
 	if (sess->chmix == CH_MONO_R)
 		odict_entry_add(o, "chmix", ODICT_STRING, "Mono R");
+
+	odict_entry_add(o, "buffer", ODICT_INT, (int64_t)sess->buffer);
+	odict_entry_add(o, "volume", ODICT_DOUBLE, sess->volume);
 	odict_entry_add(o, "track", ODICT_INT, (int64_t)sess->track);
 	odict_entry_add(webapp_calls, id, ODICT_OBJECT, o);
 	mem_deref(o);
@@ -314,6 +318,97 @@ void webapp_session_chmix(char *const sess_id)
 			}
 			session_to_webapp_calls(sess);
 			ws_send_json(WS_CALLS, webapp_calls);
+			return;
+		}
+	}
+}
+
+
+void webapp_session_bufferinc(char *const sess_id)
+{
+	char id[64] = {0};
+	struct list *tsession;
+	struct session *sess;
+	struct le *le;
+
+	tsession = sl_sessions();
+
+	for (le = tsession->head; le; le = le->next) {
+		sess = le->data;
+
+		if (sess->local)
+			continue;
+
+		re_snprintf(id, sizeof(id), "%d", sess->track);
+
+		if (!str_cmp(id, sess_id)) {
+			if (sess->buffer >= 200) {
+				return;
+			}
+			sess->buffer += 20;
+			sess->jitter.startup = 0;
+			session_to_webapp_calls(sess);
+			ws_send_json(WS_CALLS, webapp_calls);
+
+			return;
+		}
+	}
+}
+
+
+void webapp_session_bufferdec(char *const sess_id)
+{
+	char id[64] = {0};
+	struct list *tsession;
+	struct session *sess;
+	struct le *le;
+
+	tsession = sl_sessions();
+
+	for (le = tsession->head; le; le = le->next) {
+		sess = le->data;
+
+		if (sess->local)
+			continue;
+
+		re_snprintf(id, sizeof(id), "%d", sess->track);
+
+		if (!str_cmp(id, sess_id)) {
+			if (sess->buffer <= 40) {
+				return;
+			}
+			sess->buffer -= 20;
+			session_to_webapp_calls(sess);
+			ws_send_json(WS_CALLS, webapp_calls);
+
+			return;
+		}
+	}
+}
+
+
+void webapp_session_volume(char *const sess_id, char *const volume)
+{
+	char id[64] = {0};
+	struct list *tsession;
+	struct session *sess;
+	struct le *le;
+
+	tsession = sl_sessions();
+
+	for (le = tsession->head; le; le = le->next) {
+		sess = le->data;
+
+		if (sess->local)
+			continue;
+
+		re_snprintf(id, sizeof(id), "%d", sess->track);
+
+		if (!str_cmp(id, sess_id)) {
+			sess->volume = atof(volume);
+			session_to_webapp_calls(sess);
+			ws_send_json(WS_CALLS, webapp_calls);
+
 			return;
 		}
 	}

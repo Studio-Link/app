@@ -88,18 +88,25 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 
 	bufsz = aubuf_cur_size(rx->aubuf);
 
-	if (bufsz <= 7680 &&
+	if (bufsz <= (sess->buffer * STIME) &&
 	    (!sess->jitter.talk ||
-	     sess->jitter.startup < STARTUP_COUNT)) { /* >=40ms (1920*2*2) */
-		debug("webapp_jitter: increase latency %dms\n",
-				bufsz/STIME);
+	     sess->jitter.startup < STARTUP_COUNT)) {
 		memset(sampv, 0, sampc * sizeof(int16_t));
+		sess->jitter.talk = true;
+		sess->jitter.silence_count = 0;
 		return;
 	}
 
 	sess->jitter.bufsz = bufsz/STIME;
-
 	wh(sampv, sampc, arg);
+
+	/* GAIN */
+	pos = 0;
+	for (uint16_t frame = 0; frame < sampc; frame++)
+	{
+		sampv[pos] = (int16_t)(sampv[pos] * sess->volume);
+		++pos;
+	}
 
 	if (sess->jitter.startup == STARTUP_COUNT) {
 		if (sess->jitter.max_l > 400 && sess->jitter.max_r < 400) {
@@ -119,6 +126,7 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 	}
 
 	/* Detect Talk spurt and channel usage */
+	pos = 0;
 	for (uint16_t frame = 0; frame < frames; frame++)
 	{
 		if (sampv[pos] > max_l)
@@ -138,6 +146,7 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 		sess->jitter.max_l = max_l;
 	if (max_r > sess->jitter.max_r)
  	       sess->jitter.max_r = max_r;
+
 	if (sess->jitter.startup <= STARTUP_COUNT)
 		sess->jitter.startup++;
 
@@ -159,9 +168,7 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 
 	bufsz = aubuf_cur_size(rx->aubuf);
 	/* Reduce latency <= 120ms (1920*2*6) */
-	if (bufsz >= 23040) {
-		debug("webapp_jitter: reduce latency %dms\n",
-				bufsz/STIME);
+	if (bufsz >= (sess->buffer + 40) * STIME) {
 		wh(dummy, 1920, arg);
 	}
 }

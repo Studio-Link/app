@@ -15,6 +15,21 @@ window.ws_calls_init = function() {
 				$(this).attr('data-key')+'"}');
 		});
 
+		$( ".bufferinc" ).on( "click", function() {
+			ws_calls.send('{"command": "bufferinc", "key": "'+
+				$(this).attr('data-key')+'"}');
+		});
+    
+		$( ".bufferdec" ).on( "click", function() {
+			ws_calls.send('{"command": "bufferdec", "key": "'+
+				$(this).attr('data-key')+'"}');
+		});
+
+		$( ".volume" ).on( "change", function() {
+			ws_calls.send('{"command": "volume", "key": "'+
+				$(this).attr('data-key')+'", "value": "'+$(this)[0].value+'" }');
+		});
+
 		$( ".keyboard" ).on( "click", function() {
 			var call = $(this).attr('data-key');
 			bootbox.dialog({

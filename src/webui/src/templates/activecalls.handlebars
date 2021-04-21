@@ -20,19 +20,21 @@
                     <span class="fas fa-th" aria-hidden="true"></span> DTMF Keyboard
                 </button>
                 <div class="dropdown-divider"></div>
-                <h6 class="dropdown-header">Latency/Buffer (60ms)</h6>
+                <h6 class="dropdown-header">Latency/Buffer ({{buffer}}ms)</h6>
                 <div class="px-4 pb-2">
                     <form action="#" onsubmit="yourJsFunction();return false">
-                        <button type="button" class="btn btn-secondary btn-sm btn-block">+20ms</button>
-                        <button type="button" class="btn btn-secondary btn-sm btn-block">-20ms</button>
+                        <button type="button" class="btn btn-secondary btn-sm btn-block bufferinc"
+                            data-key="{{@key}}">+20ms</button>
+                        <button type="button" class="btn btn-secondary btn-sm btn-block bufferdec"
+                            data-key="{{@key}}">-20ms</button>
                     </form>
                 </div>
                 <div class="dropdown-divider"></div>
                 <form class="px-4">
                     <div class="form-group">
-                        <label for="formControlRange">Volume</label>
-                        <input type="range" min="0" max="11" value="8" class="form-control-range"
-                            id="formControlRange">
+                        <label class="dropdown-header" for="formControlRange">Volume ({{volume}})</label>
+                        <input type="range" min="0" max="2" step="0.1" value="{{volume}}" class="form-control-range volume"
+                            id="formControlRange" data-key="{{@key}}">
                     </div>
                 </form>
             </div>

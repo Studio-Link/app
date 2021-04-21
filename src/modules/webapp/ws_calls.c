@@ -43,6 +43,18 @@ void webapp_ws_calls(const struct websock_hdr *hdr,
 	else if (!str_cmp(e->u.str, "chmix")) {
 	 	webapp_session_chmix(key->u.str);
 	}
+	else if (!str_cmp(e->u.str, "bufferinc")) {
+	 	webapp_session_bufferinc(key->u.str);
+	}
+	else if (!str_cmp(e->u.str, "bufferdec")) {
+	 	webapp_session_bufferdec(key->u.str);
+	}
+	else if (!str_cmp(e->u.str, "volume")) {
+		e = odict_lookup(cmd, "value");
+		if (!e)
+			goto out;
+	 	webapp_session_volume(key->u.str, e->u.str);
+	}
 	else if (!str_cmp(e->u.str, "dtmf")) {
 		e = odict_lookup(cmd, "tone");
 		if (!e)

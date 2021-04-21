@@ -1,6 +1,6 @@
-let mix = require('laravel-mix');
-require('laravel-mix-copy-watched');
-require('laravel-mix-purgecss');
+let mix = require("laravel-mix");
+require("laravel-mix-copy-watched");
+require("laravel-mix-purgecss");
 
 /*
  |--------------------------------------------------------------------------
@@ -13,35 +13,47 @@ require('laravel-mix-purgecss');
  |
  */
 
-mix.js([
-	'src/init.js', 
-	'src/app.js', 
-	'src/notify.js', 
-	'src/websockets/ws_baresip.js',
-	'src/websockets/ws_calls.js',
-	'src/websockets/ws_meter.js',
-	'src/websockets/ws_contacts.js',
-	'src/websockets/ws_options.js',
-	'src/websockets/ws_rtaudio.js'
-], 'dist/app.js').vue({version: 2});
+mix
+  .js(
+    [
+      "src/init.js",
+      "src/app.js",
+      "src/notify.js",
+      "src/websockets/ws_baresip.js",
+      "src/websockets/ws_calls.js",
+      "src/websockets/ws_meter.js",
+      "src/websockets/ws_contacts.js",
+      "src/websockets/ws_options.js",
+      "src/websockets/ws_rtaudio.js",
+    ],
+    "dist/app.js"
+  )
+  .vue({ version: 2 });
 
-mix.sass('src/app.scss', 'dist/')
-   .purgeCss({
-		enabled: mix.inProduction(),
-		folders: ['src', 'node_modules/bootbox/dist', 'node_modules/shepherd.js'],
-		extensions: ['html', 'js', 'handlebars', 'vue'],
-	   	whitelistPatterns: [/shepherd-.*/],
-   })
-   .copyWatched('src/index.html', 'dist/')
-   .copyDirectory('src/images', 'dist/images');
+mix
+  .sass("src/app.scss", "dist/")
+  .purgeCss({
+    enabled: mix.inProduction(),
+    content: [
+      "src/index.html",
+      "src/**/*.js",
+      "src/**/*.handlebars",
+      "src/**/*.vue",
+      "node_modules/bootbox/dist/*.js",
+      "node_modules/vue-tour/dist/*.js",
+      "node_modules/vue-tour/dist/*.css"
+    ],
+  })
+  .copyWatched("src/index.html", "dist/")
+  .copyDirectory("src/images", "dist/images");
 
 mix.webpackConfig({
-	module: {
-		rules: [
-			{
-				test: /\.handlebars?$/,
-				loader: 'handlebars-loader'
-			}
-		]
-	}
+  module: {
+    rules: [
+      {
+        test: /\.handlebars?$/,
+        loader: "handlebars-loader",
+      },
+    ],
+  },
 });

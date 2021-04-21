@@ -632,6 +632,8 @@ static int effect_init(void)
 		sess->track = cnt + 1;
 		sess->effect_ready = false;
 		sess->primary = false;
+		sess->buffer = 60;
+		sess->volume = 1.0;
 		list_append(&sessionl, &sess->le, sess);
 	}
 

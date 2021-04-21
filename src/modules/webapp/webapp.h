@@ -77,6 +77,8 @@ struct session {
 	enum sess_chmix chmix;
 	char *state;
 	bool changed;
+	size_t buffer;
+	double volume;
 #ifdef SLPLUGIN
 	bool primary;
 	bool run_auto_mix;
@@ -105,6 +107,9 @@ int webapp_session_stop_stream(void);
 struct call* webapp_session_get_call(char * const sess_id);
 bool webapp_session_available(void);
 void webapp_session_chmix(char * const sess_id);
+void webapp_session_bufferinc(char * const sess_id);
+void webapp_session_bufferdec(char * const sess_id);
+void webapp_session_volume(char * const sess_id, char * const volume);
 
 /*
  * account.c
