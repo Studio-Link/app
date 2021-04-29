@@ -1,0 +1,47 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/src/webui"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: sass
+    versions:
+    - 1.32.11
+    - 1.32.6
+    - 1.32.7
+    - 1.32.8
+  - dependency-name: vue-tour
+    versions:
+    - 2.0.0
+  - dependency-name: "@fortawesome/free-solid-svg-icons"
+    versions:
+    - 5.15.3
+  - dependency-name: "@fortawesome/fontawesome-svg-core"
+    versions:
+    - 1.2.35
+  - dependency-name: "@fortawesome/free-regular-svg-icons"
+    versions:
+    - 5.15.3
+  - dependency-name: sass-loader
+    versions:
+    - 11.0.1
+  - dependency-name: bootstrap
+    versions:
+    - 4.6.0
+  - dependency-name: laravel-mix-purgecss
+    versions:
+    - 5.0.0
+  - dependency-name: elliptic
+    versions:
+    - 6.5.4
+  - dependency-name: jquery
+    versions:
+    - 3.6.0
+  - dependency-name: handlebars
+    versions:
+    - 4.7.7
+  - dependency-name: websocket-extensions
+    versions:
+    - 0.1.4
