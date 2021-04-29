@@ -59,6 +59,7 @@ struct sess_jitter {
 	int16_t max_r;
 	int16_t startup;
 	int16_t silence_count;
+	int16_t delay_count;
 };
 
 struct session {

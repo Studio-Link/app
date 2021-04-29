@@ -89,9 +89,20 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 	bufsz = aubuf_cur_size(rx->aubuf);
 
 	if (bufsz <= (sess->buffer * STIME) &&
-	    (!sess->jitter.talk ||
-	     sess->jitter.startup < STARTUP_COUNT)) {
+	    sess->jitter.startup < STARTUP_COUNT) {
 		memset(sampv, 0, sampc * sizeof(int16_t));
+		return;
+	}
+
+	if (bufsz <= (size_t)(sess->buffer * 0.8) * STIME && !sess->jitter.talk) {
+		if (sess->jitter.delay_count >= 960) {
+			/* only slightly increase buffer */
+			sess->jitter.talk = true;
+			sess->jitter.silence_count = 0;
+			sess->jitter.delay_count = 0;
+		}
+		memset(sampv, 0, sampc * sizeof(int16_t));
+		sess->jitter.delay_count += frames;
 		return;
 	}
 
@@ -165,8 +176,11 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 		return;
 
 	bufsz = aubuf_cur_size(rx->aubuf);
-	/* Reduce latency <= 120ms (1920*2*6) */
-	if (bufsz >= (sess->buffer + 40) * STIME) {
+	/* Reduce latency */
+	if (bufsz >= (sess->buffer + 100) * STIME) {
+		/* only slightly reduce buffer */
+		sess->jitter.talk = true;
+		sess->jitter.silence_count = 0;
 		wh(dummy, 1920, arg);
 	}
 }
