@@ -11,7 +11,7 @@ index 04d87f3..eb0aa45 100644
  int  net_default_gateway_get(int af, struct sa *gw);
  
 diff --git a/src/net/net.c b/src/net/net.c
-index 0978b1b..8ed55e9 100644
+index 0978b1b..4c38eb2 100644
 --- a/src/net/net.c
 +++ b/src/net/net.c
 @@ -17,6 +17,8 @@
@@ -67,7 +67,7 @@ index 0978b1b..8ed55e9 100644
  /**
   * Get the default source IP address
   *
-@@ -66,10 +105,26 @@ int net_hostaddr(int af, struct sa *ip)
+@@ -66,10 +105,34 @@ int net_hostaddr(int af, struct sa *ip)
   */
  int net_default_source_addr_get(int af, struct sa *ip)
  {
@@ -85,6 +85,14 @@ index 0978b1b..8ed55e9 100644
 +		err = sa_set_str(&dst, "1.1.1.1", 53);
 +
 +	err = net_dst_source_addr_get(&dst, ip);
++
++	if (af == AF_INET6) {
++		if (sa_is_linklocal(ip)) {
++			sa_init(ip, af);
++			return 0;
++		}
++	}
++
 +	if (!err)
 +		return 0;
 +
