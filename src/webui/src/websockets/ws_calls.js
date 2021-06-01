@@ -1,9 +1,22 @@
 'use strict';
+
+var ws_calls_dropdown_open = 0;
+
 window.ws_calls_init = function() {
 
 	function RefreshEventListener() {
 		var addcontact = require("../templates/addcontact.handlebars");
 		var keyboard = require("../templates/keyboard.handlebars");
+
+        if (ws_calls_dropdown_open) {
+            $("#dropdown"+ws_calls_dropdown_open).dropdown("show");
+            var e = document.getElementById("dropdown"+ws_calls_dropdown_open);
+            e.scrollIntoView();
+        }
+
+        $('.dropdown').on('hide.bs.dropdown', function () {
+            ws_calls_dropdown_open = 0;
+        })
 
 		$( ".hangup" ).on( "click", function() {
 			ws_calls.send('{"command": "hangup", "key": "'+
@@ -18,16 +31,19 @@ window.ws_calls_init = function() {
 		$( ".bufferinc" ).on( "click", function() {
 			ws_calls.send('{"command": "bufferinc", "key": "'+
 				$(this).attr('data-key')+'"}');
+            ws_calls_dropdown_open = $(this).attr('data-key');
 		});
     
 		$( ".bufferdec" ).on( "click", function() {
 			ws_calls.send('{"command": "bufferdec", "key": "'+
 				$(this).attr('data-key')+'"}');
+            ws_calls_dropdown_open = $(this).attr('data-key');
 		});
 
 		$( ".volume" ).on( "change", function() {
 			ws_calls.send('{"command": "volume", "key": "'+
 				$(this).attr('data-key')+'", "value": "'+$(this)[0].value+'" }');
+            ws_calls_dropdown_open = $(this).attr('data-key');
 		});
 
 		$( ".keyboard" ).on( "click", function() {
