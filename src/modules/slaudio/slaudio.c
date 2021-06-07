@@ -900,7 +900,7 @@ static void read_callback(struct SoundIoInStream *instream,
 		return;
 
 
-	if (startup_count < 16 || nframes > 1920) {
+	if (startup_count < 16) {
 		/*
 		 * drop first frames (keeps buffers small)
 		 */
