@@ -2,12 +2,30 @@
 
 ## [Unreleased]
 
+## [v21.05.0-stable] - 2021-06-08
+
+### Added
+
+- **Misc** Volume and Jitter Buffer options
+
+### Changed
+
+- **Misc** Improved jitter handling
+
+### Fixed
+
+- **Standalone** >48kHz Samplerates
+- **Misc** IPv6 link local detection
+
+---
+
 ## [v21.03.2-stable] - 2021-03-20
 
 ### Added
 
 - **Misc** Auto Mono Left/Right/Stereo detection on call start
 
+---
 
 ## [v21.03.1-beta] - 2021-03-12
 
@@ -15,6 +33,7 @@
 
 - **Misc** Mono Left/Right call mix selection
 
+---
 
 ## [v21.03.0-beta2] - 2021-03-08
 
@@ -22,6 +41,7 @@
 
 - **Plugin** Close calls on session stop (prevents crash race conditions)
 
+---
 
 ## [v21.01.0-beta] - 2021-01-27
 
@@ -34,6 +54,7 @@
 - **Misc** Disable DNS Fallback warnings (debug only now)
 - **Misc** Better support/detection for multiple network connections
 
+---
 
 ## [v20.12.1-stable] - 2021-01-01
 
@@ -322,7 +343,8 @@ Debug only Release
 
 
 
-[Unreleased]: https://github.com/Studio-Link/app/compare/v21.03.2-stable...HEAD
+[Unreleased]: https://github.com/Studio-Link/app/compare/v21.05.0-stable...HEAD
+[v21.05.0-stable]: https://github.com/Studio-Link/app/compare/v21.03.2-stable...v21.05.0-stable
 [v21.03.2-stable]: https://github.com/Studio-Link/app/compare/v21.03.1-beta...v21.03.2-stable
 [v21.03.1-beta]: https://github.com/Studio-Link/app/compare/v21.03.0-beta2...v21.03.1-beta
 [v21.03.0-beta2]: https://github.com/Studio-Link/app/compare/v21.01.0-beta...v21.03.0-beta2
