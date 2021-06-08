@@ -112,6 +112,17 @@ char error_msg[512] = {0};
 
 static int16_t startup_count = 0;
 
+static struct sl_debug {
+	u_int64_t out_ur;
+	u_int64_t out_or;
+	u_int64_t in_ur;
+	u_int64_t in_or;
+	u_int64_t ring_ur;
+	u_int64_t ring_or;
+	bool changed;
+} sl_debug = {0, 0, 0, 0, 0, 0, false};
+
+static struct tmr sl_debug_tmr;
 
 /* webapp/jitter.c */
 void webapp_jitter(struct session *sess, int16_t *sampv,
@@ -476,8 +487,8 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 
 
 static void underflow_callback(struct SoundIoOutStream *outstream) {
-	static int count = 0;
-	warning("slaudio/underflow %d\n", ++count);
+	sl_debug.out_ur++;
+	sl_debug.changed = true;
 }
 
 
@@ -920,8 +931,8 @@ static void read_callback(struct SoundIoInStream *instream,
 	if (!areas) {
 		/* Due to an overflow there is a hole. Fill with silence */
 		memset(slaudio->inBufferFloat, 0, samples * sizeof(float));
-		warning("slaudio/read_callback:"
-				"Dropped %d frames overflow\n", nframes);
+		sl_debug.in_or++;
+		sl_debug.changed = true;
 	}
 	else {
 		downsample_first_ch(slaudio->inBufferFloat, areas, nframes,
@@ -1129,8 +1140,8 @@ static void read_callback(struct SoundIoInStream *instream,
 	int free_count = free_bytes / FLOAT_FRAME_BYTES;
 
 	if (samples > free_count) {
-		warning("ring buffer overflow %d/%d/%d\n", samples,
-				free_count, frame_count_max);
+		sl_debug.ring_or++;
+		sl_debug.changed = true;
 		soundio_ring_buffer_clear(ring_buffer);
 		free_bytes = soundio_ring_buffer_free_count(ring_buffer);
 		free_count = free_bytes / FLOAT_FRAME_BYTES;
@@ -1187,6 +1198,9 @@ static void write_callback(struct SoundIoOutStream *outstream,
 
 	if (nframes > fill_count) {
 		/* Ring buffer does not have enough data, fill with zeroes. */
+		sl_debug.ring_ur++;
+		sl_debug.changed = true;
+
 		frames_left = nframes;
 		for (;;) {
 			frame_count = frames_left;
@@ -1479,6 +1493,29 @@ static int slaudio_stop(void)
 	return 0;
 }
 
+static void slaudio_debug(void *arg)
+{
+	(void)arg;
+
+	if (!sl_debug.changed)
+		goto out;
+
+	warning("slaudio_debug\n"
+		"\tout_ur: %llu \n"
+		"\tout_or: %llu \n"
+		"\tin_ur: %llu \n"
+		"\tin_or: %llu \n"
+		"\tring_ur: %llu \n"
+		"\tring_or: %llu \n",
+		sl_debug.out_ur, sl_debug.out_or, sl_debug.in_ur,
+		sl_debug.in_or, sl_debug.ring_ur, sl_debug.ring_or);
+
+	sl_debug.changed = false;
+
+out:
+	tmr_start(&sl_debug_tmr, 10000, slaudio_debug, false);
+}
+
 
 static int slaudio_init(void)
 {
@@ -1554,6 +1591,8 @@ static int slaudio_init(void)
 	slaudio_record_init();
 	slaudio_start();
 
+	tmr_init(&sl_debug_tmr);
+	tmr_start(&sl_debug_tmr, 10000, slaudio_debug, NULL);
 
 #ifdef WIN32
 	/* Activate windows low latency timer */
@@ -1571,6 +1610,9 @@ static int slaudio_close(void)
 	struct session *sess;
 
 	slaudio_stop();
+	sl_debug.changed = true;
+	slaudio_debug(NULL);
+	tmr_cancel(&sl_debug_tmr);
 
 	ausrc = mem_deref(ausrc);
 	auplay = mem_deref(auplay);
