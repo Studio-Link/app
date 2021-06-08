@@ -113,12 +113,12 @@ char error_msg[512] = {0};
 static int16_t startup_count = 0;
 
 static struct sl_debug {
-	u_int64_t out_ur;
-	u_int64_t out_or;
-	u_int64_t in_ur;
-	u_int64_t in_or;
-	u_int64_t ring_ur;
-	u_int64_t ring_or;
+	uint64_t out_ur;
+	uint64_t out_or;
+	uint64_t in_ur;
+	uint64_t in_or;
+	uint64_t ring_ur;
+	uint64_t ring_or;
 	bool changed;
 } sl_debug = {0, 0, 0, 0, 0, 0, false};
 
