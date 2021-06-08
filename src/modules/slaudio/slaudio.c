@@ -1513,7 +1513,7 @@ static void slaudio_debug(void *arg)
 	sl_debug.changed = false;
 
 out:
-	tmr_start(&sl_debug_tmr, 10000, slaudio_debug, false);
+	tmr_start(&sl_debug_tmr, 10000, slaudio_debug, NULL);
 }
 
 
