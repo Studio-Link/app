@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [v21.07.0-stable] - 2021-07-06
+
+### Fixed
+
+- **Misc** improve accessibility
+
+---
+
 ## [v21.05.0-stable] - 2021-06-08
 
 ### Added
@@ -343,7 +351,9 @@ Debug only Release
 
 
 
-[Unreleased]: https://github.com/Studio-Link/app/compare/v21.05.0-stable...HEAD
+[Unreleased]: https://github.com/Studio-Link/app/compare/v21.07.0-stable...HEAD
+[v21.07.0-stable]: https://github.com/Studio-Link/app/compare/v21.05.0-stable...v21.07.0-stable
+[v21.05.0-stable]: https://github.com/Studio-Link/app/compare/v21.03.2-stable...v21.05.0-stable
 [v21.05.0-stable]: https://github.com/Studio-Link/app/compare/v21.03.2-stable...v21.05.0-stable
 [v21.03.2-stable]: https://github.com/Studio-Link/app/compare/v21.03.1-beta...v21.03.2-stable
 [v21.03.1-beta]: https://github.com/Studio-Link/app/compare/v21.03.0-beta2...v21.03.1-beta
