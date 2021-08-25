@@ -47,7 +47,7 @@ sl_get_overlay-vst() {
     sed -i s/SLVMAJOR/$vmajor/ overlay-vst/version.h
     sed -i s/SLVMINOR/$vminor/ overlay-vst/version.h
     sed -i s/SLVPATCH/$vpatch/ overlay-vst/version.h
-    wget http://www.steinberg.net/sdk_downloads/$vstsdk.zip
+    wget https://download.studio.link/tools/$vstsdk.zip
     unzip -q $vstsdk.zip
     mv VST_SDK/VST2_SDK overlay-vst/vstsdk2.4
     if [ "$BUILD_TARGET" == "linux" ]; then
