@@ -44,8 +44,8 @@ https://download.studio.link/devel/
 
 ### Build Requirements on Ubuntu 16.04/18.04
 
-The needed header files are in these packages:  
-libssl-dev libasound2-dev libjack-jackd2-dev libtool build-essential 
+The needed header files are in these packages:
+libssl-dev libasound2-dev libjack-jackd2-dev libtool build-essential
 autoconf automake libpulse0 libpulse-dev xxd
 
 And current nodejs/npm (Node.js v10.x v11.x or v12.x):
@@ -55,7 +55,7 @@ https://github.com/nodesource/distributions/blob/master/README.md
 ### Build on Linux
 
 ```bash
-mdkir studio-link
+mkdir studio-link
 cd studio-link
 git clone https://github.com/Studio-Link/3rdparty.git
 cd 3rdparty
@@ -69,7 +69,7 @@ export BUILD_OS="linux"; export BUILD_TARGET="linux"; dist/build.sh
 ### Build on Linux with JACK support
 
 ```bash
-mdkir studio-link
+mkdir studio-link
 cd studio-link
 git clone https://github.com/Studio-Link/3rdparty.git
 cd 3rdparty
@@ -83,7 +83,7 @@ export BUILD_OS="linux"; export BUILD_TARGET="linuxjack"; dist/build.sh
 ### Build on macOS
 
 ```bash
-mdkir studio-link
+mkdir studio-link
 cd studio-link
 git clone https://github.com/Studio-Link/3rdparty.git
 cd 3rdparty
@@ -97,7 +97,7 @@ export BUILD_OS="macos"; export BUILD_TARGET="macos_x86_64"; dist/build.sh
 ### Build for Windows on Arch Linux (only)
 
 ```bash
-mdkir studio-link
+mkdir studio-link
 cd studio-link
 git clone https://github.com/Studio-Link/3rdparty.git
 cd 3rdparty
