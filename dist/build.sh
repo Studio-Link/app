@@ -11,11 +11,13 @@ if [ "$BUILD_TARGET" == "ccheck" ]; then
 fi
 
 if [ "$BUILD_TARGET" == "linux_arm32" ]; then
+    make_opts+=" SYSROOT=/usr/arm-linux-gnueabihf"
     export CC=arm-linux-gnueabihf-gcc
     export CXX=arm-linux-gnueabihf-g++
 fi
 
 if [ "$BUILD_TARGET" == "linux_arm64" ]; then
+    make_opts+=" SYSROOT=/usr/aarch64-linux-gnu"
     export CC=aarch64-linux-gnu-gcc
     export CXX=aarch64-linux-gnu-g++
 fi
