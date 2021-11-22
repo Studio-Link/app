@@ -10,14 +10,14 @@ if [ "$BUILD_TARGET" == "ccheck" ]; then
     exit 0
 fi
 
-if [ "$BUILD_TARGET" == "linuxarm" ]; then
-    git clone https://github.com/raspberrypi/tools $HOME/rpi-tools
-    export PATH=$PATH:$HOME/rpi-tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin
-    export ARCH=arm
-    export CCPREFIX=$HOME/rpi-tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-
+if [ "$BUILD_TARGET" == "linux_arm32" ]; then
     export CC=arm-linux-gnueabihf-gcc
     export CXX=arm-linux-gnueabihf-g++
-    export RPI_CROSS_COMPILE=true
+fi
+
+if [ "$BUILD_TARGET" == "linux_arm64" ]; then
+    export CC=aarch64-linux-gnu-gcc
+    export CXX=aarch64-linux-gnu-g++
 fi
 
 # Start build
@@ -34,7 +34,9 @@ else
 use_ssl='USE_OPENSSL="yes"'
 fi
 
-if [ "$BUILD_TARGET" == "linux" ]; then
+if [ "$BUILD_TARGET" == "linux" ] || \
+   [ "$BUILD_TARGET" == "linux_arm32" ] || \
+   [ "$BUILD_TARGET" == "linux_arm64" ]; then
     sl_extra_modules="alsa slaudio"
 fi
 if [ "$BUILD_TARGET" == "linuxjack" ]; then
@@ -93,7 +95,8 @@ if [ ! -d baresip-$baresip ]; then
 
     pushd baresip-$baresip
     # Standalone
-    if [ "$BUILD_TARGET" == "linux" ] || [ "$BUILD_TARGET" == "linuxjack" ]; then
+    if [ "$BUILD_TARGET" == "linux" ] || [ "$BUILD_TARGET" == "linuxjack" ] || \
+       [ "$BUILD_TARGET" == "linux_arm32" ] || [ "$BUILD_TARGET" == "linux_arm64" ]; then
         make $debug $make_opts $use_ssl  LIBRE_SO=../re LIBREM_PATH=../rem STATIC=1 \
             MODULES="opus stdio ice g711 turn stun uuid auloop webapp $sl_extra_modules" \
             EXTRA_CFLAGS="-I ../my_include $sl_extra_cflags" \
@@ -232,7 +235,9 @@ fi
 s3_path="s3_upload/$GIT_BRANCH/$version_t/$BUILD_TARGET"
 mkdir -p $s3_path
 
-if [ "$BUILD_TARGET" == "linuxjack" ]; then
+if [ "$BUILD_TARGET" == "linuxjack" ] || \
+   [ "$BUILD_TARGET" == "linux_arm32" ] || \
+   [ "$BUILD_TARGET" == "linux_arm64" ]; then
     #./studio-link-standalone -t 5
     ldd studio-link-standalone
 

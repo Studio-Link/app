@@ -2,7 +2,10 @@
 
 if [ "$BUILD_OS" == "linux" ]; then
         sudo apt-get update
-        sudo apt-get install -y libasound2-dev libjack-jackd2-dev libpulse-dev libpulse0
+        sudo apt-get install -y libasound2-dev libjack-jackd2-dev libpulse-dev libpulse0 \
+            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+            gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+
         wget http://lv2plug.in/spec/lv2-1.14.0.tar.bz2
         tar xjf lv2-1.14.0.tar.bz2 
         pushd lv2-1.14.0 && ./waf configure && ./waf build && sudo ./waf install && popd

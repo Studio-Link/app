@@ -59,6 +59,12 @@ jobs:
           - target: linuxjack
             os: ubuntu-18.04
             os_name: linux
+          - target: linux_arm32
+            os: ubuntu-18.04
+            os_name: linux
+          - target: linux_arm64
+            os: ubuntu-18.04
+            os_name: linux
           - target: macos_x86_64
             os: macos-10.15
             os_name: macos
