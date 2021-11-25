@@ -8,12 +8,15 @@ if [ "$BUILD_OS" == "linux" ]; then
                 gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
 
             wget http://ports.ubuntu.com/pool/main/a/alsa-lib/libasound2_1.1.3-5_armhf.deb
-            wget http://ports.ubuntu.com/pool/main/p/pulseaudio/libpulse0_11.1-1ubuntu7_armhf.deb
-
             wget http://ports.ubuntu.com/pool/main/a/alsa-lib/libasound2_1.1.3-5_arm64.deb
+
+            wget http://ports.ubuntu.com/pool/main/p/pulseaudio/libpulse0_11.1-1ubuntu7_armhf.deb
             wget http://ports.ubuntu.com/pool/main/p/pulseaudio/libpulse0_11.1-1ubuntu7_arm64.deb
 
-            sudo dpkg --force-all -i *.deb
+            sudo dpkg-deb -x libasound2_1.1.3-5_armhf.deb /
+            sudo dpkg-deb -x libasound2_1.1.3-5_arm64.deb /
+            sudo dpkg-deb -x libpulse0_11.1-1ubuntu7_armhf.deb /
+            sudo dpkg-deb -x libpulse0_11.1-1ubuntu7_arm64.deb /
         else
             sudo apt-get install -y libasound2-dev libjack-jackd2-dev libpulse-dev libpulse0
 
