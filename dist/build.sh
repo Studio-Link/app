@@ -3,24 +3,13 @@
 source dist/lib/versions.sh
 source dist/lib/functions.sh
 
-make_opts="-j4 SYSROOT_ALT=../3rdparty"
+make_opts="-j4 SYSROOT_ALT=../3rdparty "
 
 if [ "$BUILD_TARGET" == "ccheck" ]; then
     dist/tools/ccheck.sh
     exit 0
 fi
 
-if [ "$BUILD_TARGET" == "linux_arm32" ]; then
-    make_opts+=" SYSROOT=/usr/arm-linux-gnueabihf"
-    export CC=arm-linux-gnueabihf-gcc
-    export CXX=arm-linux-gnueabihf-g++
-fi
-
-if [ "$BUILD_TARGET" == "linux_arm64" ]; then
-    make_opts+=" SYSROOT=/usr/aarch64-linux-gnu"
-    export CC=aarch64-linux-gnu-gcc
-    export CXX=aarch64-linux-gnu-g++
-fi
 
 # Start build
 #-----------------------------------------------------------------------------
@@ -30,26 +19,39 @@ sl_3rdparty
 sl_extra_lflags="-L ../opus -L ../my_include "
 sl_extra_cflags=""
 
+if [ "$BUILD_TARGET" == "linux_arm32" ]; then
+    make_opts+="SYSROOT=/usr/arm-linux-gnueabihf"
+    sl_extra_lflags+="-L /usr/lib/arm-linux-gnueabihf "
+    export CC=arm-linux-gnueabihf-gcc
+    export CXX=arm-linux-gnueabihf-g++
+
+fi
+
+if [ "$BUILD_TARGET" == "linux_arm64" ]; then
+    make_opts+="SYSROOT=/usr/aarch64-linux-gnu"
+    sl_extra_lflags+="-L ./usr/lib/aarch64-linux-gnu "
+    export CC=aarch64-linux-gnu-gcc
+    export CXX=aarch64-linux-gnu-g++
+fi
+
 if [ "$BUILD_OS" == "macos" ]; then 
 use_ssl='USE_OPENSSL="yes" USE_OPENSSL_DTLS="yes" USE_OPENSSL_SRTP="yes"'
 else
 use_ssl='USE_OPENSSL="yes"'
 fi
 
-if [ "$BUILD_TARGET" == "linux" ] || \
-   [ "$BUILD_TARGET" == "linux_arm32" ] || \
-   [ "$BUILD_TARGET" == "linux_arm64" ]; then
-    sl_extra_modules="alsa slaudio"
+if [ "$BUILD_OS" == "linux" ]; then
+    sl_extra_modules="alsa slaudio "
 fi
 if [ "$BUILD_TARGET" == "linuxjack" ]; then
-    sl_extra_modules="jack alsa slaudio"
+    sl_extra_modules+="jack "
 fi
 if [ "$BUILD_OS" == "macos" ]; then 
     export MACOSX_DEPLOYMENT_TARGET=10.10
     sl_extra_lflags+="-L ../openssl ../openssl/libssl.a ../openssl/libcrypto.a "
     sl_extra_lflags+="-framework SystemConfiguration "
     sl_extra_lflags+="-framework CoreFoundation"
-    sl_extra_modules="slaudio"
+    sl_extra_modules="slaudio "
     sed_opt="-i ''"
 
     if [ "$BUILD_TARGET" == "macos_arm64" ]; then
@@ -66,7 +68,7 @@ if [ "$BUILD_OS" == "macos" ]; then
     fi
 fi
 
-sl_extra_modules="$sl_extra_modules g722 slogging dtls_srtp"
+sl_extra_modules+="722 slogging dtls_srtp"
 
 # Build libre
 #-----------------------------------------------------------------------------
