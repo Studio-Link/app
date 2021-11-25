@@ -243,7 +243,6 @@ if [ "$BUILD_TARGET" == "linuxjack" ] || \
    [ "$BUILD_TARGET" == "linux_arm32" ] || \
    [ "$BUILD_TARGET" == "linux_arm64" ]; then
     #./studio-link-standalone -t 5
-    ldd studio-link-standalone
 
     strip --strip-all studio-link-standalone
 
