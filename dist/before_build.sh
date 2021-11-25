@@ -19,14 +19,14 @@ if [ "$BUILD_OS" == "linux" ]; then
             sudo dpkg-deb -x libpulse0_11.1-1ubuntu7_armhf.deb /
             sudo dpkg-deb -x libpulse0_11.1-1ubuntu7_arm64.deb /
             pushd /usr/lib/arm-linux-gnueabihf
-            ln -s libasound.so.2.0.0 libasound.so
-            ln -s libpulse-simple.so.0.1.1 libpulse-simple.so
-            ln -s libpulse.so.0.20.2 libpulse.so
+            sudo ln -s libasound.so.2.0.0 libasound.so
+            sudo ln -s libpulse-simple.so.0.1.1 libpulse-simple.so
+            sudo ln -s libpulse.so.0.20.2 libpulse.so
             popd
             pushd /usr/lib/aarch64-linux-gnu
-            ln -s libasound.so.2.0.0 libasound.so
-            ln -s libpulse-simple.so.0.1.1 libpulse-simple.so
-            ln -s libpulse.so.0.20.2 libpulse.so
+            sudo ln -s libasound.so.2.0.0 libasound.so
+            sudo ln -s libpulse-simple.so.0.1.1 libpulse-simple.so
+            sudo ln -s libpulse.so.0.20.2 libpulse.so
             popd
         else
 
