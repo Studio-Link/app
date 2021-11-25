@@ -79,8 +79,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - uses: sreimers/action-archlinux-mingw@main
+    - name: mingw
       if: ${{ matrix.os_name == 'mingw' }}
+      uses: sreimers/action-archlinux-mingw@main
       with:
         run: "./dist/build_windows.sh"
 
