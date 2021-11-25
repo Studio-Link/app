@@ -242,10 +242,6 @@ mkdir -p $s3_path
 if [ "$BUILD_TARGET" == "linuxjack" ] || \
    [ "$BUILD_TARGET" == "linux_arm32" ] || \
    [ "$BUILD_TARGET" == "linux_arm64" ]; then
-    #./studio-link-standalone -t 5
-
-    strip --strip-all studio-link-standalone
-
     chmod +x studio-link-standalone
     mv studio-link-standalone studio-link-standalone-$version_tc
     tar -cvzf studio-link-standalone-$version_tc.tar.gz studio-link-standalone-$version_tc
