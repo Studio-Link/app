@@ -13,7 +13,7 @@ if [ "$BUILD_OS" == "linux" ]; then
             wget http://ports.ubuntu.com/pool/main/a/alsa-lib/libasound2_1.1.3-5_arm64.deb
             wget http://ports.ubuntu.com/pool/main/p/pulseaudio/libpulse0_11.1-1ubuntu7_arm64.deb
 
-            sudo dpkg --force-architecture --force-depends -i *.deb
+            sudo dpkg --force-all -i *.deb
         else
             sudo apt-get install -y libasound2-dev libjack-jackd2-dev libpulse-dev libpulse0
 
