@@ -18,6 +18,16 @@ if [ "$BUILD_OS" == "linux" ]; then
             sudo dpkg-deb -x libasound2_1.1.3-5_arm64.deb /
             sudo dpkg-deb -x libpulse0_11.1-1ubuntu7_armhf.deb /
             sudo dpkg-deb -x libpulse0_11.1-1ubuntu7_arm64.deb /
+            pushd /usr/lib/arm-linux-gnueabihf
+            ln -s libasound.so.2.0.0 libasound.so
+            ln -s libpulse-simple.so.0.1.1 libpulse-simple.so
+            ln -s libpulse.so.0.20.2 libpulse.so
+            popd
+            pushd /usr/lib/aarch64-linux-gnu
+            ln -s libasound.so.2.0.0 libasound.so
+            ln -s libpulse-simple.so.0.1.1 libpulse-simple.so
+            ln -s libpulse.so.0.20.2 libpulse.so
+            popd
         else
 
             wget http://lv2plug.in/spec/lv2-1.14.0.tar.bz2
