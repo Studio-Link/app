@@ -2,13 +2,23 @@
 
 if [ "$BUILD_OS" == "linux" ]; then
         sudo apt-get update
-        sudo apt-get install -y libasound2-dev libjack-jackd2-dev libpulse-dev libpulse0 \
-            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
-            gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
 
-        wget http://lv2plug.in/spec/lv2-1.14.0.tar.bz2
-        tar xjf lv2-1.14.0.tar.bz2 
-        pushd lv2-1.14.0 && ./waf configure && ./waf build && sudo ./waf install && popd
+        if [ "$BUILD_TARGET" == "arm32" ] || [ "$BUILD_TARGET" == "arm64" ]; then
+            sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
+                gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+
+            wget http://ports.ubuntu.com/pool/main/a/alsa-lib/libasound2_1.1.3-5_armhf.deb
+            sudo dpkg --force-architecture --force-depends -i libasound2_1.1.3-5_armhf.deb
+
+            wget http://ports.ubuntu.com/pool/main/a/alsa-lib/libasound2_1.1.3-5_arm64.deb
+            sudo dpkg --force-architecture --force-depends -i libasound2_1.1.3-5_arm64.deb
+        else
+            sudo apt-get install -y libasound2-dev libjack-jackd2-dev libpulse-dev libpulse0
+
+            wget http://lv2plug.in/spec/lv2-1.14.0.tar.bz2
+            tar xjf lv2-1.14.0.tar.bz2 
+            pushd lv2-1.14.0 && ./waf configure && ./waf build && sudo ./waf install && popd
+        fi
 elif [ "$BUILD_OS" == "macos" ]; then
         security create-keychain -p travis sl-build.keychain
         security list-keychains -s ~/Library/Keychains/sl-build.keychain
