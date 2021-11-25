@@ -2,6 +2,7 @@
 
 if [ "$BUILD_OS" == "linux" ]; then
         sudo apt-get update
+        sudo apt-get install -y libasound2-dev libjack-jackd2-dev libpulse-dev libpulse0
 
         if [ "$BUILD_TARGET" == "linux_arm32" ] || [ "$BUILD_TARGET" == "linux_arm64" ]; then
             sudo apt-get install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
@@ -18,7 +19,6 @@ if [ "$BUILD_OS" == "linux" ]; then
             sudo dpkg-deb -x libpulse0_11.1-1ubuntu7_armhf.deb /
             sudo dpkg-deb -x libpulse0_11.1-1ubuntu7_arm64.deb /
         else
-            sudo apt-get install -y libasound2-dev libjack-jackd2-dev libpulse-dev libpulse0
 
             wget http://lv2plug.in/spec/lv2-1.14.0.tar.bz2
             tar xjf lv2-1.14.0.tar.bz2 
