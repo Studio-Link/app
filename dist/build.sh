@@ -68,7 +68,7 @@ if [ "$BUILD_OS" == "macos" ]; then
     fi
 fi
 
-sl_extra_modules+="722 slogging dtls_srtp"
+sl_extra_modules+="g722 slogging dtls_srtp"
 
 # Build libre
 #-----------------------------------------------------------------------------
