@@ -1188,6 +1188,9 @@ static void write_callback(struct SoundIoOutStream *outstream,
 	struct SoundIoChannelArea *areas;
 	int err;
 	int nframes = frame_count_max;
+	
+	if (!ring_buffer)
+		return;
 
 	char *read_ptr = soundio_ring_buffer_read_ptr(ring_buffer);
 	int fill_bytes = soundio_ring_buffer_fill_count(ring_buffer);
