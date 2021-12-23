@@ -1188,7 +1188,7 @@ static void write_callback(struct SoundIoOutStream *outstream,
 	struct SoundIoChannelArea *areas;
 	int err;
 	int nframes = frame_count_max;
-	
+
 	if (!ring_buffer)
 		return;
 
