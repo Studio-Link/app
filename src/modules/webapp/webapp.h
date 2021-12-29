@@ -132,6 +132,7 @@ int webapp_contacts_init(void);
 void webapp_contacts_close(void);
 void webapp_contact_add(const struct odict_entry *contact);
 void webapp_contact_delete(const char *sip);
+bool webapp_contact_exists(const char *sip);
 const struct odict* webapp_contacts_get(void);
 
 /*

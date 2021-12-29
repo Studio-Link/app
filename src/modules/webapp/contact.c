@@ -32,7 +32,7 @@ static int contact_register(const struct odict_entry *o)
 		le = (void *)&o->le;
 	}
 
-	for (le=le; le; le=le->next) {
+	for (; le; le=le->next) {
 		const struct odict_entry *e = le->data;
 
 		if (e->type != ODICT_STRING) {
@@ -66,6 +66,9 @@ static int contact_register(const struct odict_entry *o)
 
 void webapp_contact_add(const struct odict_entry *contact)
 {
+	if (!contact)
+		return;
+
 	contact_register(contact);
 	webapp_odict_add(contacts, contact);
 	webapp_write_file_json(contacts, filename);
@@ -75,6 +78,10 @@ void webapp_contact_add(const struct odict_entry *contact)
 void webapp_contact_delete(const char *sip)
 {
 	struct le *le;
+
+	if (!sip)
+		return;
+
 	for (le = contacts->lst.head; le; le = le->next) {
 		char o_sip[100];
 		const struct odict_entry *o = le->data;
@@ -95,6 +102,32 @@ void webapp_contact_delete(const char *sip)
 			break;
 		}
 	}
+}
+
+
+bool webapp_contact_exists(const char *sip)
+{
+	struct le *le;
+
+	if (!sip)
+		return false;
+
+	for (le = contacts->lst.head; le; le = le->next) {
+		char o_sip[100];
+		const struct odict_entry *o = le->data;
+		const struct odict_entry *e;
+
+		e = odict_lookup(o->u.odict, "sip");
+		if (!e)
+			continue;
+		re_snprintf(o_sip, sizeof(o_sip), "sip:%s", e->u.str);
+		warning("cmp %s == %s\n", o_sip, sip);
+		if (!str_cmp(o_sip, sip)) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 
