@@ -1351,7 +1351,7 @@ static int slaudio_start(void)
 	}
 	if (*fmt == SoundIoFormatInvalid) {
 		warning("slaudio/start: instream SoundIoFormatInvalid\n");
-		err = 42;
+		err = EINVAL;
 		goto err_out;
 	}
 
@@ -1387,7 +1387,7 @@ static int slaudio_start(void)
 	}
 	if (*fmt == SoundIoFormatInvalid) {
 		warning("slaudio/start: outstream SoundIoFormatInvalid\n");
-		err = 42;
+		err = EINVAL;
 		goto err_out;
 	}
 
