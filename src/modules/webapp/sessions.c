@@ -342,7 +342,7 @@ void webapp_session_bufferinc(char *const sess_id)
 		re_snprintf(id, sizeof(id), "%d", sess->track);
 
 		if (!str_cmp(id, sess_id)) {
-			if (sess->buffer >= 200) {
+			if (sess->buffer >= 300) {
 				return;
 			}
 			sess->buffer += 20;
