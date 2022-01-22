@@ -30,11 +30,11 @@
     "laravel-mix-purgecss": "^6.0.0",
     "parsleyjs": "^2.9.2",
     "popper.js": "^1.16.1",
-    "resolve-url-loader": "^4.0.0",
+    "resolve-url-loader": "^5.0.0",
     "sass": "^1.45.1",
     "sass-loader": "^12.4.0",
     "vue": "^2.6.12",
-    "vue-loader": "^15.9.8",
+    "vue-loader": "^17.0.0",
     "vue-template-compiler": "^2.6.12",
     "vue-tour": "^2.0.0"
   }
