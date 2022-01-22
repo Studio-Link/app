@@ -34,7 +34,7 @@
     "sass": "^1.45.1",
     "sass-loader": "^12.4.0",
     "vue": "^2.6.12",
-    "vue-loader": "^17.0.0",
+    "vue-loader": "^15.9.8",
     "vue-template-compiler": "^2.6.12",
     "vue-tour": "^2.0.0"
   }
