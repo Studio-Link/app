@@ -844,7 +844,7 @@ static int slaudio_devices(void)
 
 		if (output == -1 && default_output == i)
 		{
-			info("slaudio: set ouput %s (%d)\n", device_name, i);
+			info("slaudio: set output %s (%d)\n", device_name, i);
 			output = i;
 		}
 
