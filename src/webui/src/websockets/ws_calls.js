@@ -164,39 +164,39 @@ window.ws_calls_init = function() {
 			}
 
 		} else {
-			if (swvariant == "standalone") {
-				for (var key in msg) {
-					if (msg[key]['state'] == 'Established')	{
-						established_calls = true;
-					}
-					var match = msg[key]['peer'].match("sip:(.+@studio\.link)");
-					if (!match)
-						continue;
+            for (var key in msg) {
+                if (msg[key]['state'] == 'Established')	{
+                    established_calls = true;
+                }
+                var match = msg[key]['peer'].match("sip:(.+@studio\.link)");
+                if (!match)
+                    continue;
 
-					for (var contact in ws_contacts_list) {
-						msg[key]['contact'] = "";
-						if (match[1] == ws_contacts_list[contact]['sip']) {
-							msg[key]['contacthide'] = "hide";
-							msg[key]['peer'] = ws_contacts_list[contact]['name'];
-						}
-					}
+                for (var contact in ws_contacts_list) {
+                    msg[key]['contact'] = "";
+                    if (match[1] == ws_contacts_list[contact]['sip']) {
+                        msg[key]['contacthide'] = "hide";
+                        msg[key]['peer'] = ws_contacts_list[contact]['name'];
+                    }
+                }
 
-					if (match[1] == 'echo@studio.link') {
-						msg[key]['contacthide'] = "hide";
-						msg[key]['peer'] = 'echo';
-					}
-					if (match[1] == 'music@studio.link') {
-						msg[key]['contacthide'] = "hide";
-						msg[key]['peer'] = 'music';
-					}
-				}
+                if (match[1] == 'echo@studio.link') {
+                    msg[key]['contacthide'] = "hide";
+                    msg[key]['peer'] = 'echo';
+                }
 
-				if (established_calls) {
-					window.callactive = true;
-				} else {
-					window.callactive = false;
-				}
-			}
+                if (match[1] == 'music@studio.link') {
+                    msg[key]['contacthide'] = "hide";
+                    msg[key]['peer'] = 'music';
+                }
+            }
+
+            if (established_calls) {
+                window.callactive = true;
+            } else {
+                window.callactive = false;
+            }
+
 			var activecalls = require("../templates/activecalls.handlebars");
 			$( "#activecalls" ).html(activecalls(msg));
 			RefreshEventListener();
