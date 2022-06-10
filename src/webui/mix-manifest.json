@@ -2,6 +2,7 @@
     "/dist/app.js": "/dist/app.js",
     "/dist/app.css": "/dist/app.css",
     "/dist/index.html": "/dist/index.html",
+    "/dist/images/logo.svg": "/dist/images/logo.svg",
     "/dist/images/logo_plugin.svg": "/dist/images/logo_plugin.svg",
     "/dist/images/logo_standalone.svg": "/dist/images/logo_standalone.svg"
 }
