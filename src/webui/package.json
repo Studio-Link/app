@@ -17,7 +17,7 @@
   "license": "MIT",
   "devDependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.36",
-    "@fortawesome/free-regular-svg-icons": "^5.15.4",
+    "@fortawesome/free-regular-svg-icons": "^6.1.2",
     "@fortawesome/free-solid-svg-icons": "^5.15.4",
     "bootbox": "^5.5.2",
     "bootstrap": "4.6.1",
