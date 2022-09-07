@@ -1613,7 +1613,7 @@ static int slaudio_init(void)
 
 	if (kIOReturnSuccess ==
 	    IOPMAssertionCreateWithName(
-		    kIOPMAssertionTypeNoIdleSleep, kIOPMAssertionLevelOn,
+		    kIOPMAssertionTypeNoDisplaySleep, kIOPMAssertionLevelOn,
 		    reasonForActivity, &assertionID))
 		warning("macOS suspend prevent active\n");
 	else
