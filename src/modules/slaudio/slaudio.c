@@ -1606,7 +1606,7 @@ static int slaudio_init(void)
 #endif
 
 #ifdef DARWIN
-	/* Prevent IdleSleep - usefull for backup applications
+	/* Prevent DisplaySleep - usefull for backup applications
 	/* IOPMAssertionCreateWithName limits the string to 128 characters. */
 	CFStringRef reasonForActivity = CFSTR("Studio Link - Audio");
 	IOPMAssertionID assertionID;
