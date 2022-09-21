@@ -190,6 +190,7 @@ static int openfile(struct session *sess)
 		warning("slaudio/record: \
 				FLAC ERROR: initializing encoder: %s\n",
 			  FLAC__StreamEncoderInitStatusString[init_status]);
+		return ENOMEM;
 	}
 
 	return 0;
