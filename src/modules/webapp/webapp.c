@@ -200,16 +200,16 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			if (!key)
 				return;
 
-			if (!auto_answer) {
+			if (webapp_contact_exists(call_peeruri(call))) {
+				debug("auto answering call\n");
+				ua_answer(call_get_ua(call), call, VIDMODE_OFF);
+			}
+			else {
 				re_snprintf(webapp_call_json, sizeof(webapp_call_json),
 						"{ \"callback\": \"INCOMING\",\
 						\"peeruri\": \"%s\",\
 						\"key\": \"%d\" }",
 						call_peeruri(call), key);
-			}
-			else {
-				debug("auto answering call\n");
-				ua_answer(call_get_ua(call), call, VIDMODE_OFF);
 			}
 			ws_send_all(WS_CALLS, webapp_call_json);
 			break;
