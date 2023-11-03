@@ -15,6 +15,9 @@
 #ifdef WIN32
 #include <windows.h>
 #endif
+#ifdef DARWIN
+#include <IOKit/pwr_mgt/IOPMLib.h>
+#endif
 #include <webapp.h>
 
 #define BUFFER_LEN 19200 /* max buffer_len = 192kHz*2ch*25ms*2frames */
@@ -1600,6 +1603,21 @@ static int slaudio_init(void)
 #ifdef WIN32
 	/* Activate windows low latency timer */
 	timeBeginPeriod(1);
+#endif
+
+#ifdef DARWIN
+	/* Prevent DisplaySleep - usefull for backup applications
+	/* IOPMAssertionCreateWithName limits the string to 128 characters. */
+	CFStringRef reasonForActivity = CFSTR("Studio Link - Audio");
+	IOPMAssertionID assertionID;
+
+	if (kIOReturnSuccess ==
+	    IOPMAssertionCreateWithName(
+		    kIOPMAssertionTypeNoDisplaySleep, kIOPMAssertionLevelOn,
+		    reasonForActivity, &assertionID))
+		warning("macOS suspend prevent active\n");
+	else
+		warning("macOS suspend prevent failed\n");
 #endif
 	info("slaudio ready\n");
 
