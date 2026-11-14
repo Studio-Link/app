@@ -1,29 +1,31 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 #
 # ccheck.py  Code Checker
 #
-# Copyright (C) 2005 - 2012 Alfred E. Heggestad
-# Copyright (C) 2010 - 2012 Creytiv.com
+# Copyright (C) 2005 - 2020 Alfred E. Heggestad
 #
-#    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License version 2 as
-#    published by the Free Software Foundation.
+#    License: BSD 3-clause "New" or "Revised" license
+#
+#
 #
 # Contributors:
 #
 #    Haavard Wik Thorkildssen <havard.thorkildssen@telio.ch>
 #    Mal Minhas <mal@malm.co.uk>
+#    Sebastian Reimers
 #
-#
-# TODO:
-# - optimize regex functions
-# - count max y lines
 #
 
-import sys, os, re, fnmatch, getopt
+"""Code Checker"""
+
+import sys
+import os
+import re
+import fnmatch
+import getopt
 
 PROGRAM = 'ccheck'
-VERSION = '0.1.0'
+VERSION = '0.2.0'
 AUTHOR  = 'Alfred E. Heggestad'
 
 
@@ -39,26 +41,29 @@ class ccheck:
         self.cur_lineno = 0
         self.empty_lines_count = 0
         self.cc_count = 0
+        self.listfor_depth = 0
+        self.listfor_next = False
         self.files = {}
-        self.extensions = ['c', 'cpp', 'h', 'mk', 'm4', 'py', 'm', 's', 'java']
+        self.extensions = ['c', 'cpp', 'h', 'mk', 'm4', 'py', 'm', 's', 'java',
+                           'php']
 
         self.operators = ["do", "if", "for", "while", "switch"]
-        self.re_tab  = re.compile('(\w+\W*)\(')
-        self.re_else = re.compile('\s*\}\s*else')
-        self.re_inc  = re.compile('(^\s+\w+[+-]{2};)')
-        self.re_hex  = re.compile('0x([0-9A-Fa-f]+)')
+        self.re_tab  = re.compile(r'(\w+\W*)\(')
+        self.re_else = re.compile(r'\s*\}\s*else')
+        self.re_inc  = re.compile(r'(^\s+\w+[+-]{2};)')
+        self.re_hex  = re.compile(r'0x([0-9A-Fa-f]+)')
 
         # empty dict
         for e in self.extensions:
             self.files[e] = []
 
-        # todo: global config
         self.common_checks = [self.check_whitespace, self.check_termination,
                               self.check_hex_lowercase, self.check_pre_incr,
                               self.check_file_unix]
         self.funcmap = {
             'c':    [self.check_brackets, self.check_c_preprocessor,
-                     self.check_indent_tab],
+                     self.check_indent_tab, self.check_c11_err_handling,
+                     self.check_list_unlink, self.check_pri64],
             'h':    [self.check_brackets, self.check_indent_tab],
             'cpp':  [self.check_brackets, self.check_indent_tab],
             'mk':   [self.check_indent_tab],
@@ -69,6 +74,7 @@ class ccheck:
                      self.check_indent_tab],
             's':    [self.check_indent_tab, self.check_c_preprocessor],
             'java': [self.check_brackets, self.check_indent_tab],
+            'php':  [self.check_brackets, self.check_indent_tab],
             }
         self.extmap = {
             'c':    ['*.c'],
@@ -80,17 +86,19 @@ class ccheck:
             'm':    ['*.m'],
             's':    ['*.s', '*.S'],
             'java': ['*.java'],
+            'php':  ['*.php'],
             }
         self.maxsize = {
-            'c':    (89, 3000),
-            'h':    (89, 1000),
-            'cpp':  (89, 3000),
-            'mk':   (89, 1000),
-            'm4':   (89, 3000),
-            'py':   (89, 3000),
-            'm':    (89, 3000),
-            's':    (89, 3000),
+            'c':    (79, 3000),
+            'h':    (79, 1000),
+            'cpp':  (79, 3000),
+            'mk':   (79, 1000),
+            'm4':   (79, 3000),
+            'py':   (79, 3000),
+            'm':    (79, 3000),
+            's':    (79, 3000),
             'java': (179, 3000),
+            'php':  (179, 3000),
             }
 
 
@@ -102,8 +110,8 @@ class ccheck:
     # print an error message and increase error count
     #
     def error(self, msg):
-        print >> sys.stderr, "%s:%d: %s" % \
-              (self.cur_filename, self.cur_lineno, msg)
+        print("%s:%d: %s" % \
+              (self.cur_filename, self.cur_lineno, msg), file=sys.stderr)
         self.errors += 1
 
 
@@ -111,14 +119,14 @@ class ccheck:
     # print statistics
     #
     def print_stats(self):
-        print "Statistics:"
-        print "~~~~~~~~~~~"
-        print "Number of files processed:   ",
+        print("Statistics:")
+        print("~~~~~~~~~~~")
+        print("Number of files processed:   ", end=' ')
         for e in self.extensions:
-            print " %s: %d" % (e, len(self.files[e])),
-        print ""
-        print "Number of lines with errors:   %d" % self.errors
-        print ""
+            print(" %s: %d" % (e, len(self.files[e])), end=' ')
+        print("")
+        print("Number of lines with errors:   %d" % self.errors)
+        print("")
 
 
     #
@@ -175,7 +183,7 @@ class ccheck:
         if line[-2:] == ';;':
             self.error("has double semicolon")
 
-        if line[-2:] == ' ;' and re.search('[\S]+[ \t]+;$', line):
+        if line[-2:] == ' ;' and re.search(r'[\S]+[ \t]+;$', line):
             self.error("has spaces before terminator")
 
 
@@ -188,6 +196,68 @@ class ccheck:
         if index != -1 and line[index-1] != ':':
             if not re.search('["]+.*//.*["]+', line):
                 self.error("C++ comment, use C comments /* ... */ instead")
+
+
+    #
+    # check wrong re list unlink/move handling
+    #
+    def check_list_unlink(self, line, len):
+        if self.cur_lineno == 1:
+            self.listfor_next = False
+            self.listfor_depth = 0
+
+        if self.listfor_depth >= 1:
+            if '{' in line:
+                self.listfor_depth += 1
+                return
+            if '}' in line:
+                self.listfor_depth -= 1
+                if self.listfor_depth == 0:
+                    self.listfor_next = False
+                return
+            if '->next' in line:
+                self.listfor_next = True
+                return
+            if '->prev' in line:
+                self.listfor_next = True
+                return
+            if not self.listfor_next and 'list_unlink' in line:
+                self.error("Use list_unlink() only after le->next "
+                           "(and use a while loop) OR use LIST_FOREACH_SAFE")
+                self.listfor_next = False
+                self.listfor_depth = 0
+                return
+            if not self.listfor_next and 'list_move' in line:
+                self.error("Use list_move() only after le->next "
+                           "(and use a while loop) OR use LIST_FOREACH_SAFE")
+                self.listfor_next = False
+                self.listfor_depth = 0
+                return
+            return
+
+        if 'LIST_FOREACH' in line and 'LIST_FOREACH_SAFE' not in line:
+            self.listfor_depth = 1
+            return
+
+        if re.search('for.*->next.*{', line):
+            self.listfor_depth = 1
+            return
+
+        if re.search('while.*le.*{', line) and 'list_head' not in line:
+            self.listfor_depth = 1
+            return
+
+
+    #
+    # check for wrong C11 return checks
+    #
+    def check_c11_err_handling(self, line, len):
+
+        if re.search('err.*=.*(mtx_|thrd_|cnd_|tss_)', line):
+            if re.search('(success|busy|error|nomem|timedout|alloc)', line):
+                return
+            self.error("Wrong C11 return check,"
+                    " use e.g. 'err = mtx_init(m,t) != thrd_success;'")
 
 
     #
@@ -209,7 +279,7 @@ class ccheck:
             self.cc_count = 0
 
         if cc:
-            self.error("C comment, use Perl-style comments # ... instead");
+            self.error("C comment, use Perl-style comments # ... instead")
 
 
     #
@@ -218,15 +288,11 @@ class ccheck:
     def check_xy_max(self, line, line_len, max_x):
 
         # expand TAB to 8 spaces
-        l = len(line.expandtabs(4))
+        l = len(line.expandtabs())
 
         if l > max_x:
             self.error("line is too wide (" + str(l) + " - max " \
-                       + str(max_x) + ")");
-
-        #    TODO:
-        #    if ($line > $max_y) {
-        #      self.error("is too big ($lines lines - max $max_y)\n");
+                       + str(max_x) + ")")
 
 
     #
@@ -243,8 +309,6 @@ class ccheck:
 
     #
     # check for correct brackets usage in C/C++
-    #
-    # TODO: this is too slow, optimize
     #
     def check_brackets(self, line, len):
 
@@ -272,7 +336,7 @@ class ccheck:
             return
 
         if line[-1] == '\r':
-            self.error("not in Unix format");
+            self.error("not in Unix format")
 
 
     #
@@ -284,9 +348,16 @@ class ccheck:
         if m:
             op = m.group(1)
             if op.find('++') != -1:
-                self.error("Use pre-increment: %s" % op);
+                self.error("Use pre-increment: %s" % op)
             else:
-                self.error("Use pre-decrement: %s" % op);
+                self.error("Use pre-decrement: %s" % op)
+
+    #
+    # check PRI Macros (not needed)
+    #
+    def check_pri64(self, line, len):
+        if re.search('_printf.*PRI.?64', line):
+            self.error("Use %Lu, %Lx or %Li instead of PRI*64 for [u]int64_t")
 
 
     def process_line(self, line, funcs, ext):
@@ -301,7 +372,7 @@ class ccheck:
             func(line, line_len)
 
         if ext in self.maxsize:
-            (x, y) = self.maxsize[ext];
+            (x, y) = self.maxsize[ext]
             self.check_xy_max(line, line_len, x)
 
 
@@ -313,11 +384,11 @@ class ccheck:
 
         self.cur_filename = filename
 
+        self.cur_lineno = 0
         while 1:
             lines = f.readlines(100000)
             if not lines:
                 break
-            self.cur_lineno = 0
             for line in lines:
                 self.cur_lineno += 1
                 self.process_line(line, funcs, ext)
@@ -331,7 +402,7 @@ class ccheck:
                     self.files[e].append(f)
                     self.parse_file(f, e)
                     return
-        print "unknown extension: " + f
+        print("unknown extension: " + f)
 
 
     def rec_quasiglob(self, top, patterns, exclude):
@@ -361,18 +432,18 @@ class ccheck:
 
 
 def usage():
-    print "%s version %s" % (PROGRAM, VERSION)
-    print ""
-    print "Usage:"
-    print ""
-    print "  %s [options] [file]... [dir]..." % PROGRAM
-    print ""
-    print "options:"
-    print ""
-    print "  -h --help     Display help"
-    print "  -V --version  Show version info"
-    print "  -q --quiet    Print warnings only"
-    print "  -e --exclude  Exclude pattern(s)"
+    print("%s version %s" % (PROGRAM, VERSION))
+    print("")
+    print("Usage:")
+    print("")
+    print("  %s [options] [file]... [dir]..." % PROGRAM)
+    print("")
+    print("options:")
+    print("")
+    print("  -h --help     Display help")
+    print("  -V --version  Show version info")
+    print("  -q --quiet    Print warnings only")
+    print("  -e --exclude  Exclude pattern(s)")
 
 
 #
@@ -387,8 +458,8 @@ def main():
         opts, args = getopt.getopt(sys.argv[1:], \
                                    'hVqe:',
                                    ['help', 'version', 'quiet', 'exclude='])
-    except getopt.GetoptError, err:
-        print str(err)
+    except getopt.GetoptError as err:
+        print(str(err))
         usage()
         sys.exit(2)
     for o, a in opts:
@@ -396,7 +467,7 @@ def main():
             usage()
             sys.exit()
         elif o in ('-V', '--version'):
-            print "%s version %s, written by %s" % (PROGRAM, VERSION, AUTHOR)
+            print("%s version %s, written by %s" % (PROGRAM, VERSION, AUTHOR))
             sys.exit()
         elif o in ('-q', '--quiet'):
             quiet = True
@@ -414,7 +485,7 @@ def main():
             elif os.path.isfile(f):
                 cc.parse_any_file(f)
             else:
-                print "unknown file type: " + f
+                print("unknown file type: " + f)
     else:
         # scan all files recursively
         cc.build_file_list('.', exclude)

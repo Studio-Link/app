@@ -50,7 +50,8 @@ struct aurx {
 };
 
 
-static void stereo_mono_ch_select(int16_t *buf, size_t sampc, enum sess_chmix chmix)
+static void stereo_mono_ch_select(int16_t *buf, size_t sampc,
+				  enum sess_chmix chmix)
 {
 	while (sampc--) {
 		if (chmix == CH_MONO_L) {
@@ -94,7 +95,8 @@ void webapp_jitter(struct session *sess, int16_t *sampv,
 		return;
 	}
 
-	if (bufsz <= (size_t)(sess->buffer * 0.8) * STIME && !sess->jitter.talk) {
+	if (bufsz <= (size_t)(sess->buffer * 0.8) * STIME &&
+	    !sess->jitter.talk) {
 		if (sess->jitter.delay_count >= 960) {
 			/* only slightly increase buffer */
 			sess->jitter.talk = true;

@@ -610,7 +610,8 @@ static int effect_init(void)
 	struct session *sess;
 
 	err  = ausrc_register(&ausrc, baresip_ausrcl(), "effect", src_alloc);
-	err |= auplay_register(&auplay, baresip_auplayl(), "effect", play_alloc);
+	err |= auplay_register(&auplay, baresip_auplayl(), "effect",
+			play_alloc);
 
 	lock_alloc(&sync_lock);
 

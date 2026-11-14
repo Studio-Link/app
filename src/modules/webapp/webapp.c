@@ -45,7 +45,8 @@ static int http_sreply(struct http_conn *conn, uint16_t scode,
 	http_reply(conn, 200, "OK",
 			"Content-Type: %s\r\n"
 			"Content-Length: %zu\r\n"
-			"Cache-Control: no-cache, no-store, must-revalidate\r\n"
+			"Cache-Control: no-cache, no-store, "
+			"must-revalidate\r\n"
 			"\r\n"
 			"%b",
 			ctype,
@@ -192,7 +193,8 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 	switch (ev) {
 		case UA_EVENT_CALL_INCOMING:
 			if (!webapp_session_available()) {
-				ua_hangup(call_get_ua(call), call, 486, "Max Calls");
+				ua_hangup(call_get_ua(call), call, 486,
+						"Max Calls");
 				return;
 			}
 
@@ -201,7 +203,8 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 				return;
 
 			if (!auto_answer) {
-				re_snprintf(webapp_call_json, sizeof(webapp_call_json),
+				re_snprintf(webapp_call_json,
+						sizeof(webapp_call_json),
 						"{ \"callback\": \"INCOMING\",\
 						\"peeruri\": \"%s\",\
 						\"key\": \"%d\" }",
@@ -209,7 +212,8 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			}
 			else {
 				debug("auto answering call\n");
-				ua_answer(call_get_ua(call), call, VIDMODE_OFF);
+				ua_answer(call_get_ua(call), call,
+						VIDMODE_OFF);
 			}
 			ws_send_all(WS_CALLS, webapp_call_json);
 			break;

@@ -120,14 +120,16 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 
 		/* reconnect stream if active */
 		if (sess->stream && streaming) {
-			tmr_start(&tmr_stream, 2000, stream_check, (void *)sess);
+			tmr_start(&tmr_stream, 2000, stream_check,
+					(void *)sess);
 		}
 
 		re_snprintf(id, sizeof(id), "%d", sess->track);
 
 		if (sess_id) {
 			if (!str_cmp(id, sess_id)) {
-				ua_hangup(call_get_ua(sess->call), sess->call, 0, NULL);
+				ua_hangup(call_get_ua(sess->call), sess->call,
+						0, NULL);
 				sess->call = NULL;
 				odict_entry_del(webapp_calls, id);
 				return err;
@@ -192,7 +194,8 @@ int8_t webapp_call_update(struct call *call, char *state)
 	tsession = sl_sessions();
 
 #ifndef SLPLUGIN
-	if (!str_cmp(call_peeruri(call), "sip:stream@studio.link;transport=tls")) {
+	if (!str_cmp(call_peeruri(call),
+			"sip:stream@studio.link;transport=tls")) {
 		for (le = tsession->head; le; le = le->next) {
 			sess = le->data;
 

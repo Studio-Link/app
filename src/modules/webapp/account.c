@@ -112,7 +112,8 @@ static int sip_register(const struct odict_entry *o)
 	if (e_update)
 		mem_deref(e_update);
 
-	re_snprintf(buf, sizeof(buf), "<sip:%s@%s;transport=%s>;auth_pass=%s;%s",
+	re_snprintf(buf, sizeof(buf),
+			"<sip:%s@%s;transport=%s>;auth_pass=%s;%s",
 			user, domain, transport, password, opt);
 	ua_alloc(&ua, buf);
 	ua_register(ua);
@@ -120,7 +121,9 @@ static int sip_register(const struct odict_entry *o)
 	main_ua = ua;
 
 	if (quick) {
-		re_snprintf(buf, sizeof(buf), "<sip:quick-%s@%s;transport=%s>;auth_pass=%s;%s",
+		re_snprintf(buf, sizeof(buf),
+				"<sip:quick-%s@%s;transport=%s>;"
+				"auth_pass=%s;%s",
 				user, domain, transport, password, opt_quick);
 		warning("register quick %s\n", buf);
 		ua_alloc(&ua, buf);
@@ -159,13 +162,15 @@ void webapp_account_delete(char *user, char *domain)
 		str_ncpy(o_domain, e->u.str, sizeof(o_domain));
 
 		if (!user)
-			user_delete = true; /* Delete only by domain selection */
+			/* Delete only by domain selection */
+			user_delete = true;
 		else
 			user_delete = !str_cmp(o_user, user);
 
 		if (user_delete && !str_cmp(o_domain, domain)) {
 			odict_entry_del(accs, o->key);
-			re_snprintf(aor, sizeof(aor), "sip:%s@%s", o_user, o_domain);
+			re_snprintf(aor, sizeof(aor), "sip:%s@%s",
+					o_user, o_domain);
 			mem_deref(uag_find_aor(aor));
 			uag_current_set(NULL);
 			webapp_write_file_json(accs, filename);
@@ -335,11 +340,13 @@ static void provisioning(void)
 #ifdef SLPLUGIN
 	re_snprintf(url, sizeof(url),
 			"https://%s/%s/%s?version=%s&type=plugin",
-			webapp_provisioning_host(), path, cfg->sip.uuid, SLVERSION);
+			webapp_provisioning_host(), path, cfg->sip.uuid,
+			SLVERSION);
 #else
 	re_snprintf(url, sizeof(url),
 			"https://%s/%s/%s?version=%s&type=standalone",
-			webapp_provisioning_host(), path, cfg->sip.uuid, SLVERSION);
+			webapp_provisioning_host(), path, cfg->sip.uuid,
+			SLVERSION);
 #endif
 
 	http_client_alloc(&cli, net_dnsc(net));

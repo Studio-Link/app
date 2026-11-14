@@ -68,7 +68,8 @@ static void *record_open_folder(void *arg)
 #if defined (DARWIN)
 	re_snprintf(command, sizeof(command), "open %s", record_folder);
 #elif defined (WIN32)
-	re_snprintf(command, sizeof(command), "explorer.exe %s", record_folder);
+	re_snprintf(command, sizeof(command), "explorer.exe %s",
+			record_folder);
 #else
 	re_snprintf(command, sizeof(command), "xdg-open %s", record_folder);
 #endif

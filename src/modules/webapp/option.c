@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include "webapp.h"
 
+#define STREAM_LOGIN_URL \
+	"https://stream.studio-link.de/stream/login/%s?version=2"
+
 static struct odict *options = NULL;
 static char filename[256] = "";
 static char command[255] = {0};
@@ -80,15 +83,15 @@ void webapp_options_set(char *key, char *value)
 			struct config *cfg = conf_config();
 	#if defined (DARWIN)
 			re_snprintf(command, sizeof(command),
-					"open https://stream.studio-link.de/stream/login/%s?version=2",
+					"open " STREAM_LOGIN_URL,
 					cfg->sip.uuid);
 	#elif defined (WIN32)
 			re_snprintf(command, sizeof(command),
-					"start https://stream.studio-link.de/stream/login/%s?version=2",
+					"start " STREAM_LOGIN_URL,
 					cfg->sip.uuid);
 	#else
 			re_snprintf(command, sizeof(command),
-					"xdg-open https://stream.studio-link.de/stream/login/%s?version=2",
+					"xdg-open " STREAM_LOGIN_URL,
 					cfg->sip.uuid);
 	#endif
 			err = system(command);

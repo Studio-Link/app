@@ -63,9 +63,11 @@ static void write_ws(void)
 	hours = record_time / 1000 / 3600;
 	min = (record_time / 1000 / 60) - (hours * 60);
 	sec = (record_time / 1000) - (hours * 3600) - (min * 60);
-	msec = record_time - (hours * 3600 * 1000) - (min * 60 * 1000) - (sec * 1000);
+	msec = record_time - (hours * 3600 * 1000) - (min * 60 * 1000)
+			- (sec * 1000);
 
-	re_snprintf(one_peak, 100, "%d:%02d:%02d:%03d 0 ", hours, min, sec, msec);
+	re_snprintf(one_peak, 100, "%d:%02d:%02d:%03d 0 ",
+			hours, min, sec, msec);
 #else
 	re_snprintf(one_peak, 100, "0 0 ");
 #endif
