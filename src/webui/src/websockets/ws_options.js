@@ -55,6 +55,15 @@ window.ws_options_init = function() {
     toggleButton("#btn-mute", mute, "btn-danger", "btn-primary");
   }
 
+  // DAW plugin only: host sample rate, Studio Link needs 48 kHz
+  function RefreshSamplerate(rate) {
+    var row = qs("#samplerate-warning");
+    if (!row) return;
+    var wrong = !!rate && rate !== "48000";
+    if (wrong) qs("#samplerate-value").textContent = rate;
+    row.classList.toggle("d-none", !wrong);
+  }
+
   function RefreshMonitor() {
     toggleButton("#btn-monitor", mute, "btn-danger", "btn-primary");
   }
@@ -116,6 +125,9 @@ window.ws_options_init = function() {
       RefreshMute();
     }
 
+    RefreshSamplerate(msg.samplerate);
+
+    delete msg.samplerate;
     delete msg.bypass;
     delete msg.record;
     delete msg.onair;

@@ -1,0 +1,75 @@
+--- a/src/audio.c	2026-11-14 22:12:10.490975479 +0000
++++ b/src/audio.c	2026-11-14 22:12:24.250697781 +0000
+@@ -102,10 +102,19 @@
+ 	enum aufmt enc_fmt;           /**< Sample format for encoder       */
+ 
+ 	struct {
+-		uint64_t aubuf_overrun;
++		RE_ATOMIC uint64_t aubuf_overrun;
+ 		uint64_t aubuf_underrun;
+ 	} stats;
+ 
++	/* Last src_fmt/psize seen by the audio source thread. Only written
++	 * and read by ausrc_read_handler(), so it never has to block a
++	 * real-time source thread on tx->mtx. */
++	struct {
++		enum aufmt src_fmt;
++		size_t psize;
++		bool valid;
++	} rt;
++
+ 	struct {
+ 		thrd_t tid;           /**< Audio transmit thread           */
+ 		RE_ATOMIC bool run;   /**< Audio transmit thread running   */
+@@ -540,10 +549,25 @@
+ 	struct audio *a = arg;
+ 	struct autx *tx = &a->tx;
+ 
+-	mtx_lock(tx->mtx);
+-	enum aufmt fmt = tx->src_fmt;
+-	size_t psize = tx->psize;
+-	mtx_unlock(tx->mtx);
++	/* The source can be a real-time audio thread (e.g. a DAW plugin).
++	 * tx->mtx is held by the transmit thread while sending, never wait
++	 * for it here: use the last values seen if the lock is busy. Only
++	 * block once, if no values were seen yet. */
++	bool locked = mtx_trylock(tx->mtx) == thrd_success;
++	if (!locked && !tx->rt.valid) {
++		mtx_lock(tx->mtx);
++		locked = true;
++	}
++
++	if (locked) {
++		tx->rt.src_fmt = tx->src_fmt;
++		tx->rt.psize   = tx->psize;
++		tx->rt.valid   = true;
++		mtx_unlock(tx->mtx);
++	}
++
++	enum aufmt fmt = tx->rt.src_fmt;
++	size_t psize = tx->rt.psize;
+ 
+ 	if (fmt != af->fmt) {
+ 		warning("audio: ausrc format mismatch:"
+@@ -558,9 +582,9 @@
+ 
+ 	if (aubuf_cur_size(tx->aubuf) >= tx->aubuf_maxsz) {
+ 
+-		mtx_lock(tx->mtx);
+-		uint64_t aubuf_overrun = ++tx->stats.aubuf_overrun;
+-		mtx_unlock(tx->mtx);
++		uint64_t aubuf_overrun = re_atomic_fetch_add(
++			&tx->stats.aubuf_overrun, 1,
++			re_memory_order_relaxed) + 1;
+ 
+ 		debug("audio: tx aubuf overrun (total %llu)\n",
+ 		      aubuf_overrun);
+@@ -1676,7 +1700,7 @@
+ 	sztx = aufmt_sample_size(tx->src_fmt);
+ 
+ 	mtx_lock(tx->mtx);
+-	uint64_t aubuf_overrun = tx->stats.aubuf_overrun;
++	uint64_t aubuf_overrun = re_atomic_rlx(&tx->stats.aubuf_overrun);
+ 	uint64_t aubuf_underrun = tx->stats.aubuf_underrun;
+ 	mtx_unlock(tx->mtx);
+ 

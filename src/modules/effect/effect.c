@@ -13,6 +13,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <re_atomic.h>
 #include <webapp.h>
 #include <slplugin.h>
 
@@ -43,35 +44,79 @@
 enum {
 	MAX_CHANNELS = 10,
 	MAX_SAMPC    = SL_PLUGIN_MAX_FRAMES * 2, /* stereo */
+
+	/* play ring per session, must be a power of two */
+	RING_SAMPC   = MAX_SAMPC * 8,
+	RING_MASK    = RING_SAMPC - 1,
+
+	DETACH_POLL_US   = 100,
+	DETACH_WARN_US   = 1000000,
 };
 
-static mtx_t *sync_lock;
+
+/*
+ * N-1 mix synchronisation
+ *
+ * Every plugin instance runs in its own (host) audio thread or sequentially
+ * on the same thread, with independent and possibly different block sizes.
+ * Instead of waiting for each other, every session publishes its played
+ * samples into a single-writer ring with a running sample counter (wpos).
+ * Every session reads the rings of the other sessions with its own read
+ * cursor (rpos), so it always mixes the next contiguous samples, regardless
+ * of block size, processing order or threading. Nothing blocks or spins.
+ */
+struct play_ring {
+	int16_t sampv[RING_SAMPC];
+	RE_ATOMIC unsigned wpos;  /* total samples written (wraps) */
+	RE_ATOMIC unsigned last;  /* samples of the last write */
+};
+
+
+/*
+ * Audio state lifetime
+ *
+ * The audio thread of a session uses its auplay_st/ausrc_st (handlers and
+ * their args, owned by baresip) only between audio_enter() and
+ * audio_leave(). The destructors close the gate with audio_detach() and
+ * wait until the audio thread left, before baresip frees anything.
+ *
+ * Gate and busy flag form a Dekker style handshake, both sides store their
+ * flag and then load the other one (sequentially consistent): either the
+ * audio thread sees the closed gate, or the destructor sees busy and waits.
+ *
+ * All sample buffers are owned by the module (static), never freed while
+ * an audio thread can run, so peers and the own audio thread can always
+ * access them.
+ */
+struct chan_st {
+	struct play_ring ring;          /* written by this session only */
+	int16_t play_sampv[MAX_SAMPC];  /* own audio thread only */
+	int16_t src_sampv[MAX_SAMPC];   /* own audio thread only */
+	int32_t mix_acc[MAX_SAMPC];     /* own audio thread only */
+	unsigned rpos[MAX_CHANNELS];    /* read cursor per peer session */
+	bool rsync[MAX_CHANNELS];       /* read cursor valid per peer */
+	bool played;                    /* play_sampv filled this block */
+
+	RE_ATOMIC unsigned play_on;     /* gate: sess->st_play usable */
+	RE_ATOMIC unsigned src_on;      /* gate: sess->st_src usable */
+	RE_ATOMIC unsigned busy;        /* audio thread inside a gate */
+};
+
+static struct chan_st chanv[MAX_CHANNELS];
 
 struct auplay_st {
 	const struct auplay *ap;  /* pointer to base-class (inheritance) */
-	pthread_t thread;
-	bool run;
-	void *write;
-	int16_t *sampv;
-	size_t sampc;
 	auplay_write_h *wh;
 	void *arg;
 	struct auplay_prm prm;
-	char *device;
 	struct session *sess;
 };
 
 struct ausrc_st {
 	const struct ausrc *as;  /* pointer to base-class (inheritance) */
-	pthread_t thread;
-	bool run;
-	void *read;
-	int16_t *sampv;
-	size_t sampc;
 	ausrc_read_h *rh;
 	void *arg;
 	struct ausrc_prm prm;
-	char *device;
 	struct session *sess;
 	uint64_t frames;
 };
@@ -84,38 +129,46 @@ static struct auplay *auplay;
 static bool bypass = false;
 
 
-/**
- * Get the timer jiffies in microseconds
- *
- * @return Jiffies in [us]
- */
-
-static uint64_t sl_jiffies(void)
+static struct chan_st *sess_chan(const struct session *sess)
 {
-	uint64_t jfs;
+	return &chanv[sess->track - 1];
+}
 
-#if defined(WIN32)
-	LARGE_INTEGER li;
-	static LARGE_INTEGER freq;
 
-	if (!freq.QuadPart)
-		QueryPerformanceFrequency(&freq);
+/* audio thread: returns true if the gate is open, must call audio_leave() */
+static bool audio_enter(struct chan_st *chan, RE_ATOMIC unsigned *gate)
+{
+	re_atomic_store(&chan->busy, 1, re_memory_order_seq_cst);
 
-	QueryPerformanceCounter(&li);
-	li.QuadPart *= 1000000;
-	li.QuadPart /= freq.QuadPart;
+	if (re_atomic_load(gate, re_memory_order_seq_cst))
+		return true;
 
-	jfs = li.QuadPart;
-#else
-	struct timespec now;
+	re_atomic_store(&chan->busy, 0, re_memory_order_release);
 
-	clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+	return false;
+}
 
-	jfs  = (long)now.tv_sec * (uint64_t)1000000;
-	jfs += now.tv_nsec/1000;
-#endif
 
-	return jfs;
+static void audio_leave(struct chan_st *chan)
+{
+	re_atomic_store(&chan->busy, 0, re_memory_order_release);
+}
+
+
+/* not real-time: close the gate and wait until the audio thread left */
+static void audio_detach(struct chan_st *chan, RE_ATOMIC unsigned *gate)
+{
+	uint32_t waited = 0;
+
+	re_atomic_store(gate, 0, re_memory_order_seq_cst);
+
+	while (re_atomic_load(&chan->busy, re_memory_order_seq_cst)) {
+		sys_usleep(DETACH_POLL_US);
+		waited += DETACH_POLL_US;
+
+		if (waited == DETACH_WARN_US)
+			warning("effect: audio thread still busy after 1s\n");
+	}
 }
 
 
@@ -124,7 +177,6 @@ static void sess_destruct(void *arg)
 	struct session *sess = arg;
 
 	list_unlink(&sess->le);
-	mem_deref(sess->dstmix);
 	info("effect: destruct session\n");
 }
 
@@ -161,8 +213,6 @@ struct session* effect_session_start(void)
 
 		if (s->ch == -1) {
 			s->ch = pos * 2;
-			s->effect_ready = false;
-			s->primary = false;
 			sess = s;
 			break;
 		}
@@ -236,20 +286,32 @@ static void sample_move_dS_s16(float *dst, char *src, unsigned long nsamples,
 }
 
 
-static void play_process(struct session *sess, unsigned long nframes)
+/* Single writer: only the audio thread of this session */
+static void ring_write(struct play_ring *ring, const int16_t *sampv,
+		       unsigned sampc)
 {
-	struct auplay_st *st_play = sess->st_play;
+	unsigned wpos = re_atomic_load(&ring->wpos, re_memory_order_relaxed);
+	unsigned idx  = wpos & RING_MASK;
+	unsigned n1   = RING_SAMPC - idx;
 
-	webapp_session_play_read(sess, st_play->sampv,
-			st_play->wh, nframes*2, st_play->arg);
+	if (n1 > sampc)
+		n1 = sampc;
 
-	sess->effect_ready = true;
+	memcpy(&ring->sampv[idx], sampv, n1 * sizeof(int16_t));
+	memcpy(&ring->sampv[0], sampv + n1, (sampc - n1) * sizeof(int16_t));
+
+	re_atomic_store(&ring->last, sampc, re_memory_order_relaxed);
+	/* publish the samples */
+	re_atomic_store(&ring->wpos, wpos + sampc, re_memory_order_release);
 }
 
 
 void effect_play(struct session *sess, float* const output0,
 		float* const output1, unsigned long nframes)
 {
+	struct chan_st *chan;
+	struct auplay_st *st_play;
+	unsigned sampc;
 	(void)output0;
 	(void)output1;
 
@@ -257,28 +319,27 @@ void effect_play(struct session *sess, float* const output0,
 	if (!sess)
 		return;
 
-	if (!sess->run_play)
+	chan = sess_chan(sess);
+	chan->played = false;
+
+	if (!audio_enter(chan, &chan->play_on))
 		return;
 
-	play_process(sess, frames_limit(nframes));
-}
+	st_play = sess->st_play;
+	sampc   = (unsigned)frames_limit(nframes) * 2;
 
+	/* baresip's write handler leaves the frame untouched if it misses
+	 * its aubuf trylock: play silence, never a stale block (the buffer
+	 * is module owned and may hold the last block of a previous call) */
+	memset(chan->play_sampv, 0, sampc * sizeof(int16_t));
 
-static bool check_sessions_stopped(struct session *sess)
-{
-	struct session *msess;
-	struct le *le;
+	webapp_session_play_read(sess, chan->play_sampv,
+			st_play->wh, sampc, st_play->arg);
 
-	for (le = sessionl.head; le; le = le->next) {
-		msess = le->data;
+	audio_leave(chan);
 
-		if (msess->run_play && msess != sess && msess->ch != -1) {
-			if (msess->effect_ready)
-				return false;
-		}
-	}
-
-	return true;
+	ring_write(&chan->ring, chan->play_sampv, sampc);
+	chan->played = true;
 }
 
 
@@ -289,33 +350,22 @@ void effect_bypass(struct session *sess,
 		const float* const input1,
 		unsigned long nframes)
 {
-	uint64_t loop_start;
-	struct auplay_st *st_play;
+	struct chan_st *chan;
 	unsigned long nlimit = frames_limit(nframes);
 
 	/* check max sessions reached*/
 	if (!sess)
 		return;
 
-	if (sess->primary) {
-		/* wait until all threads finished */
-		loop_start = sl_jiffies();
-		while (1) {
-			if (check_sessions_stopped(sess))
-				break;
-			if ((sl_jiffies() - loop_start) > 100)
-				break;
-		}
-		sess->primary = false;
-	}
+	chan = sess_chan(sess);
 
-	sess->effect_ready = false;
+	/* filled by effect_play() of this block, module owned memory */
+	if (chan->played) {
+		chan->played = false;
 
-	if (sess->run_play) {
-		st_play = sess->st_play;
-		sample_move_dS_s16(output0, (char*)st_play->sampv,
+		sample_move_dS_s16(output0, (char*)chan->play_sampv,
 				nlimit, 4);
-		sample_move_dS_s16(output1, (char*)st_play->sampv+2,
+		sample_move_dS_s16(output1, (char*)chan->play_sampv+2,
 				nlimit, 4);
 		for (unsigned long pos = nlimit; pos < nframes; pos++) {
 			output0[pos] = 0;
@@ -340,140 +390,151 @@ void effect_bypass(struct session *sess,
 }
 
 
-static void promote_primary(struct session *sess)
+static void mix_reset(struct chan_st *chan)
 {
-	struct session *msess;
-	struct le *le;
-
-	/* check for another active primary */
-	for (le = sessionl.head; le; le = le->next) {
-		msess = le->data;
-		if (msess->primary) {
-			sess->primary = false;
-			return;
-		}
-	}
-
-	sess->primary = true;
+	for (unsigned j = 0; j < MAX_CHANNELS; j++)
+		chan->rsync[j] = false;
 }
 
 
-static bool check_sessions_ready(struct session *sess)
+/*
+ * Read the next contiguous samples of a peer ring and add them to the
+ * accumulator. Returns the number of samples added (0..sampc).
+ */
+static unsigned ring_mix(struct chan_st *chan, unsigned peer,
+			 int32_t *acc, unsigned sampc)
 {
-	struct session *msess;
-	struct le *le;
+	const struct play_ring *ring = &chanv[peer].ring;
+	unsigned wpos = re_atomic_load(&ring->wpos, re_memory_order_acquire);
+	unsigned last = re_atomic_load(&ring->last, re_memory_order_relaxed);
+	unsigned avail;
+	unsigned rpos;
 
-	for (le = sessionl.head; le; le = le->next) {
-		msess = le->data;
-
-		if (msess->run_play && msess != sess && msess->ch != -1) {
-			if (!msess->effect_ready)
-				return false;
-		}
+	if (!chan->rsync[peer]) {
+		/* start with the next samples the peer writes */
+		chan->rpos[peer]  = wpos;
+		chan->rsync[peer] = true;
+		return 0;
 	}
 
-	return true;
+	rpos  = chan->rpos[peer];
+	avail = wpos - rpos;
+
+	/* Too far behind (stalled reader or peer, or a burst after a
+	 * resync): skip to the latest block to keep the latency bounded
+	 * and to never read where the peer is writing. Bigger than any
+	 * regular backlog with mixed block sizes (sampc vs. last). */
+	if (avail > 2 * (sampc + last) || avail > RING_SAMPC / 2) {
+		avail = last < sampc ? last : sampc;
+		rpos  = wpos - avail;
+	}
+
+	/* underrun (peer not processed yet or suspended by the host):
+	 * mix what is there, the cursor keeps the stream contiguous */
+	if (avail > sampc)
+		avail = sampc;
+
+	for (unsigned i = 0; i < avail; i++)
+		acc[i] += ring->sampv[(rpos + i) & RING_MASK];
+
+	chan->rpos[peer] = rpos + avail;
+
+	return avail;
 }
 
 
 static void mix_n_minus_1(struct session *sess, int16_t *dst,
 		unsigned long nframes)
 {
+	struct chan_st *chan = sess_chan(sess);
+	int32_t *acc = chan->mix_acc;
+	unsigned sampc = (unsigned)nframes * 2;
+	unsigned mixed = 0;
 	struct le *le;
-	int32_t *dstmixv;
-	int16_t *dstv = dst;
-	int16_t *mixv;
-	unsigned active = 0;
-	unsigned long nsamples = nframes * 2;
-	unsigned i;
-	uint64_t loop_start;
-
-	loop_start = sl_jiffies();
-	mtx_lock(sync_lock);
-	promote_primary(sess);
-
-	while (1) {
-		if (!sess->primary)
-			break;
-		if (check_sessions_ready(sess))
-			break;
-		if ((sl_jiffies() - loop_start) > 800)
-			break;
-	}
-
-	mtx_unlock(sync_lock);
 
 	for (le = sessionl.head; le; le = le->next) {
 		struct session *msess = le->data;
+		unsigned peer = msess->track - 1;
+		unsigned n;
 
-		if (msess->run_play && msess != sess) {
-			mixv = msess->st_play->sampv;
-			dstmixv = sess->dstmix;
+		if (msess == sess)
+			continue;
 
-			for (i = 0; i < nsamples; i++) {
-				*dstmixv = *dstmixv + *mixv;
-				++mixv;
-				++dstmixv;
-			}
-
-			++active;
+		/* the peer ring is module owned, the gate is only a hint */
+		if (!re_atomic_load(&chanv[peer].play_on,
+				    re_memory_order_relaxed) ||
+		    msess->ch == -1) {
+			chan->rsync[peer] = false;
+			continue;
 		}
+
+		n = ring_mix(chan, peer, acc, sampc);
+		if (n > mixed)
+			mixed = n;
 	}
 
-	if (active) {
-		dstmixv = sess->dstmix;
-		for (i = 0; i < nsamples; i++) {
-			*dstmixv = *dstmixv + *dstv;
-			++dstv;
-			++dstmixv;
-		}
+	if (!mixed)
+		return;
 
-		dstmixv = sess->dstmix;
-		for (i = 0; i < nsamples; i++) {
-			if (*dstmixv > SAMPLE_16BIT_MAX)
-				*dstmixv = SAMPLE_16BIT_MAX;
-			if (*dstmixv < SAMPLE_16BIT_MIN)
-				*dstmixv = SAMPLE_16BIT_MIN;
-			*dst = *dstmixv;
-			*dstmixv = 0;
-			++dst;
-			++dstmixv;
-		}
+	for (unsigned i = 0; i < sampc; i++) {
+		int32_t v = acc[i] + dst[i];
+
+		if (v > SAMPLE_16BIT_MAX)
+			v = SAMPLE_16BIT_MAX;
+		if (v < SAMPLE_16BIT_MIN)
+			v = SAMPLE_16BIT_MIN;
+
+		dst[i] = (int16_t)v;
+		acc[i] = 0;
 	}
 }
+
 
 void effect_src(struct session *sess, const float* const input0,
 		const float* const input1, unsigned long nframes)
 {
+	struct chan_st *chan;
+	struct ausrc_st *st_src;
 	struct auframe af;
 
 	/* check max sessions reached*/
 	if (!sess)
 		return;
 
+	chan    = sess_chan(sess);
 	nframes = frames_limit(nframes);
 
-	if (sess->run_src && sess->run_play) {
-		struct ausrc_st *st_src = sess->st_src;
-
-		sample_move_d16_sS((char*)st_src->sampv, (float*)input0,
-				nframes, 4);
-		sample_move_d16_sS((char*)st_src->sampv+2, (float*)input1,
-				nframes, 4);
-		if (sess->run_auto_mix)
-			mix_n_minus_1(sess, st_src->sampv, nframes);
-
-		auframe_init(&af, st_src->prm.fmt, st_src->sampv,
-			     nframes * 2, st_src->prm.srate, st_src->prm.ch);
-		af.timestamp = st_src->frames * AUDIO_TIMEBASE /
-			       st_src->prm.srate;
-
-		st_src->frames += nframes;
-
-		st_src->rh(&af, st_src->arg);
+	/* send only while the call also plays (same as before) */
+	if (!re_atomic_load(&chan->play_on, re_memory_order_relaxed) ||
+	    !audio_enter(chan, &chan->src_on)) {
+		mix_reset(chan);
+		goto out;
 	}
-	ws_meter_process(sess->ch, (float*)input0, nframes);
 
+	st_src = sess->st_src;
+
+	sample_move_d16_sS((char*)chan->src_sampv, (float*)input0,
+			nframes, 4);
+	sample_move_d16_sS((char*)chan->src_sampv+2, (float*)input1,
+			nframes, 4);
+	if (sess->run_auto_mix)
+		mix_n_minus_1(sess, chan->src_sampv, nframes);
+	else
+		mix_reset(chan);
+
+	auframe_init(&af, st_src->prm.fmt, chan->src_sampv,
+		     nframes * 2, st_src->prm.srate, st_src->prm.ch);
+	af.timestamp = st_src->frames * AUDIO_TIMEBASE /
+		       st_src->prm.srate;
+
+	st_src->frames += nframes;
+
+	st_src->rh(&af, st_src->arg);
+
+	audio_leave(chan);
+
+out:
+	ws_meter_process(sess->ch, (float*)input0, nframes);
 }
 
 
@@ -481,9 +542,12 @@ static void ausrc_destructor(void *arg)
 {
 	struct ausrc_st *st = arg;
 	struct session *sess = st->sess;
+
+	/* the read handler and its arg are freed by baresip after return */
+	audio_detach(sess_chan(sess), &sess_chan(sess)->src_on);
+
+	sess->st_src  = NULL;
 	sess->run_src = false;
-	sys_msleep(20);
-	mem_deref(st->sampv);
 }
 
 
@@ -491,9 +555,30 @@ static void auplay_destructor(void *arg)
 {
 	struct auplay_st *st = arg;
 	struct session *sess = st->sess;
+
+	/* the write handler and its arg are freed by baresip after return */
+	audio_detach(sess_chan(sess), &sess_chan(sess)->play_on);
+
+	sess->st_play  = NULL;
 	sess->run_play = false;
-	sys_msleep(20);
-	mem_deref(st->sampv);
+}
+
+
+static struct session *sess_find_free(bool play)
+{
+	struct le *le;
+
+	for (le = sessionl.head; le; le = le->next) {
+		struct session *sess = le->data;
+
+		if (sess->ch == -1 || !sess->call)
+			continue;
+
+		if (play ? !sess->run_play : !sess->run_src)
+			return sess;
+	}
+
+	return NULL;
 }
 
 
@@ -501,11 +586,10 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 		struct ausrc_prm *prm, const char *device,
 		ausrc_read_h *rh, ausrc_error_h *errh, void *arg)
 {
+	struct ausrc_st *st_src;
+	struct session *sess;
 	(void)errh;
 	(void)device;
-	struct ausrc_st *st_src = NULL;
-	struct le *le;
-	int err = 0;
 
 	if (!stp || !as || !prm)
 		return EINVAL;
@@ -516,52 +600,29 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 		return ENOTSUP;
 	}
 
-	struct session *sess = NULL;
-	for (le = sessionl.head; le; le = le->next) {
-		sess = le->data;
-		if (sess->ch == -1)
-			continue;
-
-		if (!sess->run_src && sess->call) {
-			st_src = mem_zalloc(sizeof(*st_src), NULL);
-			if (!st_src)
-				return ENOMEM;
-			st_src->sess = sess;
-			break;
-		}
-	}
-
-	if (!st_src || !sess)
+	sess = sess_find_free(false);
+	if (!sess)
 		return EINVAL;
 
-	st_src->run = false;
-	st_src->as  = as;
-	st_src->rh  = rh;
-	st_src->arg = arg;
-	st_src->prm = *prm;
+	st_src = mem_zalloc(sizeof(*st_src), ausrc_destructor);
+	if (!st_src)
+		return ENOMEM;
 
-	st_src->sampc = MAX_SAMPC;
-	st_src->sampv = mem_zalloc(st_src->sampc * sizeof(int16_t), NULL);
-	if (!st_src->sampv) {
-		err = ENOMEM;
-		goto out;
-	}
+	st_src->sess = sess;
+	st_src->as   = as;
+	st_src->rh   = rh;
+	st_src->arg  = arg;
+	st_src->prm  = *prm;
 
-out:
-	if (err) {
-		mem_deref(st_src);
-		return err;
-	}
-
-	/* the destructor resets the session, only set it if in use */
-	mem_destructor(st_src, ausrc_destructor);
-	sess->st_src = st_src;
-
-	st_src->run = true;
+	sess->st_src  = st_src;
 	sess->run_src = true;
+
+	/* open the gate last, publishes sess->st_src */
+	re_atomic_store(&sess_chan(sess)->src_on, 1, re_memory_order_seq_cst);
+
 	*stp = st_src;
 
-	return err;
+	return 0;
 }
 
 
@@ -569,9 +630,8 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 		struct auplay_prm *prm, const char *device,
 		auplay_write_h *wh, void *arg)
 {
-	struct auplay_st *st_play = NULL;
-	struct le *le;
-	int err = 0;
+	struct auplay_st *st_play;
+	struct session *sess;
 	(void)device;
 
 	if (!stp || !ap || !prm)
@@ -583,52 +643,29 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 		return ENOTSUP;
 	}
 
-	struct session *sess = NULL;
-	for (le = sessionl.head; le; le = le->next) {
-		sess = le->data;
-		if (sess->ch == -1)
-			continue;
-
-		if (!sess->run_play && sess->call) {
-			st_play = mem_zalloc(sizeof(*st_play), NULL);
-			if (!st_play)
-				return ENOMEM;
-			st_play->sess = sess;
-			break;
-		}
-	}
-
-	if (!st_play || !sess)
+	sess = sess_find_free(true);
+	if (!sess)
 		return EINVAL;
 
-	st_play->run = false;
-	st_play->ap  = ap;
-	st_play->wh  = wh;
-	st_play->arg = arg;
-	st_play->prm = *prm;
-	st_play->sampc = MAX_SAMPC;
-	st_play->sampv = mem_zalloc(st_play->sampc * sizeof(int16_t), NULL);
-	if (!st_play->sampv) {
-		err = ENOMEM;
-		goto out;
-	}
+	st_play = mem_zalloc(sizeof(*st_play), auplay_destructor);
+	if (!st_play)
+		return ENOMEM;
 
-out:
-	if (err) {
-		mem_deref(st_play);
-		return err;
-	}
+	st_play->sess = sess;
+	st_play->ap   = ap;
+	st_play->wh   = wh;
+	st_play->arg  = arg;
+	st_play->prm  = *prm;
 
-	/* the destructor resets the session, only set it if in use */
-	mem_destructor(st_play, auplay_destructor);
-	sess->st_play = st_play;
-
-	st_play->run = true;
+	sess->st_play  = st_play;
 	sess->run_play = true;
+
+	/* open the gate last, publishes sess->st_play */
+	re_atomic_store(&sess_chan(sess)->play_on, 1, re_memory_order_seq_cst);
+
 	*stp = st_play;
 
-	return err;
-
+	return 0;
 }
 
 
@@ -652,21 +689,17 @@ static int effect_init(void)
 	err |= auplay_register(&auplay, baresip_auplayl(), "effect",
 			play_alloc);
 
-	err |= mutex_alloc(&sync_lock);
 	if (err)
 		return err;
+
+	/* no audio thread uses a session yet, safe to reset */
+	memset(chanv, 0, sizeof(chanv));
 
 	for (uint32_t cnt = 0; cnt < MAX_CHANNELS; cnt++)
 	{
 		sess = mem_zalloc(sizeof(*sess), sess_destruct);
 		if (!sess)
 			return ENOMEM;
-
-		sess->dstmix = mem_zalloc(MAX_SAMPC * sizeof(int32_t), NULL);
-		if (!sess->dstmix) {
-			mem_deref(sess);
-			return ENOMEM;
-		}
 
 		sess->run_play = false;
 		sess->run_src = false;
@@ -678,8 +711,6 @@ static int effect_init(void)
 		sess->stream = false;
 		sess->local = false;
 		sess->track = cnt + 1;
-		sess->effect_ready = false;
-		sess->primary = false;
 		sess->volume = 1.0;
 		list_append(&sessionl, &sess->le, sess);
 	}
@@ -702,8 +733,6 @@ static int effect_close(void)
 		le = le->next;
 		mem_deref(sess);
 	}
-
-	mem_deref(sync_lock);
 
 	return 0;
 }

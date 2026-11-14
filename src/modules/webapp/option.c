@@ -166,6 +166,7 @@ int webapp_options_init(void)
 	odict_entry_del(options, "raisehand");
 	odict_entry_del(options, "afk");
 	odict_entry_del(options, "mute");
+	odict_entry_del(options, "samplerate"); /* set by the running host */
 
 #ifndef SLPLUGIN
 	str_dup(&key, webapp_options_getv("monorecord", "true"));

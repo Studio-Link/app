@@ -355,6 +355,25 @@ static void event_handler(enum bevent_ev ev, struct bevent *event,
 			ws_send_json(WS_BARESIP, webapp_accounts_get());
 			break;
 
+#ifdef SLPLUGIN
+		case BEVENT_MODULE: {
+			/* host sample rate from sl_plugin_samplerate(),
+			 * shown as warning by the web app if not 48 kHz */
+			struct pl srate;
+			char value[16];
+
+			if (re_regex(prm, str_len(prm),
+				     "slplugin,samplerate,[0-9]+", &srate))
+				break;
+
+			if (pl_strcpy(&srate, value, sizeof(value)))
+				break;
+
+			webapp_options_set("samplerate", value);
+			break;
+		}
+#endif
+
 		default:
 			break;
 	}

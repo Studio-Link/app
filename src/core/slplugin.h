@@ -16,6 +16,9 @@ extern "C" {
 enum {
 	/** Max. frames per effect_* call, wrappers must split larger blocks */
 	SL_PLUGIN_MAX_FRAMES = 4096,
+
+	/** The only sample rate Studio Link processes */
+	SL_PLUGIN_SRATE      = 48000,
 };
 
 
@@ -29,6 +32,15 @@ enum {
  */
 int  sl_plugin_init(void);
 void sl_plugin_close(void);
+
+/*
+ * Report the host sample rate, call it after a successful sl_plugin_init()
+ * and whenever the host (re)activates the plugin with a new rate. Logs a
+ * warning if it is not SL_PLUGIN_SRATE and emits the baresip module event
+ * "slplugin,samplerate,<Hz>" for the user interface. Not real-time safe,
+ * call it from the host message thread only.
+ */
+void sl_plugin_samplerate(double srate);
 
 
 /*

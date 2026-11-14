@@ -71,10 +71,8 @@ struct session {
 	bool changed;
 	double volume;
 #ifdef SLPLUGIN
-	bool primary;
 	bool run_auto_mix;
 	bool bypass;
-	bool effect_ready;
 #else
 	bool run_record;
 	struct aubuf *aubuf;

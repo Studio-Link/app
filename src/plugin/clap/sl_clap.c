@@ -141,10 +141,14 @@ static void plugin_destroy(const clap_plugin_t *plugin)
 static bool plugin_activate(const clap_plugin_t *plugin, double sample_rate,
 			    uint32_t min_frames, uint32_t max_frames)
 {
-	(void)plugin;
-	(void)sample_rate; /* Studio Link expects 48 kHz */
+	struct sl_clap *sl = plugin->plugin_data;
 	(void)min_frames;
 	(void)max_frames;
+
+	/* main thread: Studio Link only works at 48 kHz, warn the user
+	 * (log and web app). Keep running, the host decides the rate. */
+	if (sl->ready)
+		sl_plugin_samplerate(sample_rate);
 
 	return true;
 }

@@ -44,7 +44,6 @@ static LV2_Handle instantiate(const LV2_Descriptor *descriptor, double rate,
 {
 	SlLv2 *sl;
 	(void)descriptor;
-	(void)rate; /* Studio Link expects 48 kHz */
 	(void)bundle_path;
 	(void)features;
 
@@ -61,6 +60,10 @@ static LV2_Handle instantiate(const LV2_Descriptor *descriptor, double rate,
 #if !SL_ONAIR
 	sl->sess = effect_session_start();
 #endif
+
+	/* LV2 fixes the rate per instance: Studio Link only works at
+	 * 48 kHz, warn the user (log and web app) */
+	sl_plugin_samplerate(rate);
 
 	return (LV2_Handle)sl;
 }

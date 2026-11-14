@@ -255,6 +255,40 @@ int sl_plugin_init(void)
 
 
 /**
+ * Report the host sample rate (see slplugin.h)
+ *
+ * @param srate Host sample rate in [Hz]
+ */
+void sl_plugin_samplerate(double srate)
+{
+	uint32_t rate = srate > 0 ? (uint32_t)(srate + 0.5) : 0;
+	bool running;
+
+	call_once(&sl.once, once_init);
+
+	/* the caller holds a reference, so the thread can't stop meanwhile */
+	mtx_lock(&sl.lock);
+	running = sl.refs > 0;
+	mtx_unlock(&sl.lock);
+
+	if (!running)
+		return;
+
+	re_thread_enter();
+
+	if (rate != SL_PLUGIN_SRATE) {
+		warning("slplugin: host sample rate is %u Hz, Studio Link "
+			"needs %u Hz -- audio will drop out and play at the "
+			"wrong pitch\n", rate, SL_PLUGIN_SRATE);
+	}
+
+	module_event("slplugin", "samplerate", NULL, NULL, "%u", rate);
+
+	re_thread_leave();
+}
+
+
+/**
  * Release a reference, the last one stops Studio Link
  */
 void sl_plugin_close(void)

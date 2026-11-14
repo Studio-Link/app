@@ -72,6 +72,7 @@ sl_get_baresip() {
     ln -sfn baresip-$baresip baresip
     pushd baresip
     patch -p1 < ../../dist/patches/baresip_${baresip}_dtls_aes256.patch
+    patch -p1 < ../../dist/patches/baresip_${baresip}_ausrc_nonblocking.patch
     popd
 }
 
