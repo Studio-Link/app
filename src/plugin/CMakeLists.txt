@@ -34,6 +34,10 @@ if(UNIX AND NOT APPLE)
   # keep the static libre/baresip/openssl symbols private, the host may
   # load its own (shared) openssl
   set(_sl_link_private "LINKER:--exclude-libs,ALL")
+elseif(WIN32)
+  # MinGW: no libgcc/libstdc++/libwinpthread DLLs next to the host, and keep
+  # the dllexport symbols of the static libs (baresip module exports) private
+  set(_sl_link_private -static "LINKER:--exclude-libs,ALL")
 endif()
 
 
@@ -80,6 +84,11 @@ if(_clap_formats)
     AUV2_MANUFACTURER_CODE ITSR
     AUV2_SUBTYPE_CODE ${_au_subtype}
     AUV2_INSTRUMENT_TYPE aufx)
+
+  if(MINGW AND TARGET ${_name}_vst3)
+    # clap-wrapper only sets the .vst3 suffix, MinGW would add a lib prefix
+    set_target_properties(${_name}_vst3 PROPERTIES PREFIX "")
+  endif()
 endif()
 
 

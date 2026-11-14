@@ -15,7 +15,9 @@ extern "C" {
 #pragma GCC diagnostic ignored "-Wattributes"
 #endif
 
-const CLAP_EXPORT struct clap_plugin_entry clap_entry = {
+/* explicit extern: a const in a braced extern "C" block still has internal
+ * linkage in C++, MinGW rejects dllexport on it */
+extern const CLAP_EXPORT struct clap_plugin_entry clap_entry = {
 	CLAP_VERSION_INIT,
 	sl_clap_entry_init,
 	sl_clap_entry_deinit,
