@@ -1,3 +1,5 @@
+import hoptions from "../templates/options.handlebars";
+import { qs, on } from "../ui.js";
 "use strict";
 window.ws_options_init = function() {
   var ws_options = new WebSocket("ws://" + window.ws_host + "/ws_options");
@@ -9,88 +11,52 @@ window.ws_options_init = function() {
   var afk = false;
   var mute = false;
 
-  var hoptions = require("../templates/options.handlebars");
+  function toggleButton(sel, active, activeClass, inactiveClass) {
+    var btn = qs(sel);
+    if (!btn) return;
+    btn.classList.toggle(activeClass, active);
+    btn.classList.toggle(inactiveClass, !active);
+  }
+
 
   function RefreshBypass() {
-    if (bypass) {
-      $("#btn-bypass").removeClass("btn-secondary");
-      $("#btn-bypass").addClass("btn-danger");
-    } else {
-      $("#btn-bypass").removeClass("btn-danger");
-      $("#btn-bypass").addClass("btn-secondary");
-    }
+    toggleButton("#btn-bypass", bypass, "btn-danger", "btn-secondary");
   }
 
   function RefreshRecord() {
-    if (record) {
-      $("#btn-record").removeClass("btn-secondary");
-      $("#btn-record").addClass("btn-danger");
-    } else {
-      $("#btn-record").removeClass("btn-danger");
-      $("#btn-record").addClass("btn-secondary");
-    }
+    toggleButton("#btn-record", record, "btn-danger", "btn-secondary");
   }
 
   function RefreshOnair() {
-    if (onair) {
-      $("#btn-onair").removeClass("btn-secondary");
-      $("#btn-onair").addClass("btn-danger");
-    } else {
-      $("#btn-onair").removeClass("btn-danger");
-      $("#btn-onair").addClass("btn-secondary");
-    }
+    toggleButton("#btn-onair", onair, "btn-danger", "btn-secondary");
   }
 
   function RefreshRaisehand() {
-    if (raisehand) {
-      $("#btn-raise-hand").removeClass("btn-secondary");
-      $("#btn-raise-hand").addClass("btn-danger");
-    } else {
-      $("#btn-raise-hand").removeClass("btn-danger");
-      $("#btn-raise-hand").addClass("btn-secondary");
-    }
+    toggleButton("#btn-raise-hand", raisehand, "btn-danger", "btn-secondary");
   }
 
   function RefreshAFK() {
-    if (afk) {
-      $("#btn-afk").removeClass("btn-secondary");
-      $("#btn-afk").addClass("btn-danger");
-    } else {
-      $("#btn-afk").removeClass("btn-danger");
-      $("#btn-afk").addClass("btn-secondary");
-    }
+    toggleButton("#btn-afk", afk, "btn-danger", "btn-secondary");
   }
 
   function RefreshEventListener() {
-    $(".option-change").on("click", function() {
+    on(".option-change", "click", function() {
       ws_options.send(
         '{"key": "' +
-          $(this).attr("data-option") +
+          this.dataset.option +
           '", "value": "' +
-          $(this).attr("data-value") +
+          this.dataset.value +
           '"}'
       );
     });
   }
 
   function RefreshMute() {
-    if (mute) {
-      $("#btn-mute").removeClass("btn-primary");
-      $("#btn-mute").addClass("btn-danger");
-    } else {
-      $("#btn-mute").removeClass("btn-danger");
-      $("#btn-mute").addClass("btn-primary");
-    }
+    toggleButton("#btn-mute", mute, "btn-danger", "btn-primary");
   }
 
   function RefreshMonitor() {
-    if (mute) {
-      $("#btn-monitor").removeClass("btn-primary");
-      $("#btn-monitor").addClass("btn-danger");
-    } else {
-      $("#btn-monitor").removeClass("btn-danger");
-      $("#btn-monitor").addClass("btn-primary");
-    }
+    toggleButton("#btn-monitor", mute, "btn-danger", "btn-primary");
   }
 
   ws_options.onmessage = function(message) {
@@ -165,14 +131,14 @@ window.ws_options_init = function() {
         msg[key] = value;
       });
 
-    $("#options").html(hoptions(msg));
+    qs("#options").innerHTML = hoptions(msg);
 
     RefreshEventListener();
   };
 
   RefreshEventListener();
 
-  $("#btn-bypass").on("click", function() {
+  on("#btn-bypass", "click", function() {
     if (bypass) {
       bypass = false;
     } else {
@@ -182,16 +148,15 @@ window.ws_options_init = function() {
     ws_options.send('{"key": "bypass", "value": "' + bypass + '"}');
   });
 
-  $("#btn-mono").on("click", function() {
+  on("#btn-mono", "click", function() {
     ws_options.send('{"key": "mono", "value": "true"}');
   });
 
-  $("#btn-stereo").on("click", function() {
-    mono = false;
+  on("#btn-stereo", "click", function() {
     ws_options.send('{"key": "mono", "value": "false"}');
   });
 
-  $("#btn-record").on("click", function() {
+  on("#btn-record", "click", function() {
     if (record) {
       record = false;
     } else {
@@ -201,11 +166,11 @@ window.ws_options_init = function() {
     ws_options.send('{"key": "record", "value": "' + record + '"}');
   });
 
-  $("#btn-record-folder").on("click", function() {
+  on("#btn-record-folder", "click", function() {
     ws_options.send('{"key": "record-folder", "value": "1"}');
   });
 
-  $("#btn-onair").on("click", function() {
+  on("#btn-onair", "click", function() {
     if (onair) {
       onair = false;
     } else {
@@ -215,7 +180,7 @@ window.ws_options_init = function() {
     ws_options.send('{"key": "onair", "value": "' + onair + '"}');
   });
 
-  $("#btn-raise-hand").on("click", function() {
+  on("#btn-raise-hand", "click", function() {
     if (raisehand) {
       raisehand = false;
     } else {
@@ -225,7 +190,7 @@ window.ws_options_init = function() {
     ws_options.send('{"key": "raisehand", "value": "' + raisehand + '"}');
   });
 
-  $("#btn-afk").on("click", function() {
+  on("#btn-afk", "click", function() {
     if (afk) {
       afk = false;
     } else {
@@ -235,7 +200,7 @@ window.ws_options_init = function() {
     ws_options.send('{"key": "afk", "value": "' + afk + '"}');
   });
 
-  $("#btn-mute").on("click", function() {
+  on("#btn-mute", "click", function() {
     if (mute) {
       mute = false;
     } else {
@@ -247,8 +212,9 @@ window.ws_options_init = function() {
 
   document.onkeydown = function(e) {
     //"shortcut: m"
-    if (e.which == 77) {
-      if ($("#sipnumbercall").is(":focus")) return;
+    if (e.keyCode == 77) {
+      // don't toggle mute while typing into a text field
+      if (e.target.closest("input, textarea, select, [contenteditable]")) return;
       if (mute) {
         mute = false;
       } else {

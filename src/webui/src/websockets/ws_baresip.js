@@ -1,3 +1,8 @@
+import addsip from "../templates/addsip.handlebars";
+import editsip from "../templates/editsip.handlebars";
+import listsip from "../templates/listsip.handlebars";
+import currentlist from "../templates/currentlist.handlebars";
+import { qs, qsa, on, onEnter, dialog, notify, serializeForm, validateForm } from "../ui.js";
 'use strict';
 window.ws_baresip_init = function() {
 	
@@ -8,11 +13,9 @@ window.ws_baresip_init = function() {
 	}
 
 	function RefreshEventListener() {
-		var addsip = require("../templates/addsip.handlebars");
-		var editsip = require("../templates/editsip.handlebars");
 
-		$( "#buttonaddsip" ).on( "click", function() {
-			bootbox.dialog({
+		on("#buttonaddsip", "click", function() {
+			dialog({
 				title: "Add SIP Account",
 				message: addsip(),
 				buttons: {
@@ -26,8 +29,8 @@ window.ws_baresip_init = function() {
 						label: "Save",
 						className: "btn-success",
 						callback: function () {
-							if ($("#formaddsip").parsley().validate()) {
-								ws_baresip.send(JSON.stringify($('#formaddsip').serializeObject()));
+							if (validateForm(qs("#formaddsip"))) {
+								ws_baresip.send(JSON.stringify(serializeForm(qs("#formaddsip"))));
 							} else {
 								return false;
 							}
@@ -36,30 +39,23 @@ window.ws_baresip_init = function() {
 				}
 			}
 			);
-			$("#formaddsip").parsley({
-				errorClass: 'is-invalid text-danger',
-				successClass: 'is-valid', // Comment this option if you don't want the field to become green when valid. Recommended in Google material design to prevent too many hints for user experience. Only report when a field is wrong.
-				errorsWrapper: '<span class="form-text text-danger"></span>',
-				errorTemplate: '<span></span>',
-				trigger: 'change'
-			});
 		});
 
 
-		$( ".deletesip" ).on( "click", function() {
-			ws_baresip_delete_sip($(this).attr('data-user'), $(this).attr('data-domain'));
+		on(".deletesip", "click", function() {
+			ws_baresip_delete_sip(this.dataset.user, this.dataset.domain);
 		});
 
-		$( ".editsip" ).on( "click", function() {
+		on(".editsip", "click", function() {
 			var sip_account_edit = {};
 			for(var index in ws_baresip_sip_accounts) {
 				var user = ws_baresip_sip_accounts[index]["user"];
 				var domain = ws_baresip_sip_accounts[index]["domain"];
-				if (domain == $(this).attr('data-domain') && user == $(this).attr('data-user')) {
+				if (domain == this.dataset.domain && user == this.dataset.user) {
 					sip_account_edit = ws_baresip_sip_accounts[index];
 				}
 			}
-			bootbox.dialog({
+			dialog({
 				title: "Edit SIP Account",
 				message: editsip(sip_account_edit),
 				buttons: {
@@ -73,13 +69,13 @@ window.ws_baresip_init = function() {
 						label: "Save",
 						className: "btn-success",
 						callback: function () {
-							if ($("#formeditsip").parsley().validate()) {
+							if (validateForm(qs("#formeditsip"))) {
 								ws_baresip_delete_sip(sip_account_edit['user'], sip_account_edit['domain']);
-								var sip_account_edit_form = $('#formeditsip').serializeObject();
+								var sip_account_edit_form = serializeForm(qs("#formeditsip"));
 								if (sip_account_edit_form['password'] == "") {
 									delete sip_account_edit_form['password'];
 								}
-								$.extend(sip_account_edit, sip_account_edit_form);
+								Object.assign(sip_account_edit, sip_account_edit_form);
 								ws_baresip.send(JSON.stringify(sip_account_edit));
 							} else {
 								return false;
@@ -89,7 +85,6 @@ window.ws_baresip_init = function() {
 				}
 			}
 			);
-			$("#formeditsip").parsley();
 		});
 	}
 
@@ -97,18 +92,18 @@ window.ws_baresip_init = function() {
 	var ws_baresip = new WebSocket('ws://'+window.ws_host+'/ws_baresip');
 
 	ws_baresip.onerror = function () {
-		$.notify("Websocket error", "error");
+		notify("Websocket error", "error");
 	};
 
 	ws_baresip.onclose = function () {
-		$.notify("Websocket closed", "error");
+		notify("Websocket closed", "error");
 	};
 
 	ws_baresip.onmessage = function (message) {
 		var msg = JSON.parse(message.data);
 
 		if (msg.callback == "UPDATE") {
-			bootbox.dialog({
+			dialog({
 				title: "Update available",
 				message: "Please update to " + msg.version,
 				buttons: {
@@ -136,54 +131,50 @@ window.ws_baresip_init = function() {
 			return;
 		}
 
-		var listsip = require("../templates/listsip.handlebars");
-		var currentlist = require("../templates/currentlist.handlebars");
 
 		ws_baresip_sip_accounts = msg;
-		$( "#accounts" ).html(listsip(ws_baresip_sip_accounts));
+		qs("#accounts").innerHTML = listsip(ws_baresip_sip_accounts);
 
-		$( "#current_uag" ).html(currentlist(ws_baresip_sip_accounts));
+		qs("#current_uag").innerHTML = currentlist(ws_baresip_sip_accounts);
 
-		if ($( "#current_uag option" ).length > 1) {
-			$( "#current_uag" ).removeClass("d-none");
+		if (qsa("#current_uag option").length > 1) {
+			qs("#current_uag").classList.remove("d-none");
 		}
 		for (var key in ws_baresip_sip_accounts) {
 			var domain = ws_baresip_sip_accounts[key]['domain'];
 			var user = ws_baresip_sip_accounts[key]['user'];
 			var state = ws_baresip_sip_accounts[key]['status'];
 			if (state) {
-				var state_html = '<span class="badge badge-success">OK</span>';
+				var state_html = '<span class="badge text-bg-success">OK</span>';
 			} else {
-				var state_html = '<span class="badge badge-danger">ERROR</span>';
+				var state_html = '<span class="badge text-bg-danger">ERROR</span>';
 			}
 
 			if (domain == "studio.link") {
 				var siphtml = user+"@"+domain;
 				var sipstatus = "<b>Status:</b> "+state_html;
-				$("#sipid").html(siphtml);
-				$("#sipstatus").html(sipstatus);
+				qs("#sipid").innerHTML = siphtml;
+				qs("#sipstatus").innerHTML = sipstatus;
 			}
 		};
 		RefreshEventListener();
 	};
 
 
-	$('#sipnumbercall').keypress(function(ev) {
-		if (ev.which === 13) {
-			$('#buttoncall').click();
-			$(this).blur();
-		}
+	onEnter("#sipnumbercall", function(ev) {
+		qs("#buttoncall").click();
+		ev.target.blur();
 	});
 
-	$( "#buttoncall" ).on( "click", function() {
+	on("#buttoncall", "click", function() {
 		ws_baresip.send('{"command": "call", "dial": "'+
-			$( "#sipnumbercall" ).val() +'"}');
-		$('#sipnumbercall').val("");
+			qs("#sipnumbercall").value +'"}');
+		qs("#sipnumbercall").value = "";
 	});
 
-	$( "#current_uag" ).on( "change", function() {
+	on("#current_uag", "change", function() {
 		ws_baresip.send('{"command": "uagcurrent", "aor": "'+
-			$( "#current_uag" ).val()+'"}');
+			qs("#current_uag").value+'"}');
 	});
 
 

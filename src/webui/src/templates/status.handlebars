@@ -1,4 +1,4 @@
-<span id="cpu_usage" class="label label-default hide">CPU: 0%</span>
+<span id="cpu_usage" class="badge text-bg-secondary d-none">CPU: 0%</span>
 {{#each this}}
-<span class="label label-{{label}}">{{name}}: {{value}}</span>
+<span class="badge text-bg-{{#ifeq label "default"}}secondary{{else}}{{label}}{{/ifeq}}">{{name}}: {{value}}</span>
 {{/each}}

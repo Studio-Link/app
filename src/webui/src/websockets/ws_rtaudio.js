@@ -1,47 +1,48 @@
+import audiointerface from "../templates/audiointerface.handlebars";
+import { qs, on, dialog } from "../ui.js";
 "use strict";
 var audio_config = {};
 
 window.ws_rtaudio_init = function() {
   var ws_rtaudio = new WebSocket("ws://" + window.ws_host + "/ws_rtaudio");
-  var audiointerface = require("../templates/audiointerface.handlebars");
 
   function RefreshEventListener() {
-    $("#interface_driver").on("change", function() {
+    on("#interface_driver", "change", function() {
       ws_rtaudio.send(
         '{"command": "driver", "id": ' +
-          parseInt($("#interface_driver").val()) +
+          parseInt(this.value) +
           "}"
       );
     });
-    $("#interface_input").on("change", function() {
+    on("#interface_input", "change", function() {
       ws_rtaudio.send(
         '{"command": "input", "id": ' +
-          parseInt($("#interface_input").val()) +
+          parseInt(this.value) +
           "}"
       );
     });
-    $("#first_input_channel").on("change", function() {
+    on("#first_input_channel", "change", function() {
       ws_rtaudio.send(
         '{"command": "first_input_channel", "id": ' +
-          parseInt($("#first_input_channel").val()) +
+          parseInt(this.value) +
           "}"
       );
     });
-    $("#interface_output").on("change", function() {
+    on("#interface_output", "change", function() {
       ws_rtaudio.send(
         '{"command": "output", "id": ' +
-          parseInt($("#interface_output").val()) +
+          parseInt(this.value) +
           "}"
       );
     });
-    $("#interface_monitor").on("change", function() {
+    on("#interface_monitor", "change", function() {
       ws_rtaudio.send(
         '{"command": "monitor", "id": ' +
-          parseInt($("#interface_monitor").val()) +
+          parseInt(this.value) +
           "}"
       );
     });
-    $("#btn-audio-loop").on("click", function() {
+    on("#btn-audio-loop", "click", function() {
       if (audio_config.loop) {
         ws_rtaudio.send('{"command": "loop", "value": false}');
       } else {
@@ -49,25 +50,25 @@ window.ws_rtaudio_init = function() {
       }
     });
 
-    if (audio_config.loop) {
-      $("#btn-audio-loop").removeClass("btn-default");
-      $("#btn-audio-loop").addClass("btn-danger");
-      $("#btn-audio-loop").html("Stop Audio Test Loop");
-    } else {
-      $("#btn-audio-loop").removeClass("btn-danger");
-      $("#btn-audio-loop").addClass("btn-default");
-      $("#btn-audio-loop").html("Start Audio Test Loop");
+    var loop = qs("#btn-audio-loop");
+    if (loop) {
+      loop.classList.toggle("btn-danger", !!audio_config.loop);
+      loop.classList.toggle("btn-secondary", !audio_config.loop);
+      loop.textContent = audio_config.loop
+        ? "Stop Audio Test Loop"
+        : "Start Audio Test Loop";
     }
   }
 
   ws_rtaudio.onmessage = function(message) {
     audio_config = JSON.parse(message.data);
-    $(".bootbox-body").html(audiointerface(audio_config));
+    var body = qs(".audiointerface-dialog .dialog-body");
+    if (body) body.innerHTML = audiointerface(audio_config);
     RefreshEventListener();
   };
 
-  $("#btn-interface").on("click", function() {
-    bootbox.dialog({
+  on("#btn-interface", "click", function() {
+    var el = dialog({
       title: "Change audio device",
       message: audiointerface(audio_config),
       buttons: {
@@ -86,6 +87,7 @@ window.ws_rtaudio_init = function() {
         },
       },
     });
+    el.classList.add("audiointerface-dialog");
     RefreshEventListener();
   });
 };

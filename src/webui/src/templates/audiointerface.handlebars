@@ -3,25 +3,25 @@
 		<form id="forminterface">
 			<input name="command" type="hidden" value="interface" />
 
-			<div class="form-group">
+			<div class="mb-3">
 				<label for="interface_driver">Driver</label>
-				<select id="interface_driver" class="form-control">
+				<select id="interface_driver" class="form-select">
 					{{#each this.drivers}}
 					<option{{#if selected}} selected{{/if}} value="{{id}}">{{display}}</option>
 					{{/each}}
 				</select>
 			</div>
-			<div class="form-group">
+			<div class="mb-3">
 				<label for="interface_input">Input</label>
-				<select id="interface_input" class="form-control">
+				<select id="interface_input" class="form-select">
 					{{#each this.input}}
 					<option{{#if selected}} selected{{/if}} value="{{id}}">{{display}}</option>
 					{{/each}}
 				</select>
 			</div>
-			<div class="form-group">
+			<div class="mb-3">
 				<label for="first_input_channel">Input Channel</label>
-				<select id="first_input_channel" class="form-control">
+				<select id="first_input_channel" class="form-select">
 				{{#each this.input}}
 				{{#if selected}}
 					{{#times channels}}
@@ -32,9 +32,9 @@
 				{{/each}}
 				</select>
 			</div>
-			<div class="form-group">
+			<div class="mb-3">
 				<label for="interface_output">Output</label>
-				<select id="interface_output" class="form-control">
+				<select id="interface_output" class="form-select">
 					{{#each this.output}}
 					<option{{#if selected}} selected{{/if}} value="{{id}}">{{display}}</option>
 					{{/each}}

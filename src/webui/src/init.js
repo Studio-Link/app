@@ -1,28 +1,5 @@
-require('bootstrap');
-require('./icons');
-
-import Vue from 'vue';
-import VueTour from 'vue-tour'
-
-require('vue-tour/dist/vue-tour.css')
-
-var $ = require('jquery');
-window.jQuery = $;
-window.$ = $;
-window.Vue = Vue;
-
-import Parsley from 'parsleyjs'
-
-var bootbox = require('bootbox');
-window.bootbox = bootbox;
+import "bootstrap";
+import "./icons";
 
 window.ws_host = location.host;
 // window.ws_host = "127.0.0.1:34081";
-
-Vue.use(VueTour);
-
-Vue.component("onboarding", require("./components/Onboarding.vue").default);
-
-const app = new Vue({
-    el: "#app"
-});

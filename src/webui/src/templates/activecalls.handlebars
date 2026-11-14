@@ -8,7 +8,7 @@
 
         <div class="dropdown btn-group" style="margin-top: -2px;">
             <button title="Options" aria-label="Options" class="btn btn-primary btn-sm dropdown-toggle" type="button"
-                id="dropdown{{@key}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-display="static">
+                id="dropdown{{@key}}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-bs-display="static">
                 <span class="fa fa-cog" aria-hidden="true"></span> Options
             </button>
             <div class="dropdown-menu" aria-labelledby="dropdown{{@key}}">
@@ -22,24 +22,24 @@
                 <div class="dropdown-divider"></div>
                 <h6 class="dropdown-header">Latency/Buffer ({{buffer}}ms)</h6>
                 <div class="px-4 pb-2">
-                    <form onsubmit="return false;">
-                        <button type="button" class="btn btn-secondary btn-sm btn-block bufferinc" data-key="{{@key}}">+20ms</button>
-                        <button type="button" class="btn btn-secondary btn-sm btn-block bufferdec" data-key="{{@key}}">-20ms</button>
+                    <form onsubmit="return false;" class="d-grid gap-1">
+                        <button type="button" class="btn btn-secondary btn-sm bufferinc" data-key="{{@key}}">+20ms</button>
+                        <button type="button" class="btn btn-secondary btn-sm bufferdec" data-key="{{@key}}">-20ms</button>
                     </form>
                 </div>
                 <div class="dropdown-divider"></div>
                 <form class="px-4">
-                    <div class="form-group">
+                    <div class="mb-3">
                         <label class="dropdown-header" for="formControlRange{{@key}}">Volume ({{volume}})</label>
-                        <input type="range" min="0" max="2" step="0.05" value="{{volume}}" class="form-control-range volume"
+                        <input type="range" min="0" max="2" step="0.05" value="{{volume}}" class="form-range volume"
                             id="formControlRange{{@key}}" data-key="{{@key}}">
                     </div>
                 </form>
             </div>
         </div>
 
-        <div class="float-right">
-            <span class="badge badge-primary">{{state}}</span>
+        <div class="float-end">
+            <span class="badge text-bg-primary">{{state}}</span>
             <button aria-label="Cancel Call" data-key="{{@key}}" class="btn btn-danger btn-sm hangup"
                 style="margin-top: -2px;">
                 <i class="fas fa-phone-slash"></i>

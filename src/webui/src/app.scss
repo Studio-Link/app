@@ -1,5 +1,6 @@
 $gray-900: #1e1e1e;
-$link-color: #c8c8c8; 
+$link-color: #c8c8c8;
+$link-decoration: none;
 $secondary: #333333;
 $progress-height: 0.6rem;
 $container-max-widths: (
@@ -10,7 +11,7 @@ xl: 1140px
 );
 
 @import 'theme/variables';
-@import '~bootstrap/scss/bootstrap';
+@import 'bootstrap/scss/bootstrap';
 @import 'theme/bootswatch';
 
 label {
@@ -42,18 +43,21 @@ label {
 	padding-left: 10px;
 }
 
-.form-control {
+.form-control,
+.form-select {
 	background-color: #303030;
 	color: #fff;
 }
 
-.form-control:focus {
+.form-control:focus,
+.form-select:focus {
 	border-color: #f67e05;
 	background-color: #303030;
 	color: #fff;
 }
 
-.form-control:disabled, .form-control[readonly] {
+.form-control:disabled, .form-control[readonly],
+.form-select:disabled {
 	background-color: #444444;
 	border-color: #444444;
 	color: #fff;
@@ -66,32 +70,6 @@ a:hover {
 .modal-content {
 	background-color: #171717;
 	border: 1px solid #000;
-}
-
-#variant {
-	font-family: 'Exo 2', sans-serif;
-	font-size: 35px;
-	vertical-align: middle;
-	color: #c7c7c9;	
-}
-
-@font-face {
-        font-family: 'Exo 2';
-        font-style: normal;
-        font-weight: 500;
-        src:
-        local('Exo 2 Medium'),
-        local('Exo2-Medium'),
-        /* from https://fonts.gstatic.com/s/exo2/v4/7cHrv4okm5zmbt7bCPs7wHs.eot */
-        url('/fonts/Exo_2_500.eot') format('embedded-opentype'),
-        /* from https://fonts.gstatic.com/s/exo2/v4/7cHrv4okm5zmbt7bCPs7wHk.woff */
-        url('/fonts/Exo_2_500.woff') format('woff'),
-        /* from https://fonts.gstatic.com/s/exo2/v4/7cHrv4okm5zmbt7bCPs7wH8.woff2 */
-        url('/fonts/Exo_2_500.woff2') format('woff2'),
-        /* from https://fonts.gstatic.com/l/font?kit=7cHrv4okm5zmbt7bCPs7wHg&skey=adb63786cb87541c&v=v4#Exo2 */
-        url('/fonts/Exo_2_500.svg') format('svg'),
-        /* from https://fonts.gstatic.com/s/exo2/v4/7cHrv4okm5zmbt7bCPs7wHo.ttf */
-        url('/fonts/Exo_2_500.ttf') format('truetype');
 }
 
 #changelogen h1 {

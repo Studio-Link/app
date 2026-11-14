@@ -1,4 +1,7 @@
-var Handlebars = require("handlebars/runtime");
+import Handlebars from "handlebars/runtime";
+import changelog from "./templates/changelog.handlebars";
+import { startOnboarding } from "./onboarding.js";
+import { alert } from "./ui.js";
 
 Handlebars.registerHelper("inc", function(value, options) {
   return parseInt(value) + 1;
@@ -41,24 +44,6 @@ Handlebars.registerHelper("times", function(n, block) {
   return accum;
 });
 
-$.fn.serializeObject = function() {
-  var obj = {};
-  var arr = this.serializeArray();
-  arr.forEach(function(item, index) {
-    if (obj[item.name] === undefined) {
-      // New
-      obj[item.name] = item.value || "";
-    } else {
-      // Existing
-      if (!obj[item.name].push) {
-        obj[item.name] = [obj[item.name]];
-      }
-      obj[item.name].push(item.value || "");
-    }
-  });
-  return obj;
-};
-
 window.addEventListener("beforeunload", function(e) {
   if (window.callactive) {
     e.preventDefault();
@@ -66,28 +51,29 @@ window.addEventListener("beforeunload", function(e) {
   }
 });
 
-$(function() {
-  var changelog = require("./templates/changelog.handlebars");
-  window.callactive = false;
+window.callactive = false;
 
-  $.get("/swvariant", function(data) {
-    var swvariant = data;
+const show = (id) => document.getElementById(id).classList.remove("d-none");
+
+fetch("/swvariant")
+  .then((r) => r.text())
+  .then(function(swvariant) {
     window.swvariant = swvariant;
 
     if (swvariant == "standalone") {
-      $("#btn-interface").removeClass("d-none");
-      $("#btn-record").removeClass("d-none");
-      $("#btn-record-folder").removeClass("d-none");
-      $("#btn-onair").removeClass("d-none");
-      $("#btn-mute").removeClass("d-none");
+      show("btn-interface");
+      show("btn-record");
+      show("btn-record-folder");
+      show("btn-onair");
+      show("btn-mute");
       ws_rtaudio_init();
 
       if (localStorage.getItem("slonboarding") != "completed") {
-        window.Vue.prototype.$tours["slTour"].start();
+        startOnboarding();
       }
     }
     if (swvariant == "plugin") {
-      $("#btn-interface").addClass("d-none");
+      document.getElementById("btn-interface").classList.add("d-none");
     }
 
     ws_baresip_init();
@@ -97,16 +83,15 @@ $(function() {
     ws_options_init();
   });
 
-  $.get("/version", function(data) {
-    version = data;
-    version_int = parseInt(version.replace(/[^0-9]+/g, ""));
-
-    $("#version").html('<a href="#" id="changelog">' + version + "</a>");
-    $("#changelog").on("click", function() {
-      bootbox.alert({
-        message: changelog(),
-        size: "large",
-      });
+fetch("/version")
+  .then((r) => r.text())
+  .then(function(version) {
+    const el = document.getElementById("version");
+    el.innerHTML = '<a href="#" id="changelog"></a>';
+    const link = el.firstChild;
+    link.textContent = version;
+    link.addEventListener("click", function(e) {
+      e.preventDefault();
+      alert({ message: changelog(), size: "large" });
     });
   });
-});

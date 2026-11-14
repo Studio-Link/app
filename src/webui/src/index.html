@@ -14,12 +14,12 @@
 		<div id="app" class="container">
 			<div class="row mt-2">
 				<div class="col-12">
-					<h2 class="float-left">
+					<h2 class="float-start">
 						<a href="/" class="logo" aria-label="Logo - Reload page">
 							<img src="/images/logo.svg" height="35px" aria-hidden="true"/>
 						</a>
 					</h2>
-					<div class="float-right">
+					<div class="float-end">
 						<span id="version">Default</span> | <a href="https://doku.studio-link.de" target="_blank">Help</a>
 					</div>
 				</div>
@@ -28,17 +28,17 @@
 				<div class="col-md-8">
 					<div class="card mb-3">
 						<div class="card-header">
-							<div class="float-left mt-1"><b>Audio</b></div>
-							<button id="btn-interface" class="btn btn-secondary btn-sm float-left ml-2 d-none" style="min-height: 35px;">
+							<div class="float-start mt-1"><b>Audio</b></div>
+							<button id="btn-interface" class="btn btn-secondary btn-sm float-start ms-2 d-none" style="min-height: 35px;">
 								<i class="fa fa-cog" aria-hidden="true"></i> Interface
 							</button>
-							<button type="button" class="btn btn-secondary btn-sm float-right d-none" style="margin-left: 6px; min-height: 35px;" id="btn-record-folder" aria-label="open record folder">
+							<button type="button" class="btn btn-secondary btn-sm float-end d-none" style="margin-left: 6px; min-height: 35px;" id="btn-record-folder" aria-label="open record folder">
 								<i class="far fa-folder-open" aria-hidden="true"></i>
 							</button>
-							<button type="button" class="btn btn-secondary btn-sm float-right d-none" style="margin-left: 6px; min-height: 35px;" id="btn-record">
+							<button type="button" class="btn btn-secondary btn-sm float-end d-none" style="margin-left: 6px; min-height: 35px;" id="btn-record">
 								<i class="far fa-dot-circle"></i> <b>Record <span id="record_time" style="font-family: Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">0:00:00:000</span></b>
 							</button>
-							<button class="btn btn-secondary btn-sm float-right d-none" style="margin-left: 6px; min-height: 35px;" id="btn-onair">
+							<button class="btn btn-secondary btn-sm float-end d-none" style="margin-left: 6px; min-height: 35px;" id="btn-onair">
 								<i class="fa fa-rss" aria-hidden="true"></i> OnAir
 							</button>
 						</div>
@@ -64,22 +64,22 @@
 					</div><!-- /card -->
 					<div class="card">
 						<div class="card-header">
-							<a role="button" data-toggle="collapse" href="#card-settings"><b>More...</b></a>
+							<a role="button" data-bs-toggle="collapse" href="#card-settings"><b>More...</b></a>
 						</div>
 						<div id="card-settings" class="card-body collapse">
 							<ul class="nav nav-tabs mb-2" id="panel-settings" role="tablist">
 								<li class="nav-item">
-									<a class="nav-link active" id="contacts-tab" data-toggle="tab" href="#contacts" role="tab" aria-controls="contacts" aria-selected="true">
+									<a class="nav-link active" id="contacts-tab" data-bs-toggle="tab" href="#contacts" role="tab" aria-controls="contacts" aria-selected="true">
 										<i class="fas fa-address-book" aria-hidden="true"></i> Contacts
 									</a>
 								</li>
 								<li class="nav-item">
-									<a class="nav-link" id="sip-account-tab" data-toggle="tab" href="#accounts" role="tab" aria-controls="sip-accounts" aria-selected="false">
+									<a class="nav-link" id="sip-account-tab" data-bs-toggle="tab" href="#accounts" role="tab" aria-controls="sip-accounts" aria-selected="false">
 										<i class="fas fa-phone-square" aria-hidden="true"></i> SIP Accounts
 									</a>
 								</li>
 								<li class="nav-item">
-									<a class="nav-link" id="sip-options-tab" data-toggle="tab" href="#options" role="tab" aria-controls="options" aria-selected="false">
+									<a class="nav-link" id="sip-options-tab" data-bs-toggle="tab" href="#options" role="tab" aria-controls="options" aria-selected="false">
 										<i class="fa fa-cog" aria-hidden="true"></i> Options
 									</a>
 								</li>
@@ -106,9 +106,9 @@
 						</div> 
 					</div><!-- /card -->
 					<input type="email" class="form-control" id="sipnumbercall" placeholder="Enter Partner ID" autofocus>                                                                            
-					<select id="current_uag" class="form-control d-none"></select>
+					<select id="current_uag" class="form-select d-none"></select>
 					<div class="clearfix" style="margin: 3px"></div>
-					<div class="btn-group btn-block">
+					<div class="d-grid">
 						<button id="buttoncall" type="button" class="btn btn-primary btn-lg">
 							<i class="fa fa-phone" aria-hidden="true" style="transform: rotate(95deg);"></i> <b>Call</b>
 						</button>
@@ -120,7 +120,6 @@
 
 				</div><!-- /col-4 -->
 			</div><!-- /row -->
-		<onboarding></onboarding>
 		</div><!-- /container -->
 		<script src="/app.js"></script>
 	</body>
