@@ -4,14 +4,14 @@ on: [push, pull_request]
 
 jobs:
   webui:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       BUILD_TARGET: webui 
       BUILD_OS: linux
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v7
 
-    - uses: actions/cache@v2
+    - uses: actions/cache@v6
       with:
         path: '**/node_modules'
         key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
@@ -30,12 +30,12 @@ jobs:
         port: '2222'
 
   ccheck:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       BUILD_TARGET: ccheck
       BUILD_OS: linux
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v7
     - name: ccheck
       run: ./dist/build.sh 
 
@@ -48,22 +48,22 @@ jobs:
       matrix:
         include:
           - target: windows64
-            os: ubuntu-20.04
+            os: ubuntu-24.04
             os_name: mingw
           - target: windows32
-            os: ubuntu-20.04
+            os: ubuntu-24.04
             os_name: mingw
           - target: linux
-            os: ubuntu-18.04
+            os: ubuntu-22.04
             os_name: linux
           - target: linuxjack
-            os: ubuntu-18.04
+            os: ubuntu-22.04
             os_name: linux
           - target: macos_x86_64
-            os: macos-10.15
+            os: macos-15
             os_name: macos
           - target: macos_arm64
-            os: macos-10.15
+            os: macos-15
             os_name: macos
 
     env:
@@ -71,7 +71,7 @@ jobs:
       BUILD_OS: ${{ matrix.os_name }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v7
 
     - uses: sreimers/action-archlinux-mingw@main
       if: ${{ matrix.os_name == 'mingw' }}
