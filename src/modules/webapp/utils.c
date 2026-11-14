@@ -2,9 +2,15 @@
 #include <baresip.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef WIN32
+#include <io.h>
+#endif
 #include "webapp.h"
 
-void webapp_odict_add(struct odict *og, const struct odict_entry *eg)
+void webapp_odict_add(struct odict *og, const struct odict *src)
 {
 	struct le *le;
 	struct odict *o;
@@ -16,15 +22,20 @@ void webapp_odict_add(struct odict *og, const struct odict_entry *eg)
 	if (err)
 		return;
 
-	le = (void *)&eg->le;
-	if (!le)
+	if (!src) {
+		mem_deref(o);
 		return;
+	}
 
-	for (le=le->list->head; le; le=le->next) {
+	for (le = src->lst.head; le; le = le->next) {
 		const struct odict_entry *e = le->data;
-		if (!str_cmp(e->key, "command"))
+		if (!str_cmp(odict_entry_key(e), "command"))
 			continue;
-		odict_entry_add(o, e->key, e->type, e->u.str);
+		/* only flat string entries are stored */
+		if (odict_entry_type(e) != ODICT_STRING)
+			continue;
+		odict_entry_add(o, odict_entry_key(e), ODICT_STRING,
+				odict_entry_str(e));
 	}
 
 	/* Limited Loop

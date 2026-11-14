@@ -39,18 +39,6 @@ window.ws_calls_init = function() {
 				this.dataset.key+'"}');
 		});
 
-		on(".bufferinc", "click", function() {
-			ws_calls.send('{"command": "bufferinc", "key": "'+
-				this.dataset.key+'"}');
-            ws_calls_dropdown_open = this.dataset.key;
-		});
-    
-		on(".bufferdec", "click", function() {
-			ws_calls.send('{"command": "bufferdec", "key": "'+
-				this.dataset.key+'"}');
-            ws_calls_dropdown_open = this.dataset.key;
-		});
-
 		on(".volume", "change", function() {
 			ws_calls.send('{"command": "volume", "key": "'+
 				this.dataset.key+'", "value": "'+this.value+'" }');
@@ -158,13 +146,6 @@ window.ws_calls_init = function() {
 				let track = i + 1;
 				var jitter = qs("#jitter"+track);
 				if (jitter) jitter.textContent = jitters[i];
-			}
-
-			var talks = msg.talks.split(" ");
-			for (let i=0; i<talks.length; i++) {
-				let track = i + 1;
-				var talk = qs("#talk"+track);
-				if (talk) talk.textContent = (talks[i] == 1) ? "yes" : "no";
 			}
 
 		} else {

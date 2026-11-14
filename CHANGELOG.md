@@ -2,6 +2,40 @@
 
 ## [Unreleased]
 
+### Added
+
+- **Plugin** New native CLAP, VST3 and AUv2 plugins (via clap-wrapper) and an
+  in-tree LV2 plugin, replacing the JUCE and overlay based VST/AU/LV2 builds.
+  Linux: CLAP/VST3/LV2, macOS: CLAP/VST3/AUv2 (AU identity is unchanged, so
+  existing DAW sessions keep working)
+- **Plugin** Warning in the WebUI if the DAW does not run at 48 kHz
+- **Misc** Download logs button (More... > Options > Download logs)
+
+### Changed
+
+- **Misc** Migrated to baresip/libre 4.13.0, jitter buffering is now handled
+  by baresip
+- **Misc** Remote logging (log.studio.link) removed, logs are now written
+  locally to `<config path>/logs/` (last 7 starts are kept)
+- **Misc** TLS uses an embedded Mozilla CA bundle (HTTPS provisioning,
+  SIP TLS)
+- **Standalone** Audio backend switched from libsoundio to PortAudio
+- **Plugin** Reworked audio sync between plugin instances (lock-free ring
+  buffer per session)
+- **WebUI** Updated to Bootstrap 5 and Vite, new onboarding tour (driver.js),
+  jQuery, Vue 2 and bootbox removed
+- **Build** New CMake build system, all libraries (re, baresip, OpenSSL,
+  Opus, FLAC, libsamplerate, PortAudio) are built and linked statically.
+  Most of the old re/baresip patches are no longer needed
+- **Build** CI runners updated (Ubuntu 22.04/24.04, macOS 15)
+
+### Removed
+
+- **Misc** Manual per-call latency/buffer buttons (+20ms/-20ms) and the
+  "Talk" indicator in active calls
+- **Plugin** VST2 plugin
+- **Plugin** Windows DAW plugins are not built for now (standalone only)
+
 ## [v21.07.0-stable] - 2021-07-06
 
 ### Fixed

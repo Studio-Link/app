@@ -32,25 +32,50 @@ See [CHANGELOG.md](CHANGELOG.md)
 
 ### CI builds
 
-https://download.studio.link/devel/
+Every CI run uploads the builds as artifacts (`studio-link-<target>`), see
+the [Actions](https://github.com/Studio-Link/app/actions) tab.
 
 ### Build Requirements
 
-- OpenSSL
-- Libtool
-- LV2 (optional)
-- Header files for OpenSSL, ALSA, PulseAudio and JACK
-- xxd and nodejs/npm
+- CMake (>= 3.18), a C compiler, zip/unzip
+- Header files for ALSA, PulseAudio and JACK
+- xxd and nodejs/npm (only for building the webui)
 
-### Build Requirements on Ubuntu 16.04/18.04
+On Ubuntu/Debian:
 
-The needed header files are in these packages:
-libssl-dev libasound2-dev libjack-jackd2-dev libtool build-essential
-autoconf automake libpulse0 libpulse-dev xxd
+    sudo apt-get install cmake build-essential zip unzip \
+        libasound2-dev libpulse-dev libjack-jackd2-dev xxd
 
-And current nodejs/npm (Node.js v10.x v11.x or v12.x):
+All other libraries (re/baresip 4.x, OpenSSL, Opus, FLAC, libsamplerate and
+PortAudio) are built and linked statically. The Linux binary only depends on
+glibc, libpulse (and libjack for the `linuxjack` target). ALSA is loaded at
+runtime.
 
-https://github.com/nodesource/distributions/blob/master/README.md
+Useful options for `dist/build.sh`: `BUILD_TYPE=Debug`, `SL_SKIP_WEBUI=1`
+(use existing `src/modules/webapp/assets`), `SL_SKIP_PLUGINS=1` (don't build
+the DAW plugins).
+
+### DAW plugins
+
+The plugins are built from `src/plugin` for the `plugin` and `onair`
+variants with `-DSL_PLUGIN_FORMATS="CLAP;VST3;AUV2;LV2"`:
+
+- CLAP (`src/plugin/clap/sl_clap.c`), VST3 and AUv2 are generated from it by
+  [clap-wrapper](https://github.com/free-audio/clap-wrapper), which downloads
+  the CLAP, VST3 and AudioUnit SDKs at configure time
+- LV2 (`src/plugin/lv2/sl_lv2.c`)
+
+`dist/build.sh` builds CLAP/VST3/LV2 on Linux and CLAP/VST3/AUv2 on macOS,
+the results are in `build/plugin/plugins` and `build/onair/plugins`.
+
+### CA certificates
+
+TLS (HTTPS provisioning, SIP TLS) uses the Mozilla CA bundle from
+[curl](https://curl.se/ca/cacert.pem), embedded into the binaries
+(`src/core/slcacert.c`). The bundle version and SHA256 are pinned in
+`dist/lib/versions.sh` (`SL_CACERT_VERSION`/`SL_CACERT_SHA256`), CMake
+downloads it at configure time. For offline builds use
+`-DSL_CACERT_FILE=/path/to/cacert.pem`.
 
 ### Build on Linux
 

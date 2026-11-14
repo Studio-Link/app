@@ -1,75 +1,60 @@
+/**
+ * @file slogging.c Local file logging
+ *
+ * Writes all baresip log messages to <conf_path>/logs/studio-link.0.log.
+ * On every start the previous files are rotated and the last SL_LOG_KEEP
+ * starts are kept (see sllog.h).
+ *
+ * Copyright (C) 2026 studio-link.de
+ */
 #include <re.h>
 #include <baresip.h>
+#include <sllog.h>
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 
-#define	LOG_ERR		3	/* error conditions */
-#define	LOG_WARNING	4	/* warning conditions */
-#define	LOG_INFO	6	/* informational */
-#define	LOG_DEBUG	7	/* debug-level messages */
 
-static struct http_cli *cli = NULL;
-static const struct network *net;
-static char url[255] = {0};
-static struct http_req *req = NULL;
-enum { UUID_LEN = 36 };
-static char myid[9] = {0};
-static struct mqueue *mq;
-static char *fmt;
+static FILE *log_fp = NULL;
+static mtx_t *lock = NULL;
 
 
-static void mqueue_handler(int id, void *data, void *arg)
+static const char *level_name(uint32_t level)
 {
-	char *msg = data;
-	http_request(&req, cli, "POST", url, NULL,
-			NULL, NULL, msg);
+	static const char *names[] = {"DEBUG", "INFO", "WARN", "ERROR"};
 
-	mem_deref(msg);
+	return names[MIN(level, RE_ARRAY_SIZE(names) - 1)];
 }
 
 
-static const int lmap[] = { LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
-
+/* May be called from any thread */
 static void log_handler(uint32_t level, const char *msg)
 {
-	char *gelf;
-	int time_ms = 0, timestamp = 0;
+	char ts[32] = "";
+	time_t now = time(NULL);
+	struct tm tm;
+	size_t len;
 
-	timestamp = time(NULL);
+	if (!msg)
+		return;
 
 #ifdef WIN32
-	SYSTEMTIME st;
-	GetSystemTime(&st);
-	time_ms = st.wMilliseconds;
+	if (!localtime_s(&tm, &now))
 #else
-	time_ms = (int)(tmr_jiffies() - (uint64_t)timestamp * (uint64_t)1000);
+	if (localtime_r(&now, &tm))
 #endif
+		strftime(ts, sizeof(ts), "%Y-%m-%d %H:%M:%S", &tm);
 
-	fmt = mem_zalloc(8192 * sizeof(char), NULL);
-	gelf = mem_zalloc(8192 * sizeof(char), NULL);
+	len = strlen(msg);
 
-	re_snprintf(gelf, 8191,
-		"{\"version\": \"1.1\",\
-		\"timestamp\":\"%d.%03d\",\
-		\"short_message\":\"%s\",\
-		\"host\": \"%s\",\
-		\"level\": \"%d\"}\r\n",
-		timestamp, time_ms,
-		msg,
-		myid,
-		lmap[MIN(level, ARRAY_SIZE(lmap)-1)]
-	);
-
-	re_snprintf(fmt, 8191,
-			"Content-Length: %d\r\n"
-			"Content-Type: application/x-www-form-urlencoded\r\n"
-			"\r\n"
-			"%s",
-			str_len(gelf), gelf);
-
-	mem_deref(gelf);
-
-	mqueue_push(mq, 0, fmt);
+	mtx_lock(lock);
+	if (log_fp) {
+		(void)fprintf(log_fp, "%s %-5s %s%s", ts, level_name(level),
+			      msg,
+			      (len && msg[len - 1] == '\n') ? "" : "\n");
+		(void)fflush(log_fp);
+	}
+	mtx_unlock(lock);
 }
 
 
@@ -78,154 +63,108 @@ static struct log lg = {
 };
 
 
-static int uuid_load(const char *file, char *uuid, size_t sz)
+static int log_file_path(char *buf, size_t sz, const char *dir,
+			 unsigned idx)
 {
-	FILE *f = NULL;
-	int err = 0;
-
-	f = fopen(file, "r");
-	if (!f)
-		return errno;
-
-	if (!fgets(uuid, (int)sz, f))
-		err = errno;
-
-	(void)fclose(f);
-
-	debug("uuid: loaded UUID %s from file %s\n", uuid, file);
-
-	return err;
-}
-
-
-static int generate_random_uuid(FILE *f)
-{
-	if (re_fprintf(f, "%08x-%04x-%04x-%04x-%08x%04x",
-				rand_u32(), rand_u16(), rand_u16(), rand_u16(),
-				rand_u32(), rand_u16()) != UUID_LEN)
+	if (re_snprintf(buf, sz, "%s/" SL_LOG_FILE_FMT, dir, idx) < 0)
 		return ENOMEM;
 
 	return 0;
 }
 
 
-static int uuid_init(const char *file)
+/* Shift studio-link.N.log -> studio-link.N+1.log, drop the oldest */
+static void log_rotate(const char *dir)
 {
-	FILE *f = NULL;
-	int err = 0;
+	char from[512], to[512];
+	unsigned i;
 
-	f = fopen(file, "r");
-	if (f) {
-		err = 0;
-		goto out;
-	}
-
-	f = fopen(file, "w");
-	if (!f) {
-		err = errno;
-		warning("uuid: fopen() %s (%m)\n", file, err);
-		goto out;
-	}
-
-	err = generate_random_uuid(f);
-	if (err) {
-		warning("uuid: generate random UUID failed (%m)\n", err);
-		goto out;
-	}
-
-	info("uuid: generated new UUID in %s\n", file);
-
-out:
-	if (f)
-		fclose(f);
-
-	return err;
-}
-
-
-#ifdef WIN32
-static void determineWinOsVersion(void)
-{
-	#define pGetModuleHandle GetModuleHandleW
-	typedef LONG NTSTATUS;
-	typedef NTSTATUS(NTAPI *RtlGetVersionFunction)(LPOSVERSIONINFO);
-
-	OSVERSIONINFOEX result = { sizeof(OSVERSIONINFOEX),
-		0, 0, 0, 0, {'\0'}, 0, 0, 0, 0, 0};
-	HMODULE ntdll = pGetModuleHandle(L"ntdll.dll");
-	if (!ntdll)
+	if (log_file_path(to, sizeof(to), dir, SL_LOG_KEEP - 1))
 		return;
 
-	RtlGetVersionFunction pRtlGetVersion =
-		(RtlGetVersionFunction)GetProcAddress(ntdll, "RtlGetVersion");
-	if (!pRtlGetVersion)
-		return;
+	(void)remove(to);
 
-	pRtlGetVersion((LPOSVERSIONINFO)&result);
+	for (i = SL_LOG_KEEP - 1; i > 0; i--) {
+		if (log_file_path(from, sizeof(from), dir, i - 1) ||
+		    log_file_path(to, sizeof(to), dir, i))
+			return;
 
-	info("slogging: Windows Version %i.%i.%i \n", result.dwMajorVersion,
-			result.dwMinorVersion, result.dwBuildNumber);
+		/* Windows rename() fails if the target exists */
+		(void)remove(to);
+		(void)rename(from, to);
+	}
 }
-#endif
+
 
 static int module_init(void)
 {
-	int err = 0;
-	char path[256];
-	char uuidtmp[40];
+	char dir[256];
+	char file[512];
+	int err;
 
-	err = conf_path_get(path, sizeof(path));
+	err = conf_path_get(dir, sizeof(dir));
 	if (err)
 		return err;
 
-	strncat(path, "/uuid", sizeof(path) - strlen(path) - 1);
+	if (re_snprintf(dir + strlen(dir), sizeof(dir) - strlen(dir),
+			"/" SL_LOG_DIR) < 0)
+		return ENOMEM;
 
-	err = uuid_init(path);
+	if (!fs_isdir(dir)) {
+		err = fs_mkdir(dir, 0700);
+		if (err) {
+			warning("slogging: mkdir %s failed (%m)\n", dir, err);
+			return err;
+		}
+	}
+
+	log_rotate(dir);
+
+	err = log_file_path(file, sizeof(file), dir, 0);
 	if (err)
 		return err;
 
-	err = uuid_load(path, uuidtmp, sizeof(uuidtmp));
+	err = mutex_alloc(&lock);
 	if (err)
 		return err;
 
-	str_ncpy(myid, uuidtmp, sizeof(myid));
-
-	err = mqueue_alloc(&mq, mqueue_handler, NULL);
-	if (err)
+	err = fs_fopen(&log_fp, file, "w");
+	if (err) {
+		warning("slogging: open %s failed (%m)\n", file, err);
+		lock = mem_deref(lock);
 		return err;
-
-	net = baresip_network();
-	re_snprintf(url, sizeof(url), "https://log.studio.link/gelf");
-	http_client_alloc(&cli, net_dnsc(net));
-
+	}
 
 	log_register_handler(&lg);
 
-	info("slogging: started\n");
-	info("slogging: uuid: %s\n", myid);
-	info("slogging: Version %s\n", BARESIP_VERSION);
+	info("slogging: started (%s)\n", file);
+	info("slogging: Version %s (baresip %s)\n", SLVERSION,
+	     BARESIP_VERSION);
 	info("slogging: Machine %s/%s\n", sys_arch_get(), sys_os_get());
 	info("slogging: Kernel %H\n", sys_kernel_get, NULL);
 	info("slogging: Build %H\n", sys_build_get, NULL);
-	info("slogging: Network %H\n", net_debug, net);
-
-#ifdef WIN32
-	determineWinOsVersion();
-#endif
+	info("slogging: Network %H\n", net_debug, baresip_network());
 
 	return 0;
 }
+
 
 static int module_close(void)
 {
 	log_unregister_handler(&lg);
-	req = mem_deref(req);
-	cli = mem_deref(cli);
-	mq = mem_deref(mq);
-	fmt = mem_deref(fmt);
+
+	mtx_lock(lock);
+	if (log_fp) {
+		(void)fclose(log_fp);
+		log_fp = NULL;
+	}
+	mtx_unlock(lock);
+
+	lock = mem_deref(lock);
 
 	return 0;
 }
+
 
 const struct mod_export DECL_EXPORTS(slogging) = {
 	"slogging",

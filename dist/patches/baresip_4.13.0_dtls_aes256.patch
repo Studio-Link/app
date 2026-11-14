@@ -1,0 +1,17 @@
+diff --color -ru a/modules/dtls_srtp/dtls_srtp.c b/modules/dtls_srtp/dtls_srtp.c
+--- a/modules/dtls_srtp/dtls_srtp.c	2026-11-04 19:53:25.000000000 +0000
++++ b/modules/dtls_srtp/dtls_srtp.c	2026-11-14 19:40:34.363641745 +0000
+@@ -72,10 +72,10 @@
+ 
+ static struct tls *tls;
+ static const char* srtp_profiles =
+-	"SRTP_AES128_CM_SHA1_80:"
+-	"SRTP_AES128_CM_SHA1_32:"
++	"SRTP_AEAD_AES_256_GCM:"
+ 	"SRTP_AEAD_AES_128_GCM:"
+-	"SRTP_AEAD_AES_256_GCM";
++	"SRTP_AES128_CM_SHA1_80:"
++	"SRTP_AES128_CM_SHA1_32";
+ 
+ 
+ static enum setup setup_decode(const char *setup)

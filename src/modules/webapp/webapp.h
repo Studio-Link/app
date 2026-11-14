@@ -1,4 +1,7 @@
-#define SLVERSION "SLVERSION_T"
+/* SLVERSION is set by the build system */
+#ifndef SLVERSION
+#define SLVERSION "dev"
+#endif
 #ifndef SLPLUGIN
 #include <pthread.h>
 #include "FLAC/stream_encoder.h"
@@ -51,17 +54,6 @@ enum sess_chmix {
 	CH_MONO_R
 };
 
-struct sess_jitter {
-	bool talk;
-	int16_t bufsz;
-	int16_t max;
-	int16_t max_l;
-	int16_t max_r;
-	int16_t startup;
-	int16_t silence_count;
-	int16_t delay_count;
-};
-
 struct session {
 	struct le le;
 	struct ausrc_st *st_src;
@@ -74,17 +66,13 @@ struct session {
 	bool stream; /* only used for standalone */
 	bool local; /* only used for standalone */
 	int8_t track;
-	struct sess_jitter jitter;
 	enum sess_chmix chmix;
 	char *state;
 	bool changed;
-	size_t buffer;
 	double volume;
 #ifdef SLPLUGIN
-	bool primary;
 	bool run_auto_mix;
 	bool bypass;
-	bool effect_ready;
 #else
 	bool run_record;
 	struct aubuf *aubuf;
@@ -108,19 +96,21 @@ int webapp_session_stop_stream(void);
 struct call* webapp_session_get_call(char * const sess_id);
 bool webapp_session_available(void);
 void webapp_session_chmix(char * const sess_id);
-void webapp_session_bufferinc(char * const sess_id);
-void webapp_session_bufferdec(char * const sess_id);
 void webapp_session_volume(char * const sess_id, char * const volume);
+void webapp_session_play_read(struct session *sess, int16_t *sampv,
+		auplay_write_h *wh, size_t sampc, void *arg);
 
 /*
  * account.c
  */
 struct ua* webapp_get_main_ua(void);
 struct ua* webapp_get_quick_ua(void);
+struct ua* webapp_ua_current(void);
+void webapp_ua_current_set(struct ua *ua);
 int webapp_accounts_init(void);
 void webapp_accounts_close(void);
 const struct odict* webapp_accounts_get(void);
-void webapp_account_add(const struct odict_entry *acc);
+void webapp_account_add(struct odict *acc);
 void webapp_account_delete(char *user, char *domain);
 void webapp_account_current(void);
 void webapp_account_status(const char *aor, bool status);
@@ -130,7 +120,7 @@ void webapp_account_status(const char *aor, bool status);
  */
 int webapp_contacts_init(void);
 void webapp_contacts_close(void);
-void webapp_contact_add(const struct odict_entry *contact);
+void webapp_contact_add(const struct odict *contact);
 void webapp_contact_delete(const char *sip);
 const struct odict* webapp_contacts_get(void);
 
@@ -183,7 +173,7 @@ void webapp_ws_close(void);
 /*
  * utils.c
  */
-void webapp_odict_add(struct odict *og, const struct odict_entry *e);
+void webapp_odict_add(struct odict *og, const struct odict *src);
 int webapp_write_file(char *string, char *filename);
 int webapp_write_file_json(struct odict *json, char *filename);
 int webapp_load_file(struct mbuf *mb, char *filename);
@@ -206,9 +196,3 @@ void slaudio_set_input(int value);
 void slaudio_set_first_input_channel(int value);
 void slaudio_set_output(int value);
 
-/*
- * jitter.c
- */
-void webapp_jitter_reset(struct session *sess);
-void webapp_jitter(struct session *sess, int16_t *sampv,
-		auplay_write_h *wh, unsigned int sampc, void *arg);

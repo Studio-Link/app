@@ -24,7 +24,7 @@ void webapp_ws_options(const struct websock_hdr *hdr,
 	if (!value)
 		goto out;
 
-	webapp_options_set(key->u.str, value->u.str);
+	webapp_options_set(odict_entry_str(key), odict_entry_str(value));
 
 out:
 	mem_deref(cmd);

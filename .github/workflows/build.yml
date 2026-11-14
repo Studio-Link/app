@@ -19,15 +19,11 @@ jobs:
     - name: build webui
       run: ./dist/build_webui.sh
 
-    - name: SFTP Upload
-      uses: sreimers/sftp-deploy-action@main
+    - uses: actions/upload-artifact@v7
       with:
-        username: 'slgithub'
-        server: 'download.studio.link'
-        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }} 
-        local_path: './build/s3_upload/*'
-        remote_path: '/htdocs/'
-        port: '2222'
+        name: webui
+        path: build/artifacts/webui/webui.zip
+        if-no-files-found: error
 
   ccheck:
     runs-on: ubuntu-24.04
@@ -48,10 +44,10 @@ jobs:
       matrix:
         include:
           - target: windows64
-            os: ubuntu-24.04
+            os: ubuntu-latest
             os_name: mingw
           - target: windows32
-            os: ubuntu-24.04
+            os: ubuntu-latest
             os_name: mingw
           - target: linux
             os: ubuntu-22.04
@@ -73,10 +69,21 @@ jobs:
     steps:
     - uses: actions/checkout@v7
 
-    - uses: sreimers/action-archlinux-mingw@main
-      if: ${{ matrix.os_name == 'mingw' }}
+    # webui.zip from the webui job, used by sl_get_webui
+    - uses: actions/download-artifact@v8
       with:
-        run: "./dist/build_windows.sh"
+        name: webui
+        path: build
+
+    - name: install mingw-w64
+      if: ${{ matrix.os_name == 'mingw' }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mingw-w64 cmake zip unzip
+
+    - name: build windows
+      if: ${{ matrix.os_name == 'mingw' }}
+      run: ./dist/build_windows.sh
 
     - name: prepare build
       if: ${{ matrix.os_name == 'linux' || matrix.os_name == 'macos' }}
@@ -88,12 +95,8 @@ jobs:
       if: ${{ matrix.os_name == 'linux' || matrix.os_name == 'macos' }}
       run: ./dist/build.sh
 
-    - name: SFTP Upload
-      uses: sreimers/sftp-deploy-action@main
+    - uses: actions/upload-artifact@v7
       with:
-        username: 'slgithub'
-        server: 'download.studio.link'
-        ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }} 
-        local_path: './build/s3_upload/*'
-        remote_path: '/htdocs/'
-        port: '2222'
+        name: studio-link-${{ matrix.target }}
+        path: build/artifacts/${{ matrix.target }}/
+        if-no-files-found: error

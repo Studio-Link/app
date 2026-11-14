@@ -12,6 +12,7 @@
 #include "assets/css.h"
 #include "assets/images.h"
 #include "webapp.h"
+#include <sllog.h>
 
 static struct tmr tmr;
 
@@ -55,6 +56,82 @@ static int http_sreply(struct http_conn *conn, uint16_t scode,
 out:
 	mem_deref(mb);
 	return err;
+}
+
+
+/* Append one log file to mb, returns false if it does not exist */
+static bool logs_append(struct mbuf *mb, const char *file)
+{
+	uint8_t buf[4096];
+	FILE *f;
+	size_t n;
+
+	f = fopen(file, "rb");
+	if (!f)
+		return false;
+
+	while ((n = fread(buf, 1, sizeof(buf), f)) > 0) {
+		if (mbuf_write_mem(mb, buf, n))
+			break;
+	}
+
+	(void)fclose(f);
+
+	return true;
+}
+
+
+/* Download all kept log files (oldest start first) as one text file */
+static void http_logs_reply(struct http_conn *conn)
+{
+	char path[256];
+	char file[512];
+	struct mbuf *mb;
+	size_t pos;
+	int i;
+
+	if (conf_path_get(path, sizeof(path))) {
+		http_ereply(conn, 500, "Internal Server Error");
+		return;
+	}
+
+	mb = mbuf_alloc(65536);
+	if (!mb) {
+		http_ereply(conn, 500, "Internal Server Error");
+		return;
+	}
+
+	for (i = SL_LOG_KEEP - 1; i >= 0; i--) {
+		re_snprintf(file, sizeof(file), "%s/" SL_LOG_DIR "/"
+			    SL_LOG_FILE_FMT, path, (unsigned)i);
+
+		pos = mb->pos;
+		mbuf_printf(mb, "===== " SL_LOG_FILE_FMT " =====\n",
+			    (unsigned)i);
+
+		if (!logs_append(mb, file)) {
+			/* skip header of missing file */
+			mb->pos = mb->end = pos;
+			continue;
+		}
+
+		mbuf_write_str(mb, "\n");
+	}
+
+	if (!mb->end)
+		mbuf_write_str(mb, "No log files found.\n");
+
+	http_reply(conn, 200, "OK",
+		   "Content-Type: text/plain; charset=utf-8\r\n"
+		   "Content-Disposition: attachment; "
+		   "filename=\"studio-link-logs.txt\"\r\n"
+		   "Content-Length: %zu\r\n"
+		   "Cache-Control: no-cache, no-store, must-revalidate\r\n"
+		   "\r\n"
+		   "%b",
+		   mb->end, mb->buf, mb->end);
+
+	mem_deref(mb);
 }
 
 
@@ -111,6 +188,11 @@ static void http_req_handler(struct http_conn *conn,
 				"application/json",
 				(const char*)json,
 				strlen(json));
+		return;
+	}
+
+	if (0 == pl_strcasecmp(&msg->path, "/logs.txt")) {
+		http_logs_reply(conn);
 		return;
 	}
 
@@ -185,13 +267,38 @@ static void http_req_handler(struct http_conn *conn,
 }
 
 
-static void ua_event_handler(struct ua *ua, enum ua_event ev,
-		struct call *call, const char *prm, void *arg)
+static void event_handler(enum bevent_ev ev, struct bevent *event,
+			  void *arg)
 {
+	struct call *call = bevent_get_call(event);
+	struct ua *ua = bevent_get_ua(event);
+	const char *prm = bevent_get_text(event);
+	const char *aor = account_aor(ua_account(ua));
 	int8_t key = 0;
+	int err;
+	(void)arg;
 
 	switch (ev) {
-		case UA_EVENT_CALL_INCOMING:
+		case BEVENT_SIPSESS_CONN:
+			/* baresip 4.x: incoming calls must be accepted by the
+			 * application (previously done by the core) */
+			if (!webapp_session_available()) {
+				(void)sip_treply(NULL, uag_sip(),
+						bevent_get_msg(event),
+						486, "Max Calls");
+				bevent_stop(event);
+				return;
+			}
+
+			err = ua_accept(uag_find_msg(bevent_get_msg(event)),
+					bevent_get_msg(event));
+			if (err)
+				warning("webapp: could not accept incoming "
+					"call (%m)\n", err);
+			bevent_stop(event);
+			return;
+
+		case BEVENT_CALL_INCOMING:
 			if (!webapp_session_available()) {
 				ua_hangup(call_get_ua(call), call, 486,
 						"Max Calls");
@@ -218,17 +325,11 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			ws_send_all(WS_CALLS, webapp_call_json);
 			break;
 
-		case UA_EVENT_CALL_ESTABLISHED:
+		case BEVENT_CALL_ESTABLISHED:
 			webapp_call_update(call, "Established");
-#ifndef SLPLUGIN
-#if 0
-			/* Auto-Record */
-			webapp_options_set("record", "true");
-#endif
-#endif
 			break;
 
-		case UA_EVENT_CALL_CLOSED:
+		case BEVENT_CALL_CLOSED:
 			re_snprintf(webapp_call_json, sizeof(webapp_call_json),
 					"{ \"callback\": \"CLOSED\",\
 					\"message\": \"%s\" }", prm);
@@ -237,22 +338,41 @@ static void ua_event_handler(struct ua *ua, enum ua_event ev,
 			ws_send_json(WS_CALLS, webapp_calls);
 			break;
 
-		case UA_EVENT_REGISTER_OK:
-			webapp_account_status(ua_aor(ua), true);
+		case BEVENT_REGISTER_OK:
+			webapp_account_status(aor, true);
 			ws_send_json(WS_BARESIP, webapp_accounts_get());
 			break;
 
-		case UA_EVENT_UNREGISTERING:
-			warning("webapp: unregistering: %s\n", ua_aor(ua));
-			webapp_account_status(ua_aor(ua), false);
+		case BEVENT_UNREGISTERING:
+			warning("webapp: unregistering: %s\n", aor);
+			webapp_account_status(aor, false);
 			ws_send_json(WS_BARESIP, webapp_accounts_get());
 			break;
 
-		case UA_EVENT_REGISTER_FAIL:
-			warning("webapp: Register Fail: %s\n", ua_aor(ua));
-			webapp_account_status(ua_aor(ua), false);
+		case BEVENT_REGISTER_FAIL:
+			warning("webapp: Register Fail: %s\n", aor);
+			webapp_account_status(aor, false);
 			ws_send_json(WS_BARESIP, webapp_accounts_get());
 			break;
+
+#ifdef SLPLUGIN
+		case BEVENT_MODULE: {
+			/* host sample rate from sl_plugin_samplerate(),
+			 * shown as warning by the web app if not 48 kHz */
+			struct pl srate;
+			char value[16];
+
+			if (re_regex(prm, str_len(prm),
+				     "slplugin,samplerate,[0-9]+", &srate))
+				break;
+
+			if (pl_strcpy(&srate, value, sizeof(value)))
+				break;
+
+			webapp_options_set("samplerate", value);
+			break;
+		}
+#endif
 
 		default:
 			break;
@@ -359,7 +479,7 @@ static int module_init(void)
 	if (err)
 		goto out;
 
-	uag_event_register(ua_event_handler, NULL);
+	bevent_register(event_handler, NULL);
 	webapp_ws_init();
 	webapp_accounts_init();
 	webapp_contacts_init();
@@ -386,7 +506,7 @@ out:
 static int module_close(void)
 {
 	tmr_cancel(&tmr);
-	uag_event_unregister(ua_event_handler);
+	bevent_unregister(event_handler);
 
 	webapp_sessions_close();
 	webapp_ws_meter_close();

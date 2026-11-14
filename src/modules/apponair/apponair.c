@@ -5,6 +5,7 @@
  */
 #include <re.h>
 #include <baresip.h>
+#include <slua.h>
 #include <string.h>
 #include <stdlib.h>
 #include "webapp.h"
@@ -33,8 +34,7 @@ static void startup_call(void *arg)
 {
 	struct call *call = NULL;
 	if (no_active_call()) {
-		ua_connect(uag_current(), &call, NULL,
-				"stream", VIDMODE_OFF);
+		sl_ua_connect(webapp_ua_current(), &call, "stream");
 	}
 	tmr_start(&tmr_call, 6000, startup_call, NULL);
 }

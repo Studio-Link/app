@@ -13,7 +13,7 @@ const struct odict* webapp_contacts_get(void) {
 }
 
 
-static int contact_register(const struct odict_entry *o)
+static int contact_register(const struct odict *o)
 {
 	struct le *le;
 	struct pl pl;
@@ -24,31 +24,26 @@ static int contact_register(const struct odict_entry *o)
 
 	int err = 0;
 
-	if (o->type == ODICT_OBJECT) {
-		le = o->u.odict->lst.head;
+	if (!o)
+		return EINVAL;
 
-	}
-	else {
-		le = (void *)&o->le;
-	}
-
-	for (le=le; le; le=le->next) {
+	for (le = o->lst.head; le; le = le->next) {
 		const struct odict_entry *e = le->data;
 
-		if (e->type != ODICT_STRING) {
+		if (odict_entry_type(e) != ODICT_STRING) {
 			continue;
 		}
 
-		if (!str_cmp(e->key, "name")) {
-			str_ncpy(name, e->u.str, sizeof(name));
+		if (!str_cmp(odict_entry_key(e), "name")) {
+			str_ncpy(name, odict_entry_str(e), sizeof(name));
 		}
-		else if (!str_cmp(e->key, "sip")) {
-			str_ncpy(sip, e->u.str, sizeof(sip));
+		else if (!str_cmp(odict_entry_key(e), "sip")) {
+			str_ncpy(sip, odict_entry_str(e), sizeof(sip));
 		}
-		else if (!str_cmp(e->key, "command")) {
+		else if (!str_cmp(odict_entry_key(e), "command")) {
 			continue;
 		}
-		else if (!str_cmp(e->key, "status")) {
+		else if (!str_cmp(odict_entry_key(e), "status")) {
 			continue;
 		}
 	}
@@ -64,7 +59,7 @@ static int contact_register(const struct odict_entry *o)
 }
 
 
-void webapp_contact_add(const struct odict_entry *contact)
+void webapp_contact_add(const struct odict *contact)
 {
 	contact_register(contact);
 	webapp_odict_add(contacts, contact);
@@ -80,13 +75,13 @@ void webapp_contact_delete(const char *sip)
 		const struct odict_entry *o = le->data;
 		const struct odict_entry *e;
 
-		e = odict_lookup(o->u.odict, "sip");
+		e = odict_lookup(odict_entry_object(o), "sip");
 		if (!e)
 			continue;
-		str_ncpy(o_sip, e->u.str, sizeof(o_sip));
+		str_ncpy(o_sip, odict_entry_str(e), sizeof(o_sip));
 
 		if (!str_cmp(o_sip, sip)) {
-			odict_entry_del(contacts, o->key);
+			odict_entry_del(contacts, odict_entry_key(o));
 			/*
 			snprintf(aor, sizeof(aor), "sip:%s@%s", user, domain);
 			mem_deref(uag_find_aor(aor));
@@ -129,7 +124,7 @@ int webapp_contacts_init(void)
 		goto out;
 
 	for (le = contacts->lst.head; le; le = le->next) {
-		contact_register(le->data);
+		contact_register(odict_entry_object(le->data));
 	}
 
 out:
