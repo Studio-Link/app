@@ -122,6 +122,10 @@ if(SL_PLUGIN_FORMATS)
   if(_sl_formats)
     set(CMAKE_CXX_STANDARD 17)
     enable_language(CXX)
+    if(APPLE)
+      # clap-wrapper's VST3/AUv2 macOS sources are Objective-C(++) (.m/.mm)
+      enable_language(OBJC OBJCXX)
+    endif()
   endif()
   add_subdirectory(src/plugin)
 endif()
@@ -170,6 +174,10 @@ set(USE_BFCP OFF CACHE BOOL "" FORCE)
 set(USE_RTMP OFF CACHE BOOL "" FORCE)
 set(USE_PCP OFF CACHE BOOL "" FORCE)
 add_subdirectory(${SL_RE_DIR} re EXCLUDE_FROM_ALL)
+# Link name for baresip's FindRE.cmake: a plain "re" is turned into an
+# absolute path by find_library() if a file/dir "re" exists in the working
+# directory (e.g. the build/re source symlink), "::" names are left alone.
+add_library(SL::re ALIAS re)
 
 # Same libre feature definitions (HAVE_*, USE_*, OS/ARCH) for all SL code
 find_package(re CONFIG REQUIRED HINTS ${SL_RE_DIR}/cmake NO_DEFAULT_PATH)
@@ -230,7 +238,7 @@ target_link_libraries(sl_common INTERFACE slcacert)
 set(STATIC ON CACHE BOOL "" FORCE)
 set(re_DIR "${SL_RE_DIR}/cmake" CACHE PATH "" FORCE)
 set(RE_INCLUDE_DIR "${SL_RE_DIR}/include" CACHE PATH "" FORCE)
-set(RE_LIBRARY re CACHE STRING "" FORCE)
+set(RE_LIBRARY SL::re CACHE STRING "" FORCE)
 set(MODULES ${SL_UI_MODULE} opus g711 ice stun turn dtls_srtp uuid auresamp
   CACHE STRING "" FORCE)
 set(APP_MODULES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/modules"
