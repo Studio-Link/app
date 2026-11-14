@@ -1,5 +1,6 @@
 #include <re.h>
 #include <baresip.h>
+#include <slcacert.h>
 #include <string.h>
 #include "webapp.h"
 
@@ -11,6 +12,29 @@ static struct http_cli *cli = NULL;
 static char version[64] = "";
 static struct ua *main_ua = NULL;
 static struct ua *quick_ua = NULL;
+static struct ua *current_ua = NULL;
+
+
+/* baresip 4.x has no "current UA" anymore, webapp tracks it itself */
+struct ua *webapp_ua_current(void)
+{
+	struct le *le;
+
+	for (le = list_head(uag_list()); le; le = le->next) {
+		if (le->data == current_ua)
+			return current_ua;
+	}
+
+	current_ua = list_ledata(list_head(uag_list()));
+
+	return current_ua;
+}
+
+
+void webapp_ua_current_set(struct ua *ua)
+{
+	current_ua = ua;
+}
 
 
 struct ua* webapp_get_main_ua(void) {
@@ -39,7 +63,7 @@ static void update(void *arg)
 	ws_send_all(WS_BARESIP, json);
 }
 
-static int sip_register(const struct odict_entry *o)
+static int sip_register(struct odict *o)
 {
 	struct le *le;
 	char buf[512] = {0};
@@ -50,67 +74,66 @@ static int sip_register(const struct odict_entry *o)
 	char opt[300] = {0};
 	char opt_quick[300] = {0};
 	struct ua *ua;
-	struct odict_entry *e_update = NULL;
+	bool update_found = false;
 	bool quick = false;
 
 	int err = 0;
 
-	if (o->type == ODICT_OBJECT) {
-		le = o->u.odict->lst.head;
+	if (!o)
+		return EINVAL;
 
-	}
-	else {
-		le = (void *)&o->le;
-	}
+	for (le = o->lst.head; le; le = le->next) {
+		const struct odict_entry *e = le->data;
 
-	if (!le)
-		return 1;
-
-	for (le=le->list->head; le; le=le->next) {
-		struct odict_entry *e = le->data;
-
-		if (e->type != ODICT_STRING) {
+		if (odict_entry_type(e) != ODICT_STRING) {
 			continue;
 		}
 
-		if (!str_cmp(e->key, "user")) {
-			str_ncpy(user, e->u.str, sizeof(user));
+		if (!str_cmp(odict_entry_key(e), "user")) {
+			str_ncpy(user, odict_entry_str(e),
+				 sizeof(user));
 		}
-		else if (!str_cmp(e->key, "password")) {
-			str_ncpy(password, e->u.str, sizeof(password));
+		else if (!str_cmp(odict_entry_key(e), "password")) {
+			str_ncpy(password, odict_entry_str(e),
+				 sizeof(password));
 		}
-		else if (!str_cmp(e->key, "domain")) {
-			str_ncpy(domain, e->u.str, sizeof(domain));
+		else if (!str_cmp(odict_entry_key(e), "domain")) {
+			str_ncpy(domain, odict_entry_str(e),
+				 sizeof(domain));
 		}
-		else if (!str_cmp(e->key, "transport")) {
-			str_ncpy(transport, e->u.str, sizeof(transport));
+		else if (!str_cmp(odict_entry_key(e), "transport")) {
+			str_ncpy(transport, odict_entry_str(e),
+				 sizeof(transport));
 		}
-		else if (!str_cmp(e->key, "command")) {
+		else if (!str_cmp(odict_entry_key(e), "command")) {
 			continue;
 		}
-		else if (!str_cmp(e->key, "status")) {
+		else if (!str_cmp(odict_entry_key(e), "status")) {
 			continue;
 		}
-		else if (!str_cmp(e->key, "quick")) {
+		else if (!str_cmp(odict_entry_key(e), "quick")) {
 			quick = true;
-			str_ncpy(opt_quick, e->u.str, sizeof(opt_quick));
+			str_ncpy(opt_quick, odict_entry_str(e),
+				 sizeof(opt_quick));
 		}
-		else if (!str_cmp(e->key, "update")) {
-			e_update = e;
-			if (!str_cmp(e->u.str, "false")) {
+		else if (!str_cmp(odict_entry_key(e), "update")) {
+			update_found = true;
+			if (!str_cmp(odict_entry_str(e), "false")) {
 				continue;
 			}
-			str_ncpy(version, e->u.str, sizeof(version));
+			str_ncpy(version, odict_entry_str(e), sizeof(version));
 			tmr_start(&tmr, 8000, update, NULL);
 		}
 		else {
 			re_snprintf(opt, sizeof(opt), "%s;%s=%s",
-					opt, e->key, e->u.str);
+				    opt, odict_entry_key(e),
+				    odict_entry_str(e));
 		}
 	}
 
-	if (e_update)
-		mem_deref(e_update);
+	/* the update hint is only used once */
+	if (update_found)
+		odict_entry_del(o, "update");
 
 	re_snprintf(buf, sizeof(buf),
 			"<sip:%s@%s;transport=%s>;auth_pass=%s;%s",
@@ -150,16 +173,20 @@ void webapp_account_delete(char *user, char *domain)
 		const struct odict_entry *o = le->data;
 		const struct odict_entry *e;
 
-		e = odict_lookup(o->u.odict, "user");
-		if (!e)
+		e = odict_lookup(odict_entry_object(o), "user");
+		if (!e) {
+			le = le->next;
 			continue;
-		str_ncpy(o_user, e->u.str, sizeof(o_user));
+		}
+		str_ncpy(o_user, odict_entry_str(e), sizeof(o_user));
 
-		e = odict_lookup(o->u.odict, "domain");
-		if (!e)
+		e = odict_lookup(odict_entry_object(o), "domain");
+		if (!e) {
+			le = le->next;
 			continue;
+		}
 
-		str_ncpy(o_domain, e->u.str, sizeof(o_domain));
+		str_ncpy(o_domain, odict_entry_str(e), sizeof(o_domain));
 
 		if (!user)
 			/* Delete only by domain selection */
@@ -168,11 +195,17 @@ void webapp_account_delete(char *user, char *domain)
 			user_delete = !str_cmp(o_user, user);
 
 		if (user_delete && !str_cmp(o_domain, domain)) {
-			odict_entry_del(accs, o->key);
+			odict_entry_del(accs, odict_entry_key(o));
 			re_snprintf(aor, sizeof(aor), "sip:%s@%s",
 					o_user, o_domain);
-			mem_deref(uag_find_aor(aor));
-			uag_current_set(NULL);
+			struct ua *ua = uag_find_aor(aor);
+			if (ua == current_ua)
+				current_ua = NULL;
+			if (ua == main_ua)
+				main_ua = NULL;
+			if (ua == quick_ua)
+				quick_ua = NULL;
+			mem_deref(ua);
 			webapp_write_file_json(accs, filename);
 			info("webapp/account: delete user %s\n", aor);
 
@@ -199,29 +232,30 @@ void webapp_account_status(const char *aor, bool status)
 
 	for (le = accs->lst.head; le; le = le->next) {
 		eg = le->data;
-		e = odict_lookup(eg->u.odict, "user");
+		e = odict_lookup(odict_entry_object(eg), "user");
 		if (!e)
 			continue;
-		str_ncpy(user, e->u.str, sizeof(user));
+		str_ncpy(user, odict_entry_str(e), sizeof(user));
 
-		e = odict_lookup(eg->u.odict, "domain");
+		e = odict_lookup(odict_entry_object(eg), "domain");
 		if (!e)
 			continue;
-		str_ncpy(domain, e->u.str, sizeof(domain));
+		str_ncpy(domain, odict_entry_str(e), sizeof(domain));
 		re_snprintf(aor_find, sizeof(aor_find), "sip:%s@%s", user,
 				domain);
 
 		if (!str_cmp(aor_find, aor)) {
-			if (odict_lookup(eg->u.odict, "status"))
-				odict_entry_del(eg->u.odict, "status");
-			odict_entry_add(eg->u.odict, "status",
-					ODICT_BOOL, status);
+			struct odict *og = odict_entry_object(eg);
+
+			if (odict_lookup(og, "status"))
+				odict_entry_del(og, "status");
+			odict_entry_add(og, "status", ODICT_BOOL, status);
 		}
 	}
 }
 
 
-void webapp_account_add(const struct odict_entry *acc)
+void webapp_account_add(struct odict *acc)
 {
 	sip_register(acc);
 	webapp_odict_add(accs, acc);
@@ -239,7 +273,7 @@ void webapp_account_current(void)
 	char aor_current[100] = {0};
 	const char *uag = NULL;
 
-	uag = ua_aor(uag_current());
+	uag = account_aor(ua_account(webapp_ua_current()));
 	if (!uag)
 		return;
 	re_snprintf(aor_current, sizeof(aor_current), "%s", uag);
@@ -247,24 +281,24 @@ void webapp_account_current(void)
 	struct le *le;
 	for (le = accs->lst.head; le; le = le->next) {
 		eg = le->data;
-		e = odict_lookup(eg->u.odict, "user");
+		e = odict_lookup(odict_entry_object(eg), "user");
 		if (!e)
 			continue;
-		str_ncpy(o_user, e->u.str, sizeof(o_user));
+		str_ncpy(o_user, odict_entry_str(e), sizeof(o_user));
 
-		e = odict_lookup(eg->u.odict, "domain");
+		e = odict_lookup(odict_entry_object(eg), "domain");
 		if (!e)
 			continue;
-		str_ncpy(o_domain, e->u.str, sizeof(o_domain));
+		str_ncpy(o_domain, odict_entry_str(e), sizeof(o_domain));
 
 		re_snprintf(aor_find, sizeof(aor_find), "sip:%s@%s", o_user,
 				o_domain);
 
-		if (odict_lookup(eg->u.odict, "current"))
-			odict_entry_del(eg->u.odict, "current");
+		if (odict_lookup(odict_entry_object(eg), "current"))
+			odict_entry_del(odict_entry_object(eg), "current");
 
 		if (!str_cmp(aor_find, aor_current))
-			odict_entry_add(eg->u.odict, "current",
+			odict_entry_add(odict_entry_object(eg), "current",
 					ODICT_BOOL, true);
 	}
 }
@@ -299,17 +333,24 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 		goto out;
 
 	e = odict_lookup(o, "user");
-	str_ncpy(user, e->u.str, sizeof(user));
+	str_ncpy(user, odict_entry_str(e), sizeof(user));
 
 	info("webapp/account: add user: %s\n", user);
 
 	e = odict_lookup(o, "domain");
-	str_ncpy(domain, e->u.str, sizeof(domain));
+	str_ncpy(domain, odict_entry_str(e), sizeof(domain));
 
 	(void)re_snprintf(user_quick, sizeof(user_quick), "sip:quick-%s@%s",
 			user, domain);
 
-	mem_deref(uag_find_aor(user_quick));
+	{
+		struct ua *ua = uag_find_aor(user_quick);
+		if (ua == quick_ua)
+			quick_ua = NULL;
+		if (ua == current_ua)
+			current_ua = NULL;
+		mem_deref(ua);
+	}
 
 	webapp_account_delete(user, domain);
 	webapp_account_delete(user_quick, domain);
@@ -318,10 +359,10 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 	webapp_account_delete(NULL, "studio.link:443");
 
 	if (e) {
-		webapp_account_add(e);
+		webapp_account_add(o);
 	}
 
-	uag_current_set(main_ua);
+	webapp_ua_current_set(main_ua);
 	webapp_account_current();
 
 out:
@@ -349,17 +390,17 @@ static void provisioning(void)
 			SLVERSION);
 #endif
 
-	http_client_alloc(&cli, net_dnsc(net));
+	sl_http_client_alloc(&cli, net_dnsc(net));
 
 	http_request(&req, cli, "GET", url, http_resp_handler,
-			NULL, NULL, NULL);
+			NULL, NULL, NULL, NULL);
 }
 
 static void startup(void *arg)
 {
 	struct le *le;
 	for (le = accs->lst.head; le; le = le->next) {
-		sip_register(le->data);
+		sip_register(odict_entry_object(le->data));
 	}
 	provisioning();
 }
@@ -412,5 +453,5 @@ void webapp_accounts_close(void)
 	cli = mem_deref(cli);
 	webapp_write_file_json(accs, filename);
 	accs = mem_deref(accs);
-	uag_current_set(NULL);
+	current_ua = NULL;
 }

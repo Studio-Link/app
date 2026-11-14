@@ -1,11 +1,13 @@
 #include <re.h>
+#include <rem.h>
 #include <baresip.h>
+#include <slua.h>
 #include <string.h>
 #include "webapp.h"
 #include <stdlib.h>
 
 static struct tmr tmr_stream;
-static struct tmr tmr_jitter_buffer;
+static struct tmr tmr_buffer_report;
 static bool streaming = false;
 struct list* sl_sessions(void);
 
@@ -17,8 +19,8 @@ static void stream_check(void *arg)
 	/* reconnect stream if active */
 	if (sess->stream && streaming) {
 		info("webapp/stream_check: reconnect\n");
-		ua_connect(webapp_get_main_ua(), &sess->call, NULL,
-				"stream@studio.link", VIDMODE_OFF);
+		sl_ua_connect(webapp_get_main_ua(), &sess->call,
+				"stream@studio.link");
 	}
 }
 
@@ -175,7 +177,6 @@ static void session_to_webapp_calls(struct session *sess)
 	if (sess->chmix == CH_MONO_R)
 		odict_entry_add(o, "chmix", ODICT_STRING, "Mono R");
 
-	odict_entry_add(o, "buffer", ODICT_INT, (int64_t)sess->buffer);
 	odict_entry_add(o, "volume", ODICT_DOUBLE, sess->volume);
 	odict_entry_add(o, "track", ODICT_INT, (int64_t)sess->track);
 	odict_entry_add(webapp_calls, id, ODICT_OBJECT, o);
@@ -228,7 +229,7 @@ int8_t webapp_call_update(struct call *call, char *state)
 
 		if (new && !sess->call) {
 			sess->call = call;
-			webapp_jitter_reset(sess);
+			sess->chmix = CH_STEREO;
 		}
 
 		if (sess->call != call)
@@ -246,30 +247,74 @@ out:
 }
 
 
-static void jitter_buffer(void *arg)
+static void stereo_mono_ch_select(int16_t *buf, size_t sampc,
+				  enum sess_chmix chmix)
+{
+	while (sampc > 1) {
+		if (chmix == CH_MONO_L)
+			buf[1] = buf[0];
+		else if (chmix == CH_MONO_R)
+			buf[0] = buf[1];
+
+		buf += 2;
+		sampc -= 2;
+	}
+}
+
+
+/*
+ * Read decoded remote audio (S16LE, 48kHz, stereo) from baresip, which
+ * handles jitter buffering, and apply the per-call volume and channel mix.
+ */
+void webapp_session_play_read(struct session *sess, int16_t *sampv,
+		auplay_write_h *wh, size_t sampc, void *arg)
+{
+	struct auframe af;
+
+	auframe_init(&af, AUFMT_S16LE, sampv, sampc, 48000, 2);
+	wh(&af, arg);
+
+	if (sess->volume != 1.0) {
+		for (size_t i = 0; i < sampc; i++) {
+			double v = sampv[i] * sess->volume;
+			if (v > 32767)
+				v = 32767;
+			if (v < -32767)
+				v = -32767;
+			sampv[i] = (int16_t)v;
+		}
+	}
+
+	if (sess->chmix != CH_STEREO)
+		stereo_mono_ch_select(sampv, sampc, sess->chmix);
+}
+
+
+/* Report the receive buffer level per track (measured by baresip) */
+static void buffer_report(void *arg)
 {
 	struct list *tsession;
 	struct session *sess;
 	struct le *le;
-	char bufsz[10] = {0};
-	char talk[3] = {0};
 	char buffers[200] = {0};
-	char talks[200] = {0};
-	char json[1024] = {0};
-	int n;
+	char json[512] = {0};
+	size_t n = 0;
+	(void)arg;
 
 	tsession = sl_sessions();
 
 	for (le = tsession->head; le; le = le->next) {
+		uint64_t ms = 0;
 		sess = le->data;
 
 		if (sess->local || sess->stream)
 			continue;
 
-		re_snprintf(bufsz, sizeof(bufsz), "%d ", sess->jitter.bufsz);
-		re_snprintf(talk, sizeof(talk), "%d ", sess->jitter.talk);
-		strcat((char*)buffers, bufsz);
-		strcat((char*)talks, talk);
+		if (sess->call)
+			ms = audio_jb_current_value(call_audio(sess->call));
+
+		n += re_snprintf(buffers + n, sizeof(buffers) - n, "%s%llu",
+				 n ? " " : "", ms);
 
 		if (sess->changed) {
 			session_to_webapp_calls(sess);
@@ -278,20 +323,12 @@ static void jitter_buffer(void *arg)
 		}
 	}
 
-	n = strlen(buffers);
-	buffers[n-1] = '\0'; /* remove trailing space */
-
-	n = strlen(talks);
-	talks[n-1] = '\0'; /* remove trailing space */
-
 	re_snprintf(json, sizeof(json),
-			"{ \"callback\": \"JITTER\",\
-			\"buffers\": \"%s\",\
-			\"talks\": \"%s\"}",
-			buffers, talks);
+			"{ \"callback\": \"JITTER\", \"buffers\": \"%s\"}",
+			buffers);
 
 	ws_send_all(WS_CALLS, json);
-	tmr_start(&tmr_jitter_buffer, 250, jitter_buffer, NULL);
+	tmr_start(&tmr_buffer_report, 250, buffer_report, NULL);
 }
 
 
@@ -321,69 +358,6 @@ void webapp_session_chmix(char *const sess_id)
 			}
 			session_to_webapp_calls(sess);
 			ws_send_json(WS_CALLS, webapp_calls);
-			return;
-		}
-	}
-}
-
-
-void webapp_session_bufferinc(char *const sess_id)
-{
-	char id[64] = {0};
-	struct list *tsession;
-	struct session *sess;
-	struct le *le;
-
-	tsession = sl_sessions();
-
-	for (le = tsession->head; le; le = le->next) {
-		sess = le->data;
-
-		if (sess->local)
-			continue;
-
-		re_snprintf(id, sizeof(id), "%d", sess->track);
-
-		if (!str_cmp(id, sess_id)) {
-			if (sess->buffer >= 300) {
-				return;
-			}
-			sess->buffer += 20;
-			sess->jitter.startup = 0;
-			session_to_webapp_calls(sess);
-			ws_send_json(WS_CALLS, webapp_calls);
-
-			return;
-		}
-	}
-}
-
-
-void webapp_session_bufferdec(char *const sess_id)
-{
-	char id[64] = {0};
-	struct list *tsession;
-	struct session *sess;
-	struct le *le;
-
-	tsession = sl_sessions();
-
-	for (le = tsession->head; le; le = le->next) {
-		sess = le->data;
-
-		if (sess->local)
-			continue;
-
-		re_snprintf(id, sizeof(id), "%d", sess->track);
-
-		if (!str_cmp(id, sess_id)) {
-			if (sess->buffer <= 40) {
-				return;
-			}
-			sess->buffer -= 20;
-			session_to_webapp_calls(sess);
-			ws_send_json(WS_CALLS, webapp_calls);
-
 			return;
 		}
 	}
@@ -421,13 +395,13 @@ void webapp_session_volume(char *const sess_id, char *const volume)
 void webapp_sessions_init(void)
 {
 	tmr_init(&tmr_stream);
-	tmr_init(&tmr_jitter_buffer);
-	tmr_start(&tmr_jitter_buffer, 2000, jitter_buffer, NULL);
+	tmr_init(&tmr_buffer_report);
+	tmr_start(&tmr_buffer_report, 2000, buffer_report, NULL);
 }
 
 
 void webapp_sessions_close(void)
 {
 	tmr_cancel(&tmr_stream);
-	tmr_cancel(&tmr_jitter_buffer);
+	tmr_cancel(&tmr_buffer_report);
 }

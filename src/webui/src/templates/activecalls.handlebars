@@ -20,14 +20,6 @@
                     <span class="fas fa-th" aria-hidden="true"></span> DTMF Keyboard
                 </button>
                 <div class="dropdown-divider"></div>
-                <h6 class="dropdown-header">Latency/Buffer ({{buffer}}ms)</h6>
-                <div class="px-4 pb-2">
-                    <form onsubmit="return false;" class="d-grid gap-1">
-                        <button type="button" class="btn btn-secondary btn-sm bufferinc" data-key="{{@key}}">+20ms</button>
-                        <button type="button" class="btn btn-secondary btn-sm bufferdec" data-key="{{@key}}">-20ms</button>
-                    </form>
-                </div>
-                <div class="dropdown-divider"></div>
                 <form class="px-4">
                     <div class="mb-3">
                         <label class="dropdown-header" for="formControlRange{{@key}}">Volume ({{volume}})</label>
@@ -49,7 +41,6 @@
     <div class="card-body">
         ID: {{mysip peer}}
         (Buffer: <span id="jitter{{track}}"></span> ms)
-        Talk: <span id="talk{{track}}"></span>
         <div id="headphonesbar{{ch}}" class="progress progress-sm"></div>
     </div>
 </div>

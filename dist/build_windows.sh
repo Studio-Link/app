@@ -1,4 +1,9 @@
 #!/bin/bash -ex
+#
+# Cross build for Windows with mingw-w64 (BUILD_TARGET: windows32|windows64)
+#
+# NOTE: not tested yet after the baresip 4.x / PortAudio migration
+#
 
 export PATH="$PATH:/usr/bin/core_perl"
 
@@ -8,90 +13,53 @@ source dist/lib/functions.sh
 sl_prepare
 sl_3rdparty
 
-make_opts="-j4"
-
-#mkdir -p mingw
-#pushd mingw
-#mingwurl="https://github.com/Studio-Link/mingw/releases/download/v20.03.0"
-#wget -N $mingwurl/mingw-w64-binutils-2.34-1-x86_64.pkg.tar.xz
-#wget -N $mingwurl/mingw-w64-configure-0.1.1-9-any.pkg.tar.xz
-#wget -N $mingwurl/mingw-w64-crt-7.0.0-1-any.pkg.tar.xz
-#wget -N $mingwurl/mingw-w64-environment-1-2-any.pkg.tar.xz
-#wget -N $mingwurl/mingw-w64-gcc-9.3.0-1-x86_64.pkg.tar.xz
-#wget -N $mingwurl/mingw-w64-headers-7.0.0-1-any.pkg.tar.xz
-#wget -N $mingwurl/mingw-w64-pkg-config-2-4-any.pkg.tar.xz
-#wget -N $mingwurl/mingw-w64-winpthreads-7.0.0-1-any.pkg.tar.xz
-#yes | LANG=C sudo pacman -U *.pkg.tar.xz
-#popd
-
 if [ "$BUILD_TARGET" == "windows32" ]; then
     _arch="i686-w64-mingw32"
+    _proc="i686"
 else
     _arch="x86_64-w64-mingw32"
+    _proc="x86_64"
 fi
 
 unset CC
 unset CXX
 
+if [ -z "$SL_SKIP_WEBUI" ]; then
+    sl_get_webui
+fi
 
-# Download libre
-#-----------------------------------------------------------------------------
 if [ ! -d re-$re ]; then
     sl_get_libre
-    mkdir -p my_include/re
-    cp -a re/include/* my_include/re/
 fi
 
-# Download librem
-#-----------------------------------------------------------------------------
-if [ ! -d rem-$rem ]; then
-    sl_get_librem
-fi
-
-# Download baresip with studio link addons
-#-----------------------------------------------------------------------------
 if [ ! -d baresip-$baresip ]; then
     sl_get_baresip
 fi
 
-# Download overlay-vst
-#-----------------------------------------------------------------------------
-if [ ! -d overlay-vst ]; then
-    sl_get_overlay-vst
-fi
+mingw_args="-DCMAKE_SYSTEM_NAME=Windows -DCMAKE_SYSTEM_PROCESSOR=$_proc"
+mingw_args+=" -DCMAKE_C_COMPILER=$_arch-gcc -DCMAKE_CXX_COMPILER=$_arch-g++"
+mingw_args+=" -DCMAKE_RC_COMPILER=$_arch-windres"
+mingw_args+=" -DCMAKE_FIND_ROOT_PATH=/usr/$_arch"
+mingw_args+=" -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER"
+mingw_args+=" -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY"
+mingw_args+=" -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY"
 
-# Download overlay-onair-vst
-#-----------------------------------------------------------------------------
-if [ ! -d overlay-onair-vst ]; then
-    git clone https://github.com/Studio-Link/overlay-onair-vst.git
-    cp -a overlay-vst/vstsdk2.4 overlay-onair-vst/
-fi
+sl_cmake_variant standalone $mingw_args
+sl_cmake_variant plugin $mingw_args
+sl_cmake_variant onair $mingw_args
 
-# Build
-#-----------------------------------------------------------------------------
-
-
-cp -a ../dist/windows/Makefile .
-make
-make -C overlay-vst PREFIX=$_arch
-make -C overlay-onair-vst PREFIX=$_arch
+cp -a standalone/studio-link-standalone.exe .
 
 mkdir -p debug
 cp -a studio-link-standalone.exe debug
-cp -a overlay-vst/studio-link.dll debug
-cp -a overlay-onair-vst/studio-link-onair.dll debug
 zip -r studio-link-debug.zip debug
 
 $_arch-strip --strip-all studio-link-standalone.exe
-$_arch-strip --strip-all overlay-vst/studio-link.dll
-$_arch-strip --strip-all overlay-onair-vst/studio-link-onair.dll
 
-zip -r studio-link-plugin-$BUILD_TARGET overlay-vst/studio-link.dll
-zip -r studio-link-plugin-onair-$BUILD_TARGET overlay-onair-vst/studio-link-onair.dll
+# DAW plugins (src/plugin, CLAP/VST3 via clap-wrapper) are not built for
+# Windows yet, the MinGW cross build of clap-wrapper/VST3 SDK is untested
 
 s3_path="s3_upload/$GIT_BRANCH/$version_t/$BUILD_TARGET"
 mkdir -p $s3_path
 cp -a studio-link-standalone.exe $s3_path/studio-link-standalone-$version_t.exe
-cp -a studio-link-plugin-$BUILD_TARGET.zip $s3_path
-cp -a studio-link-plugin-onair-$BUILD_TARGET.zip $s3_path
 cp -a studio-link-debug.zip $s3_path

@@ -1,7 +1,7 @@
 /**
- * @file slaudio.c SLAUDIO (libsoundio)
+ * @file slaudio.c SLAUDIO (PortAudio)
  *
- * Copyright (C) 2020 studio-link.de
+ * Copyright (C) 2020 - 2026 studio-link.de
  */
 #include <stdlib.h>
 #include <string.h>
@@ -9,86 +9,77 @@
 #include <rem.h>
 #include <baresip.h>
 #include <samplerate.h>
-#include <soundio/soundio.h>
+#include <portaudio.h>
+#include <pa_ringbuffer.h>
 #include "slaudio.h"
-#include "convert.h"
 #ifdef WIN32
 #include <windows.h>
 #endif
 #include <webapp.h>
 
+#define SRATE 48000
 #define BUFFER_LEN 19200 /* max buffer_len = 192kHz*2ch*25ms*2frames */
 #define FLOAT_FRAME_BYTES 8 /* sizeof(float) * 2ch */
+#define RING_FRAMES 16384 /* power of 2, ~340ms @ 48kHz */
+#define BUFFER_MS 10 /* PortAudio callback buffer size */
+#define MONO_MIX_ALL 99 /* first_input_channel: mix all inputs to mono */
+#define MAX_IN_CHANNELS 64
 
 enum
 {
 	MAX_REMOTE_CHANNELS = 6,
 };
 
-static enum SoundIoFormat prioritized_formats[] = {
-	SoundIoFormatFloat32LE,
-	SoundIoFormatS32LE,
-	SoundIoFormatS24LE,
-	SoundIoFormatS16LE,
-	SoundIoFormatInvalid,
-};
-
 struct slaudio_st
 {
 	int16_t *inBuffer;
-	int16_t *outBufferTmp;
 	float *inBufferFloat;
 	float *inBufferOutFloat;
 	float *outBufferFloat;
-	struct SoundIo *soundio;
-	struct SoundIoDevice *dev_in;
-	struct SoundIoDevice *dev_out;
-	struct SoundIoInStream *instream;
-	struct SoundIoOutStream *outstream;
+	float *ringData;
+	PaUtilRingBuffer ring;
+	PaStream *instream;
+	PaStream *outstream;
+	int in_channels;
+	int out_channels;
+	double in_srate;
+	double out_srate;
 };
 
 static struct slaudio_st *slaudio;
+static bool pa_initialized = false;
 
 int16_t *empty_buffer;
 
 struct auplay_st
 {
-	const struct auplay *ap; /* pointer to base-class (inheritance) */
 	bool run;
-	void *write;
 	int16_t *sampv;
 	size_t sampc;
 	auplay_write_h *wh;
 	void *arg;
 	struct auplay_prm prm;
-	char *device;
 	struct session *sess;
 };
 
 struct ausrc_st
 {
-	const struct ausrc *as; /* pointer to base-class (inheritance) */
 	bool run;
-	void *read;
 	int16_t *sampv;
 	size_t sampc;
 	ausrc_read_h *rh;
 	void *arg;
 	struct ausrc_prm prm;
-	char *device;
 	struct session *sess;
 };
 
 static struct ausrc *ausrc;
 static struct auplay *auplay;
 
-static enum SoundIoBackend backend;
-static int driver = -1;
-static int input = -1;
+static PaHostApiIndex driver = -1;
+static PaDeviceIndex input = -1;
 static int first_input_channel = 0;
-static int preferred_sample_rate_in = 0;
-static int preferred_sample_rate_out = 0;
-static int output = -1;
+static PaDeviceIndex output = -1;
 static struct odict *interfaces = NULL;
 struct list sessionl;
 static SRC_STATE *src_state_in;
@@ -98,7 +89,6 @@ static int slaudio_stop(void);
 static int slaudio_start(void);
 static int slaudio_devices(void);
 static int slaudio_drivers(void);
-static struct SoundIoRingBuffer *ring_buffer = NULL;
 void webapp_ws_rtaudio_sync(void);
 
 static int16_t *playmix;
@@ -113,21 +103,15 @@ char error_msg[512] = {0};
 static int16_t startup_count = 0;
 
 static struct sl_debug {
-	uint64_t out_ur;
-	uint64_t out_or;
-	uint64_t in_ur;
-	uint64_t in_or;
-	uint64_t ring_ur;
-	uint64_t ring_or;
-	bool changed;
-} sl_debug = {0, 0, 0, 0, 0, 0, false};
+	RE_ATOMIC uint64_t out_ur;
+	RE_ATOMIC uint64_t in_or;
+	RE_ATOMIC uint64_t ring_ur;
+	RE_ATOMIC uint64_t ring_or;
+	RE_ATOMIC bool changed;
+} sl_debug;
 
 static struct tmr sl_debug_tmr;
-
-/* webapp/jitter.c */
-void webapp_jitter(struct session *sess, int16_t *sampv,
-		auplay_write_h *wh, unsigned int sampc, void *arg);
-
+static struct tmr sl_watch_tmr;
 
 void slaudio_monorecord_set(bool status)
 {
@@ -157,6 +141,13 @@ struct list* sl_sessions(void);
 struct list* sl_sessions(void)
 {
 	return &sessionl;
+}
+
+
+static void debug_count(RE_ATOMIC uint64_t *cnt)
+{
+	re_atomic_rlx_add(cnt, 1);
+	re_atomic_rlx_set(&sl_debug.changed, true);
 }
 
 
@@ -192,6 +183,32 @@ const struct odict *slaudio_get_interfaces(void)
 }
 
 
+/*
+ * PortAudio only scans devices on initialization, so it is re-initialized
+ * on every reset to pick up newly connected devices.
+ */
+static int pa_reinit(void)
+{
+	PaError perr;
+
+	if (pa_initialized) {
+		Pa_Terminate();
+		pa_initialized = false;
+	}
+
+	perr = Pa_Initialize();
+	if (perr != paNoError) {
+		warning("slaudio: Pa_Initialize: %s\n", Pa_GetErrorText(perr));
+		return ENODEV;
+	}
+
+	pa_initialized = true;
+	info("slaudio: %s\n", Pa_GetVersionText());
+
+	return 0;
+}
+
+
 int slaudio_reset(void)
 {
 	int err;
@@ -208,10 +225,22 @@ int slaudio_reset(void)
 	slaudio_stop();
 	startup_count = 0;
 
-	slaudio_drivers();
-	slaudio_devices();
+	if (fatal_error) {
+		output = -1;
+		input = -1;
+		first_input_channel = 0;
+		sys_msleep(400);
+		fatal_error = false;
+	}
+
+	err = pa_reinit();
+	if (!err) {
+		slaudio_drivers();
+		slaudio_devices();
+	}
 	webapp_ws_rtaudio_sync();
-	slaudio_start();
+	if (!err)
+		slaudio_start();
 
 	return err;
 }
@@ -273,69 +302,38 @@ static void stereo2mono(int16_t *buf, size_t sampc)
 }
 
 
-static float format_float(char *src, enum SoundIoFormat fmt)
-{
-	float value = 0.0;
-
-	if (fmt == SoundIoFormatS32LE) {
-		value = (*((int32_t*)src)) / SAMPLE_32BIT_SCALING;
-	}
-	else if (fmt == SoundIoFormatS24LE) {
-		int x;
-		memcpy ((char*)&x + 1, src, 3);
-		x >>= 8;
-		value = x / SAMPLE_24BIT_SCALING;
-	}
-	else if (fmt == SoundIoFormatS16LE) {
-		value = (*((int16_t*)src)) / SAMPLE_16BIT_SCALING;
-	}
-	else {
-		value = *((float*)src);
-	}
-	return value;
-}
-
-
-static void downsample_first_ch(float *outv, struct SoundIoChannelArea *areas,
-		int nframes, struct SoundIoInStream *instream)
+/* Select the input channel(s) of the interleaved device buffer as stereo */
+static void downsample_first_ch(float *outv, const float *in,
+		unsigned long nframes, int channels)
 {
 	float left;
 	float right;
 
-	for (int frame = 0; frame < nframes; frame++) {
+	for (unsigned long frame = 0; frame < nframes; frame++) {
 		left = 0.0;
 		right = 0.0;
 
-		for (int ch = 0; ch < instream->layout.channel_count; ch++) {
-			if (ch == first_input_channel) {
-				left = format_float(areas[ch].ptr,
-						instream->format);
-			}
-
-			if (ch == first_input_channel + 1) {
-				right = format_float(areas[ch].ptr,
-						instream->format);
-			}
-
-			if (first_input_channel == 99) {
-				left += format_float(areas[ch].ptr,
-						instream->format);
+		for (int ch = 0; ch < channels; ch++) {
+			if (first_input_channel == MONO_MIX_ALL) {
+				left += in[ch];
 				right = left;
+				continue;
 			}
 
-			if (monorecord)
-				right = left;
+			if (ch == first_input_channel)
+				left = in[ch];
 
-			areas[ch].ptr += areas[ch].step;
+			if (ch == first_input_channel + 1)
+				right = in[ch];
 		}
 
-		/*stereo ch left*/
-		*outv = left;
-		outv += 1;
+		if (monorecord)
+			right = left;
 
-		/*stereo ch right*/
-		*outv = right;
-		outv += 1;
+		in += channels;
+
+		*outv++ = left;
+		*outv++ = right;
 	}
 }
 
@@ -359,69 +357,68 @@ static void auplay_destructor(void *arg)
 	sess->run_play = false;
 	sys_msleep(20);
 	mem_deref(st->sampv);
-	mem_deref(sess->dstmix);
+	sess->dstmix = mem_deref(sess->dstmix);
 }
 
 
 static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
-		struct media_ctx **ctx,
 		struct ausrc_prm *prm, const char *device,
 		ausrc_read_h *rh, ausrc_error_h *errh, void *arg)
 {
-	(void)ctx;
+	struct ausrc_st *st_src = NULL;
+	struct session *sess = NULL;
+	struct le *le;
 	(void)errh;
 	(void)device;
+	(void)as;
 
-	int err = 0;
-	struct ausrc_st *st_src = NULL;
-	struct le *le;
-
-	if (!stp || !as || !prm)
+	if (!stp || !prm)
 		return EINVAL;
 
-	struct session *sess = NULL;
+	if (prm->srate != SRATE || prm->ch != 2 || prm->fmt != AUFMT_S16LE) {
+		warning("slaudio: unsupported source format %uHz/%uch/%s, "
+			"check ausrc_srate/ausrc_channels config\n",
+			prm->srate, prm->ch, aufmt_name(prm->fmt));
+		return ENOTSUP;
+	}
+
 	for (le = sessionl.head; le; le = le->next)
 	{
-		sess = le->data;
+		struct session *s = le->data;
 
-		if (!sess->run_src && !sess->local && sess->call)
+		if (!s->run_src && !s->local && s->call)
 		{
-			sess->st_src = mem_zalloc(sizeof(*st_src),
-					ausrc_destructor);
-			if (!sess->st_src)
-				return ENOMEM;
-			st_src = sess->st_src;
-			st_src->sess = sess;
+			sess = s;
 			break;
 		}
 	}
 
-	if (!st_src || !sess)
+	if (!sess)
 		return EINVAL;
 
-	st_src->run = false;
-	st_src->as = as;
+	st_src = mem_zalloc(sizeof(*st_src), ausrc_destructor);
+	if (!st_src)
+		return ENOMEM;
+
+	st_src->sess = sess;
 	st_src->rh = rh;
 	st_src->arg = arg;
+	st_src->prm = *prm;
 
 	st_src->sampc = prm->srate * prm->ch * prm->ptime / 1000;
-	st_src->sampv = mem_zalloc(sizeof(int16_t) * st_src->sampc * 10, NULL);
-	if (!st_src->sampv)
-	{
-		err = ENOMEM;
-	}
-
-	if (err)
-	{
+	st_src->sampv = mem_zalloc(sizeof(int16_t) * BUFFER_LEN, NULL);
+	if (!st_src->sampv) {
+		/* destructor expects a session */
 		mem_deref(st_src);
-		return err;
+		return ENOMEM;
 	}
 
+	sess->st_src = st_src;
 	sess->run_src = true;
 	st_src->run = true;
 	*stp = st_src;
 
-	return err;
+	return 0;
 }
 
 
@@ -429,148 +426,137 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 		struct auplay_prm *prm, const char *device,
 		auplay_write_h *wh, void *arg)
 {
-	int err = 0;
 	struct auplay_st *st_play = NULL;
+	struct session *sess = NULL;
 	struct le *le;
+	(void)device;
+	(void)ap;
 
-	if (!stp || !ap || !prm)
+	if (!stp || !prm)
 		return EINVAL;
 
-	size_t sampc = prm->srate * prm->ch * prm->ptime / 1000;
+	if (prm->srate != SRATE || prm->ch != 2 || prm->fmt != AUFMT_S16LE) {
+		warning("slaudio: unsupported player format %uHz/%uch/%s, "
+			"check auplay_srate/auplay_channels config\n",
+			prm->srate, prm->ch, aufmt_name(prm->fmt));
+		return ENOTSUP;
+	}
 
-	struct session *sess;
 	for (le = sessionl.head; le; le = le->next)
 	{
-		sess = le->data;
+		struct session *s = le->data;
 
-		if (!sess->run_play && !sess->local && sess->call)
+		if (!s->run_play && !s->local && s->call)
 		{
-			sess->st_play = mem_zalloc(sizeof(*st_play),
-					auplay_destructor);
-
-			sess->dstmix = mem_zalloc(sizeof(int16_t) * sampc * 10,
-					NULL);
-			if (!sess->st_play)
-				return ENOMEM;
-			st_play = sess->st_play;
-			st_play->sess = sess;
+			sess = s;
 			break;
 		}
 	}
 
-	if (!st_play || !sess)
+	if (!sess)
 		return EINVAL;
 
-	st_play->run = false;
-	st_play->ap = ap;
+	st_play = mem_zalloc(sizeof(*st_play), auplay_destructor);
+	if (!st_play)
+		return ENOMEM;
+
+	st_play->sess = sess;
 	st_play->wh = wh;
 	st_play->arg = arg;
-	st_play->sampc = sampc;
-	st_play->sampv = mem_zalloc(sizeof(int16_t) * sampc * 10, NULL);
-	if (!st_play->sampv)
-	{
-		err = ENOMEM;
-	}
-
-	if (err)
-	{
+	st_play->prm = *prm;
+	st_play->sampc = prm->srate * prm->ch * prm->ptime / 1000;
+	st_play->sampv = mem_zalloc(sizeof(int16_t) * BUFFER_LEN, NULL);
+	sess->dstmix = mem_zalloc(sizeof(int32_t) * BUFFER_LEN, NULL);
+	if (!st_play->sampv || !sess->dstmix) {
 		mem_deref(st_play);
-		return err;
+		return ENOMEM;
 	}
 
+	sess->st_play = st_play;
 	sess->run_play = true;
 	st_play->run = true;
 	*stp = st_play;
 
-	return err;
+	return 0;
 }
 
 
-static void underflow_callback(struct SoundIoOutStream *outstream) {
-	sl_debug.out_ur++;
-	sl_debug.changed = true;
+static const char *driver_display_name(const PaHostApiInfo *api)
+{
+	switch (api->type) {
+
+	case paALSA:        return "ALSA";
+	case paPulseAudio:  return "PulseAudio";
+	case paJACK:        return "JACK";
+	case paWASAPI:      return "WASAPI";
+	case paWDMKS:       return "WDM-KS";
+	case paMME:         return "MME";
+	case paDirectSound: return "DirectSound";
+	case paCoreAudio:   return "CoreAudio";
+	default:            return api->name;
+	}
 }
 
 
-static void outstream_error_callback(struct SoundIoOutStream *os, int err) {
-	warning("slaudio/out_err_call: %s\n", soundio_strerror(err));
-	fatal_error = true;
-	slaudio_reset();
+static PaHostApiIndex driver_default(void)
+{
+	static const PaHostApiTypeId prio[] = {
+		paPulseAudio, paWASAPI, paCoreAudio
+	};
+
+	for (size_t i = 0; i < RE_ARRAY_SIZE(prio); i++) {
+		PaHostApiIndex idx = Pa_HostApiTypeIdToHostApiIndex(prio[i]);
+		if (idx >= 0 && Pa_GetHostApiInfo(idx)->deviceCount > 0)
+			return idx;
+	}
+
+	return Pa_GetDefaultHostApi();
 }
 
-#ifdef DARWIN
-static void instream_error_callback(struct SoundIoInStream *is, int err,
-		const char *msg) {
-	warning("slaudio/in_err_call: %s %s\n", soundio_strerror(err), msg);
-	fatal_error = true;
-	slaudio_reset();
-}
-#else
-static void instream_error_callback(struct SoundIoInStream *is, int err) {
-	warning("slaudio/in_err_call: %s\n", soundio_strerror(err));
-	fatal_error = true;
-	slaudio_reset();
-}
-#endif
 
 static int slaudio_drivers(void)
 {
 	int err = 0;
-	static enum SoundIoBackend backend_tmp;
-	struct SoundIo *soundio;
 	struct odict *o;
 	struct odict *array;
-	char backend_name[30];
-	char idx[2];
+	char idx[16];
+	PaHostApiIndex count = Pa_GetHostApiCount();
+
+	if (driver >= count || driver < -1)
+		driver = -1;
+
+	if (driver == -1)
+		driver = driver_default();
 
 	err = odict_alloc(&array, DICT_BSIZE);
 	if (err)
 		return ENOMEM;
 
-	if (!(soundio = soundio_create()))
-		return ENOMEM;
-
-	for (int i = 0; i < soundio_backend_count(soundio); i++)
+	for (PaHostApiIndex i = 0; i < count; i++)
 	{
-		(void)re_snprintf(idx, sizeof(idx), "%d", i);
+		const PaHostApiInfo *api = Pa_GetHostApiInfo(i);
+		const char *name;
 
-		backend_tmp = soundio_get_backend(soundio, i);
-
-		(void)re_snprintf(backend_name, sizeof(backend_name), "%s",
-				soundio_backend_name(backend_tmp));
-
-		if (!str_cmp(backend_name, "Dummy"))
+		if (!api)
 			continue;
+
+		name = driver_display_name(api);
+		info("slaudio/drivers detected: %s (%d devices)\n", name,
+				api->deviceCount);
 
 		err = odict_alloc(&o, DICT_BSIZE);
 		if (err)
-			return ENOMEM;
+			break;
 
-		odict_entry_add(o, "display", ODICT_STRING,
-				backend_name);
+		(void)re_snprintf(idx, sizeof(idx), "%d", i);
 
-		info("slaudio/drivers detected: %s\n", backend_name);
-
-		if (driver == -1 && !str_cmp(backend_name, "PulseAudio"))
-			driver = i;
-
-		if (driver == -1 && !str_cmp(backend_name, "WASAPI"))
-			driver = i;
-
-		if (driver == -1 && !str_cmp(backend_name, "CoreAudio"))
-			driver = i;
-
-		if (driver == i) {
-			odict_entry_add(o, "selected", ODICT_BOOL, true);
-			backend = backend_tmp;
-			info("slaudio/drivers: %s selected\n", backend_name);
-		}
-		else {
-			odict_entry_add(o, "selected", ODICT_BOOL, false);
-		}
-
+		odict_entry_add(o, "display", ODICT_STRING, name);
+		odict_entry_add(o, "selected", ODICT_BOOL, driver == i);
 		odict_entry_add(o, "id", ODICT_INT, (int64_t)i);
 		odict_entry_add(array, idx, ODICT_OBJECT, o);
+
+		if (driver == i)
+			info("slaudio/drivers: %s selected\n", name);
 
 		mem_deref(o);
 	}
@@ -578,58 +564,67 @@ static int slaudio_drivers(void)
 	odict_entry_add(interfaces, "drivers", ODICT_ARRAY, array);
 	mem_deref(array);
 
-	soundio_destroy(soundio);
-
 	return err;
 }
 
 
 static void slaudio_destruct(void *arg)
 {
-	if (slaudio) {
-		if (!fatal_error) {
-			soundio_instream_destroy(slaudio->instream);
-			soundio_outstream_destroy(slaudio->outstream);
-		}
-		soundio_device_unref(slaudio->dev_in);
-		soundio_device_unref(slaudio->dev_out);
-		soundio_destroy(slaudio->soundio);
-		sys_msleep(25);
-		mem_deref(slaudio->inBuffer);
-		mem_deref(slaudio->inBufferFloat);
-		mem_deref(slaudio->inBufferOutFloat);
-		mem_deref(slaudio->outBufferFloat);
-		slaudio = NULL;
+	struct slaudio_st *st = arg;
+
+	if (st->instream) {
+		Pa_AbortStream(st->instream);
+		Pa_CloseStream(st->instream);
 	}
-	if (fatal_error) {
-		output = -1;
-		input = -1;
-		first_input_channel = 0;
-		sys_msleep(400);
-		fatal_error = false;
+
+	if (st->outstream) {
+		Pa_AbortStream(st->outstream);
+		Pa_CloseStream(st->outstream);
 	}
+
+	mem_deref(st->inBuffer);
+	mem_deref(st->inBufferFloat);
+	mem_deref(st->inBufferOutFloat);
+	mem_deref(st->outBufferFloat);
+	mem_deref(st->ringData);
 }
 
 
-static int slaudio_construct(void) {
+static int slaudio_construct(void)
+{
 	int err = 0;
 
 	slaudio = mem_zalloc(sizeof(*slaudio), slaudio_destruct);
-	slaudio->inBuffer = mem_zalloc(sizeof(int16_t) * BUFFER_LEN,
-					NULL);
-	slaudio->inBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
-					NULL);
+	if (!slaudio)
+		return ENOMEM;
+
+	slaudio->inBuffer = mem_zalloc(sizeof(int16_t) * BUFFER_LEN, NULL);
+	slaudio->inBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN, NULL);
 	slaudio->inBufferOutFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
-					NULL);
+					       NULL);
 	slaudio->outBufferFloat = mem_zalloc(sizeof(float) * BUFFER_LEN,
-					NULL);
+					     NULL);
+	slaudio->ringData = mem_zalloc(FLOAT_FRAME_BYTES * RING_FRAMES, NULL);
+
+	if (!slaudio->inBuffer || !slaudio->inBufferFloat ||
+	    !slaudio->inBufferOutFloat || !slaudio->outBufferFloat ||
+	    !slaudio->ringData) {
+		slaudio = mem_deref(slaudio);
+		return ENOMEM;
+	}
+
+	if (PaUtil_InitializeRingBuffer(&slaudio->ring, FLOAT_FRAME_BYTES,
+					RING_FRAMES, slaudio->ringData) < 0) {
+		slaudio = mem_deref(slaudio);
+		return EINVAL;
+	}
 
 	/** Initialize the sample rate converter for input */
 	if ((src_state_in = src_new(SRC_SINC_FASTEST, 2, &err)) == NULL)
 	{
 		warning("slaudio/start: Samplerate::src_new failed : %s.\n",
 				src_strerror(err));
-		return err;
+		return EINVAL;
 	};
 
 	/** Initialize the sample rate converter for output */
@@ -637,8 +632,87 @@ static int slaudio_construct(void) {
 	{
 		warning("slaudio/start: Samplerate::src_new failed : %s.\n",
 				src_strerror(err));
-		return err;
+		return EINVAL;
 	};
+
+	return 0;
+}
+
+
+static bool device_valid(PaDeviceIndex dev, bool in)
+{
+	const PaDeviceInfo *dinfo;
+
+	if (dev < 0 || dev >= Pa_GetDeviceCount())
+		return false;
+
+	dinfo = Pa_GetDeviceInfo(dev);
+	if (!dinfo || dinfo->hostApi != driver)
+		return false;
+
+	return in ? dinfo->maxInputChannels > 0 :
+		dinfo->maxOutputChannels > 0;
+}
+
+
+/*
+ * Usable channel count of a device. PortAudio reports a placeholder of 32
+ * channels (PA_CHANNELS_MAX) for the virtual PulseAudio "Default" devices,
+ * opening them with 32 channels fails, so they are used as stereo.
+ */
+static int device_channels(PaDeviceIndex dev, bool in)
+{
+	const PaDeviceInfo *dinfo = Pa_GetDeviceInfo(dev);
+	const PaHostApiInfo *api;
+	int channels;
+
+	if (!dinfo)
+		return 0;
+
+	channels = in ? dinfo->maxInputChannels : dinfo->maxOutputChannels;
+
+	api = Pa_GetHostApiInfo(dinfo->hostApi);
+	if (api && api->type == paPulseAudio &&
+	    (dev == api->defaultInputDevice ||
+	     dev == api->defaultOutputDevice))
+		channels = MIN(channels, 2);
+
+	return MIN(channels, MAX_IN_CHANNELS);
+}
+
+
+static int add_device(struct odict *array, PaDeviceIndex dev, bool in)
+{
+	const PaDeviceInfo *dinfo = Pa_GetDeviceInfo(dev);
+	struct odict *o;
+	char idx[16];
+	int err;
+
+	err = odict_alloc(&o, DICT_BSIZE);
+	if (err)
+		return err;
+
+	(void)re_snprintf(idx, sizeof(idx), "%d", dev);
+
+	odict_entry_add(o, "id", ODICT_INT, (int64_t)dev);
+	odict_entry_add(o, "display", ODICT_STRING, dinfo->name);
+
+	if (in) {
+		int channels = device_channels(dev, true);
+		info("slaudio: input device: %s (%d channels)\n",
+				dinfo->name, channels);
+		odict_entry_add(o, "channels", ODICT_INT, (int64_t)channels);
+		odict_entry_add(o, "first_input_channel", ODICT_INT,
+				(int64_t)first_input_channel);
+		odict_entry_add(o, "selected", ODICT_BOOL, input == dev);
+	}
+	else {
+		info("slaudio: output device: %s\n", dinfo->name);
+		odict_entry_add(o, "selected", ODICT_BOOL, output == dev);
+	}
+
+	err = odict_entry_add(array, idx, ODICT_OBJECT, o);
+	mem_deref(o);
 
 	return err;
 }
@@ -647,226 +721,52 @@ static int slaudio_construct(void) {
 static int slaudio_devices(void)
 {
 	int err = 0;
-	int output_count, input_count, default_output, default_input;
-	bool default_input_err;
-	bool default_output_err;
-	struct odict *o;
-	struct odict *array_in;
-	struct odict *array_out;
-	struct SoundIoDevice *device;
-	char idx[2];
-	char device_name[256];
-
-	err = odict_alloc(&array_in, DICT_BSIZE);
-	if (err)
-		return ENOMEM;
-
-	err = odict_alloc(&array_out, DICT_BSIZE);
-	if (err)
-		return ENOMEM;
+	struct odict *array_in = NULL;
+	struct odict *array_out = NULL;
+	const PaHostApiInfo *api;
 
 	err = slaudio_construct();
 	if (err)
 		return err;
 
-	if (!(slaudio->soundio = soundio_create()))
-		return ENOMEM;
+	api = Pa_GetHostApiInfo(driver);
+	if (!api) {
+		warning("slaudio/devices: invalid driver %d\n", driver);
+		return EINVAL;
+	}
 
-	slaudio->soundio->app_name = "StudioLink";
-
-	err = soundio_connect_backend(slaudio->soundio, backend);
-	if (err) {
-		warning("slaudio/soundio_connect_backend err: %s\n",
-				soundio_strerror(err));
+	err  = odict_alloc(&array_in, DICT_BSIZE);
+	err |= odict_alloc(&array_out, DICT_BSIZE);
+	if (err)
 		goto out;
+
+	/* Fallback to the driver defaults, then to the first device */
+	if (!device_valid(input, true))
+		input = api->defaultInputDevice;
+	if (!device_valid(output, false))
+		output = api->defaultOutputDevice;
+
+	for (int i = 0; i < api->deviceCount; i++) {
+		PaDeviceIndex dev = Pa_HostApiDeviceIndexToDeviceIndex(driver,
+								       i);
+		if (!device_valid(input, true) && device_valid(dev, true))
+			input = dev;
+		if (!device_valid(output, false) && device_valid(dev, false))
+			output = dev;
 	}
 
-	soundio_flush_events(slaudio->soundio);
+	if (first_input_channel != MONO_MIX_ALL && device_valid(input, true)
+	    && first_input_channel >= device_channels(input, true))
+		first_input_channel = 0;
 
-	output_count = soundio_output_device_count(slaudio->soundio);
-	input_count = soundio_input_device_count(slaudio->soundio);
+	for (int i = 0; i < api->deviceCount; i++) {
+		PaDeviceIndex dev = Pa_HostApiDeviceIndexToDeviceIndex(driver,
+								       i);
+		if (device_valid(dev, true))
+			err |= add_device(array_in, dev, true);
 
-	default_output = soundio_default_output_device_index(slaudio->soundio);
-	default_output_err = false;
-	default_input = soundio_default_input_device_index(slaudio->soundio);
-	default_input_err = false;
-
-	for (int i = 0; i < input_count; i += 1) {
-
-		device = soundio_get_input_device(slaudio->soundio, i);
-		(void)re_snprintf(idx, sizeof(idx), "%d", i);
-
-		if (backend == SoundIoBackendAlsa && !device->is_raw) {
-			soundio_device_unref(device);
-			if (i == default_input)
-				default_input_err = true;
-			continue;
-		}
-
-		if (backend == SoundIoBackendWasapi && device->is_raw) {
-			soundio_device_unref(device);
-			if (i == default_input)
-				default_input_err = true;
-			continue;
-		}
-
-		if (device->probe_error) {
-			info("slaudio/input device %s probe error\n",
-					device->name);
-			soundio_device_unref(device);
-			if (i == default_input)
-				default_input_err = true;
-			continue;
-		}
-
-		debug("slaudio/input device %s formats:\n", device->name);
-		for (int y = 0; y < device->format_count; y += 1) {
-			const char *comma =
-				(y == device->format_count - 1) ? "\n" : ", ";
-			debug("%s%s",
-				soundio_format_string(device->formats[y]),
-				comma);
-		}
-
-
-		err = odict_alloc(&o, DICT_BSIZE);
-		if (err)
-			goto out;
-
-		odict_entry_add(o, "id", ODICT_INT, (int64_t)i);
-
-		if (device->is_raw) {
-			(void)re_snprintf(device_name, sizeof(device_name),
-					"%s (Exclusiv)", device->name);
-		}
-		else {
-			(void)re_snprintf(device_name,
-					sizeof(device_name), "%s",
-					device->name);
-		}
-
-		odict_entry_add(o, "display", ODICT_STRING, device_name);
-		info("slaudio: device: %s\n", device_name);
-
-		int64_t channels = device->current_layout.channel_count;
-		info("slaudio/in: default channels: %d\n", channels);
-		if (!channels) {
-			const struct SoundIoChannelLayout *layout =
-				&device->layouts[0];
-			channels = layout->channel_count;
-			info("slaudio: fallback channels: %d\n", channels);
-		}
-
-		odict_entry_add(o, "channels", ODICT_INT, channels);
-		odict_entry_add(o, "first_input_channel",
-				ODICT_INT,
-				(int64_t)first_input_channel);
-
-		if (input == -1 && default_input == i)
-		{
-			info("slaudio: set input %s (%d)\n", device_name, i);
-			input = i;
-		}
-
-		if (input == -1 && default_input_err) {
-			info("slaudio: set fallback input %s (%d)\n",
-					device_name, i);
-			input = i;
-		}
-
-		if (input == i)
-		{
-			odict_entry_add(o, "selected", ODICT_BOOL, true);
-		}
-		else
-		{
-			odict_entry_add(o, "selected", ODICT_BOOL, false);
-		}
-
-		odict_entry_add(array_in, idx, ODICT_OBJECT, o);
-
-		soundio_device_unref(device);
-		mem_deref(o);
-	}
-
-	for (int i = 0; i < output_count; i += 1) {
-
-		device = soundio_get_output_device(slaudio->soundio, i);
-		(void)re_snprintf(idx, sizeof(idx), "%d", i);
-
-		if (backend == SoundIoBackendAlsa && !device->is_raw) {
-			soundio_device_unref(device);
-			if (i == default_output)
-				default_output_err = true;
-			continue;
-		}
-
-		if (backend == SoundIoBackendWasapi && device->is_raw) {
-			soundio_device_unref(device);
-			if (i == default_output)
-				default_output_err = true;
-			continue;
-		}
-
-		if (device->probe_error) {
-			info("slaudio/input device %s probe error\n",
-					device->name);
-			soundio_device_unref(device);
-			if (i == default_output)
-				default_output_err = true;
-			continue;
-		}
-
-		debug("slaudio/output device %s formats:\n", device->name);
-		for (int y = 0; y < device->format_count; y += 1) {
-			const char *comma =
-				(y == device->format_count - 1) ? "\n" : ", ";
-			debug("%s%s",
-				soundio_format_string(device->formats[y]),
-				comma);
-		}
-
-		err = odict_alloc(&o, DICT_BSIZE);
-		if (err)
-			goto out;
-
-		odict_entry_add(o, "id", ODICT_INT, (int64_t)i);
-		if (device->is_raw) {
-			(void)re_snprintf(device_name, sizeof(device_name),
-					"%s (Exclusiv)", device->name);
-		}
-		else {
-			(void)re_snprintf(device_name, sizeof(device_name),
-					"%s", device->name);
-		}
-		odict_entry_add(o, "display", ODICT_STRING, device_name);
-		info("slaudio: output device %s\n", device_name);
-
-		if (output == -1 && default_output == i)
-		{
-			info("slaudio: set output %s (%d)\n", device_name, i);
-			output = i;
-		}
-
-		if (input == -1 && default_output_err) {
-			info("slaudio: set fallback ouput %s (%d)\n",
-					device_name, i);
-			output = i;
-		}
-
-		if (output == i)
-		{
-			odict_entry_add(o, "selected", ODICT_BOOL, true);
-		}
-		else
-		{
-			odict_entry_add(o, "selected", ODICT_BOOL, false);
-		}
-
-		odict_entry_add(array_out, idx, ODICT_OBJECT, o);
-
-		soundio_device_unref(device);
-		mem_deref(o);
+		if (device_valid(dev, false))
+			err |= add_device(array_out, dev, false);
 	}
 
 	odict_entry_add(interfaces, "input", ODICT_ARRAY, array_in);
@@ -880,13 +780,9 @@ out:
 }
 
 
-static void read_callback(struct SoundIoInStream *instream,
-				int frame_count_min, int frame_count_max)
+static void process_input(const float *in, unsigned long nframes)
 {
 	int err;
-	struct SoundIoChannelArea *areas;
-
-	int nframes = frame_count_max;
 	int samples;
 
 	struct le *le;
@@ -901,48 +797,26 @@ static void read_callback(struct SoundIoInStream *instream,
 	struct auframe af;
 	static uint64_t frames = 0;
 
-	if ((err = soundio_instream_begin_read(instream, &areas, &nframes))) {
-		warning("slaudio/read_callback:"
-			"begin read error: %s\n", soundio_strerror(err));
-		return; /*@TODO handle error */
-	}
-
 	if (!nframes)
 		return;
 
-
 	if (startup_count < 16) {
-		/*
-		 * drop first frames (keeps buffers small)
-		 */
-		debug("slaudio: drop %d frames due startup %d\n", nframes,
-				startup_count);
-		if ((err = soundio_instream_end_read(instream))) {
-			warning("slaudio/read_callback:"
-				"end read error: %s\n", soundio_strerror(err));
-		}
+		/* drop first frames (keeps buffers small) */
 		++startup_count;
-
 		return;
 	}
 
-	samples = nframes * 2; /* Stereo (2 ch) only */
+	samples = (int)nframes * 2; /* Stereo (2 ch) only */
+	if (samples > BUFFER_LEN / 2)
+		return;
 
-	if (!areas) {
-		/* Due to an overflow there is a hole. Fill with silence */
+	if (!in) {
 		memset(slaudio->inBufferFloat, 0, samples * sizeof(float));
-		sl_debug.in_or++;
-		sl_debug.changed = true;
+		debug_count(&sl_debug.in_or);
 	}
 	else {
-		downsample_first_ch(slaudio->inBufferFloat, areas, nframes,
-				instream);
-	}
-
-	if ((err = soundio_instream_end_read(instream))) {
-		warning("slaudio/read_callback:"
-				"end read error: %s\n", soundio_strerror(err));
-		return; /*@TODO handle error */
+		downsample_first_ch(slaudio->inBufferFloat, in, nframes,
+				slaudio->in_channels);
 	}
 
 	if (mute)
@@ -956,7 +830,7 @@ static void read_callback(struct SoundIoInStream *instream,
 				(unsigned long)samples-1);
 
 	/**<-- Input Samplerate conversion */
-	if (preferred_sample_rate_in != 48000)
+	if (slaudio->in_srate != SRATE)
 	{
 		if (!src_state_in)
 			return;
@@ -965,8 +839,7 @@ static void read_callback(struct SoundIoInStream *instream,
 		src_data_in.data_out = slaudio->inBufferOutFloat;
 		src_data_in.input_frames = nframes;
 		src_data_in.output_frames = BUFFER_LEN / 2;
-		src_data_in.src_ratio =
-				48000 / (double)preferred_sample_rate_in;
+		src_data_in.src_ratio = SRATE / slaudio->in_srate;
 		src_data_in.end_of_input = 0;
 
 		if ((err = src_process(src_state_in, &src_data_in)) != 0)
@@ -978,7 +851,7 @@ static void read_callback(struct SoundIoInStream *instream,
 			return;
 		};
 
-		samples = src_data_in.output_frames_gen * 2;
+		samples = (int)src_data_in.output_frames_gen * 2;
 		auconv_to_s16(slaudio->inBuffer, AUFMT_FLOAT,
 				slaudio->inBufferOutFloat,
 				samples);
@@ -988,6 +861,9 @@ static void read_callback(struct SoundIoInStream *instream,
 				slaudio->inBufferFloat, samples);
 	}
 	/** Input Samplerate conversion -->*/
+
+	if (!samples)
+		return;
 
 	for (le = sessionl.head; le; le = le->next)
 	{
@@ -999,18 +875,18 @@ static void read_callback(struct SoundIoInStream *instream,
 					slaudio->inBuffer, samples);
 		}
 
-		if (!sess || !sess->run_play || sess->local)
+		if (!sess->run_play || sess->local)
 			continue;
 
 		st_play = sess->st_play;
 
-		webapp_jitter(sess, st_play->sampv,
+		webapp_session_play_read(sess, st_play->sampv,
 				st_play->wh, samples, st_play->arg);
 	}
 
 	if (monostream && !monorecord)
 	{
-		stereo2mono(slaudio->inBuffer, nframes);
+		stereo2mono(slaudio->inBuffer, samples / 2);
 	}
 
 	if (monitor)
@@ -1026,7 +902,7 @@ static void read_callback(struct SoundIoInStream *instream,
 		sess = le->data;
 		msessplay = 0;
 
-		if (!sess || sess->local)
+		if (sess->local)
 			continue;
 
 		if (!sess->run_play) {
@@ -1037,7 +913,7 @@ static void read_callback(struct SoundIoInStream *instream,
 
 		st_play = sess->st_play;
 
-		for (uint16_t pos = 0; pos < samples; pos++)
+		for (int pos = 0; pos < samples; pos++)
 		{
 			int32_t val = 0;
 			val = playmix[pos] + st_play->sampv[pos];
@@ -1065,13 +941,13 @@ static void read_callback(struct SoundIoInStream *instream,
 			struct session *msess = mle->data;
 			int32_t val = 0;
 
-			if (!msess->run_play || msess == sess || sess->local)
+			if (!msess->run_play || msess == sess || msess->local)
 			{
 				continue;
 			}
 			mst_play = msess->st_play;
 
-			for (uint16_t pos = 0; pos < samples; pos++)
+			for (int pos = 0; pos < samples; pos++)
 			{
 				if (msessplay < 1)
 				{
@@ -1103,361 +979,232 @@ static void read_callback(struct SoundIoInStream *instream,
 		{
 			st_src = sess->st_src;
 
-			for (uint16_t pos = 0; pos < samples; pos++)
+			for (int pos = 0; pos < samples; pos++)
 			{
-				if (!sessplay) {
-					/* ignore on last call the dstmix */
-					st_src->sampv[pos] =
-						slaudio->inBuffer[pos];
-				}
-				else
-				{
-					st_src->sampv[pos] =
-						slaudio->inBuffer[pos] +
-						sess->dstmix[pos];
-				}
+				int32_t val = slaudio->inBuffer[pos];
+
+				/* ignore on last call the dstmix */
+				if (sessplay)
+					val += sess->dstmix[pos];
+
+				if (val >= 32767)
+					val = 32767;
+				if (val <= -32767)
+					val = -32767;
+
+				st_src->sampv[pos] = (int16_t)val;
 			}
 
-			af.fmt = st_src->prm.fmt;
-			af.sampv = st_src->sampv;
-			af.sampc = samples;
-			af.timestamp = frames * AUDIO_TIMEBASE / 48000;
-
-			frames += nframes;
+			auframe_init(&af, AUFMT_S16LE, st_src->sampv, samples,
+				     SRATE, 2);
+			af.timestamp = frames * AUDIO_TIMEBASE / SRATE;
 
 			st_src->rh(&af, st_src->arg);
 		}
-
 	}
+
+	frames += samples / 2;
 
 	if (!cntplay && !monitor)
 	{
 		memset(playmix, 0, samples * sizeof(int16_t));
 	}
 
-	char *write_ptr = soundio_ring_buffer_write_ptr(ring_buffer);
-	int free_bytes = soundio_ring_buffer_free_count(ring_buffer);
-	int free_count = free_bytes / FLOAT_FRAME_BYTES;
+	/* Output: mix -> (resampler) -> ring buffer -> output callback */
+	auconv_from_s16(AUFMT_FLOAT, slaudio->outBufferFloat, playmix,
+			samples);
 
-	if (samples > free_count) {
-		sl_debug.ring_or++;
-		sl_debug.changed = true;
-		soundio_ring_buffer_clear(ring_buffer);
-		free_bytes = soundio_ring_buffer_free_count(ring_buffer);
-		free_count = free_bytes / FLOAT_FRAME_BYTES;
-	}
+	float *outv = slaudio->outBufferFloat;
+	long out_frames = samples / 2;
 
-	if (preferred_sample_rate_out != 48000)
+	if (slaudio->out_srate != SRATE)
 	{
-		auconv_from_s16(AUFMT_FLOAT, slaudio->outBufferFloat,
-				playmix, samples);
-
-		src_data_out.data_in = slaudio->outBufferFloat;
-		src_data_out.data_out = (float *)write_ptr;
-		src_data_out.input_frames = samples / 2;
-		src_data_out.output_frames = free_count;
-		src_data_out.src_ratio =
-			(double)preferred_sample_rate_out / 48000;
-		src_data_out.end_of_input = 0;
-
 		if (!src_state_out)
 			return;
 
+		src_data_out.data_in = slaudio->outBufferFloat;
+		src_data_out.data_out = slaudio->inBufferOutFloat;
+		src_data_out.input_frames = samples / 2;
+		src_data_out.output_frames = BUFFER_LEN / 2;
+		src_data_out.src_ratio = slaudio->out_srate / SRATE;
+		src_data_out.end_of_input = 0;
+
 		if ((err = src_process(src_state_out, &src_data_out)) != 0)
 		{
-			warning("slrtaudio: Samplerate::src_process_out :"
+			warning("slaudio: Samplerate::src_process_out :"
 				"returned error : %s\n", src_strerror(err));
 			return;
 		};
 
-		samples = src_data_out.output_frames_gen * 2;
-	}
-	else {
-		auconv_from_s16(AUFMT_FLOAT, write_ptr,
-				playmix, samples);
+		outv = slaudio->inBufferOutFloat;
+		out_frames = src_data_out.output_frames_gen;
 	}
 
-	int advance_bytes = samples * sizeof(float);
-	soundio_ring_buffer_advance_write_ptr(ring_buffer, advance_bytes);
+	if (PaUtil_GetRingBufferWriteAvailable(&slaudio->ring) < out_frames)
+		debug_count(&sl_debug.ring_or);
+
+	(void)PaUtil_WriteRingBuffer(&slaudio->ring, outv, out_frames);
 }
 
 
-static void write_callback(struct SoundIoOutStream *outstream,
-				int frame_count_min, int frame_count_max)
+static int read_callback(const void *input_buf, void *output_buf,
+		unsigned long nframes,
+		const PaStreamCallbackTimeInfo *time_info,
+		PaStreamCallbackFlags flags, void *arg)
 {
-	struct SoundIoChannelArea *areas;
-	int err;
-	int nframes = frame_count_max;
+	(void)output_buf;
+	(void)time_info;
+	(void)arg;
 
-	if (!ring_buffer)
-		return;
+	if (flags & paInputOverflow)
+		debug_count(&sl_debug.in_or);
 
-	char *read_ptr = soundio_ring_buffer_read_ptr(ring_buffer);
-	int fill_bytes = soundio_ring_buffer_fill_count(ring_buffer);
-	int fill_count = fill_bytes / FLOAT_FRAME_BYTES;
-	int frames_left;
-	int frame_count;
-	int samples;
+	process_input(input_buf, nframes);
 
-	if (nframes > fill_count) {
-		/* Ring buffer does not have enough data, fill with zeroes. */
-		sl_debug.ring_ur++;
-		sl_debug.changed = true;
+	return paContinue;
+}
 
-		frames_left = nframes;
-		for (;;) {
-			frame_count = frames_left;
-			if (frame_count <= 0)
-				return;
-			if ((err = soundio_outstream_begin_write(
-							outstream,
-							&areas,
-							&frame_count))) {
-				warning("slaudio/write_callback:"
-					"begin write error: %s\n",
-					soundio_strerror(err));
-				return;
-			}
-			if (frame_count <= 0)
-				return;
-			for (int frame = 0; frame < frame_count; frame += 1) {
-				for (int ch = 0;
-					ch < outstream->layout.channel_count;
-					ch += 1) {
-					memset(areas[ch].ptr, 0,
-						outstream->bytes_per_sample);
-					areas[ch].ptr += areas[ch].step;
-				}
-			}
-			if ((err = soundio_outstream_end_write(outstream))) {
-				warning("slaudio/write_callback:"
-					"end write error: %s\n",
-					soundio_strerror(err));
-				return;
-			}
-			frames_left -= frame_count;
-		}
+
+static int write_callback(const void *input_buf, void *output_buf,
+		unsigned long nframes,
+		const PaStreamCallbackTimeInfo *time_info,
+		PaStreamCallbackFlags flags, void *arg)
+{
+	float *out = output_buf;
+	float frame[2];
+	(void)input_buf;
+	(void)time_info;
+	(void)arg;
+
+	if (flags & paOutputUnderflow)
+		debug_count(&sl_debug.out_ur);
+
+	if (PaUtil_GetRingBufferReadAvailable(&slaudio->ring) <
+	    (ring_buffer_size_t)nframes) {
+		/* Ring buffer does not have enough data, fill with zeroes */
+		debug_count(&sl_debug.ring_ur);
+		memset(out, 0,
+		       nframes * slaudio->out_channels * sizeof(float));
+		return paContinue;
 	}
 
-	if ((err = soundio_outstream_begin_write(outstream, &areas,
-					&nframes))) {
-		warning("slaudio/write_callback:"
-			"begin write error: %s\n", soundio_strerror(err));
-		return; /*@TODO handle error */
+	if (slaudio->out_channels == 2) {
+		(void)PaUtil_ReadRingBuffer(&slaudio->ring, out,
+					    (ring_buffer_size_t)nframes);
+		return paContinue;
 	}
 
-	if (!nframes)
-		return;
-
-	samples = nframes * 2;
-
-	memcpy(slaudio->outBufferFloat, read_ptr, samples * sizeof(float));
-	soundio_ring_buffer_advance_read_ptr(ring_buffer,
-			samples * sizeof(float));
-
-	float *outBufferFloat = slaudio->outBufferFloat;
-
-	for (int frame = 0; frame < nframes; frame += 1) {
-		if (outstream->format == SoundIoFormatS32LE) {
-			float_32(*outBufferFloat, *((int32_t*)areas[0].ptr));
-		}
-		else if (outstream->format == SoundIoFormatS24LE) {
-			float_24(*outBufferFloat, *((int32_t*)areas[0].ptr));
-		}
-		else if (outstream->format == SoundIoFormatS16LE) {
-			float_16(*outBufferFloat, *((int16_t*)areas[0].ptr));
-		}
-		else {
-			memcpy(areas[0].ptr, outBufferFloat,
-					outstream->bytes_per_sample);
-		}
-		outBufferFloat += 1;
-		areas[0].ptr += areas[0].step;
-
-		if (outstream->layout.channel_count == 1) {
-			outBufferFloat += 1;
-			continue;
-		}
-
-		if (outstream->format == SoundIoFormatS32LE) {
-			float_32(*outBufferFloat, *((int32_t*)areas[1].ptr));
-		}
-		else if (outstream->format == SoundIoFormatS24LE) {
-			float_24(*outBufferFloat, *((int32_t*)areas[1].ptr));
-		}
-		else if (outstream->format == SoundIoFormatS16LE) {
-			float_16(*outBufferFloat, *((int16_t*)areas[1].ptr));
-		}
-		else {
-			memcpy(areas[1].ptr, outBufferFloat,
-					outstream->bytes_per_sample);
-		}
-
-		outBufferFloat += 1;
-		areas[1].ptr += areas[1].step;
+	/* mono output */
+	for (unsigned long i = 0; i < nframes; i++) {
+		(void)PaUtil_ReadRingBuffer(&slaudio->ring, frame, 1);
+		out[i] = frame[0];
 	}
 
-	if ((err = soundio_outstream_end_write(outstream))) {
-		warning("slaudio/write_callback:"
-			"end write error: %s\n", soundio_strerror(err));
-		return; /*@TODO handle error */
+	return paContinue;
+}
+
+
+/* Prefer 48kHz, fallback to the device default rate (resampled) */
+static double stream_srate(const PaStreamParameters *in,
+		const PaStreamParameters *out, double fallback)
+{
+	if (Pa_IsFormatSupported(in, out, SRATE) == paFormatIsSupported)
+		return SRATE;
+
+	return fallback;
+}
+
+
+static int open_stream(PaStream **stream, const PaStreamParameters *in,
+		const PaStreamParameters *out, double srate,
+		PaStreamCallback *cb)
+{
+	PaError perr;
+
+	perr = Pa_OpenStream(stream, in, out, srate,
+			     (unsigned long)(srate * BUFFER_MS / 1000),
+			     paClipOff | paDitherOff, cb, NULL);
+	if (perr != paNoError) {
+		warning("slaudio/start: Pa_OpenStream: %s\n",
+				Pa_GetErrorText(perr));
+		return EINVAL;
 	}
+
+	return 0;
 }
 
 
 static int slaudio_start(void)
 {
 	int err = 0;
-	double microphone_latency;
-	enum SoundIoFormat *fmt;
+	PaError perr;
+	PaStreamParameters in_prm, out_prm;
+	const PaDeviceInfo *dev_in, *dev_out;
 
-	microphone_latency = 0.02;
+	if (!slaudio) {
+		err = EINVAL;
+		goto err_out;
+	}
 
-	if (input == -1) {
+	if (!device_valid(input, true)) {
 		warning("slaudio/start: invalid input device\n");
-		err = 1;
+		err = EINVAL;
 		goto err_out;
 	}
 
-	if (output == -1) {
+	if (!device_valid(output, false)) {
 		warning("slaudio/start: invalid output device\n");
-		err = 1;
-		goto err_out;
-	}
-
-	slaudio->dev_in = soundio_get_input_device(slaudio->soundio, input);
-	if (!slaudio->dev_in) {
-		warning("slaudio/start: error soundio_get_input_device\n");
-		err = ENOMEM;
-		goto err_out;
-	}
-
-	slaudio->dev_out = soundio_get_output_device(slaudio->soundio, output);
-	if (!slaudio->dev_out) {
-		warning("slaudio/start: error soundio_get_output_device\n");
-		err = ENOMEM;
-		goto err_out;
-	}
-
-	info("slaudio/start: in dev: %s\n", slaudio->dev_in->name);
-	info("slaudio/start: out dev: %s\n", slaudio->dev_out->name);
-
-
-	for (fmt = prioritized_formats; *fmt != SoundIoFormatInvalid; fmt++) {
-		if (soundio_device_supports_format(slaudio->dev_in, *fmt))
-		{
-			break;
-		}
-	}
-	if (*fmt == SoundIoFormatInvalid) {
-		warning("slaudio/start: instream SoundIoFormatInvalid\n");
 		err = EINVAL;
 		goto err_out;
 	}
 
+	dev_in = Pa_GetDeviceInfo(input);
+	dev_out = Pa_GetDeviceInfo(output);
 
-	/* Create input stream */
+	info("slaudio/start: in dev: %s\n", dev_in->name);
+	info("slaudio/start: out dev: %s\n", dev_out->name);
 
-	slaudio->instream = soundio_instream_create(slaudio->dev_in);
-	if (!slaudio->instream) {
-		warning("slaudio/start: error soundio_instream_create\n");
-		err = ENOMEM;
+	slaudio->in_channels = device_channels(input, true);
+	slaudio->out_channels = MIN(device_channels(output, false), 2);
+
+	memset(&in_prm, 0, sizeof(in_prm));
+	in_prm.device = input;
+	in_prm.channelCount = slaudio->in_channels;
+	in_prm.sampleFormat = paFloat32;
+	in_prm.suggestedLatency = dev_in->defaultLowInputLatency;
+
+	memset(&out_prm, 0, sizeof(out_prm));
+	out_prm.device = output;
+	out_prm.channelCount = slaudio->out_channels;
+	out_prm.sampleFormat = paFloat32;
+	out_prm.suggestedLatency = dev_out->defaultLowOutputLatency;
+
+	slaudio->in_srate = stream_srate(&in_prm, NULL,
+					 dev_in->defaultSampleRate);
+	slaudio->out_srate = stream_srate(NULL, &out_prm,
+					  dev_out->defaultSampleRate);
+
+	err = open_stream(&slaudio->instream, &in_prm, NULL,
+			  slaudio->in_srate, read_callback);
+	if (err)
 		goto err_out;
-	}
 
-	slaudio->instream->name = "StudioLinkIn";
-
-	slaudio->instream->format = *fmt;
-	slaudio->instream->read_callback = read_callback;
-	slaudio->instream->software_latency = microphone_latency;
-	slaudio->instream->error_callback = instream_error_callback;
-
-	err = soundio_instream_open(slaudio->instream);
-	if (err) {
-		warning("slaudio/start: soundio_instream_open: %s\n",
-				soundio_strerror(err));
+	err = open_stream(&slaudio->outstream, NULL, &out_prm,
+			  slaudio->out_srate, write_callback);
+	if (err)
 		goto err_out;
-	}
 
-	for (fmt = prioritized_formats; *fmt != SoundIoFormatInvalid; ++fmt) {
-		if (soundio_device_supports_format(slaudio->dev_out, *fmt))
-		{
-			break;
-		}
-	}
-	if (*fmt == SoundIoFormatInvalid) {
-		warning("slaudio/start: outstream SoundIoFormatInvalid\n");
-		err = EINVAL;
-		goto err_out;
-	}
+	info("slaudio/start: in: %dhz (%dch) out: %dhz (%dch)\n",
+			(int)slaudio->in_srate, slaudio->in_channels,
+			(int)slaudio->out_srate, slaudio->out_channels);
 
-
-	/* Create output stream */
-
-	slaudio->outstream = soundio_outstream_create(slaudio->dev_out);
-	if (!slaudio->outstream) {
-		warning("slaudio/start: error soundio_outstream_create\n");
-		err = ENOMEM;
-		goto err_out;
-	}
-	slaudio->outstream->name = "StudioLinkOut";
-
-	slaudio->outstream->format = *fmt;
-	slaudio->outstream->write_callback = write_callback;
-	slaudio->outstream->software_latency = microphone_latency;
-	slaudio->outstream->underflow_callback = underflow_callback;
-	slaudio->outstream->error_callback = outstream_error_callback;
-
-
-	err = soundio_outstream_open(slaudio->outstream);
-	if (err) {
-		warning("slaudio/start: soundio_outstream_open: %s\n",
-				soundio_strerror(err));
-		goto err_out;
-	}
-
-	if (slaudio->outstream->layout_error) {
-		warning("slaudio/start: unable to set channel layout: %s\n",
-			soundio_strerror(slaudio->outstream->layout_error));
-		goto err_out;
-	}
-
-
-	/* Prepare ring buffer */
-
-	int capacity = microphone_latency * 2 * 3 *
-		slaudio->outstream->sample_rate * 4;
-	ring_buffer = soundio_ring_buffer_create(slaudio->soundio, capacity);
-	if (!ring_buffer) {
-		warning("slaudio/start: error ring_buffer\n");
-		err = ENOMEM;
-		goto err_out;
-	}
-
-	preferred_sample_rate_in = slaudio->instream->sample_rate;
-	preferred_sample_rate_out = slaudio->outstream->sample_rate;
-	info("slaudio/start: in: %dhz (%dch %s) out: %dhz (%dch %s)\n",
-			preferred_sample_rate_in,
-			slaudio->instream->layout.channel_count,
-			soundio_format_string(slaudio->instream->format),
-			preferred_sample_rate_out,
-			slaudio->outstream->layout.channel_count,
-			soundio_format_string(slaudio->outstream->format));
-
-
-	/* Start streams */
-
-	err = soundio_instream_start(slaudio->instream);
-	if (err) {
-		warning("slaudio/start: soundio_instream_start: %s\n",
-				soundio_strerror(err));
-		goto err_out;
-	}
-
-	err = soundio_outstream_start(slaudio->outstream);
-	if (err) {
-		warning("slaudio/start: soundio_outstream_start: %s\n",
-				soundio_strerror(err));
+	perr = Pa_StartStream(slaudio->instream);
+	if (perr == paNoError)
+		perr = Pa_StartStream(slaudio->outstream);
+	if (perr != paNoError) {
+		warning("slaudio/start: Pa_StartStream: %s\n",
+				Pa_GetErrorText(perr));
+		err = EIO;
 		goto err_out;
 	}
 
@@ -1471,16 +1218,15 @@ err_out:
 	odict_entry_add(interfaces, "error_msg", ODICT_STRING, error_msg);
 	webapp_ws_rtaudio_sync();
 	fatal_error = true;
-	mem_deref(slaudio);
-	warning("slaudio/start: error %d\n", err);
+	slaudio = mem_deref(slaudio);
+	warning("slaudio/start: error %m\n", err);
 	return err;
 }
 
 
 static int slaudio_stop(void)
 {
-	if (slaudio)
-		mem_deref(slaudio);
+	slaudio = mem_deref(slaudio);
 
 	if (src_state_in)
 		src_state_in = src_delete(src_state_in);
@@ -1488,32 +1234,49 @@ static int slaudio_stop(void)
 	if (src_state_out)
 		src_state_out = src_delete(src_state_out);
 
-	if (ring_buffer) {
-		soundio_ring_buffer_destroy(ring_buffer);
-		ring_buffer = NULL;
-	}
-
 	return 0;
 }
+
+
+/* PortAudio has no error callback: restart if a stream stopped by itself
+ * (e.g. the device was removed) */
+static void slaudio_watch(void *arg)
+{
+	(void)arg;
+
+	tmr_start(&sl_watch_tmr, 1000, slaudio_watch, NULL);
+
+	if (!slaudio || !slaudio->instream || !slaudio->outstream)
+		return;
+
+	if (Pa_IsStreamActive(slaudio->instream) == 1 &&
+	    Pa_IsStreamActive(slaudio->outstream) == 1)
+		return;
+
+	warning("slaudio: audio stream stopped, restarting\n");
+	fatal_error = true;
+	slaudio_reset();
+}
+
 
 static void slaudio_debug(void *arg)
 {
 	(void)arg;
 
-	if (!sl_debug.changed)
+	if (!re_atomic_rlx(&sl_debug.changed))
 		goto out;
 
 	warning("slaudio_debug\n"
 		"\tout_ur: %llu \n"
-		"\tout_or: %llu \n"
-		"\tin_ur: %llu \n"
 		"\tin_or: %llu \n"
 		"\tring_ur: %llu \n"
 		"\tring_or: %llu \n",
-		sl_debug.out_ur, sl_debug.out_or, sl_debug.in_ur,
-		sl_debug.in_or, sl_debug.ring_ur, sl_debug.ring_or);
+		re_atomic_rlx(&sl_debug.out_ur),
+		re_atomic_rlx(&sl_debug.in_or),
+		re_atomic_rlx(&sl_debug.ring_ur),
+		re_atomic_rlx(&sl_debug.ring_or));
 
-	sl_debug.changed = false;
+	re_atomic_rlx_set(&sl_debug.changed, false);
 
 out:
 	tmr_start(&sl_debug_tmr, 10000, slaudio_debug, NULL);
@@ -1566,10 +1329,8 @@ static int slaudio_init(void)
 		sess->ch = cnt * 2 + 1;
 		sess->track = cnt + 1;
 		sess->call = NULL;
-		sess->jitter.max = 0;
 		sess->run_src = false;
 		sess->run_play = false;
-		sess->buffer = 60;
 		sess->volume = 1.0;
 
 		list_append(&sessionl, &sess->le, sess);
@@ -1583,19 +1344,24 @@ static int slaudio_init(void)
 	sess->local = false;
 	sess->stream = true;
 	sess->call = NULL;
-	sess->jitter.max = 0;
-	sess->buffer = 60;
 	sess->volume = 1.0;
 	sess->ch = MAX_REMOTE_CHANNELS * 2 + 1;
 	list_append(&sessionl, &sess->le, sess);
 
-	slaudio_drivers();
-	slaudio_devices();
 	slaudio_record_init();
-	slaudio_start();
+
+	err = pa_reinit();
+	if (!err) {
+		slaudio_drivers();
+		slaudio_devices();
+		slaudio_start();
+	}
 
 	tmr_init(&sl_debug_tmr);
 	tmr_start(&sl_debug_tmr, 10000, slaudio_debug, NULL);
+
+	tmr_init(&sl_watch_tmr);
+	tmr_start(&sl_watch_tmr, 1000, slaudio_watch, NULL);
 
 #ifdef WIN32
 	/* Activate windows low latency timer */
@@ -1603,7 +1369,7 @@ static int slaudio_init(void)
 #endif
 	info("slaudio ready\n");
 
-	return err;
+	return 0;
 }
 
 
@@ -1612,8 +1378,16 @@ static int slaudio_close(void)
 	struct le *le;
 	struct session *sess;
 
+	tmr_cancel(&sl_watch_tmr);
+
 	slaudio_stop();
-	sl_debug.changed = true;
+
+	if (pa_initialized) {
+		Pa_Terminate();
+		pa_initialized = false;
+	}
+
+	re_atomic_rlx_set(&sl_debug.changed, true);
 	slaudio_debug(NULL);
 	tmr_cancel(&sl_debug_tmr);
 
@@ -1630,6 +1404,10 @@ static int slaudio_close(void)
 
 	playmix = mem_deref(playmix);
 	empty_buffer = mem_deref(empty_buffer);
+
+#ifdef WIN32
+	timeEndPeriod(1);
+#endif
 
 	return 0;
 }

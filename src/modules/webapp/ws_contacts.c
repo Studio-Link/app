@@ -18,19 +18,19 @@ void webapp_ws_contacts(const struct websock_hdr *hdr,
 	if (!e)
 		goto out;
 
-	if (!str_cmp(e->u.str, "addcontact")) {
-		webapp_contact_add(e);
+	if (!str_cmp(odict_entry_str(e), "addcontact")) {
+		webapp_contact_add(cmd);
 		ws_send_json(WS_CONTACT, webapp_contacts_get());
 		ws_send_json(WS_CALLS, webapp_calls);
 	}
-	else if (!str_cmp(e->u.str, "deletecontact")) {
+	else if (!str_cmp(odict_entry_str(e), "deletecontact")) {
 		char sip[100] = {0};
 
 		e = odict_lookup(cmd, "sip");
 		if (!e)
 			goto out;
 
-		str_ncpy(sip, e->u.str, sizeof(sip));
+		str_ncpy(sip, odict_entry_str(e), sizeof(sip));
 		webapp_contact_delete(sip);
 		ws_send_json(WS_CONTACT, webapp_contacts_get());
 	}

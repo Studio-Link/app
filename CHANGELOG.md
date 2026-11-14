@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **Misc** Remote logging (log.studio.link) removed, logs are now written
+  locally to `<config path>/logs/` (last 7 starts are kept) and can be
+  downloaded in the WebUI (More... > Options > Download logs)
+
 ## [v21.07.0-stable] - 2021-07-06
 
 ### Fixed

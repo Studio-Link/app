@@ -35,31 +35,31 @@ void webapp_ws_rtaudio(const struct websock_hdr *hdr,
 	if (!e)
 		goto out;
 
-	if (!str_cmp(e->u.str, "driver")) {
+	if (!str_cmp(odict_entry_str(e), "driver")) {
 		e = odict_lookup(cmd, "id");
-		slaudio_set_driver(e->u.integer);
+		slaudio_set_driver(odict_entry_int(e));
 		goto out;
 	}
 
-	if (!str_cmp(e->u.str, "input")) {
+	if (!str_cmp(odict_entry_str(e), "input")) {
 		e = odict_lookup(cmd, "id");
-		slaudio_set_input(e->u.integer);
+		slaudio_set_input(odict_entry_int(e));
 		goto out;
 	}
 
-	if (!str_cmp(e->u.str, "first_input_channel")) {
+	if (!str_cmp(odict_entry_str(e), "first_input_channel")) {
 		e = odict_lookup(cmd, "id");
-		slaudio_set_first_input_channel(e->u.integer);
+		slaudio_set_first_input_channel(odict_entry_int(e));
 		goto out;
 	}
 
-	if (!str_cmp(e->u.str, "output")) {
+	if (!str_cmp(odict_entry_str(e), "output")) {
 		e = odict_lookup(cmd, "id");
-		slaudio_set_output(e->u.integer);
+		slaudio_set_output(odict_entry_int(e));
 		goto out;
 	}
 
-	if (!str_cmp(e->u.str, "reload")) {
+	if (!str_cmp(odict_entry_str(e), "reload")) {
 		slaudio_reset();
 		goto out;
 	}

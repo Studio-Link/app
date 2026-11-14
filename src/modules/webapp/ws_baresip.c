@@ -1,5 +1,6 @@
 #include <re.h>
 #include <baresip.h>
+#include <slua.h>
 #include "webapp.h"
 
 #define SIP_EMPTY "{ \"callback\": \"CLOSED\",\
@@ -15,10 +16,10 @@ static void sip_delete(struct odict *cmd, const struct odict_entry *e)
 
 	e = odict_lookup(cmd, "user");
 	if (e)
-		str_ncpy(user, e->u.str, sizeof(user));
+		str_ncpy(user, odict_entry_str(e), sizeof(user));
 	e = odict_lookup(cmd, "domain");
 	if (e)
-		str_ncpy(domain, e->u.str, sizeof(domain));
+		str_ncpy(domain, odict_entry_str(e), sizeof(domain));
 	webapp_account_delete(user, domain);
 	warning("delete executed\n");
 	ws_send_json(WS_BARESIP, webapp_accounts_get());
@@ -42,9 +43,9 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 	if (!e)
 		goto out;
 
-	if (!str_cmp(e->u.str, "call")) {
+	if (!str_cmp(odict_entry_str(e), "call")) {
 		e = odict_lookup(cmd, "dial");
-		if (!str_cmp(e->u.str, "")) {
+		if (!str_cmp(odict_entry_str(e), "")) {
 			ws_send_all(WS_CALLS, SIP_EMPTY);
 		}
 		else {
@@ -53,26 +54,27 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 				goto out;
 			}
 
-			ua_connect(uag_current(), &call, NULL,
-					e->u.str, VIDMODE_OFF);
+			sl_ua_connect(webapp_ua_current(), &call,
+					odict_entry_str(e));
 			webapp_call_update(call, "Outgoing");
 		}
 	}
-	else if (!str_cmp(e->u.str, "addsip")) {
-		webapp_account_add(e);
+	else if (!str_cmp(odict_entry_str(e), "addsip")) {
+		webapp_account_add(cmd);
 		ws_send_json(WS_BARESIP, webapp_accounts_get());
 	}
-	else if (!str_cmp(e->u.str, "deletesip")) {
+	else if (!str_cmp(odict_entry_str(e), "deletesip")) {
 		sip_delete(cmd, e);
 	}
-	else if (!str_cmp(e->u.str, "uagcurrent")) {
+	else if (!str_cmp(odict_entry_str(e), "uagcurrent")) {
 		char aorfind[100] = {0};
 
 		e = odict_lookup(cmd, "aor");
 		if (!e)
 			goto out;
-		snprintf(aorfind, sizeof(aorfind), "sip:%s", e->u.str);
-		uag_current_set(uag_find_aor(aorfind));
+		snprintf(aorfind, sizeof(aorfind), "sip:%s",
+			 odict_entry_str(e));
+		webapp_ua_current_set(uag_find_aor(aorfind));
 		webapp_account_current();
 		ws_send_json(WS_BARESIP, webapp_accounts_get());
 	}

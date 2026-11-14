@@ -55,7 +55,8 @@ int webapp_vu_decode(struct aufilt_dec_st *st, int16_t *sampv, size_t *sampc);
 int webapp_accounts_init(void);
 void webapp_accounts_close(void);
 const struct odict* webapp_accounts_get(void);
-void webapp_account_add(const struct odict_entry *acc);
+void webapp_account_add(struct odict *acc);
+struct ua *webapp_ua_current(void);
 void webapp_account_delete(char *user, char *domain);
 void webapp_account_current(void);
 void webapp_account_status(const char *aor, bool status);
@@ -65,7 +66,7 @@ void webapp_account_status(const char *aor, bool status);
  */
 int webapp_contacts_init(void);
 void webapp_contacts_close(void);
-void webapp_contact_add(const struct odict_entry *contact);
+void webapp_contact_add(const struct odict *contact);
 void webapp_contact_delete(const char *sip);
 const struct odict* webapp_contacts_get(void);
 
@@ -122,7 +123,7 @@ void webapp_ws_close(void);
 /*
  * utils.c
  */
-void webapp_odict_add(struct odict *og, const struct odict_entry *e);
+void webapp_odict_add(struct odict *og, const struct odict *src);
 int webapp_write_file(char *string, char *filename);
 int webapp_write_file_json(struct odict *json, char *filename);
 int webapp_load_file(struct mbuf *mb, char *filename);

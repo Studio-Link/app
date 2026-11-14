@@ -1,5 +1,6 @@
 #include <re.h>
 #include <baresip.h>
+#include <slua.h>
 #include <string.h>
 #include <stdlib.h>
 #include "webapp.h"
@@ -98,8 +99,8 @@ void webapp_options_set(char *key, char *value)
 
 			if (err) {};
 
-			ua_connect(webapp_get_main_ua(), &call, NULL,
-					"stream@studio.link", VIDMODE_OFF);
+			sl_ua_connect(webapp_get_main_ua(), &call,
+					"stream@studio.link");
 
 			webapp_call_update(call, "Outgoing");
 		}
@@ -125,7 +126,7 @@ char* webapp_options_getv(char *key, char *def)
 	if (!e)
 		return def;
 
-	return e->u.str;
+	return odict_entry_str(e);
 }
 
 
