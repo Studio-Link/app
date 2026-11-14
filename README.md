@@ -32,7 +32,8 @@ See [CHANGELOG.md](CHANGELOG.md)
 
 ### CI builds
 
-https://download.studio.link/devel/
+Every CI run uploads the builds as artifacts (`studio-link-<target>`), see
+the [Actions](https://github.com/Studio-Link/app/actions) tab.
 
 ### Build Requirements
 

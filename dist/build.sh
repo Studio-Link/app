@@ -67,10 +67,8 @@ sl_cmake_variant onair $cmake_extra "-DSL_PLUGIN_FORMATS=$plugin_formats"
 
 cp -a standalone/studio-link-standalone .
 
-# Testing and prepare release upload
+# Testing and collect artifacts
 #-----------------------------------------------------------------------------
-s3_path="s3_upload/$GIT_BRANCH/$version_t/$BUILD_TARGET"
-mkdir -p $s3_path
 
 if [ "$BUILD_TARGET" == "linux" ] || [ "$BUILD_TARGET" == "linuxjack" ]; then
     # only system/audio server libs should be dynamic
@@ -89,7 +87,7 @@ if [ "$BUILD_TARGET" == "linux" ] || [ "$BUILD_TARGET" == "linuxjack" ]; then
     tar -czf studio-link-standalone-$version_tc.tar.gz \
         studio-link-standalone-$version_tc
 
-    cp -a studio-link-standalone-$version_tc.tar.gz $s3_path
+    cp -a studio-link-standalone-$version_tc.tar.gz $artifacts
 fi
 
 # DAW plugins (one zip per variant with all formats)
@@ -108,7 +106,7 @@ if [ -n "$plugin_formats" ]; then
 
         rm -f $zip_name.zip
         (cd $variant/plugins && zip -qr ../../$zip_name.zip .)
-        cp -a $zip_name.zip $s3_path
+        cp -a $zip_name.zip $artifacts
     done
 fi
 
@@ -116,5 +114,5 @@ if [ "$BUILD_OS" == "macos" ]; then
     otool -L studio-link-standalone
     strip studio-link-standalone
     zip -r studio-link-standalone-$version_t.zip studio-link-standalone
-    cp -a studio-link-standalone-$version_t.zip $s3_path
+    cp -a studio-link-standalone-$version_t.zip $artifacts
 fi

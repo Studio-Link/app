@@ -5,8 +5,6 @@
 # NOTE: not tested yet after the baresip 4.x / PortAudio migration
 #
 
-export PATH="$PATH:/usr/bin/core_perl"
-
 source dist/lib/versions.sh
 source dist/lib/functions.sh
 
@@ -36,8 +34,17 @@ if [ ! -d baresip-$baresip ]; then
     sl_get_baresip
 fi
 
+# Debian/Ubuntu ship win32 and posix thread variants of mingw-w64, use the
+# posix one (like Arch/MSYS2, the 3rdparty prebuilds need libwinpthread)
+_cc="$_arch-gcc"
+_cxx="$_arch-g++"
+if command -v $_arch-gcc-posix > /dev/null; then
+    _cc="$_arch-gcc-posix"
+    _cxx="$_arch-g++-posix"
+fi
+
 mingw_args="-DCMAKE_SYSTEM_NAME=Windows -DCMAKE_SYSTEM_PROCESSOR=$_proc"
-mingw_args+=" -DCMAKE_C_COMPILER=$_arch-gcc -DCMAKE_CXX_COMPILER=$_arch-g++"
+mingw_args+=" -DCMAKE_C_COMPILER=$_cc -DCMAKE_CXX_COMPILER=$_cxx"
 mingw_args+=" -DCMAKE_RC_COMPILER=$_arch-windres"
 mingw_args+=" -DCMAKE_FIND_ROOT_PATH=/usr/$_arch"
 mingw_args+=" -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER"
@@ -59,7 +66,5 @@ $_arch-strip --strip-all studio-link-standalone.exe
 # DAW plugins (src/plugin, CLAP/VST3 via clap-wrapper) are not built for
 # Windows yet, the MinGW cross build of clap-wrapper/VST3 SDK is untested
 
-s3_path="s3_upload/$GIT_BRANCH/$version_t/$BUILD_TARGET"
-mkdir -p $s3_path
-cp -a studio-link-standalone.exe $s3_path/studio-link-standalone-$version_t.exe
-cp -a studio-link-debug.zip $s3_path
+cp -a studio-link-standalone.exe $artifacts/studio-link-standalone-$version_t.exe
+cp -a studio-link-debug.zip $artifacts

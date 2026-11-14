@@ -14,12 +14,9 @@ sl_prepare() {
     mkdir -p build;
     pushd build
 
-
-    if [ -z "${GITHUB_REF}" ]; then
-        GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    else
-        GIT_BRANCH=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
-    fi
+    # release files of this target, uploaded by CI (actions/upload-artifact)
+    artifacts="artifacts/$BUILD_TARGET"
+    mkdir -p $artifacts
 
     SHASUM=$(which shasum)
 }
@@ -35,9 +32,13 @@ sl_3rdparty() {
 }
 
 sl_get_webui() {
-    s3_path="$GIT_BRANCH/$version_t"
-    wget https://download.studio.link/devel/$s3_path/webui.zip
-    unzip webui.zip
+    # CI: webui.zip is provided by the webui job (download-artifact),
+    # otherwise build it locally
+    if [ -f webui.zip ]; then
+        unzip -o webui.zip
+    else
+        sl_build_webui
+    fi
     mkdir -p ../src/modules/webapp/assets
     cp -a webui/headers/*.h ../src/modules/webapp/assets/
 }
@@ -60,9 +61,6 @@ sl_get_libre() {
         -O re-${re}.tar.gz
     tar --no-same-owner -xzf re-${re}.tar.gz
     ln -sfn re-$re re
-    pushd re
-    patch --ignore-whitespace -p1 < ../../dist/patches/re_${re}_studiolink.patch
-    popd
 }
 
 sl_get_baresip() {
