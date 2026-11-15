@@ -92,6 +92,7 @@ void webapp_sessions_init(void);
 void webapp_sessions_close(void);
 int webapp_session_delete(char * const sess_id, struct call *call);
 int8_t webapp_call_update(struct call *call, char *state);
+void webapp_call_error(const char *dial, int err);
 int webapp_session_stop_stream(void);
 struct call* webapp_session_get_call(char * const sess_id);
 bool webapp_session_available(void);

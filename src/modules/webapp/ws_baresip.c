@@ -56,8 +56,12 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 				goto out;
 			}
 
-			sl_ua_connect(webapp_ua_current(), &call,
+			err = sl_ua_connect(webapp_ua_current(), &call,
 					odict_entry_str(e));
+			if (err) {
+				webapp_call_error(odict_entry_str(e), err);
+				goto out;
+			}
 			webapp_call_update(call, "Outgoing");
 		}
 	}

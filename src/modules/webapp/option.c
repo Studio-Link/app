@@ -192,10 +192,12 @@ void webapp_options_set(char *key, char *value)
 				warning("webapp/option: could not open %s\n",
 					command);
 
-			sl_ua_connect(webapp_get_main_ua(), &call,
+			err = sl_ua_connect(webapp_get_main_ua(), &call,
 					"stream@studio.link");
-
-			webapp_call_update(call, "Outgoing");
+			if (err)
+				webapp_call_error("stream@studio.link", err);
+			else
+				webapp_call_update(call, "Outgoing");
 		}
 	}
 #endif

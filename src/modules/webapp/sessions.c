@@ -19,9 +19,35 @@ static void stream_check(void *arg)
 	/* reconnect stream if active */
 	if (sess->stream && streaming) {
 		info("webapp/stream_check: reconnect\n");
-		sl_ua_connect(webapp_get_main_ua(), &sess->call,
-				"stream@studio.link");
+		int err = sl_ua_connect(webapp_get_main_ua(), &sess->call,
+					"stream@studio.link");
+		if (err)
+			webapp_call_error("stream@studio.link", err);
 	}
+}
+
+
+/**
+ * Report a failed outgoing call to the webui (shown as notification)
+ *
+ * @param dial Dial string or SIP URI
+ * @param err  Error code
+ */
+void webapp_call_error(const char *dial, int err)
+{
+	struct odict *o = NULL;
+	char msg[256];
+
+	if (odict_alloc(&o, 4))
+		return;
+
+	re_snprintf(msg, sizeof(msg), "%s: %m", dial, err);
+
+	odict_entry_add(o, "callback", ODICT_STRING, "CLOSED");
+	odict_entry_add(o, "message", ODICT_STRING, msg);
+	ws_send_json(WS_CALLS, o);
+
+	mem_deref(o);
 }
 
 
