@@ -3,7 +3,6 @@
 #define SLVERSION "dev"
 #endif
 #ifndef SLPLUGIN
-#include <pthread.h>
 #include "FLAC/stream_encoder.h"
 #endif
 
@@ -76,7 +75,7 @@ struct session {
 #else
 	bool run_record;
 	struct aubuf *aubuf;
-	pthread_t record_thread;
+	thrd_t record_thread;
 	FLAC__StreamEncoder *flac;
 	int16_t *sampv;
 	FLAC__int32 *pcm;

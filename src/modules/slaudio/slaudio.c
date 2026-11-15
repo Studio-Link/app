@@ -164,15 +164,10 @@ static void sess_destruct(void *arg)
 	if (sess->run_record)
 	{
 		sess->run_record = false;
-		(void)pthread_join(sess->record_thread, NULL);
+		(void)thrd_join(sess->record_thread, NULL);
 	}
 
-	if (sess->flac)
-	{
-		FLAC__stream_encoder_finish(sess->flac);
-		FLAC__stream_encoder_delete(sess->flac);
-		sess->flac = NULL;
-	}
+	slaudio_record_closefile(sess);
 
 	mem_deref(sess->sampv);
 	mem_deref(sess->pcm);
@@ -186,6 +181,26 @@ static void sess_destruct(void *arg)
 const struct odict *slaudio_get_interfaces(void)
 {
 	return (const struct odict *)interfaces;
+}
+
+
+/* Main thread: true if the audio callbacks may run */
+bool slaudio_audio_running(void)
+{
+	return slaudio != NULL;
+}
+
+
+/* Main thread: show an error message in the audio interface settings */
+void slaudio_error_set(const char *msg)
+{
+	if (!interfaces || !msg)
+		return;
+
+	str_ncpy(error_msg, msg, sizeof(error_msg));
+	odict_entry_del(interfaces, "error_msg");
+	odict_entry_add(interfaces, "error_msg", ODICT_STRING, error_msg);
+	webapp_ws_rtaudio_sync();
 }
 
 
@@ -838,6 +853,7 @@ static void process_input(const float *in, unsigned long nframes)
 	SRC_DATA src_data_out;
 	struct auframe af;
 	static uint64_t frames = 0;
+	bool record;
 
 	if (!nframes)
 		return;
@@ -909,10 +925,13 @@ static void process_input(const float *in, unsigned long nframes)
 
 	mtx_lock(sess_lock);
 
+	/* same period for all tracks (sample aligned recording) */
+	record = slaudio_record_period(samples);
+
 	for (le = sessionl.head; le; le = le->next)
 	{
 		sess = le->data;
-		if (sess->local)
+		if (sess->local && record)
 		{
 			/* write local audio to flac record buffer */
 			(void)aubuf_write_samp(sess->aubuf,
@@ -950,8 +969,9 @@ static void process_input(const float *in, unsigned long nframes)
 			continue;
 
 		if (!sess->run_play) {
-			(void)aubuf_write_samp(sess->aubuf, empty_buffer,
-					samples);
+			if (record)
+				(void)aubuf_write_samp(sess->aubuf,
+						empty_buffer, samples);
 			continue;
 		}
 
@@ -969,7 +989,9 @@ static void process_input(const float *in, unsigned long nframes)
 		}
 
 		/* write remote streams to flac record buffer */
-		(void)aubuf_write_samp(sess->aubuf, st_play->sampv, samples);
+		if (record)
+			(void)aubuf_write_samp(sess->aubuf, st_play->sampv,
+					samples);
 
 		/* vumeter */
 		if (!sess->stream) {
@@ -1281,6 +1303,9 @@ static int slaudio_stop(void)
 {
 	slaudio = mem_deref(slaudio);
 
+	/* no audio period can finish a requested record stop anymore */
+	slaudio_record_audio_stopped();
+
 	if (src_state_in)
 		src_state_in = src_delete(src_state_in);
 
@@ -1443,6 +1468,8 @@ static int slaudio_close(void)
 		Pa_Terminate();
 		pa_initialized = false;
 	}
+
+	slaudio_record_close();
 
 	re_atomic_rlx_set(&sl_debug.changed, true);
 	slaudio_debug(NULL);

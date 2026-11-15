@@ -1,5 +1,6 @@
-#include <pthread.h>
 #include <FLAC/stream_encoder.h>
+
+struct session;
 
 extern struct list sessionl;
 void slaudio_record_init(void);
@@ -18,3 +19,13 @@ void slaudio_set_input(int value);
 void slaudio_set_first_input_channel(int value);
 void slaudio_set_output(int value);
 int slaudio_reset(void);
+
+/* record.c */
+bool slaudio_record_period(size_t samples);
+void slaudio_record_audio_stopped(void);
+void slaudio_record_close(void);
+void slaudio_record_closefile(struct session *sess);
+
+/* slaudio.c */
+bool slaudio_audio_running(void);
+void slaudio_error_set(const char *msg);
