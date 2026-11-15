@@ -16,7 +16,9 @@ sl_prepare() {
     pushd build
 
     # release files of this target, uploaded by CI (actions/upload-artifact)
+    # (cleared, no stale zips of older versions)
     artifacts="artifacts/$BUILD_TARGET"
+    rm -rf $artifacts
     mkdir -p $artifacts
 }
 

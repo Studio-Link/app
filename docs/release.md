@@ -36,10 +36,11 @@ APP_ENT=src/standalone/macos/StudioLink.entitlements   # from the app repo
 
 From the CI run (Actions > run > Artifacts):
 
-- `studio-link-macos_universal`: `studio-link-standalone-<version>.zip`
-  (universal StudioLink.app)
-- `studio-link-macos_arm64`, `studio-link-macos_x86_64`:
-  `studio-link-plugin.zip`, `studio-link-plugin-onair.zip` (per architecture)
+- `studio-link-macos_universal` (universal arm64 + x86_64):
+  `studio-link-standalone-<version>.zip` (StudioLink.app),
+  `studio-link-plugin.zip`, `studio-link-plugin-onair.zip`
+- `studio-link-macos_arm64`, `studio-link-macos_x86_64`: the single
+  architecture inputs of the merge, not released
 
 Or build locally: `dist/build_macos_universal.sh` (result in
 `build/artifacts/`).
@@ -96,7 +97,7 @@ ditto -c -k --keepParent StudioLink.app studio-link-standalone-<version>.zip
 
 ## 3. DAW plugins (CLAP, VST3, AUv2)
 
-Per architecture zip (`studio-link-plugin.zip`: `StudioLink.clap`,
+Universal zips (`studio-link-plugin.zip`: `StudioLink.clap`,
 `StudioLink.vst3`, `StudioLink.component`; `studio-link-plugin-onair.zip`:
 `StudioLinkOnAir.*`). The plugins need no entitlements (the microphone
 permission belongs to the DAW).
@@ -104,6 +105,7 @@ permission belongs to the DAW).
 ```bash
 mkdir plugin && ditto -x -k ../studio-link-plugin.zip plugin
 xattr -dr com.apple.quarantine plugin
+lipo -info plugin/*/Contents/MacOS/*   # x86_64 arm64
 
 for b in plugin/*.clap plugin/*.vst3 plugin/*.component; do
     codesign --force --options runtime --timestamp --sign "$ID" "$b"
@@ -119,7 +121,8 @@ for b in plugin/*.clap plugin/*.vst3 plugin/*.component; do
 done
 
 rm plugin-notarize.zip
-(cd plugin && ditto -c -k . ../../studio-link-plugin-<arch>.zip)
+# signed release zip next to StudioLink.app (not over the CI input)
+(cd plugin && ditto -c -k . ../studio-link-plugin.zip)
 ```
 
 Same for `studio-link-plugin-onair.zip`. Notes:

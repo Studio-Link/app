@@ -65,16 +65,21 @@ if [ -n "$SL_SKIP_PLUGINS" ]; then
     plugin_formats=""
 fi
 
+# macOS: own build dirs per architecture (the Swift target and
+# CMAKE_OSX_ARCHITECTURES are fixed at configure, dist/build_macos_universal.sh
+# builds both architectures in the same tree)
+dir_suffix=""
 if [ "$BUILD_OS" == "macos" ]; then
-    # own build dir per architecture (Swift target is fixed at configure)
-    SL_VARIANT_DIR=standalone_$BUILD_TARGET \
-        sl_cmake_variant standalone $cmake_extra "${standalone_extra[@]}"
-else
-    sl_cmake_variant standalone $cmake_extra
+    dir_suffix="_$BUILD_TARGET"
 fi
-# DAW plugins, output in plugin/plugins and onair/plugins
-sl_cmake_variant plugin $cmake_extra "-DSL_PLUGIN_FORMATS=$plugin_formats"
-sl_cmake_variant onair $cmake_extra "-DSL_PLUGIN_FORMATS=$plugin_formats"
+
+SL_VARIANT_DIR=standalone$dir_suffix \
+    sl_cmake_variant standalone $cmake_extra "${standalone_extra[@]}"
+# DAW plugins, output in plugin<suffix>/plugins and onair<suffix>/plugins
+SL_VARIANT_DIR=plugin$dir_suffix \
+    sl_cmake_variant plugin $cmake_extra "-DSL_PLUGIN_FORMATS=$plugin_formats"
+SL_VARIANT_DIR=onair$dir_suffix \
+    sl_cmake_variant onair $cmake_extra "-DSL_PLUGIN_FORMATS=$plugin_formats"
 
 if [ "$BUILD_OS" != "macos" ]; then
     cp -a standalone/studio-link-standalone .
@@ -110,15 +115,18 @@ if [ -n "$plugin_formats" ]; then
         zip_name=studio-link-plugin
         [ "$variant" == "onair" ] && zip_name=studio-link-plugin-onair
 
+        plugins=$variant$dir_suffix/plugins
+
         if [ "$BUILD_OS" == "linux" ]; then
-            find $variant/plugins -type f -name "*.so" \
+            find $plugins -type f -name "*.so" \
                 -exec strip --strip-unneeded {} \;
-            find $variant/plugins -type f -name "*.clap" \
+            find $plugins -type f -name "*.clap" \
                 -exec strip --strip-unneeded {} \;
         fi
 
         rm -f $zip_name.zip
-        (cd $variant/plugins && zip -qr ../../$zip_name.zip .)
+        # macOS: per architecture, merged by dist/macos_universal.sh
+        (cd $plugins && zip -qr ../../$zip_name.zip .)
         cp -a $zip_name.zip $artifacts
     done
 fi
@@ -128,7 +136,7 @@ if [ "$BUILD_OS" == "macos" ]; then
     arch=${BUILD_TARGET#macos_}
     app=StudioLink.app
     rm -rf $app
-    cp -a standalone_$BUILD_TARGET/$app .
+    cp -a standalone$dir_suffix/$app .
     otool -L $app/Contents/MacOS/StudioLink
     # macOS 11 has no Swift concurrency runtime (not bundled)
     if otool -L $app/Contents/MacOS/StudioLink | grep -q libswift_Concurrency; then

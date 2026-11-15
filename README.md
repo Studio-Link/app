@@ -127,14 +127,16 @@ signed, releases are signed and notarized manually, see
 [docs/release.md](docs/release.md).
 
 The 3rdparty libraries are built per architecture, so `dist/build.sh`
-builds a single architecture app
-(`build/artifacts/<target>/studio-link-standalone-<version>-<arch>.zip`).
-The universal app (arm64 + x86_64) is merged with `lipo`:
+builds a single architecture app and plugins
+(`build/artifacts/<target>/studio-link-standalone-<version>-<arch>.zip`,
+`studio-link-plugin.zip`, `studio-link-plugin-onair.zip`). The universal
+app and plugins (arm64 + x86_64) are merged with `lipo`:
 
 ```bash
 dist/build_macos_universal.sh   # builds both, needs the 3rdparty zips of both
 # or merge existing builds (as CI does in the macos_universal job):
-dist/macos_universal.sh <arm64 zip> <x86_64 zip> build/artifacts/macos_universal
+dist/macos_universal.sh build/artifacts/macos_arm64 build/artifacts/macos_x86_64 \
+    build/artifacts/macos_universal
 ```
 
 Command line options work with the binary inside the bundle, e.g.

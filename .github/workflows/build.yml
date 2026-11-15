@@ -96,7 +96,7 @@ jobs:
         path: build/artifacts/${{ matrix.target }}/
         if-no-files-found: error
 
-  # one universal StudioLink.app from the arm64 and x86_64 builds
+  # universal StudioLink.app and DAW plugins from the arm64 and x86_64 builds
   macos_universal:
     needs: build
     runs-on: macos-15
@@ -121,9 +121,7 @@ jobs:
 
     - name: merge
       run: |
-        ./dist/macos_universal.sh \
-          dl/arm64/studio-link-standalone-*-arm64.zip \
-          dl/x86_64/studio-link-standalone-*-x86_64.zip \
+        ./dist/macos_universal.sh dl/arm64 dl/x86_64 \
           build/artifacts/macos_universal
 
     - uses: actions/upload-artifact@v7
