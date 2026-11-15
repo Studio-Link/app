@@ -268,10 +268,11 @@ label,
 	}
 }
 
-.sl-tracks,
-.sl-tracks-inline {
-	display: flex;
-	flex-wrap: wrap;
+/* Columns are at least 340px and share the leftover width, so the row
+ * always ends flush with the right edge instead of leaving a gap */
+.sl-tracks {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
 	gap: 1.5rem;
 }
 
@@ -282,8 +283,7 @@ label,
 .sl-track {
 	display: flex;
 	flex-direction: column;
-	width: 340px;
-	max-width: 100%;
+	min-width: 0;
 	padding: 1rem 1.25rem;
 	background: $card-bg;
 	border-radius: $border-radius;
