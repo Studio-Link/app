@@ -156,6 +156,8 @@ static int template_print(struct re_printf *pf, void *arg)
 		"opus_bitrate\t\t64000\t# 6000-510000\n"
 		"opus_application\taudio\t# {voip,audio}\n"
 		"opus_samplerate\t\t48000\n"
+		"opus_inbandfec\t\tyes\n"
+		"opus_packet_loss\t10\t# 0-100 percent\n"
 		"\n",
 		SL_MAX_CALLS);
 
