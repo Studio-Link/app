@@ -103,6 +103,11 @@ char error_msg[512] = {0};
 
 static int16_t startup_count = 0;
 
+/* Protects the session audio state (st_src, st_play, dstmix, run_src,
+ * run_play) shared between the PortAudio input callback and the main
+ * thread (ausrc/auplay alloc and destruct). */
+static mtx_t *sess_lock;
+
 static struct sl_debug {
 	RE_ATOMIC uint64_t out_ur;
 	RE_ATOMIC uint64_t in_or;
@@ -253,14 +258,20 @@ void slaudio_set_driver(int value)
 	output = -1;
 	input = -1;
 	first_input_channel = 0;
+	fatal_error = false;
 	slaudio_reset();
 }
 
 
+/*
+ * An explicit user selection clears fatal_error, otherwise slaudio_reset()
+ * would discard it and fall back to the (maybe broken) default devices.
+ */
 void slaudio_set_input(int value)
 {
 	input = value;
 	first_input_channel = 0;
+	fatal_error = false;
 	slaudio_reset();
 }
 
@@ -268,6 +279,7 @@ void slaudio_set_input(int value)
 void slaudio_set_first_input_channel(int value)
 {
 	first_input_channel = value;
+	fatal_error = false;
 	slaudio_reset();
 }
 
@@ -275,6 +287,7 @@ void slaudio_set_first_input_channel(int value)
 void slaudio_set_output(int value)
 {
 	output = value;
+	fatal_error = false;
 	slaudio_reset();
 }
 
@@ -344,8 +357,15 @@ static void ausrc_destructor(void *arg)
 	struct ausrc_st *st = arg;
 	struct session *sess = st->sess;
 	info("slaudio: destruct ausrc\n");
-	sess->run_src = false;
-	sys_msleep(20);
+
+	/* waits for a running input callback to finish */
+	mtx_lock(sess_lock);
+	if (sess->st_src == st) {
+		sess->run_src = false;
+		sess->st_src = NULL;
+	}
+	mtx_unlock(sess_lock);
+
 	mem_deref(st->sampv);
 }
 
@@ -354,11 +374,21 @@ static void auplay_destructor(void *arg)
 {
 	struct auplay_st *st = arg;
 	struct session *sess = st->sess;
+	int32_t *dstmix = NULL;
 	info("slaudio: destruct auplay\n");
-	sess->run_play = false;
-	sys_msleep(20);
+
+	/* waits for a running input callback to finish */
+	mtx_lock(sess_lock);
+	if (sess->st_play == st) {
+		sess->run_play = false;
+		sess->st_play = NULL;
+		dstmix = sess->dstmix;
+		sess->dstmix = NULL;
+	}
+	mtx_unlock(sess_lock);
+
+	mem_deref(dstmix);
 	mem_deref(st->sampv);
-	sess->dstmix = mem_deref(sess->dstmix);
 }
 
 
@@ -414,9 +444,13 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 		return ENOMEM;
 	}
 
+	st_src->run = true;
+
+	mtx_lock(sess_lock);
 	sess->st_src = st_src;
 	sess->run_src = true;
-	st_src->run = true;
+	mtx_unlock(sess_lock);
+
 	*stp = st_src;
 
 	return 0;
@@ -429,6 +463,7 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 {
 	struct auplay_st *st_play = NULL;
 	struct session *sess = NULL;
+	int32_t *dstmix;
 	struct le *le;
 	(void)device;
 	(void)ap;
@@ -467,15 +502,21 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 	st_play->prm = *prm;
 	st_play->sampc = prm->srate * prm->ch * prm->ptime / 1000;
 	st_play->sampv = mem_zalloc(sizeof(int16_t) * BUFFER_LEN, NULL);
-	sess->dstmix = mem_zalloc(sizeof(int32_t) * BUFFER_LEN, NULL);
-	if (!st_play->sampv || !sess->dstmix) {
+	dstmix = mem_zalloc(sizeof(int32_t) * BUFFER_LEN, NULL);
+	if (!st_play->sampv || !dstmix) {
+		mem_deref(dstmix);
 		mem_deref(st_play);
 		return ENOMEM;
 	}
 
+	st_play->run = true;
+
+	mtx_lock(sess_lock);
+	sess->dstmix = dstmix;
 	sess->st_play = st_play;
 	sess->run_play = true;
-	st_play->run = true;
+	mtx_unlock(sess_lock);
+
 	*stp = st_play;
 
 	return 0;
@@ -866,6 +907,8 @@ static void process_input(const float *in, unsigned long nframes)
 	if (!samples)
 		return;
 
+	mtx_lock(sess_lock);
+
 	for (le = sessionl.head; le; le = le->next)
 	{
 		sess = le->data;
@@ -1003,6 +1046,8 @@ static void process_input(const float *in, unsigned long nframes)
 			st_src->rh(&af, st_src->arg);
 		}
 	}
+
+	mtx_unlock(sess_lock);
 
 	frames += samples / 2;
 
@@ -1306,6 +1351,10 @@ static int slaudio_init(void)
 	if (err)
 		return ENOMEM;
 
+	err = mutex_alloc(&sess_lock);
+	if (err)
+		return err;
+
 	playmix = mem_zalloc(sizeof(int16_t) * BUFFER_LEN, NULL);
 	if (!playmix)
 		return ENOMEM;
@@ -1412,6 +1461,7 @@ static int slaudio_close(void)
 
 	playmix = mem_deref(playmix);
 	empty_buffer = mem_deref(empty_buffer);
+	sess_lock = mem_deref(sess_lock);
 
 #ifdef WIN32
 	timeEndPeriod(1);
