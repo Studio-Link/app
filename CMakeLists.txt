@@ -56,6 +56,17 @@ set(CMAKE_DISABLE_FIND_PACKAGE_ZLIB ON)
 
 find_package(Threads REQUIRED)
 
+# Compiler warnings for the Studio Link sources outside of the baresip
+# modules (those get baresip's warning flags). Only C/C++: the macOS
+# standalone target also has Swift sources.
+function(sl_enable_warnings target)
+  if(NOT MSVC)
+    target_compile_options(${target} PRIVATE
+      $<$<COMPILE_LANGUAGE:C,CXX>:-Wall>
+      $<$<COMPILE_LANGUAGE:C,CXX>:-Wextra>)
+  endif()
+endfunction()
+
 
 ##############################################################################
 #
@@ -236,6 +247,7 @@ add_library(slcacert STATIC
   "${CMAKE_BINARY_DIR}/sl_cacert_data.c")
 target_include_directories(slcacert PUBLIC src/core)
 target_link_libraries(slcacert PUBLIC re)
+sl_enable_warnings(slcacert)
 # all Studio Link modules can use it
 target_link_libraries(sl_common INTERFACE slcacert)
 
@@ -267,6 +279,7 @@ add_library(slcore STATIC
   src/core/slplugin.c src/core/slplugin.h)
 target_include_directories(slcore PUBLIC src/core)
 target_link_libraries(slcore PUBLIC baresip re sl_common)
+sl_enable_warnings(slcore)
 
 
 ##############################################################################
@@ -282,6 +295,7 @@ if(SL_VARIANT STREQUAL "standalone")
     add_executable(studio-link-standalone src/standalone/main.c)
   endif()
   target_link_libraries(studio-link-standalone PRIVATE slcore baresip)
+  sl_enable_warnings(studio-link-standalone)
   if(WIN32)
     # GUI subsystem (no console window), tray icon, icon/version resources
     enable_language(RC)

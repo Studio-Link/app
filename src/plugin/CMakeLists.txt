@@ -64,6 +64,7 @@ if(_clap_formats)
     SL_ONAIR=${_onair}
     SL_PLUGIN_VERSION="${PROJECT_VERSION}")
   target_link_libraries(sl_clap_impl PUBLIC clap slcore baresip)
+  sl_enable_warnings(sl_clap_impl)
   if(_sl_link_private)
     target_link_options(sl_clap_impl INTERFACE ${_sl_link_private})
   endif()
@@ -84,6 +85,13 @@ if(_clap_formats)
     AUV2_MANUFACTURER_CODE ITSR
     AUV2_SUBTYPE_CODE ${_au_subtype}
     AUV2_INSTRUMENT_TYPE aufx)
+
+  # the entry point is compiled into the clap-wrapper targets, only warn
+  # for our file there, not for the wrapper/SDK sources
+  if(NOT MSVC)
+    set_source_files_properties(clap/sl_clap_entry.cpp PROPERTIES
+      COMPILE_OPTIONS "-Wall;-Wextra")
+  endif()
 
   if(MINGW AND TARGET ${_name}_vst3)
     # clap-wrapper only sets the .vst3 suffix, MinGW would add a lib prefix
@@ -107,6 +115,7 @@ if(LV2 IN_LIST SL_PLUGIN_FORMATS)
   add_library(sl_lv2 MODULE lv2/sl_lv2.c)
   target_compile_definitions(sl_lv2 PRIVATE SL_ONAIR=${_onair})
   target_link_libraries(sl_lv2 PRIVATE slcore baresip)
+  sl_enable_warnings(sl_lv2)
   if(_sl_link_private)
     target_link_options(sl_lv2 PRIVATE ${_sl_link_private})
   endif()
