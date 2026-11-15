@@ -2,7 +2,7 @@ import addsip from "../templates/addsip.handlebars";
 import editsip from "../templates/editsip.handlebars";
 import listsip from "../templates/listsip.handlebars";
 import currentlist from "../templates/currentlist.handlebars";
-import { qs, qsa, on, onEnter, dialog, notify, serializeForm, validateForm } from "../ui.js";
+import { qs, qsa, on, render, onEnter, dialog, notify, serializeForm, validateForm } from "../ui.js";
 'use strict';
 window.ws_baresip_init = function() {
 	
@@ -133,7 +133,7 @@ window.ws_baresip_init = function() {
 
 
 		ws_baresip_sip_accounts = msg;
-		qs("#accounts").innerHTML = listsip(ws_baresip_sip_accounts);
+		render(qs("#accounts"), listsip(ws_baresip_sip_accounts));
 
 		qs("#current_uag").innerHTML = currentlist(ws_baresip_sip_accounts);
 
@@ -145,14 +145,14 @@ window.ws_baresip_init = function() {
 			var user = ws_baresip_sip_accounts[key]['user'];
 			var state = ws_baresip_sip_accounts[key]['status'];
 			if (state) {
-				var state_html = '<span class="badge text-bg-success">OK</span>';
+				var state_html = '<span class="sl-online">ONLINE</span>';
 			} else {
-				var state_html = '<span class="badge text-bg-danger">ERROR</span>';
+				var state_html = '<span class="sl-offline">OFFLINE</span>';
 			}
 
 			if (domain == "studio.link") {
 				var siphtml = user+"@"+domain;
-				var sipstatus = "<b>Status:</b> "+state_html;
+				var sipstatus = state_html;
 				qs("#sipid").innerHTML = siphtml;
 				qs("#sipstatus").innerHTML = sipstatus;
 			}

@@ -1,5 +1,5 @@
 import hoptions from "../templates/options.handlebars";
-import { qs, on } from "../ui.js";
+import { qs, on, render } from "../ui.js";
 "use strict";
 
 // Settings shown in the Options tab (labels in options.handlebars)
@@ -20,6 +20,7 @@ window.ws_options_init = function() {
     if (!btn) return;
     btn.classList.toggle(activeClass, active);
     btn.classList.toggle(inactiveClass, !active);
+    btn.setAttribute("aria-pressed", active ? "true" : "false");
   }
 
 
@@ -56,7 +57,7 @@ window.ws_options_init = function() {
   }
 
   function RefreshMute() {
-    toggleButton("#btn-mute", mute, "btn-danger", "btn-primary");
+    toggleButton("#btn-mute", mute, "btn-danger", "btn-secondary");
   }
 
   // DAW plugin only: host sample rate, Studio Link needs 48 kHz
@@ -137,7 +138,7 @@ window.ws_options_init = function() {
       if (key in msg) settings[key] = msg[key];
     });
 
-    qs("#options").innerHTML = hoptions(settings);
+    render(qs("#options"), hoptions(settings));
 
     RefreshEventListener();
   };

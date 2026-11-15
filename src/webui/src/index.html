@@ -3,7 +3,10 @@
 	<head>
 		<!-- Required meta tags -->
 		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<link rel="preload" href="/fonts/roboto-mono-400.woff2" as="font" type="font/woff2" crossorigin>
+		<link rel="preload" href="/fonts/roboto-mono-700.woff2" as="font" type="font/woff2" crossorigin>
 
 		<!-- Bootstrap CSS -->
 		<link rel="stylesheet" href="/app.css">
@@ -11,125 +14,128 @@
 		<title>Studio Link</title>
 	</head>
 	<body>
-		<div id="app" class="container">
-			<div class="row mt-2">
-				<div class="col-12">
-					<h2 class="float-start">
-						<a href="/" class="logo" aria-label="Logo - Reload page">
-							<img src="/images/logo.svg" height="35px" aria-hidden="true"/>
-						</a>
-					</h2>
-					<div class="float-end">
-						<span id="version">Default</span> | <a href="https://doku.studio-link.de" target="_blank">Help</a>
-					</div>
-				</div>
-			</div>
-			<div class="row mt-2 d-none" id="samplerate-warning">
-				<div class="col-12">
-					<div class="alert alert-warning mb-0" role="alert">
-						<b>Wrong sample rate:</b> your DAW runs at <span id="samplerate-value"></span> Hz,
-						Studio Link needs 48000 Hz. Audio will drop out and play at the wrong pitch.
-						Set the project or audio device to 48 kHz.
-					</div>
-				</div>
-			</div>
-			<div class="row mt-2">
-				<div class="col-md-8">
-					<div class="card mb-3">
-						<div class="card-header">
-							<div class="float-start mt-1"><b>Audio</b></div>
-							<button id="btn-interface" class="btn btn-secondary btn-sm float-start ms-2 d-none" style="min-height: 35px;">
-								<i class="fa fa-cog" aria-hidden="true"></i> Interface
-							</button>
-							<button type="button" class="btn btn-secondary btn-sm float-end d-none" style="margin-left: 6px; min-height: 35px;" id="btn-record-folder" aria-label="open record folder">
-								<i class="far fa-folder-open" aria-hidden="true"></i>
-							</button>
-							<button type="button" class="btn btn-secondary btn-sm float-end d-none" style="margin-left: 6px; min-height: 35px;" id="btn-record">
-								<i class="far fa-dot-circle"></i> <b>Record <span id="record_time" style="font-family: Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">0:00:00:000</span></b>
-							</button>
-							<button class="btn btn-secondary btn-sm float-end d-none" style="margin-left: 6px; min-height: 35px;" id="btn-onair">
-								<i class="fa fa-rss" aria-hidden="true"></i> OnAir
-							</button>
-						</div>
-						<div id="panel-audio" class="card-body">
-							<div class="d-flex align-items-center" style="margin-bottom: 0.5rem">
-								<label>Your signal level</label>
-								<button id="btn-mute" type="button" class="btn btn-primary d-none" style="margin-left: 0.6rem">
-									<i class="fa fa-microphone-slash" aria-hidden="true"></i> 
-									<span class="d-none d-lg-inline">Mute</span>                                                                                  
-								</button>
-							</div>
-							<div id="microphonebar1" class="progress main-volume"></div>
-							<div id="microphonebar2" class="progress d-none"></div>
-							<div id="microphonebar3" class="progress d-none"></div>
-							<div id="microphonebar4" class="progress d-none"></div>
-							<div id="microphonebar5" class="progress d-none"></div>
-							<div id="microphonebar6" class="progress d-none"></div>
-							<div id="microphonebar7" class="progress d-none"></div>
-							<div id="microphonebar8" class="progress d-none"></div>
-							<div id="microphonebar9" class="progress d-none"></div>
-							<div id="microphonebar10" class="progress d-none"></div>
-						</div>
-					</div><!-- /card -->
-					<div class="card">
-						<div class="card-header">
-							<a role="button" data-bs-toggle="collapse" href="#card-settings"><b>More...</b></a>
-						</div>
-						<div id="card-settings" class="card-body collapse">
-							<ul class="nav nav-tabs mb-2" id="panel-settings" role="tablist">
-								<li class="nav-item">
-									<a class="nav-link active" id="contacts-tab" data-bs-toggle="tab" href="#contacts" role="tab" aria-controls="contacts" aria-selected="true">
-										<i class="fas fa-address-book" aria-hidden="true"></i> Contacts
-									</a>
-								</li>
-								<li class="nav-item">
-									<a class="nav-link" id="sip-account-tab" data-bs-toggle="tab" href="#accounts" role="tab" aria-controls="sip-accounts" aria-selected="false">
-										<i class="fas fa-phone-square" aria-hidden="true"></i> SIP Accounts
-									</a>
-								</li>
-								<li class="nav-item">
-									<a class="nav-link" id="sip-options-tab" data-bs-toggle="tab" href="#options" role="tab" aria-controls="options" aria-selected="false">
-										<i class="fa fa-cog" aria-hidden="true"></i> Options
-									</a>
-								</li>
-							</ul>
-							<div class="tab-content" id="card-settings-content">
-								<div class="tab-pane fade show active" id="contacts" role="tabpanel" aria-labelledby="contacts-tab"></div>
-								<div class="tab-pane fade" id="accounts" role="tabpanel" aria-labelledby="sip-account-tab"></div>
-								<div class="tab-pane fade" id="options" role="tabpanel" aria-labelledby="sip-options-tab"></div>
-							</div>
-						</div>
-					</div><!-- /card -->
-				</div><!-- /col-8 -->
-				<div class="col-md-4">
+		<a class="visually-hidden-focusable sl-skip" href="#app">Skip to main content</a>
 
-					<div class="card mb-1">
-						<div class="card-header">
-							<span id="sipstatus"><b>Status</b></span>
-						</div> 
-						<div class="card-body">
-							<ul class="list-unstyled" style="margin-bottom: 0px">
-								<li>Your ID:</li>
-								<li><span id="sipid"></span></li>
-							</ul>
-						</div> 
-					</div><!-- /card -->
-					<input type="email" class="form-control" id="sipnumbercall" placeholder="Enter Partner ID" autofocus>                                                                            
-					<select id="current_uag" class="form-select d-none"></select>
-					<div class="clearfix" style="margin: 3px"></div>
-					<div class="d-grid">
-						<button id="buttoncall" type="button" class="btn btn-primary btn-lg">
-							<i class="fa fa-phone" aria-hidden="true" style="transform: rotate(95deg);"></i> <b>Call</b>
+		<header class="sl-header">
+			<a href="/" class="logo" aria-label="Studio Link, reload page">
+				<img src="/images/logo.svg" height="22" alt=""/>
+			</a>
+			<nav class="sl-nav" aria-label="Main">
+				<a href="#tracks" aria-current="page">
+					<i class="fas fa-th-large" aria-hidden="true"></i> Tracks
+				</a>
+				<a href="#settings">
+					<i class="fa fa-cog" aria-hidden="true"></i> Settings
+				</a>
+				<a href="https://doku.studio-link.de" target="_blank" rel="noopener">
+					Help<span class="visually-hidden"> (opens in a new tab)</span>
+				</a>
+			</nav>
+		</header>
+
+		<main id="app" class="sl-main" tabindex="-1">
+			<h1 class="visually-hidden">Studio Link</h1>
+
+			<div class="d-none mb-3" id="samplerate-warning" role="alert">
+				<div class="alert alert-warning mb-0">
+					<b>Wrong sample rate:</b> your DAW runs at <span id="samplerate-value"></span> Hz,
+					Studio Link needs 48000 Hz. Audio will drop out and play at the wrong pitch.
+					Set the project or audio device to 48 kHz.
+				</div>
+			</div>
+
+			<div id="view-tracks" class="sl-view">
+				<h2 class="visually-hidden" id="view-tracks-title" tabindex="-1">Tracks</h2>
+
+				<p class="sl-account">
+					<span><span class="visually-hidden">Your ID: </span><span id="sipid"></span></span>
+					<span id="sipstatus" role="status"></span>
+				</p>
+
+				<div class="sl-tracks">
+					<!-- Local track -->
+					<section class="sl-track" id="panel-audio" aria-labelledby="track-local-title">
+						<div class="sl-track-head">
+							<h2 class="sl-track-heading" id="track-local-title">
+								<span class="sl-track-no"><span class="visually-hidden">Track </span>1</span>
+								<span class="sl-track-title">Local</span>
+							</h2>
+							<button type="button" id="btn-interface" class="btn btn-primary btn-sm ms-auto d-none">
+								<i class="fa fa-microphone" aria-hidden="true"></i> Interface
+							</button>
+						</div>
+						<div id="microphonebar1" class="progress main-volume" role="meter" aria-label="Input level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+						<div id="microphonebar2" class="progress d-none" role="meter" aria-label="Input level 2" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+						<div id="microphonebar3" class="progress d-none" role="meter" aria-label="Input level 3" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+						<div id="microphonebar4" class="progress d-none" role="meter" aria-label="Input level 4" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+						<div id="microphonebar5" class="progress d-none" role="meter" aria-label="Input level 5" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+						<div id="microphonebar6" class="progress d-none" role="meter" aria-label="Input level 6" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+						<div id="microphonebar7" class="progress d-none" role="meter" aria-label="Input level 7" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+						<div id="microphonebar8" class="progress d-none" role="meter" aria-label="Input level 8" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+						<div id="microphonebar9" class="progress d-none" role="meter" aria-label="Input level 9" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+						<div id="microphonebar10" class="progress d-none" role="meter" aria-label="Input level 10" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+					</section>
+
+					<!-- Remote tracks (active calls) -->
+					<div id="activecalls" class="sl-tracks-inline"></div>
+
+					<!-- New call -->
+					<section class="sl-track" aria-labelledby="newcall-title">
+						<h2 class="visually-hidden" id="newcall-title">New call</h2>
+						<label class="sl-label" for="sipnumbercall">Enter Partner ID</label>
+						<input type="text" class="form-control" id="sipnumbercall" placeholder="xyz@studio.link" autocomplete="off" spellcheck="false" autofocus>
+						<select id="current_uag" class="form-select mt-2 d-none" aria-label="Call from account"></select>
+						<button id="buttoncall" type="button" class="btn btn-primary mt-3">
+							<i class="fa fa-phone" aria-hidden="true" style="transform: rotate(95deg);"></i> Call
 						</button>
-					</div>
+					</section>
+				</div>
 
-					<hr style="margin-top: 10px;margin-bottom:13px"/>
+			</div><!-- /view-tracks -->
 
-					<div id="activecalls"></div>
+			<section id="view-settings" class="sl-view sl-settings" aria-labelledby="view-settings-title" hidden>
+				<h2 class="sl-view-title" id="view-settings-title" tabindex="-1">Settings</h2>
+				<ul class="nav nav-tabs mb-3" id="panel-settings" role="tablist">
+					<li class="nav-item" role="presentation">
+						<button type="button" class="nav-link active" id="contacts-tab" data-bs-toggle="tab" data-bs-target="#contacts" role="tab" aria-controls="contacts" aria-selected="true">
+							<i class="fas fa-address-book" aria-hidden="true"></i> Contacts
+						</button>
+					</li>
+					<li class="nav-item" role="presentation">
+						<button type="button" class="nav-link" id="sip-account-tab" data-bs-toggle="tab" data-bs-target="#accounts" role="tab" aria-controls="accounts" aria-selected="false">
+							<i class="fas fa-phone-square" aria-hidden="true"></i> SIP Accounts
+						</button>
+					</li>
+					<li class="nav-item" role="presentation">
+						<button type="button" class="nav-link" id="sip-options-tab" data-bs-toggle="tab" data-bs-target="#options" role="tab" aria-controls="options" aria-selected="false">
+							<i class="fa fa-cog" aria-hidden="true"></i> Options
+						</button>
+					</li>
+				</ul>
+				<div class="tab-content" id="settings-content">
+					<div class="tab-pane fade show active" id="contacts" role="tabpanel" aria-labelledby="contacts-tab" tabindex="0"></div>
+					<div class="tab-pane fade" id="accounts" role="tabpanel" aria-labelledby="sip-account-tab" tabindex="0"></div>
+					<div class="tab-pane fade" id="options" role="tabpanel" aria-labelledby="sip-options-tab" tabindex="0"></div>
+				</div>
+			</section>
+		</main>
 
-				</div><!-- /col-4 -->
-			</div><!-- /row -->
-		</div><!-- /container -->
+		<footer class="sl-footer">
+			<div class="sl-controls" role="group" aria-label="Session controls">
+				<button type="button" class="btn btn-secondary btn-small-round d-none" id="btn-onair" aria-label="OnAir" aria-pressed="false">
+					<i class="fa fa-rss" aria-hidden="true"></i>
+				</button>
+				<button id="btn-mute" type="button" class="btn btn-secondary btn-round d-none" aria-pressed="false">Mute</button>
+				<button type="button" class="btn btn-secondary btn-round d-none" id="btn-record" aria-label="Record" aria-pressed="false" aria-describedby="record_time">
+					Record
+					<span id="record_time">0:00:00</span>
+				</button>
+				<button type="button" class="btn btn-secondary btn-small-round d-none" id="btn-record-folder" aria-label="Open record folder">
+					<i class="far fa-folder-open" aria-hidden="true"></i>
+				</button>
+			</div>
+			<span id="version" class="sl-version"></span>
+		</footer>
 		<script src="/app.js"></script>
 	</body>
 </html>

@@ -1,7 +1,9 @@
 <button id="buttonaddcontact" type="button" class="btn btn-primary mb-2">
 	<i class="fa fa-user-plus" aria-hidden="true"></i> New Contact
 </button>
+<div class="table-responsive" role="region" aria-label="Contacts" tabindex="0">
 <table class="table table-striped">
+	<caption class="visually-hidden">Contacts</caption>
 	<thead>
 		<tr>
 			<th>Name</th>
@@ -15,8 +17,8 @@
 			<td>echo@studio.link</td>
 			<td>
 				<p>
-				<button data-sip="echo@studio.link" class="btn btn-success btn-sm callcontact">
-					<i class="fas fa-phone" aria-hidden="true"></i> Call
+				<button type="button" data-sip="echo@studio.link" class="btn btn-success btn-sm callcontact">
+					<i class="fas fa-phone" aria-hidden="true"></i> Call<span class="visually-hidden"> echo</span>
 				</button>
 				</p>
 			</td>
@@ -26,8 +28,8 @@
 			<td>music@studio.link</td>
 			<td>
 				<p>
-				<button data-sip="music@studio.link" class="btn btn-success btn-sm callcontact">
-					<i class="fas fa-phone" aria-hidden="true"></i> Call
+				<button type="button" data-sip="music@studio.link" class="btn btn-success btn-sm callcontact">
+					<i class="fas fa-phone" aria-hidden="true"></i> Call<span class="visually-hidden"> music</span>
 				</button>
 				</p>
 			</td>
@@ -37,8 +39,8 @@
 			<td>music1@studio.link</td>
 			<td>
 				<p>
-				<button data-sip="music1@studio.link" class="btn btn-success btn-sm callcontact">
-					<i class="fas fa-phone" aria-hidden="true"></i> Call
+				<button type="button" data-sip="music1@studio.link" class="btn btn-success btn-sm callcontact">
+					<i class="fas fa-phone" aria-hidden="true"></i> Call<span class="visually-hidden"> music1</span>
 				</button>
 				</p>
 			</td>
@@ -50,11 +52,11 @@
 			<td>{{sip}}</td>
 			<td>
 				<p>
-				<button data-sip="{{sip}}" class="btn btn-success btn-sm callcontact">
-					<i class="fas fa-phone" aria-hidden="true"></i> Call
+				<button type="button" data-sip="{{sip}}" class="btn btn-success btn-sm callcontact">
+					<i class="fas fa-phone" aria-hidden="true"></i> Call<span class="visually-hidden"> {{name}}</span>
 				</button>
-				<button data-sip="{{sip}}" class="btn btn-danger btn-sm delete-button deletecontact">
-					<i class="fas fa-trash-alt" aria-hidden="true"></i> Delete
+				<button type="button" data-sip="{{sip}}" class="btn btn-danger btn-sm delete-button deletecontact">
+					<i class="fas fa-trash-alt" aria-hidden="true"></i> Delete<span class="visually-hidden"> {{name}}</span>
 				</button>
 				</p>
 			</td>
@@ -62,3 +64,4 @@
 		{{/each}}
 	</tbody>
 </table>
+</div>

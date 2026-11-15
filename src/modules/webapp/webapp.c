@@ -11,6 +11,7 @@
 #include "assets/js.h"
 #include "assets/css.h"
 #include "assets/images.h"
+#include "assets/fonts.h"
 #include "webapp.h"
 #include <sllog.h>
 #include <slopen.h>
@@ -257,6 +258,27 @@ static void http_req_handler(struct http_conn *conn,
 		return;
 	}
 #endif
+	if (0 == pl_strcasecmp(&msg->path, "/fonts/roboto-mono-400.woff2")) {
+		http_sreply(conn, 200, "OK",
+				"font/woff2",
+				(const char*)dist_fonts_roboto_mono_400_woff2,
+				dist_fonts_roboto_mono_400_woff2_len);
+		return;
+	}
+	if (0 == pl_strcasecmp(&msg->path, "/fonts/roboto-mono-500.woff2")) {
+		http_sreply(conn, 200, "OK",
+				"font/woff2",
+				(const char*)dist_fonts_roboto_mono_500_woff2,
+				dist_fonts_roboto_mono_500_woff2_len);
+		return;
+	}
+	if (0 == pl_strcasecmp(&msg->path, "/fonts/roboto-mono-700.woff2")) {
+		http_sreply(conn, 200, "OK",
+				"font/woff2",
+				(const char*)dist_fonts_roboto_mono_700_woff2,
+				dist_fonts_roboto_mono_700_woff2_len);
+		return;
+	}
 	if (0 == pl_strcasecmp(&msg->path, "/app.css")) {
 		http_sreply(conn, 200, "OK",
 				"text/css",

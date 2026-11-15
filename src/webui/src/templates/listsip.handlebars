@@ -1,7 +1,9 @@
 <button id="buttonaddsip" type="button" class="btn btn-primary mb-2">
-	<i class="fas fa-plus-circle"></i> New Account
+	<i class="fas fa-plus-circle" aria-hidden="true"></i> New Account
 </button>
+<div class="table-responsive" role="region" aria-label="SIP accounts" tabindex="0">
 <table class="table table-striped">
+	<caption class="visually-hidden">SIP accounts</caption>
 	<thead>
 		<tr>
 			<th>Account</th>
@@ -20,9 +22,9 @@
 			{{/if}}
 			<td>
 				<p>
-				<button data-user="{{user}}" data-domain="{{domain}}" class="btn btn-primary btn-sm editsip"><i class="fas fa-edit"></i></button>
-				<button data-user="{{user}}" data-domain="{{domain}}" class="btn btn-danger btn-sm delete-button deletesip">
-					<i class="fas fa-trash-alt"></i>
+				<button type="button" data-user="{{user}}" data-domain="{{domain}}" class="btn btn-primary btn-sm editsip" aria-label="Edit {{user}}@{{domain}}" title="Edit"><i class="fas fa-edit" aria-hidden="true"></i></button>
+				<button type="button" data-user="{{user}}" data-domain="{{domain}}" class="btn btn-danger btn-sm delete-button deletesip" aria-label="Delete {{user}}@{{domain}}" title="Delete">
+					<i class="fas fa-trash-alt" aria-hidden="true"></i>
 				</button>
 				</p>
 			</td>
@@ -30,3 +32,4 @@
 		{{/each}}
 	</tbody>
 </table>
+</div>

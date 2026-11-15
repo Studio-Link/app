@@ -87,9 +87,10 @@ fetch("/version")
   .then((r) => r.text())
   .then(function(version) {
     const el = document.getElementById("version");
-    el.innerHTML = '<a href="#" id="changelog"></a>';
+    el.innerHTML = '<button type="button" class="btn btn-link p-0" id="changelog"></button>';
     const link = el.firstChild;
     link.textContent = version;
+    link.setAttribute("aria-label", version + ", show changelog");
     link.addEventListener("click", function(e) {
       e.preventDefault();
       alert({ message: changelog(), size: "large" });

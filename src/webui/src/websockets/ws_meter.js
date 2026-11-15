@@ -35,9 +35,12 @@ window.ws_meter_init = function() {
 		return "bg-success";
 	}
 
-	function progressbar(value) {
-		return '<div class="progress-bar ' + rainbow(value) + '" style="width: ' + value +
-			'%"> <span class="visually-hidden">' + value + '% Complete (success)</span></div>';
+	// The container has role="meter"; only its value is exposed to
+	// assistive technology, the bar itself is decorative.
+	function setMeter(el, value) {
+		el.innerHTML = '<div class="progress-bar ' + rainbow(value) +
+			'" style="width: ' + value + '%" aria-hidden="true"></div>';
+		el.setAttribute("aria-valuenow", Math.round(value));
 	}
 
 	var ws_meter = new WebSocket('ws://'+window.ws_host+'/ws_meter');
@@ -56,12 +59,12 @@ window.ws_meter_init = function() {
 			var micbar = document.getElementById("microphonebar" + ch);
 			if (ch > 1 && peaks[ch * 2] != "inf")
 				micbar.classList.remove("d-none");
-			micbar.innerHTML = progressbar(mic);
+			setMeter(micbar, mic);
 
 			// headphone bars are rendered per call track (ids 1, 3, 5, ...)
 			var headbar = document.getElementById("headphonesbar" + (ch * 2 - 1));
 			if (headbar)
-				headbar.innerHTML = progressbar(head);
+				setMeter(headbar, head);
 		}
 	};
 };

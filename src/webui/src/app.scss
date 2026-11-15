@@ -1,14 +1,37 @@
+$primary: #f08a00;
+$danger: #c0392b;
+// Let Bootstrap pick black/white text on colored backgrounds (WCAG AA)
+$min-contrast-ratio: 4.5;
 $gray-900: #1e1e1e;
+$body-bg: #111111;
+$card-bg: #222222;
 $link-color: #c8c8c8;
 $link-decoration: none;
 $secondary: #333333;
-$progress-height: 0.6rem;
+$progress-height: 0.5rem;
+$progress-bg: #333333;
+$border-radius: 0.375rem;
+$btn-font-weight: 700;
+$font-family-sans-serif: "Roboto Mono", ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;
+$font-size-base: 0.9375rem; // 15px, small mono text on dark looks blurry
+// Fonts are bundled and served locally (see vite.config.mjs), no Google Fonts
+$web-font-path: false;
 $container-max-widths: (
 sm: 550px,
 md: 970px,
 lg: 980px,
 xl: 1140px
 );
+
+@each $weight in 400, 500, 700 {
+	@font-face {
+		font-family: "Roboto Mono";
+		font-style: normal;
+		font-weight: $weight;
+		font-display: block;
+		src: url("/fonts/roboto-mono-#{$weight}.woff2") format("woff2");
+	}
+}
 
 @import 'theme/variables';
 @import 'bootstrap/scss/bootstrap';
@@ -35,24 +58,354 @@ label {
 }
 
 .main-volume {
-	height: 20px;
+	height: 12px;
 }
 
-.container {
-	padding-right: 10px;
-	padding-left: 10px;
+/* Layout ----------------------------------------------------------------- */
+
+body {
+	// Light text on a dark background renders thinner and crisper with
+	// grayscale antialiasing (macOS); no effect elsewhere.
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	text-rendering: optimizeLegibility;
+}
+
+label,
+.form-check-label {
+	font-weight: 500;
+}
+
+.btn-primary {
+	--bs-btn-color: #111;
+	--bs-btn-hover-color: #111;
+	--bs-btn-active-color: #111;
+	--bs-btn-disabled-color: #111;
+}
+
+/* Accessibility helpers ------------------------------------------------- */
+
+:focus-visible,
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible,
+.form-check-input:focus-visible,
+.nav-link:focus-visible {
+	outline: 3px solid #fff;
+	outline-offset: 2px;
+	box-shadow: 0 0 0 5px #000;
+}
+
+.sl-skip {
+	position: absolute;
+	top: 0.5rem;
+	left: 0.5rem;
+	z-index: 2000;
+	padding: 0.5rem 1rem;
+	background: $primary;
+	color: #111;
+	font-weight: 700;
+}
+
+/* Switches large enough to hit (WCAG 2.5.8) */
+.form-switch {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding-left: 0;
+
+	.form-check-input {
+		width: 3rem;
+		height: 1.5rem;
+		margin: 0;
+	}
+}
+
+/* Hidden helper text should not inherit uppercase button styling */
+.visually-hidden {
+	text-transform: none;
+}
+
+.sl-online { color: #2fd3a0; }
+.sl-offline { color: #ff7a6b; }
+.sl-error { color: #ff7a6b; }
+
+.alert-warning,
+.alert-success {
+	color: #111;
+}
+
+@media (forced-colors: active) {
+	.progress {
+		border: 1px solid CanvasText;
+	}
+
+	.progress-bar {
+		background: Highlight !important;
+		forced-color-adjust: none;
+	}
+}
+
+.btn:not(.btn-link) {
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+}
+
+.sl-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem 2rem;
+	padding: 1rem 1.5rem;
+	background: #1b1b1b;
+}
+
+.sl-nav {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem 1.5rem;
+	margin-left: auto;
+	font-weight: 700;
+
+	a {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.25rem 0;
+		border-bottom: 2px solid transparent;
+	}
+
+	a:hover,
+	a[aria-current="page"] {
+		color: $primary;
+	}
+
+	// Not only color: underline marks the current view (WCAG 1.4.1)
+	a[aria-current="page"] {
+		border-bottom-color: $primary;
+	}
+}
+
+.sl-view-title {
+	margin-bottom: 1rem;
+	font-size: 1.25rem;
+	font-weight: 700;
+}
+
+.sl-view-title:focus,
+#view-tracks-title:focus {
+	outline: none;
+	box-shadow: none;
+}
+
+.sl-main:focus {
+	outline: none;
+}
+
+.sl-main {
+	padding: 1.5rem 1.5rem 9rem;
+}
+
+.sl-account {
+	display: flex;
+	gap: 2rem;
+	margin-bottom: 0.5rem;
+	color: #aaa;
+	font-weight: 700;
+}
+
+.sl-tracks,
+.sl-tracks-inline {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1.5rem;
+}
+
+.sl-tracks-inline {
+	display: contents;
+}
+
+.sl-track {
+	display: flex;
+	flex-direction: column;
+	width: 340px;
+	max-width: 100%;
+	padding: 1rem 1.25rem;
+	background: $card-bg;
+	border-radius: $border-radius;
+
+	> .btn {
+		align-self: flex-start;
+	}
+}
+
+.sl-track-head {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	min-height: 32px;
+	margin-bottom: 0.75rem;
+}
+
+.sl-track-heading {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	min-width: 0;
+	margin: 0;
+	font-size: inherit;
+	line-height: inherit;
+}
+
+.sl-track-no {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 1.6rem;
+	height: 1.6rem;
+	border-radius: 50%;
+	background: #444;
+	font-weight: 700;
+}
+
+.sl-track-title {
+	color: #aaa;
+	font-weight: 700;
+}
+
+.sl-track-state {
+	margin-bottom: 0.25rem;
+	color: $success;
+	font-size: 0.75rem;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+
+.sl-label {
+	margin-bottom: 0.5rem;
+	color: #aaa;
+	font-weight: 700;
+}
+
+.sl-icon-btn {
+	color: #aaa;
+
+	&:hover {
+		color: $primary;
+	}
+}
+
+.sl-settings {
+	max-width: 970px;
+	padding: 1rem 1.25rem;
+	background: $card-bg;
+	border-radius: $border-radius;
+}
+
+.sl-footer {
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	padding: 1.5rem;
+	background: linear-gradient(transparent, $body-bg 40%);
+	pointer-events: none;
+}
+
+.sl-controls {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 2rem;
+
+	.btn {
+		pointer-events: auto;
+	}
+}
+
+.btn-round {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	width: 96px;
+	height: 96px;
+	border-radius: 50%;
+	font-size: 1rem;
+
+	#record_time {
+		font-size: 0.75rem;
+		font-weight: 400;
+		font-variant-numeric: tabular-nums;
+	}
+}
+
+.btn-small-round {
+	width: 44px;
+	height: 44px;
+	padding: 0;
+	border-radius: 50%;
+}
+
+.sl-version {
+	position: absolute;
+	right: 1rem;
+	bottom: 0.5rem;
+	color: #999;
+	font-size: 0.75rem;
+	pointer-events: auto;
+
+	.btn-link {
+		color: inherit;
+		font-size: inherit;
+		text-decoration: none;
+	}
+}
+
+/* Do not cover content when zoomed in or on small screens (WCAG 1.4.10) */
+@media (max-height: 560px), (max-width: 480px) {
+	.sl-main {
+		padding-bottom: 1.5rem;
+	}
+
+	.sl-footer {
+		position: static;
+		background: none;
+	}
+
+	.sl-version {
+		position: static;
+		display: block;
+		margin-top: 1rem;
+		text-align: center;
+	}
+}
+
+@media (max-width: 480px) {
+	.sl-header,
+	.sl-main {
+		padding-right: 1rem;
+		padding-left: 1rem;
+	}
+
+	.sl-controls {
+		gap: 1rem;
+	}
 }
 
 .form-control,
 .form-select {
-	background-color: #303030;
+	background-color: #111111;
+	/* visible boundary: >= 3:1 against the card (WCAG 1.4.11) */
+	border-color: #808080;
 	color: #fff;
 }
 
 .form-control:focus,
 .form-select:focus {
-	border-color: #f67e05;
-	background-color: #303030;
+	border-color: $primary;
+	background-color: #111111;
 	color: #fff;
 }
 
@@ -93,10 +446,14 @@ a:hover {
 	outline: none;
 }
 
-.netstatus-none { color: #6c6c6c; }
+.netstatus-none { color: #8a8a8a; }
 .netstatus-good { color: $success; }
 .netstatus-fair { color: $warning; }
-.netstatus-bad  { color: $danger; }
+.netstatus-bad  { color: #ff7a6b; }
+
+.netstatus.netstatus-dismissed .netstatus-info {
+	display: none !important;
+}
 
 .netstatus-info {
 	display: none;
@@ -128,7 +485,7 @@ a:hover {
 
 .netstatus-info th {
 	padding-top: 0.35rem;
-	color: #f67e05;
+	color: $primary;
 	font-weight: 600;
 }
 

@@ -25,16 +25,20 @@ export function escapeHtml(text) {
  */
 export function dialog({ title, message, size, buttons = {}, onEscape }) {
   const el = document.createElement("div");
+  const uid = "dialog-" + Math.random().toString(36).slice(2, 9);
   el.className = "modal fade";
   el.tabIndex = -1;
+  el.setAttribute("role", "dialog");
+  if (title) el.setAttribute("aria-labelledby", uid + "-title");
+  else el.setAttribute("aria-labelledby", uid + "-body");
   el.innerHTML = `
     <div class="modal-dialog${size === "large" ? " modal-lg" : ""}">
       <div class="modal-content">
         ${title ? `<div class="modal-header">
-          <h5 class="modal-title"></h5>
+          <h2 class="modal-title h5" id="${uid}-title"></h2>
           <button type="button" class="btn-close" aria-label="Close"></button>
         </div>` : ""}
-        <div class="modal-body"><div class="dialog-body"></div></div>
+        <div class="modal-body"><div class="dialog-body" id="${uid}-body"></div></div>
         <div class="modal-footer"></div>
       </div>
     </div>`;
@@ -137,8 +141,8 @@ export function notify(text, type = "error") {
 
   const el = document.createElement("div");
   el.className = `toast align-items-center border-0 ${notifyClasses[type] || notifyClasses.info}`;
-  el.setAttribute("role", "alert");
-  el.setAttribute("aria-live", "assertive");
+  el.setAttribute("role", type === "error" ? "alert" : "status");
+  el.setAttribute("aria-live", type === "error" ? "assertive" : "polite");
   el.setAttribute("aria-atomic", "true");
   el.innerHTML = `<div class="d-flex">
       <div class="toast-body fw-bold"></div>
@@ -148,7 +152,8 @@ export function notify(text, type = "error") {
   el.addEventListener("hidden.bs.toast", () => el.remove());
 
   container.prepend(el);
-  new Toast(el, { delay: 6000 }).show();
+  // Errors stay until closed, so there is time to read them (WCAG 2.2.1).
+  new Toast(el, { autohide: type !== "error", delay: 10000 }).show();
 }
 
 /* Forms ------------------------------------------------------------------ */
@@ -192,6 +197,28 @@ export function validateForm(form) {
 }
 
 /* Misc ------------------------------------------------------------------- */
+
+const FOCUSABLE = "a[href], button, input, select, textarea, [tabindex]";
+
+// Replace el's content but keep keyboard focus on the "same" control
+// (matched by id, else by position), so screen reader and keyboard users
+// are not thrown back to the top of the page on every update.
+export function render(el, html) {
+  if (!el) return;
+  const active = document.activeElement;
+  let id = null;
+  let index = -1;
+  if (active && el.contains(active)) {
+    id = active.id;
+    index = Array.from(el.querySelectorAll(FOCUSABLE)).indexOf(active);
+  }
+  el.innerHTML = html;
+  if (index < 0) return;
+  const target =
+    (id && document.getElementById(id)) ||
+    el.querySelectorAll(FOCUSABLE)[index];
+  if (target) target.focus();
+}
 
 // Run `handler` when Enter is pressed in any element matching `sel`.
 export function onEnter(sel, handler) {

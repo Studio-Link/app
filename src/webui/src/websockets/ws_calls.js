@@ -2,7 +2,7 @@ import addcontact from "../templates/addcontact.handlebars";
 import keyboard from "../templates/keyboard.handlebars";
 import activecalls from "../templates/activecalls.handlebars";
 import { Dropdown } from "bootstrap";
-import { qs, on, onEnter, dialog, confirm, hideAll, notify, serializeForm, validateForm } from "../ui.js";
+import { qs, on, render, onEnter, dialog, confirm, hideAll, notify, serializeForm, validateForm } from "../ui.js";
 'use strict';
 
 var ws_calls_dropdown_open = 0;
@@ -82,6 +82,10 @@ function netstatus_update(t) {
 		icon.classList.add(q.cls);
 	}
 
+	const label = el.querySelector(".netstatus-label");
+	if (label)
+		label.textContent = "Network quality: " + q.text;
+
 	const set = (key, val) => {
 		const td = el.querySelector('[data-stat="' + key + '"]');
 		if (td)
@@ -140,6 +144,17 @@ window.ws_calls_init = function() {
         on('.dropdown-menu form', 'click', function (e) {
             e.stopPropagation();
         });
+
+		on(".netstatus", "keydown", function(e) {
+			if (e.key === "Escape")
+				this.classList.add("netstatus-dismissed");
+		});
+		on(".netstatus", "focusout", function() {
+			this.classList.remove("netstatus-dismissed");
+		});
+		on(".netstatus", "mouseleave", function() {
+			this.classList.remove("netstatus-dismissed");
+		});
 
 		on(".hangup", "click", function() {
 			ws_calls.send('{"command": "hangup", "key": "'+
@@ -291,7 +306,7 @@ window.ws_calls_init = function() {
                 window.callactive = false;
             }
 
-			qs("#activecalls").innerHTML = activecalls(msg);
+			render(qs("#activecalls"), activecalls(msg));
 			RefreshEventListener();
 		}
 	};

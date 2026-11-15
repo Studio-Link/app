@@ -1,34 +1,21 @@
-<table class="table table-striped">
-	<thead>
-		<th>Name</th>
-		<th>State</th>
-	</thead>
-	<tbody>
+<fieldset class="mb-3">
+	<legend class="visually-hidden">Options</legend>
 {{#each this}}
-	<tr>
-		{{#ifeq @key "monitoring"}}<td>Monitoring</td>{{/ifeq}}
-		{{#ifeq @key "monorecord"}}<td>Mono Local Recording</td>{{/ifeq}}
-		{{#ifeq @key "monostream"}}<td>Mono Remote Streaming</td>{{/ifeq}}
-		<td>
-			<p>
-			{{#if this}}
-			<button data-option="{{@key}}" data-value="" class="btn btn-success bt-lg option-change">
-				Enabled
-			</button>
-			{{else}}
-			<button data-option="{{@key}}" data-value="true" class="btn btn-danger bt-lg option-change">
-				Disabled
-			</button>
-			{{/if}}
-			</p>
-		</td>
-	</tr>
+	<div class="form-check form-switch mb-2">
+		<input class="form-check-input option-change" type="checkbox" role="switch"
+			id="option-{{@key}}" data-option="{{@key}}"
+			data-value="{{#if this}}{{else}}true{{/if}}"{{#if this}} checked{{/if}}>
+		<label class="form-check-label" for="option-{{@key}}">
+			{{#ifeq @key "monitoring"}}Monitoring{{/ifeq}}
+			{{#ifeq @key "monorecord"}}Mono Local Recording{{/ifeq}}
+			{{#ifeq @key "monostream"}}Mono Remote Streaming{{/ifeq}}
+		</label>
+	</div>
 {{/each}}
-	</tbody>
-</table>
+</fieldset>
 <p>
-	<a href="/logs.txt" download="studio-link-logs.txt" class="btn btn-secondary">
+	<a href="/logs.txt" download="studio-link-logs.txt" class="btn btn-secondary" aria-describedby="logs-hint">
 		<i class="fa fa-download" aria-hidden="true"></i> Download logs
 	</a>
-	<small class="text-muted ms-2">Local log files of the last 7 starts</small>
+	<small id="logs-hint" class="text-muted ms-2">Local log files of the last 7 starts</small>
 </p>

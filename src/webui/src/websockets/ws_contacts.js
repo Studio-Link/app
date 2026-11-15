@@ -1,6 +1,6 @@
 import addcontact from "../templates/addcontact.handlebars";
 import listcontacts from "../templates/listcontacts.handlebars";
-import { qs, on, onEnter, dialog, notify, serializeForm, validateForm } from "../ui.js";
+import { qs, on, render, onEnter, dialog, notify, serializeForm, validateForm } from "../ui.js";
 "use strict";
 
 window.ws_contacts_init = function() {
@@ -52,6 +52,8 @@ window.ws_contacts_init = function() {
     on(".callcontact", "click", function() {
       qs("#sipnumbercall").value = this.dataset.sip;
       qs("#buttoncall").click();
+      // Show the new call (switches from the settings view)
+      location.hash = "#tracks";
     });
   }
 
@@ -66,7 +68,7 @@ window.ws_contacts_init = function() {
   ws_contacts.onmessage = function(message) {
     var msg = JSON.parse(message.data);
     ws_contacts_list = msg;
-    qs("#contacts").innerHTML = listcontacts(ws_contacts_list);
+    render(qs("#contacts"), listcontacts(ws_contacts_list));
     RefreshEventListener();
   };
 

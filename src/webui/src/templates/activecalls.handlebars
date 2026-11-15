@@ -1,41 +1,19 @@
 {{#each this}}
-<div class="card mb-2">
-    <div class="card-header card-header-sm"><b>Remote Track {{track}}</b>
-        <button aria-label="Channel Mix" data-key="{{@key}}" class="btn btn-primary btn-sm chmix"
-            style="margin-top: -2px;">
-            {{chmix}}
-        </button>
-
-        <div class="dropdown btn-group" style="margin-top: -2px;">
-            <button title="Options" aria-label="Options" class="btn btn-primary btn-sm dropdown-toggle" type="button"
-                id="dropdown{{@key}}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-bs-display="static">
-                <span class="fa fa-cog" aria-hidden="true"></span> Options
+<section class="sl-track" aria-labelledby="track-title{{@key}}">
+    <div class="sl-track-head">
+        <h2 class="sl-track-heading" id="track-title{{@key}}">
+            <span class="sl-track-no"><span class="visually-hidden">Track </span>{{inc track}}</span>
+            <span class="sl-track-title text-truncate" title="{{mysip peer}}">{{mysip peer}}</span>
+        </h2>
+        <span class="netstatus ms-auto" id="netstatus{{track}}">
+            <button type="button" class="btn btn-link btn-sm sl-icon-btn netstatus-btn"
+                aria-describedby="netstatus-info{{track}}">
+                <i class="fas fa-signal netstatus-icon netstatus-none" aria-hidden="true"></i>
+                <span class="visually-hidden netstatus-label">Network quality: no data</span>
             </button>
-            <div class="dropdown-menu" aria-labelledby="dropdown{{@key}}">
-                <button aria-label="Add Contact" data-key="{{mysip peer}}"
-                    class="dropdown-item addcontactshort {{contacthide}}" style="margin-top: -2px;">
-                    <span class="fa fa-user-plus" aria-hidden="true"></span> Add Contact
-                </button>
-                <button aria-label="DTMF" data-key="{{@key}}" class="dropdown-item keyboard" style="margin-top: -2px;">
-                    <span class="fas fa-th" aria-hidden="true"></span> DTMF Keyboard
-                </button>
-                <div class="dropdown-divider"></div>
-                <form class="px-4">
-                    <div class="mb-3">
-                        <label class="dropdown-header" for="formControlRange{{@key}}">Volume ({{volume}})</label>
-                        <input type="range" min="0" max="2" step="0.05" value="{{volume}}" class="form-range volume"
-                            id="formControlRange{{@key}}" data-key="{{@key}}">
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div class="float-end">
-            <span class="netstatus" id="netstatus{{track}}" tabindex="0" role="button"
-                aria-label="Network status, show connection details">
-                <i class="fas fa-signal netstatus-icon netstatus-none"></i>
-                <div class="netstatus-info" role="tooltip">
+            <div class="netstatus-info" id="netstatus-info{{track}}" role="tooltip">
                     <table>
+                    <caption class="visually-hidden">Connection details</caption>
                         <tbody>
                             <tr><th colspan="2">Network</th></tr>
                             <tr><td>Quality</td><td data-stat="quality">-</td></tr>
@@ -58,17 +36,39 @@
                         </tbody>
                     </table>
                 </div>
-            </span>
-            <span class="badge text-bg-primary">{{state}}</span>
-            <button aria-label="Cancel Call" data-key="{{@key}}" class="btn btn-danger btn-sm hangup"
-                style="margin-top: -2px;">
-                <i class="fas fa-phone-slash"></i>
+        </span>
+        <div class="dropdown">
+            <button title="Options" aria-label="Options for {{mysip peer}}" class="btn btn-link btn-sm sl-icon-btn" type="button"
+                id="dropdown{{@key}}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-bs-display="static">
+                <i class="fa fa-cog" aria-hidden="true"></i>
             </button>
+            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown{{@key}}">
+                <button type="button" data-key="{{mysip peer}}"
+                    class="dropdown-item addcontactshort {{contacthide}}">
+                    <span class="fa fa-user-plus" aria-hidden="true"></span> Add Contact
+                </button>
+                <button type="button" data-key="{{@key}}" class="dropdown-item keyboard">
+                    <span class="fas fa-th" aria-hidden="true"></span> DTMF Keyboard
+                </button>
+                <div class="dropdown-divider" role="separator"></div>
+                <form class="px-4">
+                    <div class="mb-3">
+                        <label class="dropdown-header px-0" for="formControlRange{{@key}}">Volume ({{volume}})</label>
+                        <input type="range" min="0" max="2" step="0.05" value="{{volume}}" class="form-range volume"
+                            id="formControlRange{{@key}}" data-key="{{@key}}">
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-    <div class="card-body">
-        ID: {{mysip peer}}
-        <div id="headphonesbar{{ch}}" class="progress progress-sm"></div>
+    <div class="sl-track-state">{{state}}</div>
+    <div id="headphonesbar{{ch}}" class="progress main-volume" role="meter"
+        aria-label="Level of {{mysip peer}}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+    <div class="d-flex gap-2 mt-3">
+        <button type="button" aria-label="Channel mix: {{chmix}}" data-key="{{@key}}" class="btn btn-secondary btn-sm chmix">{{chmix}}</button>
+        <button type="button" data-key="{{@key}}" class="btn btn-danger btn-sm hangup ms-auto">
+            <i class="fas fa-phone-slash" aria-hidden="true"></i> Hang up<span class="visually-hidden"> {{mysip peer}}</span>
+        </button>
     </div>
-</div>
+</section>
 {{/each}}

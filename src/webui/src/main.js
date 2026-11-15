@@ -1,6 +1,7 @@
 import "./app.scss";
 
 import "./init.js";
+import "./views.js";
 import "./app.js";
 import "./websockets/ws_baresip.js";
 import "./websockets/ws_calls.js";

@@ -18,6 +18,8 @@ import { faFolderOpen } from '@fortawesome/free-regular-svg-icons/faFolderOpen'
 import { faClock } from '@fortawesome/free-regular-svg-icons/faClock'
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload'
 import { faSignal } from '@fortawesome/free-solid-svg-icons/faSignal'
+import { faThLarge } from '@fortawesome/free-solid-svg-icons/faThLarge'
+import { faMicrophone } from '@fortawesome/free-solid-svg-icons/faMicrophone'
 
 library.add(faCog)
 library.add(faRandom)
@@ -38,6 +40,8 @@ library.add(faFolderOpen)
 library.add(faClock)
 library.add(faDownload)
 library.add(faSignal)
+library.add(faThLarge)
+library.add(faMicrophone)
 
 // Replace any existing <i> tags with <svg> and set up a MutationObserver to
 // continue doing this as the DOM changes.
