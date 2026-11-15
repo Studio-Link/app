@@ -20,8 +20,11 @@ void webapp_ws_audio_sync(void)
 void webapp_ws_audio(const struct websock_hdr *hdr,
 		struct mbuf *mb, void *arg)
 {
-
-#ifndef SLPLUGIN
+	(void)hdr;
+	(void)arg;
+#ifdef SLPLUGIN
+	(void)mb;
+#else
 	struct odict *cmd = NULL;
 	const struct odict_entry *e = NULL;
 	int err;

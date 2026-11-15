@@ -8,6 +8,8 @@
 void webapp_ws_calls(const struct websock_hdr *hdr,
 				     struct mbuf *mb, void *arg)
 {
+	(void)hdr;
+	(void)arg;
 	struct odict *cmd = NULL;
 	struct call *call = NULL;
 	const struct odict_entry *e = NULL;

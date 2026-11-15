@@ -71,9 +71,13 @@ void ws_send_json(enum ws_type type, const struct odict *o)
 }
 
 
-static void exit_baresip(void *arg) {
-		ua_stop_all(false);
+#ifndef SLPLUGIN
+static void exit_baresip(void *arg)
+{
+	(void)arg;
+	ua_stop_all(false);
 }
+#endif
 
 
 void srv_websock_close_handler(int err, void *arg)
@@ -97,6 +101,7 @@ void srv_websock_close_handler(int err, void *arg)
 
 static void websock_shutdown_handler(void *arg)
 {
+	(void)arg;
 	info("websocket shutdown\n");
 }
 

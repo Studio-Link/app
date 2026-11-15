@@ -26,6 +26,8 @@ static void webapp_read_peaks(void)
 void webapp_ws_meter(const struct websock_hdr *hdr,
 				     struct mbuf *mb, void *arg)
 {
+	(void)hdr;
+	(void)arg;
 	struct odict *cmd = NULL;
 	int err = 0;
 
@@ -87,6 +89,7 @@ static void write_ws(void)
 
 static void tmr_handler(void *arg)
 {
+	(void)arg;
 	tmr_start(&tmr, 150, tmr_handler, NULL);
 	webapp_read_peaks();
 	write_ws();

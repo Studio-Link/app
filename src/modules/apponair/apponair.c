@@ -33,6 +33,7 @@ static bool no_active_call(void)
 static void startup_call(void *arg)
 {
 	struct call *call = NULL;
+	(void)arg;
 	if (no_active_call()) {
 		sl_ua_connect(webapp_ua_current(), &call, "stream");
 	}
@@ -42,6 +43,7 @@ static void startup_call(void *arg)
 
 static void startup(void *arg)
 {
+	(void)arg;
 	startup_call(NULL);
 	system(command);
 }

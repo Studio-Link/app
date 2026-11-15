@@ -34,6 +34,19 @@
 #define SL_UI_MODULE "stdio"
 #endif
 
+/* Logging/console UI module lines of the config template (no directives
+ * inside the re_hprintf() macro arguments, that's not portable) */
+#if defined (SLIVE)
+#define SL_CONF_LOG_MODULES ""
+#elif defined (SL_UI_MODULE)
+#define SL_CONF_LOG_MODULES \
+		"module\t\t\tslogging.so\n" \
+		"module\t\t\t" SL_UI_MODULE ".so\n"
+#else
+#define SL_CONF_LOG_MODULES \
+		"module\t\t\tslogging.so\n"
+#endif
+
 #ifndef SLVERSION
 #define SLVERSION "dev"
 #endif
@@ -124,12 +137,7 @@ static int template_print(struct re_printf *pf, void *arg)
 		"dns_fallback\t\t8.8.8.8:53\n"
 		"\n"
 		"# Modules\n"
-#ifndef SLIVE
-		"module\t\t\tslogging.so\n"
-#ifdef SL_UI_MODULE
-		"module\t\t\t" SL_UI_MODULE ".so\n"
-#endif
-#endif
+		SL_CONF_LOG_MODULES
 		"module\t\t\topus.so\n"
 		"module\t\t\tg722.so\n"
 		"module\t\t\tg711.so\n"

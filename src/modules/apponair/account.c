@@ -75,8 +75,10 @@ static int sip_register(const struct odict *o)
 			continue;
 		}
 		else {
-			re_snprintf(opt, sizeof(opt), "%s;%s=%s",
-					opt, odict_entry_key(e), odict_entry_str(e));
+			size_t len = str_len(opt);
+
+			re_snprintf(opt + len, sizeof(opt) - len, ";%s=%s",
+					odict_entry_key(e), odict_entry_str(e));
 		}
 	}
 	re_snprintf(buf, sizeof(buf),
@@ -236,6 +238,7 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 	char message[8192] = {0};
 	char user[50] = {0};
 	char domain[50] = {0};
+	(void)arg;
 
 	if (!msg)
 		goto out2;
@@ -297,6 +300,7 @@ static void provisioning(void)
 
 static void startup(void *arg)
 {
+	(void)arg;
 	provisioning();
 }
 

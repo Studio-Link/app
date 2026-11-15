@@ -29,6 +29,8 @@ static void sip_delete(struct odict *cmd, const struct odict_entry *e)
 void webapp_ws_baresip(const struct websock_hdr *hdr,
 				     struct mbuf *mb, void *arg)
 {
+	(void)hdr;
+	(void)arg;
 	struct odict *cmd = NULL;
 	const struct odict_entry *e = NULL;
 	struct call *call = NULL;

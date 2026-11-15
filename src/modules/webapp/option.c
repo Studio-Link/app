@@ -11,7 +11,6 @@
 
 static struct odict *options = NULL;
 static char filename[256] = "";
-static char command[255] = {0};
 
 /* User settings, persisted to options.json and listed in the Options tab */
 static const char *persist_keys[] = {
@@ -90,8 +89,6 @@ const struct odict* webapp_options_get(void)
 
 void webapp_options_set(char *key, char *value)
 {
-	int err = 0;
-
 	if (!key || !value)
 		return;
 
@@ -170,6 +167,9 @@ void webapp_options_set(char *key, char *value)
 		}
 		else {
 			struct config *cfg = conf_config();
+			char command[255] = {0};
+			int err;
+
 	#if defined (DARWIN)
 			re_snprintf(command, sizeof(command),
 					"open " STREAM_LOGIN_URL,
@@ -225,7 +225,9 @@ char* webapp_options_getv(char *key, char *def)
 int webapp_options_init(void)
 {
 	char path[256] = {0};
+#ifndef SLPLUGIN
 	char *key;
+#endif
 	struct odict *loaded = NULL;
 	struct mbuf *mb;
 	int err = 0;

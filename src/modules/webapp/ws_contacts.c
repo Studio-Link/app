@@ -5,6 +5,8 @@
 void webapp_ws_contacts(const struct websock_hdr *hdr,
 				     struct mbuf *mb, void *arg)
 {
+	(void)hdr;
+	(void)arg;
 	struct odict *cmd = NULL;
 	const struct odict_entry *e = NULL;
 	int err = 0;

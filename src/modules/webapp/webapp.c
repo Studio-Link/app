@@ -44,7 +44,7 @@ static int http_sreply(struct http_conn *conn, uint16_t scode,
 	if (err)
 		goto out;
 
-	http_reply(conn, 200, "OK",
+	http_reply(conn, scode, reason,
 			"Content-Type: %s\r\n"
 			"Content-Length: %zu\r\n"
 			"Cache-Control: no-cache, no-store, "
@@ -140,6 +140,7 @@ static void http_req_handler(struct http_conn *conn,
 			     const struct http_msg *msg, void *arg)
 {
 	const struct network *net = baresip_network();
+	(void)arg;
 
 	/*
 	 * Dynamic Requests
@@ -452,8 +453,8 @@ out:
 
 static void syscmd(void *arg)
 {
-#if defined (WIN32)
 	(void)arg;
+#if defined (WIN32)
 	if (sl_shell_open(command))
 		warning("webapp: could not open %s\n", command);
 #elif !defined (SLBOX)

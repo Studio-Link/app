@@ -6,6 +6,8 @@
 void webapp_ws_options(const struct websock_hdr *hdr,
 				     struct mbuf *mb, void *arg)
 {
+	(void)hdr;
+	(void)arg;
 	struct odict *cmd = NULL;
 	const struct odict_entry *key = NULL;
 	const struct odict_entry *value = NULL;

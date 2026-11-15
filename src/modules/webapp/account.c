@@ -52,6 +52,7 @@ const struct odict* webapp_accounts_get(void) {
 static void update(void *arg)
 {
 	char json[512];
+	(void)arg;
 
 	re_snprintf(json, sizeof(json),
 			"{\
@@ -125,8 +126,10 @@ static int sip_register(struct odict *o)
 			tmr_start(&tmr, 8000, update, NULL);
 		}
 		else {
-			re_snprintf(opt, sizeof(opt), "%s;%s=%s",
-				    opt, odict_entry_key(e),
+			size_t len = str_len(opt);
+
+			re_snprintf(opt + len, sizeof(opt) - len, ";%s=%s",
+				    odict_entry_key(e),
 				    odict_entry_str(e));
 		}
 	}
@@ -313,7 +316,7 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 	char user[50] = {0};
 	char domain[50] = {0};
 	char user_quick[100] = {0};
-
+	(void)arg;
 
 	if (err || !msg) {
 		warning("webapp/account: provisioning failed (%m)\n", err);
@@ -404,6 +407,7 @@ static void provisioning(void)
 
 static void startup(void *arg)
 {
+	(void)arg;
 	struct le *le;
 	for (le = accs->lst.head; le; le = le->next) {
 		sip_register(odict_entry_object(le->data));

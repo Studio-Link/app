@@ -231,6 +231,9 @@ int main(int argc, char *argv[])
 	(void)argc;
 	(void)argv;
 #endif
+#ifndef WIN32
+	(void)conf_override;  /* only checked on Windows */
+#endif
 
 	dbg_init(dbg_level, DBG_ANSI);
 
