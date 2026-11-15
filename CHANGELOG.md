@@ -6,10 +6,15 @@
 
 - **Plugin** New native CLAP, VST3 and AUv2 plugins (via clap-wrapper) and an
   in-tree LV2 plugin, replacing the JUCE and overlay based VST/AU/LV2 builds.
-  Linux: CLAP/VST3/LV2, macOS: CLAP/VST3/AUv2 (AU identity is unchanged, so
-  existing DAW sessions keep working)
+  Linux: CLAP/VST3/LV2, macOS: CLAP/VST3/AUv2, Windows: CLAP/VST3 (AU
+  identity is unchanged, so existing DAW sessions keep working)
 - **Plugin** Warning in the WebUI if the DAW does not run at 48 kHz
 - **Misc** Download logs button (More... > Options > Download logs)
+- **Standalone** Windows: runs as a GUI app with a notification area (tray)
+  icon instead of a console window. The tray menu opens the web UI, the
+  recordings and log folders and quits Studio Link. Starting Studio Link
+  again opens the web UI of the running instance. App icon and version info
+  added to the .exe
 
 ### Changed
 
@@ -20,6 +25,8 @@
 - **Misc** TLS uses an embedded Mozilla CA bundle (HTTPS provisioning,
   SIP TLS)
 - **Standalone** Audio backend switched from libsoundio to PortAudio
+- **Misc** Windows: URLs and folders are opened with ShellExecute instead of
+  `system("start ...")` (no cmd window flashing up, also in the plugins)
 - **Plugin** Reworked audio sync between plugin instances (lock-free ring
   buffer per session)
 - **WebUI** Updated to Bootstrap 5 and Vite, new onboarding tour (driver.js),
@@ -34,7 +41,8 @@
 - **Misc** Manual per-call latency/buffer buttons (+20ms/-20ms) and the
   "Talk" indicator in active calls
 - **Plugin** VST2 plugin
-- **Plugin** Windows DAW plugins are not built for now (standalone only)
+- **Build** 32-bit Windows (windows32) builds, only 64-bit Windows is
+  supported
 
 ## [v21.07.0-stable] - 2021-07-06
 

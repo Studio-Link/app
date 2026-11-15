@@ -20,6 +20,7 @@
 #define PTIME 20
 #define SAMPC 1920  /* Max samples, 48000Hz 2ch at 20ms */
 #include "slaudio.h"
+#include <slopen.h>
 #include <webapp.h>
 
 static volatile bool record = false;
@@ -63,18 +64,22 @@ int slaudio_record_get_timer(void)
 static void *record_open_folder(void *arg)
 {
 	int err;
+	(void)arg;
+
+#if defined (WIN32)
+	err = sl_shell_open(record_folder);
+#else
 	char command[256] = {0};
 
 #if defined (DARWIN)
 	re_snprintf(command, sizeof(command), "open %s", record_folder);
-#elif defined (WIN32)
-	re_snprintf(command, sizeof(command), "explorer.exe %s",
-			record_folder);
 #else
 	re_snprintf(command, sizeof(command), "xdg-open %s", record_folder);
 #endif
 	err = system(command);
-	if (err) {};
+#endif
+	if (err)
+		warning("slaudio: could not open %s\n", record_folder);
 
 	return NULL;
 }

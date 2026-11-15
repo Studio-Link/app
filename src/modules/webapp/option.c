@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "webapp.h"
+#include <slopen.h>
 
 #define STREAM_LOGIN_URL \
 	"https://stream.studio-link.de/stream/login/%s?version=2"
@@ -88,16 +89,21 @@ void webapp_options_set(char *key, char *value)
 					cfg->sip.uuid);
 	#elif defined (WIN32)
 			re_snprintf(command, sizeof(command),
-					"start " STREAM_LOGIN_URL,
+					STREAM_LOGIN_URL,
 					cfg->sip.uuid);
 	#else
 			re_snprintf(command, sizeof(command),
 					"xdg-open " STREAM_LOGIN_URL,
 					cfg->sip.uuid);
 	#endif
+#if defined (WIN32)
+			err = sl_shell_open(command);
+#else
 			err = system(command);
-
-			if (err) {};
+#endif
+			if (err)
+				warning("webapp/option: could not open %s\n",
+					command);
 
 			sl_ua_connect(webapp_get_main_ua(), &call,
 					"stream@studio.link");

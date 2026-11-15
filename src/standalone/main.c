@@ -14,6 +14,9 @@
 #include <baresip.h>
 #include "slconf.h"
 #include "slcacert.h"
+#ifdef WIN32
+#include "winapp.h"
+#endif
 
 #define DEBUG_MODULE ""
 #define DEBUG_LEVEL 0
@@ -58,6 +61,52 @@ static void tmr_quit_handler(void *arg)
 }
 
 
+#ifdef WIN32
+/* slaudio module */
+void slaudio_record_open_folder(void);
+
+
+static void win_action_handler(enum sl_win_action action)
+{
+	switch (action) {
+
+	case SL_WIN_QUIT:
+		info("quit from tray menu\n");
+		ua_stop_all(false);
+		break;
+
+	case SL_WIN_OPEN_RECORDINGS:
+		slaudio_record_open_folder();
+		break;
+	}
+}
+
+
+/* The web UI port, written by the webapp module to webapp.conf */
+static uint16_t webapp_port(void)
+{
+	char file[512];
+	struct conf *conf = NULL;
+	uint32_t port = 0;
+
+	if (conf_path_get(file, sizeof(file)))
+		return 0;
+
+	if (re_snprintf(file + str_len(file), sizeof(file) - str_len(file),
+			"\\webapp.conf") < 0)
+		return 0;
+
+	if (conf_alloc(&conf, file))
+		return 0;
+
+	(void)conf_get_u32(conf, "sl_port", &port);
+	mem_deref(conf);
+
+	return (uint16_t)port;
+}
+#endif
+
+
 #ifdef HAVE_GETOPT
 static void usage(void)
 {
@@ -80,9 +129,15 @@ int main(int argc, char *argv[])
 	struct tmr tmr_quit;
 	bool sip_trace = false;
 	bool reset_conf = false;
+	bool conf_override = false;
 	uint32_t tmo = 0;
 	int dbg_level = DBG_INFO;
 	int err;
+
+#ifdef WIN32
+	/* GUI app: no console, unless started from cmd/PowerShell */
+	sl_win_console_attach();
+#endif
 
 	setbuf(stdout, NULL);
 
@@ -109,6 +164,7 @@ int main(int argc, char *argv[])
 
 		case 'f':
 			sl_conf_path_set(optarg);
+			conf_override = true;
 			break;
 
 		case 'r':
@@ -139,6 +195,15 @@ int main(int argc, char *argv[])
 
 	dbg_init(dbg_level, DBG_ANSI);
 
+#ifdef WIN32
+	/* already running: open its web UI instead (not with -f, to allow
+	 * a second instance with another config for testing) */
+	if (!conf_override && sl_win_activate_running()) {
+		libre_close();
+		return 0;
+	}
+#endif
+
 	err = sl_conf_configure(reset_conf);
 	if (err) {
 		warning("main: configure failed: %m\n", err);
@@ -167,9 +232,19 @@ int main(int argc, char *argv[])
 	if (sip_trace)
 		uag_enable_sip_trace(true);
 
+#ifdef WIN32
+	err = sl_win_tray_start(win_action_handler, sl_software());
+	if (err)
+		warning("main: tray icon failed (%m)\n", err);
+#endif
+
 	err = conf_modules();
 	if (err)
 		goto out;
+
+#ifdef WIN32
+	sl_win_tray_set_port(webapp_port());
+#endif
 
 	info("studio link is ready.\n");
 
@@ -179,6 +254,13 @@ int main(int argc, char *argv[])
 	err = re_main(signal_handler);
 
  out:
+#ifdef WIN32
+	if (err)
+		sl_win_error("Studio Link could not be started (%m).\n\n"
+			     "The log files can help to find the reason, "
+			     "see the \"logs\" folder in %%USERPROFILE%%"
+			     "\\.studio-link", err);
+#endif
 	tmr_cancel(&tmr_quit);
 
 	if (err)
@@ -199,6 +281,10 @@ int main(int argc, char *argv[])
 	libre_close();
 
 	mem_debug();
+
+#ifdef WIN32
+	sl_win_tray_stop();
+#endif
 
 	return err;
 }

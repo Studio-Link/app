@@ -13,6 +13,7 @@
 #include "assets/images.h"
 #include "webapp.h"
 #include <sllog.h>
+#include <slopen.h>
 
 static struct tmr tmr;
 
@@ -426,7 +427,7 @@ static int http_port(void)
 	re_snprintf(command, sizeof(command), "open http://127.0.0.1:%s/",
 			port_string);
 #elif defined (WIN32)
-	re_snprintf(command, sizeof(command), "start http://127.0.0.1:%s/",
+	re_snprintf(command, sizeof(command), "http://127.0.0.1:%s/",
 			port_string);
 #else
 	re_snprintf(command, sizeof(command), "xdg-open http://127.0.0.1:%s/",
@@ -451,7 +452,11 @@ out:
 
 static void syscmd(void *arg)
 {
-#ifndef SLBOX
+#if defined (WIN32)
+	(void)arg;
+	if (sl_shell_open(command))
+		warning("webapp: could not open %s\n", command);
+#elif !defined (SLBOX)
 	int err = 0;
 	err = system(command);
 	if (err) {}

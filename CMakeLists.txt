@@ -155,8 +155,12 @@ else()
   message(FATAL_ERROR "unknown SL_VARIANT: ${SL_VARIANT}")
 endif()
 
+# Windows: no console UI module, the standalone is a GUI (tray) app and the
+# plugins run inside a DAW
 if(WIN32)
-  set(SL_UI_MODULE wincons)
+  set(SL_UI_MODULE "")
+  # ShellExecuteW (slopen.h)
+  target_link_libraries(sl_common INTERFACE shell32)
 else()
   set(SL_UI_MODULE stdio)
 endif()
@@ -267,6 +271,25 @@ target_link_libraries(slcore PUBLIC baresip re sl_common)
 if(SL_VARIANT STREQUAL "standalone")
   add_executable(studio-link-standalone src/standalone/main.c)
   target_link_libraries(studio-link-standalone PRIVATE slcore baresip)
+  if(WIN32)
+    # GUI subsystem (no console window), tray icon, icon/version resources
+    enable_language(RC)
+    set(SL_WIN_RES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/standalone/windows")
+    configure_file(src/standalone/windows/studio-link.rc.in
+      "${CMAKE_CURRENT_BINARY_DIR}/studio-link.rc" @ONLY)
+    target_sources(studio-link-standalone PRIVATE
+      src/standalone/winapp.c
+      "${CMAKE_CURRENT_BINARY_DIR}/studio-link.rc")
+    target_include_directories(studio-link-standalone PRIVATE
+      "${SL_WIN_RES_DIR}")
+    set_target_properties(studio-link-standalone PROPERTIES
+      WIN32_EXECUTABLE ON)
+    target_link_libraries(studio-link-standalone PRIVATE shell32 advapi32)
+    set_property(SOURCE "${CMAKE_CURRENT_BINARY_DIR}/studio-link.rc"
+      APPEND PROPERTY OBJECT_DEPENDS
+      "${SL_WIN_RES_DIR}/studio-link.ico"
+      "${SL_WIN_RES_DIR}/studio-link.manifest")
+  endif()
   if(UNIX AND NOT APPLE)
     # keep the binary portable: libgcc is linked statically, glibc stays
     # dynamic (for NSS/dlopen of libasound)

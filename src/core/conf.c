@@ -28,9 +28,8 @@
 #define SL_APP_MODULE    "webapp"
 #endif
 
-#if defined (WIN32)
-#define SL_UI_MODULE "wincons"
-#else
+/* Windows: no console UI (GUI subsystem app / DAW plugin) */
+#if !defined (WIN32)
 #define SL_UI_MODULE "stdio"
 #endif
 
@@ -126,7 +125,9 @@ static int template_print(struct re_printf *pf, void *arg)
 		"# Modules\n"
 #ifndef SLIVE
 		"module\t\t\tslogging.so\n"
+#ifdef SL_UI_MODULE
 		"module\t\t\t" SL_UI_MODULE ".so\n"
+#endif
 #endif
 		"module\t\t\topus.so\n"
 		"module\t\t\tg722.so\n"
