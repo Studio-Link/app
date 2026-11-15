@@ -290,31 +290,112 @@ void webapp_session_play_read(struct session *sess, int16_t *sampv,
 }
 
 
-/* Report the receive buffer level per track (measured by baresip) */
+/* Add the network/buffer statistics of one call as object to the array */
+static void buffer_report_track(struct odict *arr, const struct session *sess)
+{
+	const struct rtcp_stats *rtcp;
+	struct jbuf_stat jb;
+	struct stream *strm;
+	struct audio *au;
+	struct odict *o;
+	char key[8];
+
+	if (odict_alloc(&o, 16))
+		return;
+
+	au   = sess->call ? call_audio(sess->call) : NULL;
+	strm = au ? audio_strm(au) : NULL;
+
+	odict_entry_add(o, "track", ODICT_INT, (int64_t)sess->track);
+	odict_entry_add(o, "active", ODICT_BOOL, strm != NULL);
+
+	if (!strm)
+		goto out;
+
+	/* receive audio buffer (aubuf) latency */
+	odict_entry_add(o, "buffer", ODICT_INT,
+			(int64_t)audio_jb_current_value(au));
+
+	/* RTP bitrate [bit/s] and packet counters */
+	odict_entry_add(o, "rx_bitrate", ODICT_INT,
+			(int64_t)stream_metric_get_rx_bitrate(strm));
+	odict_entry_add(o, "tx_bitrate", ODICT_INT,
+			(int64_t)stream_metric_get_tx_bitrate(strm));
+	odict_entry_add(o, "rx_packets", ODICT_INT,
+			(int64_t)stream_metric_get_rx_n_packets(strm));
+	odict_entry_add(o, "tx_packets", ODICT_INT,
+			(int64_t)stream_metric_get_tx_n_packets(strm));
+
+	/* RTCP: jitter [us], lost packets (cumulative), round-trip [us] */
+	rtcp = stream_rtcp_stats(strm);
+	if (rtcp) {
+		odict_entry_add(o, "rx_lost", ODICT_INT,
+				(int64_t)rtcp->rx.lost);
+		odict_entry_add(o, "rx_jitter", ODICT_INT,
+				(int64_t)rtcp->rx.jit);
+		odict_entry_add(o, "tx_lost", ODICT_INT,
+				(int64_t)rtcp->tx.lost);
+		odict_entry_add(o, "tx_jitter", ODICT_INT,
+				(int64_t)rtcp->tx.jit);
+		odict_entry_add(o, "rtt", ODICT_INT, (int64_t)rtcp->rtt);
+	}
+
+	/* RTP jitter buffer */
+	if (!stream_jbuf_stats(strm, &jb)) {
+		struct odict *oj;
+
+		if (odict_alloc(&oj, 16))
+			goto out;
+
+		odict_entry_add(oj, "delay", ODICT_INT, (int64_t)jb.c_delay);
+		odict_entry_add(oj, "jitter", ODICT_INT,
+				(int64_t)jb.c_jitter);
+		odict_entry_add(oj, "skew", ODICT_INT, (int64_t)jb.c_skew);
+		odict_entry_add(oj, "packets", ODICT_INT,
+				(int64_t)jb.c_packets);
+		odict_entry_add(oj, "put", ODICT_INT, (int64_t)jb.n_put);
+		odict_entry_add(oj, "lost", ODICT_INT, (int64_t)jb.n_lost);
+		odict_entry_add(oj, "late", ODICT_INT, (int64_t)jb.n_late);
+		odict_entry_add(oj, "late_lost", ODICT_INT,
+				(int64_t)jb.n_late_lost);
+		odict_entry_add(oj, "oos", ODICT_INT, (int64_t)jb.n_oos);
+		odict_entry_add(oj, "dups", ODICT_INT, (int64_t)jb.n_dups);
+		odict_entry_add(oj, "overflow", ODICT_INT,
+				(int64_t)jb.n_overflow);
+		odict_entry_add(oj, "flush", ODICT_INT, (int64_t)jb.n_flush);
+
+		odict_entry_add(o, "jbuf", ODICT_OBJECT, oj);
+		mem_deref(oj);
+	}
+
+out:
+	re_snprintf(key, sizeof(key), "%u", (unsigned)odict_count(arr, false));
+	odict_entry_add(arr, key, ODICT_OBJECT, o);
+	mem_deref(o);
+}
+
+
+/* Report the network and buffer statistics per track (measured by baresip) */
 static void buffer_report(void *arg)
 {
 	struct list *tsession;
 	struct session *sess;
+	struct odict *o = NULL, *arr = NULL;
 	struct le *le;
-	char buffers[200] = {0};
-	char json[512] = {0};
-	size_t n = 0;
 	(void)arg;
 
 	tsession = sl_sessions();
 
+	if (odict_alloc(&o, 4) || odict_alloc(&arr, 16))
+		goto out;
+
 	for (le = tsession->head; le; le = le->next) {
-		uint64_t ms = 0;
 		sess = le->data;
 
 		if (sess->local || sess->stream)
 			continue;
 
-		if (sess->call)
-			ms = audio_jb_current_value(call_audio(sess->call));
-
-		n += re_snprintf(buffers + n, sizeof(buffers) - n, "%s%llu",
-				 n ? " " : "", ms);
+		buffer_report_track(arr, sess);
 
 		if (sess->changed) {
 			session_to_webapp_calls(sess);
@@ -323,11 +404,14 @@ static void buffer_report(void *arg)
 		}
 	}
 
-	re_snprintf(json, sizeof(json),
-			"{ \"callback\": \"JITTER\", \"buffers\": \"%s\"}",
-			buffers);
+	odict_entry_add(o, "callback", ODICT_STRING, "STATS");
+	odict_entry_add(o, "tracks", ODICT_ARRAY, arr);
 
-	ws_send_all(WS_CALLS, json);
+	ws_send_json(WS_CALLS, o);
+
+out:
+	mem_deref(arr);
+	mem_deref(o);
 	tmr_start(&tmr_buffer_report, 250, buffer_report, NULL);
 }
 

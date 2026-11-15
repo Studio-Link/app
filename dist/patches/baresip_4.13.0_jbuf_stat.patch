@@ -1,0 +1,13 @@
+--- a/src/jbuf.c
++++ b/src/jbuf.c
+@@ -21,9 +21,8 @@
+ #include <re_dbg.h>
+ 
+ 
+-#ifndef RELEASE
++/* Studio Link: keep statistics in release builds (WebUI network status) */
+ #define JBUF_STAT 1  /**< Jitter buffer statistics */
+-#endif
+ 
+ 
+ #if JBUF_STAT

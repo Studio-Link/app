@@ -23,6 +23,12 @@
   shutdown). Clicking the Dock icon or opening the app again opens the web
   UI. Microphone permission is requested at start, startup errors are
   shown in an alert. New app icon (white logo on orange) and menu bar icon
+- **Misc** Network status icon per call (green/yellow/red by packet loss,
+  round-trip time and jitter). Hover shows debug infos: RTT, bitrate,
+  packets, lost packets and jitter (rx/tx), jitter buffer state (delay,
+  jitter, skew, lost/late/out-of-sequence/overflow/flush) and audio buffer
+  latency. Replaces the "Buffer: x ms" text (baresip patched to keep jitter
+  buffer statistics in release builds)
 
 ### Changed
 

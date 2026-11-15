@@ -17,6 +17,7 @@ import { faTh } from '@fortawesome/free-solid-svg-icons/faTh'
 import { faFolderOpen } from '@fortawesome/free-regular-svg-icons/faFolderOpen'
 import { faClock } from '@fortawesome/free-regular-svg-icons/faClock'
 import { faDownload } from '@fortawesome/free-solid-svg-icons/faDownload'
+import { faSignal } from '@fortawesome/free-solid-svg-icons/faSignal'
 
 library.add(faCog)
 library.add(faRandom)
@@ -36,6 +37,7 @@ library.add(faTh)
 library.add(faFolderOpen)
 library.add(faClock)
 library.add(faDownload)
+library.add(faSignal)
 
 // Replace any existing <i> tags with <svg> and set up a MutationObserver to
 // continue doing this as the DOM changes.

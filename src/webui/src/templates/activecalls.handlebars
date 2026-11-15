@@ -31,6 +31,34 @@
         </div>
 
         <div class="float-end">
+            <span class="netstatus" id="netstatus{{track}}" tabindex="0" role="button"
+                aria-label="Network status, show connection details">
+                <i class="fas fa-signal netstatus-icon netstatus-none"></i>
+                <div class="netstatus-info" role="tooltip">
+                    <table>
+                        <tbody>
+                            <tr><th colspan="2">Network</th></tr>
+                            <tr><td>Quality</td><td data-stat="quality">-</td></tr>
+                            <tr><td>Round trip</td><td data-stat="rtt">-</td></tr>
+                            <tr><td>Bitrate rx / tx</td><td data-stat="bitrate">-</td></tr>
+                            <tr><td>Packets rx / tx</td><td data-stat="packets">-</td></tr>
+                            <tr><td>Lost rx / tx</td><td data-stat="lost">-</td></tr>
+                            <tr><td>Jitter rx / tx</td><td data-stat="jitter">-</td></tr>
+                            <tr><th colspan="2">Jitter buffer</th></tr>
+                            <tr><td>Delay</td><td data-stat="jb_delay">-</td></tr>
+                            <tr><td>Jitter</td><td data-stat="jb_jitter">-</td></tr>
+                            <tr><td>Skew</td><td data-stat="jb_skew">-</td></tr>
+                            <tr><td>Packets</td><td data-stat="jb_packets">-</td></tr>
+                            <tr><td>Lost</td><td data-stat="jb_lost">-</td></tr>
+                            <tr><td>Late / late lost</td><td data-stat="jb_late">-</td></tr>
+                            <tr><td>Out of seq. / dups</td><td data-stat="jb_oos">-</td></tr>
+                            <tr><td>Overflow / flush</td><td data-stat="jb_overflow">-</td></tr>
+                            <tr><th colspan="2">Audio buffer</th></tr>
+                            <tr><td>Playout</td><td data-stat="buffer">-</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </span>
             <span class="badge text-bg-primary">{{state}}</span>
             <button aria-label="Cancel Call" data-key="{{@key}}" class="btn btn-danger btn-sm hangup"
                 style="margin-top: -2px;">
@@ -40,7 +68,6 @@
     </div>
     <div class="card-body">
         ID: {{mysip peer}}
-        (Buffer: <span id="jitter{{track}}"></span> ms)
         <div id="headphonesbar{{ch}}" class="progress progress-sm"></div>
     </div>
 </div>

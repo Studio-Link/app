@@ -83,3 +83,66 @@ a:hover {
 #changelogen h3 {
 	font-size: 1rem;
 }
+
+/* Network status icon per call, details shown on hover/focus */
+.netstatus {
+	position: relative;
+	display: inline-block;
+	margin-right: 0.5rem;
+	cursor: help;
+	outline: none;
+}
+
+.netstatus-none { color: #6c6c6c; }
+.netstatus-good { color: $success; }
+.netstatus-fair { color: $warning; }
+.netstatus-bad  { color: $danger; }
+
+.netstatus-info {
+	display: none;
+	position: absolute;
+	top: calc(100% + 6px);
+	right: 0;
+	z-index: 1070;
+	min-width: 260px;
+	padding: 0.5rem 0.75rem;
+	background-color: #171717;
+	border: 1px solid #444;
+	border-radius: 0.375rem;
+	box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+	font-size: 0.75rem;
+	font-weight: normal;
+	white-space: nowrap;
+	cursor: default;
+}
+
+.netstatus:hover .netstatus-info,
+.netstatus:focus .netstatus-info,
+.netstatus:focus-within .netstatus-info {
+	display: block;
+}
+
+.netstatus-info table {
+	width: 100%;
+}
+
+.netstatus-info th {
+	padding-top: 0.35rem;
+	color: #f67e05;
+	font-weight: 600;
+}
+
+.netstatus-info tr:first-child th {
+	padding-top: 0;
+}
+
+.netstatus-info td {
+	padding: 0 0.25rem;
+	color: #c8c8c8;
+}
+
+.netstatus-info td:last-child {
+	text-align: right;
+	color: #fff;
+	font-variant-numeric: tabular-nums;
+}

@@ -7,6 +7,118 @@ import { qs, on, onEnter, dialog, confirm, hideAll, notify, serializeForm, valid
 
 var ws_calls_dropdown_open = 0;
 
+/* Sliding window (~2 s at 250 ms reports) for the recent packet loss rate */
+const NETSTATUS_WINDOW = 8;
+var netstatus_history = {};
+
+function fmt_kbit(bps) {
+	return (bps / 1000).toFixed(0) + " kbit/s";
+}
+
+function fmt_ms_us(us) {
+	return (us / 1000).toFixed(1) + " ms";
+}
+
+/* Recent loss rate in percent, from jitter buffer counters (received
+ * frames vs. lost and too-late-dropped frames). */
+function netstatus_loss(t) {
+	let h = netstatus_history[t.track];
+	if (!h || !t.jbuf || !t.active) {
+		h = netstatus_history[t.track] = [];
+		if (!t.jbuf || !t.active)
+			return null;
+	}
+
+	const lost = t.jbuf.lost + t.jbuf.late_lost;
+	/* counters reset (new call) */
+	if (h.length && (t.jbuf.put < h[h.length-1].put ||
+			lost < h[h.length-1].lost))
+		h.length = 0;
+
+	h.push({ put: t.jbuf.put, lost: lost });
+	if (h.length > NETSTATUS_WINDOW)
+		h.shift();
+
+	const put = h[h.length-1].put - h[0].put;
+	const dlost = h[h.length-1].lost - h[0].lost;
+	if (put + dlost <= 0)
+		return null;
+
+	return 100 * dlost / (put + dlost);
+}
+
+function netstatus_quality(t, loss) {
+	/* no RTP received yet */
+	if (!t.active || !t.rx_packets)
+		return { cls: "netstatus-none", text: "no data" };
+
+	/* loss unknown (no jitter buffer stats): rate by RTT/jitter only */
+	if (loss === null)
+		loss = 0;
+
+	const rtt = t.rtt || 0;        /* us */
+	const jit = t.rx_jitter || 0;  /* us */
+
+	if (loss > 5 || rtt > 400000 || jit > 60000)
+		return { cls: "netstatus-bad", text: "bad" };
+	if (loss > 1 || rtt > 200000 || jit > 30000)
+		return { cls: "netstatus-fair", text: "fair" };
+
+	return { cls: "netstatus-good", text: "good" };
+}
+
+function netstatus_update(t) {
+	const el = qs("#netstatus" + t.track);
+	if (!el)
+		return;
+
+	const loss = netstatus_loss(t);
+	const q = netstatus_quality(t, loss);
+
+	const icon = el.querySelector(".netstatus-icon");
+	if (icon) {
+		icon.classList.remove("netstatus-none", "netstatus-good",
+				      "netstatus-fair", "netstatus-bad");
+		icon.classList.add(q.cls);
+	}
+
+	const set = (key, val) => {
+		const td = el.querySelector('[data-stat="' + key + '"]');
+		if (td)
+			td.textContent = val;
+	};
+
+	if (!t.active) {
+		el.querySelectorAll("[data-stat]").forEach(
+			(td) => td.textContent = "-");
+		set("quality", q.text);
+		return;
+	}
+
+	set("quality", q.text + (loss !== null ?
+		" (" + loss.toFixed(1) + " % loss)" : ""));
+	set("rtt", t.rtt ? fmt_ms_us(t.rtt) : "-");
+	set("bitrate", fmt_kbit(t.rx_bitrate) + " / " +
+		fmt_kbit(t.tx_bitrate));
+	set("packets", t.rx_packets + " / " + t.tx_packets);
+	set("lost", (t.rx_lost ?? "-") + " / " + (t.tx_lost ?? "-"));
+	set("jitter", t.rx_jitter !== undefined ?
+		fmt_ms_us(t.rx_jitter) + " / " + fmt_ms_us(t.tx_jitter) : "-");
+	set("buffer", t.buffer + " ms");
+
+	const jb = t.jbuf;
+	if (jb) {
+		set("jb_delay", jb.delay + " ms");
+		set("jb_jitter", jb.jitter + " ms");
+		set("jb_skew", jb.skew + " ms");
+		set("jb_packets", jb.packets);
+		set("jb_lost", jb.lost);
+		set("jb_late", jb.late + " / " + jb.late_lost);
+		set("jb_oos", jb.oos + " / " + jb.dups);
+		set("jb_overflow", jb.overflow + " / " + jb.flush);
+	}
+}
+
 window.ws_calls_init = function() {
 
 	function RefreshEventListener() {
@@ -139,13 +251,10 @@ window.ws_calls_init = function() {
 			hideAll();
 			notify("Call closed: " + msg.message, "warn");
 
-		} else if (msg.callback == "JITTER") {
+		} else if (msg.callback == "STATS") {
 
-			var jitters = msg.buffers.split(" ");
-			for (let i=0; i<jitters.length; i++) {
-				let track = i + 1;
-				var jitter = qs("#jitter"+track);
-				if (jitter) jitter.textContent = jitters[i];
+			for (const t of msg.tracks) {
+				netstatus_update(t);
 			}
 
 		} else {
