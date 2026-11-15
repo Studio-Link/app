@@ -64,6 +64,14 @@ static void update(void *arg)
 	ws_send_all(WS_BARESIP, json);
 }
 
+static bool is_studio_link_domain(const char *domain)
+{
+	return !str_cmp(domain, "studio.link") ||
+	       !str_cmp(domain, "studio.link:443") ||
+	       !str_cmp(domain, "studio-link.de");
+}
+
+
 static int sip_register(struct odict *o)
 {
 	struct le *le;
@@ -141,10 +149,18 @@ static int sip_register(struct odict *o)
 	re_snprintf(buf, sizeof(buf),
 		    "<sip:%s@%s;transport=%s>;auth_pass=%s;%s",
 		    user, domain, transport, password, opt);
-	ua_alloc(&ua, buf);
+	err = ua_alloc(&ua, buf);
+	if (err) {
+		warning("webapp/account: ua_alloc failed for %s@%s (%m)\n",
+			user, domain, err);
+		return err;
+	}
 	ua_register(ua);
 
-	main_ua = ua;
+	/* Only the provisioned Studio Link account is the main UA,
+	 * manually added SIP accounts must not replace it */
+	if (is_studio_link_domain(domain))
+		main_ua = ua;
 
 	if (quick) {
 		re_snprintf(buf, sizeof(buf),

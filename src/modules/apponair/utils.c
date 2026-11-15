@@ -15,8 +15,8 @@ void webapp_odict_add(struct odict *og, const struct odict *src)
 	struct le *le;
 	struct odict *o;
 	int err = 0;
-	char index[64];
-	size_t index_cnt=0;
+	char index[64] = {0};
+	unsigned index_cnt = 0;
 
 	err = odict_alloc(&o, DICT_BSIZE);
 	if (err)
