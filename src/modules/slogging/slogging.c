@@ -13,6 +13,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <errno.h>
+#ifdef WIN32
+#include <share.h>
+#endif
 
 
 static FILE *log_fp = NULL;
@@ -128,7 +132,15 @@ static int module_init(void)
 	if (err)
 		return err;
 
+#ifdef WIN32
+	/* fs_fopen() uses fopen_s(), which opens without sharing: the
+	 * webapp log download (and other readers) could not read the
+	 * current log while it is open. Allow readers, deny writers. */
+	log_fp = _fsopen(file, "w", _SH_DENYWR);
+	err = log_fp ? 0 : errno;
+#else
 	err = fs_fopen(&log_fp, file, "w");
+#endif
 	if (err) {
 		warning("slogging: open %s failed (%m)\n", file, err);
 		lock = mem_deref(lock);
