@@ -74,6 +74,7 @@ struct session {
 	bool bypass;
 #else
 	bool run_record;
+	RE_ATOMIC bool rec_used; /* track had a call while recording */
 	struct aubuf *aubuf;
 	thrd_t record_thread;
 	FLAC__StreamEncoder *flac;

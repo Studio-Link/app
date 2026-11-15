@@ -4,6 +4,8 @@
 
 ### Added
 
+- **Standalone** Recordings only keep the remote-track files of tracks that
+  had a call during the recording (no more silent unused tracks)
 - **Plugin** New native CLAP, VST3 and AUv2 plugins (via clap-wrapper) and an
   in-tree LV2 plugin, replacing the JUCE and overlay based VST/AU/LV2 builds.
   Linux: CLAP/VST3/LV2, macOS: CLAP/VST3/AUv2, Windows: CLAP/VST3 (AU

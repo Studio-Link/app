@@ -986,9 +986,11 @@ static void process_input(const float *in, unsigned long nframes)
 		}
 
 		/* write remote streams to flac record buffer */
-		if (record)
+		if (record) {
 			(void)aubuf_write_samp(sess->aubuf, st_play->sampv,
 					samples);
+			re_atomic_rlx_set(&sess->rec_used, true);
+		}
 
 		/* vumeter */
 		if (!sess->stream) {

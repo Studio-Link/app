@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <re.h>
@@ -110,6 +111,19 @@ void slaudio_record_closefile(struct session *sess)
 }
 
 
+static void rec_filename(const struct session *sess, char *buf, size_t sz)
+{
+	if (sess->local) {
+		(void)re_snprintf(buf, sz, "%s" DIR_SEP "local.flac",
+				  record_folder);
+	}
+	else {
+		(void)re_snprintf(buf, sz, "%s" DIR_SEP "remote-track-%d.flac",
+				  record_folder, sess->track);
+	}
+}
+
+
 static int openfile(struct session *sess)
 {
 	char filename[256];
@@ -117,15 +131,7 @@ static int openfile(struct session *sess)
 	FLAC__StreamEncoderInitStatus init_status;
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
 
-	if (sess->local) {
-		(void)re_snprintf(filename, sizeof(filename), "%s"
-			DIR_SEP "local.flac", record_folder);
-	}
-	else {
-		(void)re_snprintf(filename, sizeof(filename), "%s"
-			DIR_SEP "remote-track-%d.flac", record_folder,
-			sess->track);
-	}
+	rec_filename(sess, filename, sizeof(filename));
 
 	/* Basic Encoder */
 	if((sess->flac = FLAC__stream_encoder_new()) == NULL) {
@@ -348,6 +354,8 @@ static void rec_start(void)
 		if (!rec_session(sess))
 			continue;
 
+		re_atomic_rlx_set(&sess->rec_used, false);
+
 		err = openfile(sess);
 		if (err)
 			break;
@@ -532,6 +540,22 @@ static int record_thread(void *arg)
 			slaudio_record_closefile(sess);
 			info("slaudio/record: track %d closed "
 			     "(%llu samples)\n", sess->track, done);
+
+			/* no call on this track while recording */
+			if (!sess->local &&
+			    !re_atomic_acq(&sess->rec_used)) {
+				char filename[256];
+
+				rec_filename(sess, filename,
+					     sizeof(filename));
+				if (remove(filename) == 0)
+					info("slaudio/record: track %d "
+					     "unused, removed\n",
+					     sess->track);
+				else
+					warning("slaudio/record: could not "
+						"remove %s\n", filename);
+			}
 			my_gen = re_atomic_acq(&rec.gen);
 			done = 0;
 			failed = false;
