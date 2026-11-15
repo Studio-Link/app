@@ -115,7 +115,6 @@ static int template_print(struct re_printf *pf, void *arg)
 		"auplay_channels\t\t2\n"
 		"\n"
 		"# AVT - Audio/Video Transport\n"
-		"rtcp_mux\t\tyes\n"
 		"audio_jitter_buffer_type\tadaptive\n"
 		"audio_jitter_buffer_ms\t\t20-300\n"
 		"audio_jitter_buffer_size\t50\t\t# [packets]\n"

@@ -79,7 +79,8 @@ static int sip_register(const struct odict *o)
 					opt, odict_entry_key(e), odict_entry_str(e));
 		}
 	}
-	re_snprintf(buf, sizeof(buf), "<sip:%s@%s;transport=%s>;auth_pass=%s;%s",
+	re_snprintf(buf, sizeof(buf),
+			"<sip:%s@%s;transport=%s>;auth_pass=%s;%s;rtcp_mux=yes",
 			user, domain, transport, password, opt);
 	ua_alloc(&ua, buf);
 	ua_register(ua);

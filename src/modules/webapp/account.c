@@ -136,8 +136,8 @@ static int sip_register(struct odict *o)
 		odict_entry_del(o, "update");
 
 	re_snprintf(buf, sizeof(buf),
-			"<sip:%s@%s;transport=%s>;auth_pass=%s;%s",
-			user, domain, transport, password, opt);
+		    "<sip:%s@%s;transport=%s>;auth_pass=%s;%s;rtcp_mux=yes",
+		    user, domain, transport, password, opt);
 	ua_alloc(&ua, buf);
 	ua_register(ua);
 
@@ -146,7 +146,7 @@ static int sip_register(struct odict *o)
 	if (quick) {
 		re_snprintf(buf, sizeof(buf),
 				"<sip:quick-%s@%s;transport=%s>;"
-				"auth_pass=%s;%s",
+				"auth_pass=%s;%s;rtcp_mux=yes",
 				user, domain, transport, password, opt_quick);
 		warning("register quick %s\n", buf);
 		ua_alloc(&ua, buf);
