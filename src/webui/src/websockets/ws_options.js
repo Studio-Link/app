@@ -1,5 +1,5 @@
 import hoptions from "../templates/options.handlebars";
-import { qs, on, render } from "../ui.js";
+import { qs, on, render, dialog } from "../ui.js";
 "use strict";
 
 // Settings shown in the Options tab (labels in options.handlebars)
@@ -34,6 +34,61 @@ window.ws_options_init = function() {
 
   function RefreshOnair() {
     toggleButton("#btn-onair", onair, "btn-danger", "btn-secondary");
+    var btn = qs("#btn-onair");
+    if (btn) {
+      btn.title = onair
+        ? "You are live: the session audio is being streamed. Click to stop streaming."
+        : "Live stream: broadcast the session audio (you and all call participants) via stream.studio-link.de";
+    }
+  }
+
+  function setOnair(value) {
+    onair = value;
+    RefreshOnair();
+    ws_options.send('{"key": "onair", "value": "' + onair + '"}');
+  }
+
+  // Explain what the stream button does before going live
+  function confirmOnair() {
+    var skip = false;
+    try { skip = localStorage.getItem("slstreaminfo") == "hide"; } catch (e) { /* ignore */ }
+    if (skip) {
+      setOnair(true);
+      return;
+    }
+
+    dialog({
+      title: "Start live stream?",
+      message:
+        "<p>Streaming broadcasts your <strong>live session audio</strong> " +
+        "(your microphone and all call participants) via " +
+        "<strong>stream.studio-link.de</strong>. Anyone with the stream link " +
+        "can listen in real time.</p>" +
+        "<p>A browser window opens where you log in and get the listener " +
+        "link. The stream keeps running until you click the button " +
+        "again.</p>" +
+        "<p class=\"mb-0 text-muted\">This is not a recording. Use " +
+        "<em>Record</em> for local recordings.</p>" +
+        "<div class=\"form-check mt-3\">" +
+        "<input class=\"form-check-input\" type=\"checkbox\" id=\"stream-info-hide\">" +
+        "<label class=\"form-check-label\" for=\"stream-info-hide\">Don't show this again</label>" +
+        "</div>",
+      onEscape: function() {},
+      buttons: {
+        cancel: { label: "Cancel", className: "btn-secondary" },
+        start: {
+          label: "Start streaming",
+          className: "btn-danger",
+          callback: function() {
+            var hide = qs("#stream-info-hide");
+            if (hide && hide.checked) {
+              try { localStorage.setItem("slstreaminfo", "hide"); } catch (e) { /* ignore */ }
+            }
+            setOnair(true);
+          },
+        },
+      },
+    });
   }
 
   function RefreshRaisehand() {
@@ -171,12 +226,10 @@ window.ws_options_init = function() {
 
   on("#btn-onair", "click", function() {
     if (onair) {
-      onair = false;
+      setOnair(false);
     } else {
-      onair = true;
+      confirmOnair();
     }
-
-    ws_options.send('{"key": "onair", "value": "' + onair + '"}');
   });
 
   on("#btn-raise-hand", "click", function() {

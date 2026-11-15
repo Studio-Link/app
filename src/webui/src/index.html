@@ -122,9 +122,10 @@
 
 		<footer class="sl-footer">
 			<div class="sl-controls" role="group" aria-label="Session controls">
-				<button type="button" class="btn btn-secondary btn-small-round d-none" id="btn-onair" aria-label="OnAir" aria-pressed="false">
+				<button type="button" class="btn btn-secondary btn-small-round d-none" id="btn-onair" aria-label="Live stream" aria-pressed="false" aria-describedby="onair-hint" title="Live stream: broadcast the session audio (you and all call participants) via stream.studio-link.de">
 					<i class="fa fa-rss" aria-hidden="true"></i>
 				</button>
+				<span id="onair-hint" class="visually-hidden">Broadcasts the live session audio, you and all call participants, via stream.studio-link.de</span>
 				<button id="btn-mute" type="button" class="btn btn-secondary btn-round d-none" aria-pressed="false">Mute</button>
 				<button type="button" class="btn btn-secondary btn-round d-none" id="btn-record" aria-label="Record" aria-pressed="false" aria-describedby="record_time">
 					Record
