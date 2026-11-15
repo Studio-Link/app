@@ -28,8 +28,9 @@
 #define SL_APP_MODULE    "webapp"
 #endif
 
-/* Windows: no console UI (GUI subsystem app / DAW plugin) */
-#if !defined (WIN32)
+/* Windows/macOS: no console UI (GUI app / DAW plugin). On macOS stdin is
+ * /dev/null if started from Finder or inside a DAW, stdio would spin on it */
+#if !defined (WIN32) && !defined (DARWIN)
 #define SL_UI_MODULE "stdio"
 #endif
 
@@ -105,7 +106,8 @@ static int template_print(struct re_printf *pf, void *arg)
 		"audio_source\t\t" SL_AUDIO_DEVICE "\n"
 		"audio_alert\t\t" SL_AUDIO_DEVICE "\n"
 		"audio_buffer\t\t20-160\t\t# ms\n"
-		"# the Studio Link audio modules work with 48kHz stereo only,\n"
+		"# the Studio Link audio modules work with 48kHz stereo "
+		"only,\n"
 		"# other codec rates/channels are converted by auresamp\n"
 		"ausrc_srate\t\t48000\n"
 		"auplay_srate\t\t48000\n"
@@ -205,7 +207,8 @@ int sl_conf_configure(bool reset)
 	if (err)
 		return err;
 
-	if (re_snprintf(file, sizeof(file), "%s" SL_DIR_SEP "config", path) < 0)
+	if (re_snprintf(file, sizeof(file), "%s" SL_DIR_SEP "config",
+			path) < 0)
 		return ENOMEM;
 
 	if (fs_isfile(file) && (reset || !version_matches(file))) {

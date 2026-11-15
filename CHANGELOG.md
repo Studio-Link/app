@@ -15,6 +15,14 @@
   recordings and log folders and quits Studio Link. Starting Studio Link
   again opens the web UI of the running instance. App icon and version info
   added to the .exe
+- **Standalone** macOS: new native Swift/AppKit app bundle
+  (StudioLink.app, universal arm64/x86_64, macOS 11+) built in-tree,
+  replacing the Objective-C overlay-standalone-osx. Menu bar item (click:
+  open the web UI, right-click: menu) and Dock menu to open the web UI,
+  the recordings and log folders and to quit Studio Link (clean
+  shutdown). Clicking the Dock icon or opening the app again opens the web
+  UI. Microphone permission is requested at start, startup errors are
+  shown in an alert. New app icon (white logo on orange) and menu bar icon
 
 ### Changed
 
@@ -27,6 +35,8 @@
 - **Standalone** Audio backend switched from libsoundio to PortAudio
 - **Misc** Windows: URLs and folders are opened with ShellExecute instead of
   `system("start ...")` (no cmd window flashing up, also in the plugins)
+- **Misc** macOS: the stdio (console keyboard) module is not loaded anymore,
+  stdin is /dev/null when started from Finder or inside a DAW
 - **Plugin** Reworked audio sync between plugin instances (lock-free ring
   buffer per session)
 - **WebUI** Updated to Bootstrap 5 and Vite, new onboarding tour (driver.js),

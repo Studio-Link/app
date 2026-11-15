@@ -23,6 +23,7 @@ sl_prepare
 sl_3rdparty
 
 cmake_extra=""
+standalone_extra=()
 plugin_formats=""
 
 if [ "$BUILD_TARGET" == "linux" ]; then
@@ -32,12 +33,16 @@ fi
 if [ "$BUILD_OS" == "macos" ]; then
     plugin_formats="CLAP;VST3;AUV2"
     export MACOSX_DEPLOYMENT_TARGET=10.13
-    sed_opt="-i ''"
     if [ "$BUILD_TARGET" == "macos_arm64" ]; then
         cmake_extra="-DCMAKE_OSX_ARCHITECTURES=arm64"
     else
         cmake_extra="-DCMAKE_OSX_ARCHITECTURES=x86_64"
     fi
+    # StudioLink.app is a Swift/AppKit app (macOS 11+), CMake builds Swift
+    # only with Ninja. Not signed, see docs/release.md.
+    # Built per architecture (the 3rdparty libs are), merged into a
+    # universal app by dist/macos_universal.sh.
+    standalone_extra=(-G Ninja -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0)
 fi
 
 # Sources
@@ -60,12 +65,20 @@ if [ -n "$SL_SKIP_PLUGINS" ]; then
     plugin_formats=""
 fi
 
-sl_cmake_variant standalone $cmake_extra
+if [ "$BUILD_OS" == "macos" ]; then
+    # own build dir per architecture (Swift target is fixed at configure)
+    SL_VARIANT_DIR=standalone_$BUILD_TARGET \
+        sl_cmake_variant standalone $cmake_extra "${standalone_extra[@]}"
+else
+    sl_cmake_variant standalone $cmake_extra
+fi
 # DAW plugins, output in plugin/plugins and onair/plugins
 sl_cmake_variant plugin $cmake_extra "-DSL_PLUGIN_FORMATS=$plugin_formats"
 sl_cmake_variant onair $cmake_extra "-DSL_PLUGIN_FORMATS=$plugin_formats"
 
-cp -a standalone/studio-link-standalone .
+if [ "$BUILD_OS" != "macos" ]; then
+    cp -a standalone/studio-link-standalone .
+fi
 
 # Testing and collect artifacts
 #-----------------------------------------------------------------------------
@@ -111,8 +124,20 @@ if [ -n "$plugin_formats" ]; then
 fi
 
 if [ "$BUILD_OS" == "macos" ]; then
-    otool -L studio-link-standalone
-    strip studio-link-standalone
-    zip -r studio-link-standalone-$version_t.zip studio-link-standalone
-    cp -a studio-link-standalone-$version_t.zip $artifacts
+    # single architecture app, input for dist/macos_universal.sh
+    arch=${BUILD_TARGET#macos_}
+    app=StudioLink.app
+    rm -rf $app
+    cp -a standalone_$BUILD_TARGET/$app .
+    otool -L $app/Contents/MacOS/StudioLink
+    # macOS 11 has no Swift concurrency runtime (not bundled)
+    if otool -L $app/Contents/MacOS/StudioLink | grep -q libswift_Concurrency; then
+        echo "StudioLink links libswift_Concurrency, would not start on macOS 11"
+        exit 1
+    fi
+    lipo -archs $app/Contents/MacOS/StudioLink
+    # not stripped/signed: the linker signature keeps it runnable on Apple
+    # Silicon, strip + codesign for releases, see docs/release.md
+    sl_macos_zip $app studio-link-standalone-$version_t-$arch.zip
+    cp -a studio-link-standalone-$version_t-$arch.zip $artifacts
 fi

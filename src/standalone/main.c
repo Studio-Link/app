@@ -14,8 +14,10 @@
 #include <baresip.h>
 #include "slconf.h"
 #include "slcacert.h"
-#ifdef WIN32
+#if defined (WIN32)
 #include "winapp.h"
+#elif defined (SL_MACAPP)
+#include "macapp.h"
 #endif
 
 #define DEBUG_MODULE ""
@@ -61,11 +63,42 @@ static void tmr_quit_handler(void *arg)
 }
 
 
-#ifdef WIN32
+#if defined (WIN32) || defined (SL_MACAPP)
 /* slaudio module */
 void slaudio_record_open_folder(void);
 
 
+/* The web UI port, written by the webapp module to webapp.conf */
+static uint16_t webapp_port(void)
+{
+	char file[512];
+	struct conf *conf = NULL;
+	uint32_t port = 0;
+
+	if (conf_path_get(file, sizeof(file)))
+		return 0;
+
+	if (re_snprintf(file + str_len(file), sizeof(file) - str_len(file),
+#ifdef WIN32
+			"\\webapp.conf"
+#else
+			"/webapp.conf"
+#endif
+			) < 0)
+		return 0;
+
+	if (conf_alloc(&conf, file))
+		return 0;
+
+	(void)conf_get_u32(conf, "sl_port", &port);
+	mem_deref(conf);
+
+	return (uint16_t)port;
+}
+#endif
+
+
+#ifdef WIN32
 static void win_action_handler(enum sl_win_action action)
 {
 	switch (action) {
@@ -80,29 +113,23 @@ static void win_action_handler(enum sl_win_action action)
 		break;
 	}
 }
+#endif
 
 
-/* The web UI port, written by the webapp module to webapp.conf */
-static uint16_t webapp_port(void)
+#ifdef SL_MACAPP
+static void mac_action_handler(enum sl_mac_action action)
 {
-	char file[512];
-	struct conf *conf = NULL;
-	uint32_t port = 0;
+	switch (action) {
 
-	if (conf_path_get(file, sizeof(file)))
-		return 0;
+	case SL_MAC_QUIT:
+		info("quit from app\n");
+		ua_stop_all(false);
+		break;
 
-	if (re_snprintf(file + str_len(file), sizeof(file) - str_len(file),
-			"\\webapp.conf") < 0)
-		return 0;
-
-	if (conf_alloc(&conf, file))
-		return 0;
-
-	(void)conf_get_u32(conf, "sl_port", &port);
-	mem_deref(conf);
-
-	return (uint16_t)port;
+	case SL_MAC_OPEN_RECORDINGS:
+		slaudio_record_open_folder();
+		break;
+	}
 }
 #endif
 
@@ -124,7 +151,13 @@ static void usage(void)
 #endif
 
 
+#ifdef SL_MACAPP
+/* the process entry point is the Swift app (macos/main.swift), it runs
+ * this on the core thread */
+int sl_mac_core_main(int argc, char *argv[])
+#else
 int main(int argc, char *argv[])
+#endif
 {
 	struct tmr tmr_quit;
 	bool sip_trace = false;
@@ -148,6 +181,12 @@ int main(int argc, char *argv[])
 		goto out;
 
 	tmr_init(&tmr_quit);
+
+#ifdef SL_MACAPP
+	err = sl_mac_start(mac_action_handler);
+	if (err)
+		goto out;
+#endif
 
 #ifdef HAVE_GETOPT
 	for (;;) {
@@ -242,8 +281,10 @@ int main(int argc, char *argv[])
 	if (err)
 		goto out;
 
-#ifdef WIN32
+#if defined (WIN32)
 	sl_win_tray_set_port(webapp_port());
+#elif defined (SL_MACAPP)
+	sl_mac_ready(webapp_port());
 #endif
 
 	info("studio link is ready.\n");
@@ -254,6 +295,10 @@ int main(int argc, char *argv[])
 	err = re_main(signal_handler);
 
  out:
+#ifdef SL_MACAPP
+	/* before libre_close (the mqueue is a re fd) */
+	sl_mac_stop();
+#endif
 #ifdef WIN32
 	if (err)
 		sl_win_error("Studio Link could not be started (%m).\n\n"

@@ -1,13 +1,14 @@
+# repository root (functions are called from build/ and from dist/)
+sl_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
 sl_prepare_version() {
     vminor_t=$(printf "%02d" $vminor)
     version_t="v$vmajor.$vminor_t.$vpatch-$release"
     version_tc="v$vmajor.$vminor_t.$vpatch"
-    version_n="$vmajor.$vminor_t.$vpatch"
 }
 
 sl_prepare() {
-    echo "start build on $BUILD_TARGET ($BUILD_TARGET)"
-    sed_opt="-i"
+    echo "start build on $BUILD_TARGET ($BUILD_OS)"
 
     sl_prepare_version
 
@@ -17,8 +18,6 @@ sl_prepare() {
     # release files of this target, uploaded by CI (actions/upload-artifact)
     artifacts="artifacts/$BUILD_TARGET"
     mkdir -p $artifacts
-
-    SHASUM=$(which shasum)
 }
 
 sl_3rdparty() {
@@ -75,10 +74,11 @@ sl_get_baresip() {
 }
 
 # sl_cmake_variant <variant> [extra cmake args]
-# Builds re + baresip + Studio Link modules into build/<variant>
+# Builds re + baresip + Studio Link modules into build/<variant>, or into
+# build/$SL_VARIANT_DIR if set
 sl_cmake_variant() {
     local variant=$1; shift
-    cmake -S .. -B $variant \
+    cmake -S .. -B ${SL_VARIANT_DIR:-$variant} \
         -DCMAKE_BUILD_TYPE=$build_type \
         -DSL_VARIANT=$variant \
         -DSL_VERSION=$version_t \
@@ -89,5 +89,12 @@ sl_cmake_variant() {
         -DSL_CACERT_VERSION=$cacert \
         -DSL_CACERT_SHA256=$cacert_sha256 \
         "$@"
-    cmake --build $variant -j ${JOBS:-4}
+    cmake --build ${SL_VARIANT_DIR:-$variant} -j ${JOBS:-4}
+}
+
+# sl_macos_zip <app> <zip>
+# ditto keeps the bundle structure/symlinks intact (unlike zip -r)
+sl_macos_zip() {
+    rm -f "$2"
+    ditto -c -k --sequesterRsrc --keepParent "$1" "$2"
 }

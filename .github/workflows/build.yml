@@ -85,8 +85,6 @@ jobs:
     - name: prepare build
       if: ${{ matrix.os_name == 'linux' || matrix.os_name == 'macos' }}
       run: ./dist/before_build.sh
-      env:
-        KEY_PASSWORD_2020: ${{ secrets.KEY_PASSWORD_2020 }}
 
     - name: build
       if: ${{ matrix.os_name == 'linux' || matrix.os_name == 'macos' }}
@@ -96,4 +94,40 @@ jobs:
       with:
         name: studio-link-${{ matrix.target }}
         path: build/artifacts/${{ matrix.target }}/
+        if-no-files-found: error
+
+  # one universal StudioLink.app from the arm64 and x86_64 builds
+  macos_universal:
+    needs: build
+    runs-on: macos-15
+    env:
+      BUILD_TARGET: macos_universal
+      BUILD_OS: macos
+    steps:
+    - uses: actions/checkout@v7
+
+    - uses: actions/download-artifact@v8
+      with:
+        name: studio-link-macos_arm64
+        path: dl/arm64
+
+    - uses: actions/download-artifact@v8
+      with:
+        name: studio-link-macos_x86_64
+        path: dl/x86_64
+
+    - name: prepare build
+      run: ./dist/before_build.sh
+
+    - name: merge
+      run: |
+        ./dist/macos_universal.sh \
+          dl/arm64/studio-link-standalone-*-arm64.zip \
+          dl/x86_64/studio-link-standalone-*-x86_64.zip \
+          build/artifacts/macos_universal
+
+    - uses: actions/upload-artifact@v7
+      with:
+        name: studio-link-macos_universal
+        path: build/artifacts/macos_universal/
         if-no-files-found: error

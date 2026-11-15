@@ -11,6 +11,9 @@
 #         -DSL_RE_DIR=build/re -DSL_BARESIP_DIR=build/baresip
 #   cmake --build build/standalone
 #
+# macOS: the standalone is a Swift app bundle (src/standalone/macos), use
+# the Ninja generator (-G Ninja) for it
+#
 # DAW plugins (SL_VARIANT plugin or onair), output in <build>/plugins:
 #   -DSL_PLUGIN_FORMATS="CLAP;VST3;AUV2;LV2"
 #
@@ -155,14 +158,17 @@ else()
   message(FATAL_ERROR "unknown SL_VARIANT: ${SL_VARIANT}")
 endif()
 
-# Windows: no console UI module, the standalone is a GUI (tray) app and the
-# plugins run inside a DAW
-if(WIN32)
+# Windows/macOS: no console UI module, the standalone is a GUI app (tray
+# icon/app bundle) and the plugins run inside a DAW (on macOS stdin is
+# /dev/null then, see conf.c)
+if(WIN32 OR APPLE)
   set(SL_UI_MODULE "")
-  # ShellExecuteW (slopen.h)
-  target_link_libraries(sl_common INTERFACE shell32)
 else()
   set(SL_UI_MODULE stdio)
+endif()
+if(WIN32)
+  # ShellExecuteW (slopen.h)
+  target_link_libraries(sl_common INTERFACE shell32)
 endif()
 
 
@@ -269,7 +275,12 @@ target_link_libraries(slcore PUBLIC baresip re sl_common)
 #
 
 if(SL_VARIANT STREQUAL "standalone")
-  add_executable(studio-link-standalone src/standalone/main.c)
+  if(APPLE)
+    # Swift app bundle StudioLink.app
+    include(src/standalone/macos/app.cmake)
+  else()
+    add_executable(studio-link-standalone src/standalone/main.c)
+  endif()
   target_link_libraries(studio-link-standalone PRIVATE slcore baresip)
   if(WIN32)
     # GUI subsystem (no console window), tray icon, icon/version resources

@@ -119,6 +119,27 @@ cd app
 export BUILD_OS="macos"; export BUILD_TARGET="macos_x86_64"; dist/build.sh
 ```
 
+Use `BUILD_TARGET="macos_arm64"` for Apple Silicon. The standalone is a
+Swift/AppKit app bundle (`build/StudioLink.app`, macOS 11 or newer) from
+`src/standalone/macos`, it needs Xcode (or the Command Line Tools) and
+[Ninja](https://ninja-build.org) (`brew install ninja`). Builds are not
+signed, releases are signed and notarized manually, see
+[docs/release.md](docs/release.md).
+
+The 3rdparty libraries are built per architecture, so `dist/build.sh`
+builds a single architecture app
+(`build/artifacts/<target>/studio-link-standalone-<version>-<arch>.zip`).
+The universal app (arm64 + x86_64) is merged with `lipo`:
+
+```bash
+dist/build_macos_universal.sh   # builds both, needs the 3rdparty zips of both
+# or merge existing builds (as CI does in the macos_universal job):
+dist/macos_universal.sh <arm64 zip> <x86_64 zip> build/artifacts/macos_universal
+```
+
+Command line options work with the binary inside the bundle, e.g.
+`build/StudioLink.app/Contents/MacOS/StudioLink -v`.
+
 ### Build for Windows on Arch Linux (only)
 
 ```bash

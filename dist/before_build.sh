@@ -5,10 +5,7 @@ if [ "$BUILD_OS" == "linux" ]; then
         sudo apt-get install -y cmake zip unzip \
                 libasound2-dev libjack-jackd2-dev libpulse-dev
 elif [ "$BUILD_OS" == "macos" ]; then
-        security create-keychain -p travis sl-build.keychain
-        security list-keychains -s ~/Library/Keychains/sl-build.keychain
-        security unlock-keychain -p travis ~/Library/Keychains/sl-build.keychain
-        security set-keychain-settings ~/Library/Keychains/sl-build.keychain
-        security import ./dist/keychain/cert_2020.p12 -k ~/Library/Keychains/sl-build.keychain -P $KEY_PASSWORD_2020 -A
-        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k travis sl-build.keychain
+        # StudioLink.app (Swift) is built with CMake + Ninja
+        command -v ninja >/dev/null || brew install ninja
+        # no code signing in CI, see docs/release.md
 fi
