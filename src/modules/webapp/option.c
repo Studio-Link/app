@@ -13,6 +13,74 @@ static struct odict *options = NULL;
 static char filename[256] = "";
 static char command[255] = {0};
 
+/* User settings, persisted to options.json and listed in the Options tab */
+static const char *persist_keys[] = {
+	"monitoring",
+	"monorecord",
+	"monostream",
+};
+
+/* Runtime state, sent to the webui but never persisted */
+static const char *state_keys[] = {
+	"bypass",
+	"record",
+	"onair",
+	"raisehand",
+	"afk",
+	"mute",
+	"samplerate", /* set by the running host */
+};
+
+
+static bool key_in(const char *key, const char **keys, size_t n)
+{
+	for (size_t i = 0; i < n; i++) {
+		if (!str_cmp(key, keys[i]))
+			return true;
+	}
+
+	return false;
+}
+
+
+/* Copy only persistent string entries from src into a new dict */
+static int options_persistent_dup(struct odict **dstp, const struct odict *src)
+{
+	struct odict *dst;
+	int err;
+
+	err = odict_alloc(&dst, DICT_BSIZE);
+	if (err)
+		return err;
+
+	for (size_t i = 0; src && i < RE_ARRAY_SIZE(persist_keys); i++) {
+		const char *val = odict_string(src, persist_keys[i]);
+		if (!val)
+			continue;
+
+		err = odict_entry_add(dst, persist_keys[i], ODICT_STRING, val);
+		if (err) {
+			mem_deref(dst);
+			return err;
+		}
+	}
+
+	*dstp = dst;
+	return 0;
+}
+
+
+static void options_write(void)
+{
+	struct odict *o = NULL;
+
+	if (options_persistent_dup(&o, options))
+		return;
+
+	webapp_write_file_json(o, filename);
+	mem_deref(o);
+}
+
 
 const struct odict* webapp_options_get(void)
 {
@@ -23,7 +91,26 @@ const struct odict* webapp_options_get(void)
 void webapp_options_set(char *key, char *value)
 {
 	int err = 0;
+
+	if (!key || !value)
+		return;
+
 	info("webapp/option: %s: %s\n", key, value);
+
+	/* One-shot command, not an option */
+	if (!str_cmp(key, "record-folder")) {
+#ifndef SLPLUGIN
+		slaudio_record_open_folder();
+#endif
+		return;
+	}
+
+	if (!key_in(key, persist_keys, RE_ARRAY_SIZE(persist_keys)) &&
+	    !key_in(key, state_keys, RE_ARRAY_SIZE(state_keys))) {
+		warning("webapp/option: ignoring unknown key %s\n", key);
+		return;
+	}
+
 #ifdef SLPLUGIN
 	if (!str_cmp(key, "bypass")) {
 		if (!str_cmp(value, "false")) {
@@ -111,15 +198,14 @@ void webapp_options_set(char *key, char *value)
 			webapp_call_update(call, "Outgoing");
 		}
 	}
-	if (!str_cmp(key, "record-folder")) {
-		slaudio_record_open_folder();
-	}
 #endif
 
 	odict_entry_del(options, key);
 	odict_entry_add(options, key, ODICT_STRING, value);
 	ws_send_json(WS_OPTIONS, options);
-	webapp_write_file_json(options, filename);
+
+	if (key_in(key, persist_keys, RE_ARRAY_SIZE(persist_keys)))
+		options_write();
 }
 
 
@@ -140,6 +226,7 @@ int webapp_options_init(void)
 {
 	char path[256] = {0};
 	char *key;
+	struct odict *loaded = NULL;
 	struct mbuf *mb;
 	int err = 0;
 
@@ -155,24 +242,20 @@ int webapp_options_init(void)
 				"%s/options.json", path) < 0)
 		return ENOMEM;
 
-	err = webapp_load_file(mb, filename);
-	if (err) {
-		err = odict_alloc(&options, DICT_BSIZE);
+	/* Keep only known settings, drops runtime state and stale keys
+	 * left behind by older versions */
+	if (!webapp_load_file(mb, filename)) {
+		if (json_decode_odict(&loaded, DICT_BSIZE, (char *)mb->buf,
+				      mb->end, MAX_LEVELS))
+			warning("webapp/option: invalid %s\n", filename);
 	}
-	else {
-		err = json_decode_odict(&options, DICT_BSIZE,
-				(char *)mb->buf, mb->end, MAX_LEVELS);
-	}
+
+	err = options_persistent_dup(&options, loaded);
+	mem_deref(loaded);
 	if (err)
 		goto out;
-	odict_entry_del(options, "bypass");
-	odict_entry_del(options, "record");
-	odict_entry_del(options, "auto-mix-n-1");
-	odict_entry_del(options, "onair");
-	odict_entry_del(options, "raisehand");
-	odict_entry_del(options, "afk");
-	odict_entry_del(options, "mute");
-	odict_entry_del(options, "samplerate"); /* set by the running host */
+
+	options_write();
 
 #ifndef SLPLUGIN
 	str_dup(&key, webapp_options_getv("monorecord", "true"));
@@ -196,6 +279,6 @@ out:
 
 void webapp_options_close(void)
 {
-	webapp_write_file_json(options, filename);
-	mem_deref(options);
+	options_write();
+	options = mem_deref(options);
 }

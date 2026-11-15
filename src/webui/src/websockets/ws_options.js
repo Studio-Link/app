@@ -1,6 +1,10 @@
 import hoptions from "../templates/options.handlebars";
 import { qs, on } from "../ui.js";
 "use strict";
+
+// Settings shown in the Options tab (labels in options.handlebars)
+var OPTION_KEYS = ["monitoring", "monorecord", "monostream"];
+
 window.ws_options_init = function() {
   var ws_options = new WebSocket("ws://" + window.ws_host + "/ws_options");
 
@@ -127,23 +131,13 @@ window.ws_options_init = function() {
 
     RefreshSamplerate(msg.samplerate);
 
-    delete msg.samplerate;
-    delete msg.bypass;
-    delete msg.record;
-    delete msg.onair;
-    delete msg.raisehand;
-    delete msg.afk;
-    delete msg.mute;
+    // Only list known settings, everything else is runtime state
+    var settings = {};
+    OPTION_KEYS.forEach(function(key) {
+      if (key in msg) settings[key] = msg[key];
+    });
 
-    Object.keys(msg)
-      .sort()
-      .forEach(function(key) {
-        var value = msg[key];
-        delete msg[key];
-        msg[key] = value;
-      });
-
-    qs("#options").innerHTML = hoptions(msg);
+    qs("#options").innerHTML = hoptions(settings);
 
     RefreshEventListener();
   };
@@ -158,14 +152,6 @@ window.ws_options_init = function() {
     }
 
     ws_options.send('{"key": "bypass", "value": "' + bypass + '"}');
-  });
-
-  on("#btn-mono", "click", function() {
-    ws_options.send('{"key": "mono", "value": "true"}');
-  });
-
-  on("#btn-stereo", "click", function() {
-    ws_options.send('{"key": "mono", "value": "false"}');
   });
 
   on("#btn-record", "click", function() {
