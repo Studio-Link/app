@@ -2,9 +2,14 @@
 <section class="sl-track sl-track-idle" style="order: {{track}}" aria-labelledby="idle-title{{track}}">
     <div class="sl-track-head">
         <h2 class="sl-track-heading" id="idle-title{{track}}">
-            <span class="sl-track-no"><span class="visually-hidden">Track </span>{{inc track}}</span>
+            <span class="sl-track-no"><span class="visually-hidden">Track </span>{{trackno track}}</span>
             <span class="sl-track-title text-truncate">Plugin track</span>
         </h2>
+    </div>
+    <div class="sl-meter-row mb-3">
+        <span class="sl-meter-label sl-meter-label-local" aria-hidden="true">Local</span>
+        <div class="sl-meter sl-input-meter" data-slot="{{inslot}}" role="group"
+            aria-label="Local level (plugin track {{trackno track}})"></div>
     </div>
     <label class="sl-label" for="idle-dial{{track}}">Enter Partner ID</label>
     <input type="text" class="form-control sl-idle-dial" id="idle-dial{{track}}" data-track="{{track}}" placeholder="xyz@studio.link" autocomplete="off" spellcheck="false">

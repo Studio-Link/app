@@ -58,6 +58,36 @@ label {
 }
 
 /* Stereo level meter: left bar above right bar */
+/* Plugin track: labelled Local (DAW track -> partner) and Remote (partner
+ * -> DAW track) meters, the Local meter has its own color */
+.sl-meter-row {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-top: 5px;
+
+	.sl-meter {
+		flex: 1;
+		margin-top: 0;
+	}
+}
+
+.sl-meter-label {
+	flex: 0 0 3.25rem;
+	color: #aaa;
+	font-size: 0.65rem;
+	font-weight: 700;
+	text-transform: uppercase;
+}
+
+.sl-meter-label-local {
+	color: $info;
+}
+
+.sl-input-meter .progress-bar.bg-success {
+	background-color: $info !important;
+}
+
 .sl-meter {
 	display: flex;
 	flex-direction: column;

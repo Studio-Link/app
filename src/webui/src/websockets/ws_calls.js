@@ -13,20 +13,21 @@ const NETSTATUS_WINDOW = 8;
 var netstatus_history = {};
 
 /* Plugin: tracks owned by a plugin instance (from STATS) and tracks with a
- * call (from the calls list), the difference is shown as empty slots */
+ * call (from the calls list), the difference is shown as empty slots.
+ * inslot is the meter slot of the plugin instance input (sess->ch). */
 var instance_tracks = [];
 var call_tracks = new Set();
 var idletracks_shown = null;
 
 function idletracks_update() {
-	const idle = instance_tracks.filter((t) => !call_tracks.has(t));
-	const key = idle.join(",");
+	const idle = instance_tracks.filter((t) => !call_tracks.has(t.track));
+	const key = idle.map((t) => t.track + ":" + t.inslot).join(",");
 
 	if (key === idletracks_shown)
 		return;
 
 	idletracks_shown = key;
-	render(qs("#idletracks"), idletracks(idle.map((t) => ({ track: t }))));
+	render(qs("#idletracks"), idletracks(idle));
 	if (window.ws_baresip_uag_fill)
 		window.ws_baresip_uag_fill();
 }
@@ -294,11 +295,17 @@ window.ws_calls_init = function() {
 
 			instance_tracks = msg.tracks
 				.filter((t) => t.instance && !t.call)
-				.map((t) => t.track);
+				.map((t) => ({ track: t.track, inslot: t.ch - 1 }));
 			idletracks_update();
 
 		} else {
             for (var key in msg) {
+                /* plugin: ch is the playback slot (sess->ch + 1), the
+                 * input of the plugin instance is the slot before */
+                if (window.swvariant == "plugin") {
+                    msg[key]['plugin'] = true;
+                    msg[key]['inslot'] = msg[key]['ch'] - 1;
+                }
                 if (msg[key]['state'] == 'Established')	{
                     established_calls = true;
                 }

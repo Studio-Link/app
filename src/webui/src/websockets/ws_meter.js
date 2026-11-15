@@ -121,5 +121,12 @@ window.ws_meter_init = function() {
 				setStereoMeter(headbar, level(head, 0),
 					level(head, 1));
 		}
+
+		// plugin: input level of the plugin instance on its track card
+		document.querySelectorAll(".sl-input-meter").forEach(function(el) {
+			var slot = parseInt(el.dataset.slot);
+			if (slot >= 0)
+				setStereoMeter(el, level(slot, 0), level(slot, 1));
+		});
 	};
 };
