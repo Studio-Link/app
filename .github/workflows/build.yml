@@ -129,3 +129,64 @@ jobs:
         name: studio-link-macos_universal
         path: build/artifacts/macos_universal/
         if-no-files-found: error
+
+  # Public GitHub release for v* tags (e.g. v26.11.0-beta), only if every
+  # target was built. Tags containing "beta" are marked as pre-release.
+  release:
+    needs: [build, macos_universal]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: check tag matches dist/lib/versions.sh
+      env:
+        TAG: ${{ github.ref_name }}
+      run: |
+        source dist/lib/versions.sh
+        source dist/lib/functions.sh
+        sl_prepare_version
+        if [[ "$TAG" != "$version_tc"* ]]; then
+          echo "tag $TAG does not match version $version_tc (dist/lib/versions.sh)"
+          exit 1
+        fi
+
+    - uses: actions/download-artifact@v8
+      with:
+        pattern: studio-link-*
+        path: dl
+
+    # file names repeat between targets (e.g. studio-link-plugin.zip),
+    # append the target: studio-link-plugin-windows64.zip
+    - name: collect release files
+      run: |
+        mkdir -p release
+        for dir in dl/studio-link-*; do
+          target=${dir#dl/studio-link-}
+          # merged into macos_universal
+          case "$target" in macos_arm64|macos_x86_64) continue ;; esac
+          for f in "$dir"/*; do
+            name=$(basename "$f")
+            case "$name" in
+              *.tar.gz) ext=.tar.gz ;;
+              *) ext=".${name##*.}" ;;
+            esac
+            cp -a "$f" "release/${name%$ext}-$target$ext"
+          done
+        done
+        ls -l release
+
+    - name: upload release
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        TAG: ${{ github.ref_name }}
+      run: |
+        prerelease=""
+        [[ "$TAG" == *beta* ]] && prerelease="--prerelease"
+        gh release view "$TAG" > /dev/null 2>&1 || \
+          gh release create "$TAG" --verify-tag --title "$TAG" \
+            --generate-notes $prerelease
+        gh release upload "$TAG" release/* --clobber
