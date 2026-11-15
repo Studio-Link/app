@@ -1,7 +1,7 @@
 project(webapp C)
 
 set(SRCS webapp.c account.c contact.c option.c
-  ws_baresip.c ws_contacts.c ws_meter.c ws_calls.c ws_options.c ws_rtaudio.c
+  ws_baresip.c ws_contacts.c ws_meter.c ws_calls.c ws_options.c ws_audio.c
   websocket.c utils.c sessions.c)
 
 if(STATIC)

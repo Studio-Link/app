@@ -90,7 +90,7 @@ static int slaudio_stop(void);
 static int slaudio_start(void);
 static int slaudio_devices(void);
 static int slaudio_drivers(void);
-void webapp_ws_rtaudio_sync(void);
+void webapp_ws_audio_sync(void);
 
 static int16_t *playmix;
 
@@ -200,7 +200,7 @@ void slaudio_error_set(const char *msg)
 	str_ncpy(error_msg, msg, sizeof(error_msg));
 	odict_entry_del(interfaces, "error_msg");
 	odict_entry_add(interfaces, "error_msg", ODICT_STRING, error_msg);
-	webapp_ws_rtaudio_sync();
+	webapp_ws_audio_sync();
 }
 
 
@@ -259,7 +259,7 @@ int slaudio_reset(void)
 		slaudio_drivers();
 		slaudio_devices();
 	}
-	webapp_ws_rtaudio_sync();
+	webapp_ws_audio_sync();
 	if (!err)
 		slaudio_start();
 
@@ -1291,7 +1291,7 @@ err_out:
 		"Error starting Audio, please try reload "
 		"or select another device...");
 	odict_entry_add(interfaces, "error_msg", ODICT_STRING, error_msg);
-	webapp_ws_rtaudio_sync();
+	webapp_ws_audio_sync();
 	fatal_error = true;
 	slaudio = mem_deref(slaudio);
 	warning("slaudio/start: error %m\n", err);

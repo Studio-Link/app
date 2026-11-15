@@ -1,5 +1,5 @@
 /**
- * @file ws_rtaudio.c RTAUDIO
+ * @file ws_audio.c Audio device websocket
  *
  * Copyright (C) 2018-2019 studio-link.de
  */
@@ -9,15 +9,15 @@
 #include "webapp.h"
 
 
-void webapp_ws_rtaudio_sync(void)
+void webapp_ws_audio_sync(void)
 {
 #ifndef SLPLUGIN
-	ws_send_json(WS_RTAUDIO, slaudio_get_interfaces());
+	ws_send_json(WS_AUDIO, slaudio_get_interfaces());
 #endif
 }
 
 
-void webapp_ws_rtaudio(const struct websock_hdr *hdr,
+void webapp_ws_audio(const struct websock_hdr *hdr,
 		struct mbuf *mb, void *arg)
 {
 
@@ -67,17 +67,4 @@ void webapp_ws_rtaudio(const struct websock_hdr *hdr,
 out:
 	mem_deref(cmd);
 #endif
-}
-
-
-int webapp_ws_rtaudio_init(void)
-{
-	int err = 0;
-
-	return err;
-}
-
-
-void webapp_ws_rtaudio_close(void)
-{
 }

@@ -155,10 +155,10 @@ static void http_req_handler(struct http_conn *conn,
 		ws_send_json(WS_CONTACT, webapp_contacts_get());
 		return;
 	}
-	if (0 == pl_strcasecmp(&msg->path, "/ws_rtaudio")) {
-		webapp_ws_handler(conn, WS_RTAUDIO, msg, webapp_ws_rtaudio);
+	if (0 == pl_strcasecmp(&msg->path, "/ws_audio")) {
+		webapp_ws_handler(conn, WS_AUDIO, msg, webapp_ws_audio);
 #ifndef SLPLUGIN
-		ws_send_json(WS_RTAUDIO, slaudio_get_interfaces());
+		ws_send_json(WS_AUDIO, slaudio_get_interfaces());
 #endif
 		return;
 	}
@@ -497,7 +497,6 @@ static int module_init(void)
 	tmr_start(&tmr, 800, syscmd, NULL);
 #else
 	syscmd(NULL);
-	webapp_ws_rtaudio_init();
 #endif
 
 out:
@@ -518,9 +517,6 @@ static int module_close(void)
 	webapp_accounts_close();
 	webapp_contacts_close();
 	webapp_options_close();
-#ifndef SLPLUGIN
-	webapp_ws_rtaudio_close();
-#endif
 	webapp_ws_close();
 	mem_deref(httpsock);
 	mem_deref(webapp_calls);

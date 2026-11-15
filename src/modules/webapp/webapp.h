@@ -21,7 +21,7 @@ enum ws_type {
 	WS_METER,
 	WS_CPU,
 	WS_OPTIONS,
-	WS_RTAUDIO
+	WS_AUDIO
 };
 
 enum webapp_call_state {
@@ -150,11 +150,9 @@ void webapp_ws_options(const struct websock_hdr *hdr,
 void ws_meter_process(unsigned int ch, float *in, unsigned long nframes);
 void webapp_ws_meter_init(void);
 void webapp_ws_meter_close(void);
-int webapp_ws_rtaudio_init(void);
-void webapp_ws_rtaudio_close(void);
-void webapp_ws_rtaudio(const struct websock_hdr *hdr,
+void webapp_ws_audio(const struct websock_hdr *hdr,
 		struct mbuf *mb, void *arg);
-void webapp_ws_rtaudio_sync(void);
+void webapp_ws_audio_sync(void);
 
 /*
  * websocket.c

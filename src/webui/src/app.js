@@ -66,7 +66,7 @@ fetch("/swvariant")
       show("btn-record-folder");
       show("btn-onair");
       show("btn-mute");
-      ws_rtaudio_init();
+      ws_audio_init();
 
       if (localStorage.getItem("slonboarding") != "completed") {
         startOnboarding();
