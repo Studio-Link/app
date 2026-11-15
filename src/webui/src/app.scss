@@ -1,4 +1,4 @@
-$primary: #f08a00;
+$primary: #ff7e02; // logo orange; dark #111 text on it: 7.4:1 (WCAG AAA)
 $danger: #c0392b;
 // Let Bootstrap pick black/white text on colored backgrounds (WCAG AA)
 $min-contrast-ratio: 4.5;
@@ -139,8 +139,6 @@ label,
 	text-transform: none;
 }
 
-.sl-online { color: #2fd3a0; }
-.sl-offline { color: #ff7a6b; }
 .sl-error { color: #ff7a6b; }
 
 .alert-warning,
@@ -219,12 +217,55 @@ label,
 	padding: 1.5rem 1.5rem 9rem;
 }
 
-.sl-account {
+/* Your ID, above the local track (same width, so it never reaches
+ * over the next track) */
+.sl-id {
 	display: flex;
-	gap: 2rem;
+	align-items: center;
+	gap: 0.5rem;
+	width: 340px;
+	max-width: 100%;
 	margin-bottom: 0.5rem;
 	color: #aaa;
+}
+
+.sl-id.d-none {
+	display: none !important;
+}
+
+.sl-id-value {
+	min-width: 0;
+	color: #fff;
 	font-weight: 700;
+	overflow-wrap: anywhere;
+	user-select: all; /* one click selects the whole ID */
+}
+
+/* Online: filled green, offline: red ring (not by colour alone) */
+.sl-dot {
+	flex: none;
+	width: 0.625rem;
+	height: 0.625rem;
+	border: 2px solid #ff7a6b;
+	border-radius: 50%;
+
+	&.sl-dot-online {
+		border-color: #2fd3a0;
+		background: #2fd3a0;
+	}
+}
+
+.sl-id-copy {
+	flex: none;
+	color: #aaa;
+	padding: 0 0.25rem;
+	min-width: 24px; /* WCAG 2.5.8 target size */
+	min-height: 24px;
+
+	&:hover,
+	&:focus-visible {
+		color: $primary;
+	}
 }
 
 .sl-tracks,

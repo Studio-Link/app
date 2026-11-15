@@ -144,22 +144,37 @@ window.ws_baresip_init = function() {
 			var domain = ws_baresip_sip_accounts[key]['domain'];
 			var user = ws_baresip_sip_accounts[key]['user'];
 			var state = ws_baresip_sip_accounts[key]['status'];
-			if (state) {
-				var state_html = '<span class="sl-online">ONLINE</span>';
-			} else {
-				var state_html = '<span class="sl-offline">OFFLINE</span>';
-			}
-
 			if (domain == "studio.link") {
-				var siphtml = user+"@"+domain;
-				var sipstatus = state_html;
-				qs("#sipid").innerHTML = siphtml;
-				qs("#sipstatus").innerHTML = sipstatus;
+				var label = state ? "Online" : "Offline";
+				var dot = qs("#sipdot");
+
+				qs("#sipid").textContent = user + "@" + domain;
+				dot.classList.toggle("sl-dot-online", !!state);
+				dot.title = label;
+				/* announced by screen readers (role=status) */
+				if (qs("#sipstatus").textContent !== label)
+					qs("#sipstatus").textContent = label;
+				qs("#sl-id").classList.remove("d-none");
 			}
 		};
 		RefreshEventListener();
 	};
 
+
+	on("#btn-copy-id", "click", function() {
+		var id = qs("#sipid").textContent;
+		if (!id)
+			return;
+		if (!navigator.clipboard) {
+			notify("Copy is not supported, please select the ID", "warn");
+			return;
+		}
+		navigator.clipboard.writeText(id).then(function() {
+			notify("Copied " + id, "success");
+		}, function() {
+			notify("Could not copy the ID", "warn");
+		});
+	});
 
 	onEnter("#sipnumbercall", function(ev) {
 		qs("#buttoncall").click();

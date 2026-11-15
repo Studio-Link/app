@@ -47,9 +47,14 @@
 			<div id="view-tracks" class="sl-view">
 				<h2 class="visually-hidden" id="view-tracks-title" tabindex="-1">Tracks</h2>
 
-				<p class="sl-account">
-					<span><span class="visually-hidden">Your ID: </span><span id="sipid"></span></span>
-					<span id="sipstatus" role="status"></span>
+				<p class="sl-id d-none" id="sl-id">
+					<span class="sl-id-label">Your ID:</span>
+					<span id="sipdot" class="sl-dot" aria-hidden="true"></span>
+					<span id="sipstatus" class="visually-hidden" role="status"></span>
+					<span id="sipid" class="sl-id-value"></span>
+					<button type="button" id="btn-copy-id" class="btn btn-link btn-sm sl-id-copy" aria-label="Copy your ID" title="Copy your ID">
+						<i class="far fa-copy" aria-hidden="true"></i>
+					</button>
 				</p>
 
 				<div class="sl-tracks">
