@@ -74,6 +74,8 @@ fetch("/swvariant")
     }
     if (swvariant == "plugin") {
       document.getElementById("btn-interface").classList.add("d-none");
+      /* calls go out on the plugin track cards (ws_calls.js) */
+      document.getElementById("newcall").classList.add("d-none");
     }
 
     ws_baresip_init();

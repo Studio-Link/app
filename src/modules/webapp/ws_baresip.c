@@ -9,6 +9,9 @@
 #define SIP_MAX_CALLS "{ \"callback\": \"CLOSED\",\
 	\"message\": \"Max Calls reached...\" }"
 
+#define SIP_TRACK_BUSY "{ \"callback\": \"CLOSED\",\
+	\"message\": \"Track is not available\" }"
+
 static void sip_delete(struct odict *cmd, const struct odict_entry *e)
 {
 	char user[50];
@@ -51,8 +54,17 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 			ws_send_all(WS_CALLS, SIP_EMPTY);
 		}
 		else {
-			if (!webapp_session_available()) {
-				ws_send_all(WS_CALLS, SIP_MAX_CALLS);
+			uint64_t num = 0;
+			int8_t track = 0;
+
+			/* optional: call out on this track (plugin track) */
+			if (odict_get_number(cmd, &num, "track") &&
+			    num <= INT8_MAX)
+				track = (int8_t)num;
+
+			if (!webapp_session_available_track(track)) {
+				ws_send_all(WS_CALLS, track ? SIP_TRACK_BUSY :
+					    SIP_MAX_CALLS);
 				goto out;
 			}
 
@@ -62,7 +74,7 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 				webapp_call_error(odict_entry_str(e), err);
 				goto out;
 			}
-			webapp_call_update(call, "Outgoing");
+			webapp_call_update_track(call, "Outgoing", track);
 		}
 	}
 	else if (!str_cmp(odict_entry_str(e), "addsip")) {

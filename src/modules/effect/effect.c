@@ -353,9 +353,13 @@ void effect_bypass(struct session *sess,
 	struct chan_st *chan;
 	unsigned long nlimit = frames_limit(nframes);
 
-	/* check max sessions reached*/
-	if (!sess)
+	/* max sessions reached: the host output buffers must always be
+	 * written, otherwise they keep stale data (feedback noise) */
+	if (!sess) {
+		memset(output0, 0, nframes * sizeof(float));
+		memset(output1, 0, nframes * sizeof(float));
 		return;
+	}
 
 	chan = sess_chan(sess);
 
@@ -564,12 +568,27 @@ static void auplay_destructor(void *arg)
 }
 
 
-static struct session *sess_find_free(bool play)
+/*
+ * Find the session for a new audio source/player. The webapp sets the track
+ * number as device name of the call audio (webapp_call_update()), so the
+ * audio of a call always ends up in the session (plugin instance) of its
+ * call, independent of the order in which baresip starts the audio of
+ * several calls.
+ */
+static struct session *sess_find(bool play, const char *device)
 {
+	struct pl pl;
+	int track = 0;
 	struct le *le;
+
+	if (!re_regex(device, str_len(device), "^[0-9]+$", &pl))
+		track = (int)pl_u32(&pl);
 
 	for (le = sessionl.head; le; le = le->next) {
 		struct session *sess = le->data;
+
+		if (track && sess->track != track)
+			continue;
 
 		if (sess->ch == -1 || !sess->call)
 			continue;
@@ -577,6 +596,10 @@ static struct session *sess_find_free(bool play)
 		if (play ? !sess->run_play : !sess->run_src)
 			return sess;
 	}
+
+	if (track)
+		warning("effect: no session for track %d (%s)\n", track,
+			play ? "play" : "src");
 
 	return NULL;
 }
@@ -589,7 +612,6 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 	struct ausrc_st *st_src;
 	struct session *sess;
 	(void)errh;
-	(void)device;
 
 	if (!stp || !as || !prm)
 		return EINVAL;
@@ -600,7 +622,7 @@ static int src_alloc(struct ausrc_st **stp, const struct ausrc *as,
 		return ENOTSUP;
 	}
 
-	sess = sess_find_free(false);
+	sess = sess_find(false, device);
 	if (!sess)
 		return EINVAL;
 
@@ -632,7 +654,6 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 {
 	struct auplay_st *st_play;
 	struct session *sess;
-	(void)device;
 
 	if (!stp || !ap || !prm)
 		return EINVAL;
@@ -643,7 +664,7 @@ static int play_alloc(struct auplay_st **stp, const struct auplay *ap,
 		return ENOTSUP;
 	}
 
-	sess = sess_find_free(true);
+	sess = sess_find(true, device);
 	if (!sess)
 		return EINVAL;
 

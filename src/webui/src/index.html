@@ -84,8 +84,12 @@
 					<!-- Remote tracks (active calls) -->
 					<div id="activecalls" class="sl-tracks-inline"></div>
 
-					<!-- New call -->
-					<section class="sl-track" aria-labelledby="newcall-title">
+					<!-- Plugin tracks without a call (DAW plugin instances) -->
+					<div id="idletracks" class="sl-tracks-inline"></div>
+
+					<!-- New call (standalone only, the plugin calls out on a
+					     plugin track, each effect instance adds one) -->
+					<section id="newcall" class="sl-track sl-track-newcall" aria-labelledby="newcall-title">
 						<h2 class="visually-hidden" id="newcall-title">New call</h2>
 						<label class="sl-label" for="sipnumbercall">Enter Partner ID</label>
 						<input type="text" class="form-control" id="sipnumbercall" placeholder="xyz@studio.link" autocomplete="off" spellcheck="false" autofocus>

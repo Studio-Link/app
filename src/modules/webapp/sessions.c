@@ -51,28 +51,56 @@ void webapp_call_error(const char *dial, int err)
 }
 
 
-bool webapp_session_available(void)
+/*
+ * Can the session take a new call? With the plugin only sessions owned by a
+ * plugin instance (ch > -1, see effect_session_start()) have audio, a call
+ * on any other session would be silent and shown without a track.
+ */
+static bool session_usable(const struct session *sess)
+{
+	if (sess->local || sess->stream || sess->call)
+		return false;
+
+#ifdef SLPLUGIN
+	if (sess->ch < 0)
+		return false;
+#endif
+
+	return true;
+}
+
+
+/**
+ * Can a new call be taken?
+ *
+ * @param track Track number of the session (0 for any session)
+ *
+ * @return true if the session (or any session) is usable
+ */
+bool webapp_session_available_track(int8_t track)
 {
 	struct list *tsession;
-	struct session *sess;
 	struct le *le;
 
 	tsession = sl_sessions();
 
 	for (le = tsession->head; le; le = le->next) {
-		sess = le->data;
+		const struct session *sess = le->data;
 
-		if (sess->local)
+		if (track && sess->track != track)
 			continue;
 
-		if (sess->stream)
-			continue;
-
-		if (!sess->call)
+		if (session_usable(sess))
 			return true;
 	}
 
 	return false;
+}
+
+
+bool webapp_session_available(void)
+{
+	return webapp_session_available_track(0);
 }
 
 
@@ -210,7 +238,17 @@ static void session_to_webapp_calls(struct session *sess)
 }
 
 
-int8_t webapp_call_update(struct call *call, char *state)
+/**
+ * Update the call state, a new call is assigned to a free session
+ *
+ * @param call  Call object
+ * @param state Call state shown by the web app
+ * @param want  Track number of the session for a new call (0 for any)
+ *
+ * @return Track number of the session, 0 if no session
+ */
+int8_t webapp_call_update_track(struct call *call, char *state,
+				int8_t want)
 {
 	struct list *tsession;
 	struct session *sess;
@@ -253,9 +291,22 @@ int8_t webapp_call_update(struct call *call, char *state)
 		if (sess->local || sess->stream)
 			continue;
 
-		if (new && !sess->call) {
+		if (new && (!want || sess->track == want) &&
+		    session_usable(sess)) {
+#ifdef SLPLUGIN
+			char dev[8];
+#endif
 			sess->call = call;
 			sess->chmix = CH_STEREO;
+#ifdef SLPLUGIN
+			/* the effect module picks the session of an audio
+			 * source/player by this device name (track number),
+			 * the audio starts after this (answer/progress) */
+			re_snprintf(dev, sizeof(dev), "%d", sess->track);
+			if (audio_set_devicename(call_audio(call), dev, dev))
+				warning("webapp: could not set track device "
+					"%s\n", dev);
+#endif
 		}
 
 		if (sess->call != call)
@@ -270,6 +321,12 @@ int8_t webapp_call_update(struct call *call, char *state)
 out:
 	ws_send_json(WS_CALLS, webapp_calls);
 	return track;
+}
+
+
+int8_t webapp_call_update(struct call *call, char *state)
+{
+	return webapp_call_update_track(call, state, 0);
 }
 
 
@@ -334,6 +391,13 @@ static void buffer_report_track(struct odict *arr, const struct session *sess)
 
 	odict_entry_add(o, "track", ODICT_INT, (int64_t)sess->track);
 	odict_entry_add(o, "active", ODICT_BOOL, strm != NULL);
+	odict_entry_add(o, "call", ODICT_BOOL, sess->call != NULL);
+#ifdef SLPLUGIN
+	/* session owned by a plugin instance (DAW track), see
+	 * effect_session_start(), the web app shows it as track slot */
+	odict_entry_add(o, "instance", ODICT_BOOL, sess->ch > -1);
+	odict_entry_add(o, "ch", ODICT_INT, (int64_t)sess->ch + 1);
+#endif
 
 	if (!strm)
 		goto out;

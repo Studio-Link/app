@@ -7,6 +7,7 @@ import { qs, qsa, on, render, onEnter, dialog, notify, serializeForm, validateFo
 window.ws_baresip_init = function() {
 	
 	var ws_baresip_sip_accounts = {};
+	var ws_baresip_uag_options = "";
 
 	function ws_baresip_delete_sip(user, domain) {
 		ws_baresip.send('{"command": "deletesip", "user": "'+user+'", "domain": "'+domain+'"}');
@@ -140,6 +141,8 @@ window.ws_baresip_init = function() {
 		if (qsa("#current_uag option").length > 1) {
 			qs("#current_uag").classList.remove("d-none");
 		}
+		ws_baresip_uag_options = currentlist(ws_baresip_sip_accounts);
+		window.ws_baresip_uag_fill();
 		for (var key in ws_baresip_sip_accounts) {
 			var domain = ws_baresip_sip_accounts[key]['domain'];
 			var user = ws_baresip_sip_accounts[key]['user'];
@@ -185,6 +188,55 @@ window.ws_baresip_init = function() {
 		ws_baresip.send('{"command": "call", "dial": "'+
 			qs("#sipnumbercall").value +'"}');
 		qs("#sipnumbercall").value = "";
+	});
+
+	/* Account dropdowns of the plugin track cards, all show the current
+	 * account (like #current_uag), also called after a card re-render */
+	window.ws_baresip_uag_fill = function() {
+		qsa(".sl-idle-uag").forEach(function(sel) {
+			sel.innerHTML = ws_baresip_uag_options;
+			sel.classList.toggle("d-none", sel.options.length < 2);
+		});
+	};
+
+	on("#idletracks", "change", function(ev) {
+		if (!ev.target.matches(".sl-idle-uag"))
+			return;
+
+		ws_baresip.send(JSON.stringify({
+			command: "uagcurrent",
+			aor: ev.target.value
+		}));
+	});
+
+	/* Call out on a plugin track without a call (idle track card). The
+	 * cards are re-rendered by ws_calls.js, so the events are delegated. */
+	function idle_call(track) {
+		const input = qs("#idle-dial" + track);
+		if (!input)
+			return;
+
+		ws_baresip.send(JSON.stringify({
+			command: "call",
+			dial: input.value,
+			track: Number(track)
+		}));
+		input.value = "";
+	}
+
+	on("#idletracks", "click", function(ev) {
+		const btn = ev.target.closest(".sl-idle-call");
+		if (btn)
+			idle_call(btn.dataset.track);
+	});
+
+	on("#idletracks", "keydown", function(ev) {
+		if (ev.key !== "Enter" || !ev.target.matches(".sl-idle-dial"))
+			return;
+
+		ev.preventDefault();
+		idle_call(ev.target.dataset.track);
+		ev.target.blur();
 	});
 
 	on("#current_uag", "change", function() {

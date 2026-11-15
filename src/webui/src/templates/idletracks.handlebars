@@ -1,0 +1,16 @@
+{{#each this}}
+<section class="sl-track sl-track-idle" style="order: {{track}}" aria-labelledby="idle-title{{track}}">
+    <div class="sl-track-head">
+        <h2 class="sl-track-heading" id="idle-title{{track}}">
+            <span class="sl-track-no"><span class="visually-hidden">Track </span>{{inc track}}</span>
+            <span class="sl-track-title text-truncate">Plugin track</span>
+        </h2>
+    </div>
+    <label class="sl-label" for="idle-dial{{track}}">Enter Partner ID</label>
+    <input type="text" class="form-control sl-idle-dial" id="idle-dial{{track}}" data-track="{{track}}" placeholder="xyz@studio.link" autocomplete="off" spellcheck="false">
+    <select class="form-select mt-2 d-none sl-idle-uag" aria-label="Call from account"></select>
+    <button type="button" class="btn btn-primary mt-3 sl-idle-call" data-track="{{track}}">
+        <i class="fa fa-phone" aria-hidden="true" style="transform: rotate(95deg);"></i> Call
+    </button>
+</section>
+{{/each}}

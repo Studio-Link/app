@@ -336,6 +336,12 @@ label,
 	text-transform: uppercase;
 }
 
+/* Plugin track (DAW plugin instance) without a call. Calls and plugin
+ * tracks are sorted by track number (inline order), new call stays last. */
+.sl-track-newcall {
+	order: 100;
+}
+
 .sl-label {
 	margin-bottom: 0.5rem;
 	color: #aaa;
