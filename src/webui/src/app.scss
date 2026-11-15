@@ -139,6 +139,16 @@ label,
 	box-shadow: 0 0 0 5px #000;
 }
 
+/* Inputs: themed ring instead of the white one (orange on #222 card is
+ * ~6.3:1, meets WCAG 1.4.11 and the 2.4.13 size rule). Buttons keep the
+ * white/black ring since .btn-primary is already orange. */
+.form-control:focus-visible,
+.form-select:focus-visible {
+	outline: 2px solid $primary;
+	outline-offset: 0;
+	box-shadow: none;
+}
+
 .sl-skip {
 	position: absolute;
 	top: 0.5rem;
