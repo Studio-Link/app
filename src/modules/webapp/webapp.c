@@ -18,6 +18,15 @@
 
 static struct tmr tmr;
 
+#ifdef WIN32
+#include <winsock2.h>
+#define sock_close closesocket
+#else
+#include <sys/socket.h>
+#include <unistd.h>
+#define sock_close close
+#endif
+
 static struct http_sock *httpsock = NULL;
 static char webapp_call_json[150] = {0};
 struct odict *webapp_calls = NULL;
@@ -404,6 +413,62 @@ static void event_handler(enum bevent_ev ev, struct bevent *event,
 }
 
 
+/*
+ * Listen exclusively on the web app port. tcp_listen() sets SO_REUSEADDR and
+ * SO_REUSEPORT, so a second Studio Link process (e.g. a DAW that runs every
+ * plugin instance in its own process, or AU and VST3 loaded side by side)
+ * could bind the same port and the browser would talk to a random process.
+ */
+static int http_listen_exclusive(struct http_sock **sockp,
+				 const struct sa *laddr)
+{
+	re_sock_t fd;
+	int err;
+
+	fd = socket(sa_af(laddr), SOCK_STREAM, IPPROTO_TCP);
+	if (fd == RE_BAD_SOCK)
+		return RE_ERRNO_SOCK;
+
+#ifdef WIN32
+	{
+		/* Windows: SO_REUSEADDR would allow port stealing */
+		BOOL on = TRUE;
+		(void)setsockopt(fd, SOL_SOCKET, SO_EXCLUSIVEADDRUSE,
+				 (const char *)&on, sizeof(on));
+	}
+#else
+	{
+		/* restart while old connections are in TIME_WAIT, without
+		 * SO_REUSEPORT a bound port of another process fails */
+		int on = 1;
+		(void)setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on,
+				 sizeof(on));
+	}
+#endif
+
+	if (bind(fd, &laddr->u.sa, laddr->len) < 0) {
+		err = RE_ERRNO_SOCK;
+		goto out;
+	}
+
+	if (listen(fd, SOMAXCONN) < 0) {
+		err = RE_ERRNO_SOCK;
+		goto out;
+	}
+
+	err = net_sockopt_blocking_set(fd, false);
+	if (err)
+		goto out;
+
+	/* the http socket owns the fd from here */
+	return http_listen_fd(sockp, fd, http_req_handler, NULL);
+
+ out:
+	(void)sock_close(fd);
+	return err;
+}
+
+
 static int http_port(void)
 {
 	char path[256] = {0};
@@ -416,6 +481,7 @@ static int http_port(void)
 	char file_contents[512];
 	int err = 0;
 	struct conf *conf_obj = NULL;
+	bool persist = true;
 
 	err = conf_path_get(path, sizeof(path));
 	if (err)
@@ -437,8 +503,20 @@ static int http_port(void)
 	info("webapp.conf/provisioning_host: %s\n", provisioning_host);
 
 	err = sa_set_str(&srv, bind, port);
+	if (err)
+		goto out;
 
-	err |= http_listen(&httpsock, &srv, http_req_handler, NULL);
+	err = http_listen_exclusive(&httpsock, &srv);
+	if (err && port) {
+		/* port used by another (Studio Link) process: use a new one
+		 * for this process, keep the stored port for the other */
+		warning("webapp: port %u is in use (%m), maybe another "
+			"Studio Link process (DAW plugin sandbox?) -- using "
+			"a new port\n", port, err);
+		sa_set_port(&srv, 0);
+		persist = false;
+		err = http_listen_exclusive(&httpsock, &srv);
+	}
 	if (err)
 		goto out;
 	tcp_sock_local_get(http_sock_tcp(httpsock), &listen);
@@ -464,7 +542,8 @@ static int http_port(void)
 			"sl_auto_answer\t%d\n"
 			"sl_provisioning_host\t%s\n",
 			bind, port_string, auto_answer, provisioning_host);
-	webapp_write_file(file_contents, filename);
+	if (persist)
+		webapp_write_file(file_contents, filename);
 
 out:
 	if (conf_obj)

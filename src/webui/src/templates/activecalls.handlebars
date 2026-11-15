@@ -1,8 +1,8 @@
 {{#each this}}
-<section class="sl-track" aria-labelledby="track-title{{@key}}">
+<section class="sl-track" style="order: {{track}}" aria-labelledby="track-title{{@key}}">
     <div class="sl-track-head">
         <h2 class="sl-track-heading" id="track-title{{@key}}">
-            <span class="sl-track-no"><span class="visually-hidden">Track </span>{{inc track}}</span>
+            <span class="sl-track-no"><span class="visually-hidden">Track </span>{{trackno track}}</span>
             <span class="sl-track-title text-truncate" title="{{mysip peer}}">{{mysip peer}}</span>
         </h2>
         <span class="netstatus ms-auto" id="netstatus{{track}}">
@@ -62,8 +62,21 @@
         </div>
     </div>
     <div class="sl-track-state">{{state}}</div>
+    {{#if plugin}}
+    <div class="sl-meter-row">
+        <span class="sl-meter-label sl-meter-label-local" aria-hidden="true">Local</span>
+        <div class="sl-meter sl-input-meter" data-slot="{{inslot}}" role="group"
+            aria-label="Local level (plugin track {{trackno track}})"></div>
+    </div>
+    <div class="sl-meter-row">
+        <span class="sl-meter-label" aria-hidden="true">Remote</span>
+        <div id="headphonesbar{{ch}}" class="sl-meter" role="group"
+            aria-label="Remote level of {{mysip peer}}"></div>
+    </div>
+    {{else}}
     <div id="headphonesbar{{ch}}" class="sl-meter" role="group"
         aria-label="Level of {{mysip peer}}"></div>
+    {{/if}}
     <div class="d-flex gap-2 mt-3">
         <button type="button" aria-label="Channel mix: {{chmix}}" data-key="{{@key}}" class="btn btn-secondary btn-sm chmix">{{chmix}}</button>
         <button type="button" data-key="{{@key}}" class="btn btn-danger btn-sm hangup ms-auto">

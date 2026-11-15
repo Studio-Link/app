@@ -7,6 +7,12 @@ Handlebars.registerHelper("inc", function(value, options) {
   return parseInt(value) + 1;
 });
 
+/* Track number shown in the UI: the standalone has the local track as 1,
+ * the plugin has no local track (window.swvariant is set before rendering) */
+Handlebars.registerHelper("trackno", function(track) {
+  return parseInt(track) + (window.swvariant == "plugin" ? 0 : 1);
+});
+
 Handlebars.registerHelper("mysip", function(value, options) {
   if (value.match("sip:(.+@studio.link)"))
     return value.match("sip:(.+@studio.link)")[1];
@@ -74,6 +80,10 @@ fetch("/swvariant")
     }
     if (swvariant == "plugin") {
       document.getElementById("btn-interface").classList.add("d-none");
+      /* no local track, every plugin track card shows its own input */
+      document.getElementById("panel-audio").classList.add("d-none");
+      /* calls go out on the plugin track cards (ws_calls.js) */
+      document.getElementById("newcall").classList.add("d-none");
     }
 
     ws_baresip_init();

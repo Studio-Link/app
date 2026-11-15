@@ -1,6 +1,7 @@
 import addcontact from "../templates/addcontact.handlebars";
 import keyboard from "../templates/keyboard.handlebars";
 import activecalls from "../templates/activecalls.handlebars";
+import idletracks from "../templates/idletracks.handlebars";
 import { Dropdown } from "bootstrap";
 import { qs, on, render, onEnter, dialog, confirm, hideAll, notify, serializeForm, validateForm } from "../ui.js";
 'use strict';
@@ -10,6 +11,26 @@ var ws_calls_dropdown_open = 0;
 /* Sliding window (~2 s at 250 ms reports) for the recent packet loss rate */
 const NETSTATUS_WINDOW = 8;
 var netstatus_history = {};
+
+/* Plugin: tracks owned by a plugin instance (from STATS) and tracks with a
+ * call (from the calls list), the difference is shown as empty slots.
+ * inslot is the meter slot of the plugin instance input (sess->ch). */
+var instance_tracks = [];
+var call_tracks = new Set();
+var idletracks_shown = null;
+
+function idletracks_update() {
+	const idle = instance_tracks.filter((t) => !call_tracks.has(t.track));
+	const key = idle.map((t) => t.track + ":" + t.inslot).join(",");
+
+	if (key === idletracks_shown)
+		return;
+
+	idletracks_shown = key;
+	render(qs("#idletracks"), idletracks(idle));
+	if (window.ws_baresip_uag_fill)
+		window.ws_baresip_uag_fill();
+}
 
 function fmt_kbit(bps) {
 	return (bps / 1000).toFixed(0) + " kbit/s";
@@ -272,8 +293,19 @@ window.ws_calls_init = function() {
 				netstatus_update(t);
 			}
 
+			instance_tracks = msg.tracks
+				.filter((t) => t.instance && !t.call)
+				.map((t) => ({ track: t.track, inslot: t.ch - 1 }));
+			idletracks_update();
+
 		} else {
             for (var key in msg) {
+                /* plugin: ch is the playback slot (sess->ch + 1), the
+                 * input of the plugin instance is the slot before */
+                if (window.swvariant == "plugin") {
+                    msg[key]['plugin'] = true;
+                    msg[key]['inslot'] = msg[key]['ch'] - 1;
+                }
                 if (msg[key]['state'] == 'Established')	{
                     established_calls = true;
                 }
@@ -305,6 +337,9 @@ window.ws_calls_init = function() {
             } else {
                 window.callactive = false;
             }
+
+			call_tracks = new Set(Object.values(msg).map((c) => c.track));
+			idletracks_update();
 
 			render(qs("#activecalls"), activecalls(msg));
 			RefreshEventListener();
