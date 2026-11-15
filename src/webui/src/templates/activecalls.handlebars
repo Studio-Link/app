@@ -62,8 +62,8 @@
         </div>
     </div>
     <div class="sl-track-state">{{state}}</div>
-    <div id="headphonesbar{{ch}}" class="progress main-volume" role="meter"
-        aria-label="Level of {{mysip peer}}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+    <div id="headphonesbar{{ch}}" class="sl-meter" role="group"
+        aria-label="Level of {{mysip peer}}"></div>
     <div class="d-flex gap-2 mt-3">
         <button type="button" aria-label="Channel mix: {{chmix}}" data-key="{{@key}}" class="btn btn-secondary btn-sm chmix">{{chmix}}</button>
         <button type="button" data-key="{{@key}}" class="btn btn-danger btn-sm hangup ms-auto">

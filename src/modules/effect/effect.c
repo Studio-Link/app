@@ -371,7 +371,7 @@ void effect_bypass(struct session *sess,
 			output0[pos] = 0;
 			output1[pos] = 0;
 		}
-		ws_meter_process(sess->ch+1, (float*)output0, nlimit);
+		ws_meter_process_planar(sess->ch+1, output0, output1, nlimit);
 		return;
 	}
 
@@ -534,7 +534,7 @@ void effect_src(struct session *sess, const float* const input0,
 	audio_leave(chan);
 
 out:
-	ws_meter_process(sess->ch, (float*)input0, nframes);
+	ws_meter_process_planar(sess->ch, input0, input1, nframes);
 }
 
 

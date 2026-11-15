@@ -57,8 +57,21 @@ label {
 	margin-top: 5px;
 }
 
-.main-volume {
-	height: 12px;
+/* Stereo level meter: left bar above right bar */
+.sl-meter {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	margin-top: 5px;
+
+	.progress {
+		margin-top: 0;
+		height: 5px;
+	}
+
+	.progress-bar {
+		transition: none;
+	}
 }
 
 /* Layout ----------------------------------------------------------------- */

@@ -8,9 +8,12 @@
 
 #define MAX_METERS 32
 
+enum { METER_L = 0, METER_R = 1 };
+
 static float bias = 1.0f;
-static float peaks[MAX_METERS] = {0};
-static float sent_peaks[MAX_METERS] = {0};
+/* per meter slot: left and right channel peak */
+static float peaks[MAX_METERS][2] = {{0}};
+static float sent_peaks[MAX_METERS][2] = {{0}};
 
 static struct tmr tmr;
 
@@ -50,7 +53,7 @@ static void write_ws(void)
 	int i;
 	float db;
 	char one_peak[100];
-	char p[2048];
+	char p[4096];
 
 	p[0] = '\0';
 	/* Record time */
@@ -71,10 +74,13 @@ static void write_ws(void)
 #endif
 	strcat((char*)p, one_peak);
 
+	/* "<time> 0 <m0 L> <m0 R> <m1 L> <m1 R> ..." */
 	for (i=0; i<MAX_METERS; i++) {
-		db = 20.0f * log10f(sent_peaks[i] * bias);
-		re_snprintf(one_peak, 100, "%f ", db);
-		strcat((char*)p, one_peak);
+		for (int c = METER_L; c <= METER_R; c++) {
+			db = 20.0f * log10f(sent_peaks[i][c] * bias);
+			re_snprintf(one_peak, 100, "%.1f ", db);
+			strcat((char*)p, one_peak);
+		}
 	}
 	n = strlen(p);
 	p[n-1] = '\0'; /* remove trailing space */
@@ -92,15 +98,41 @@ static void tmr_handler(void *arg)
 }
 
 
-void ws_meter_process(unsigned int ch, float *in, unsigned long nframes)
+static inline void peak_update(float *peak, float sample)
 {
-	unsigned int i;
+	const float s = fabsf(sample);
 
-	for (i = 0; i < nframes; i=i+2) {
-		const float s = fabs(in[i]);
-		if (s > peaks[ch]) {
-			peaks[ch] = s;
-		}
+	if (s > *peak)
+		*peak = s;
+}
+
+
+/* Interleaved stereo (L R L R ...), nframes = number of frames */
+void ws_meter_process(unsigned int ch, const float *in, unsigned long nframes)
+{
+	if (!in || ch >= MAX_METERS)
+		return;
+
+	for (unsigned long i = 0; i < nframes; i++) {
+		peak_update(&peaks[ch][METER_L], in[i * 2]);
+		peak_update(&peaks[ch][METER_R], in[i * 2 + 1]);
+	}
+}
+
+
+/* Planar stereo (separate left/right buffers, e.g. plugin host buffers) */
+void ws_meter_process_planar(unsigned int ch, const float *l, const float *r,
+			     unsigned long nframes)
+{
+	if (!l || ch >= MAX_METERS)
+		return;
+
+	if (!r)
+		r = l;
+
+	for (unsigned long i = 0; i < nframes; i++) {
+		peak_update(&peaks[ch][METER_L], l[i]);
+		peak_update(&peaks[ch][METER_R], r[i]);
 	}
 }
 

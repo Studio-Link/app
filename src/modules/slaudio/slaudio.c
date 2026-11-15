@@ -882,10 +882,7 @@ static void process_input(const float *in, unsigned long nframes)
 		memset(slaudio->inBufferFloat, 0, samples * sizeof(float));
 	}
 
-	ws_meter_process(0, slaudio->inBufferFloat, (unsigned long)samples);
-	if (!monorecord)
-		ws_meter_process(2, slaudio->inBufferFloat+1,
-				(unsigned long)samples-1);
+	ws_meter_process(0, slaudio->inBufferFloat, nframes);
 
 	/**<-- Input Samplerate conversion */
 	if (slaudio->in_srate != SRATE)
@@ -998,7 +995,7 @@ static void process_input(const float *in, unsigned long nframes)
 			convert_float(st_play->sampv,
 					sess->vumeter, samples);
 			ws_meter_process(sess->ch, sess->vumeter,
-					(unsigned long)samples);
+					(unsigned long)samples / 2);
 		}
 
 		/* mix n-1 */

@@ -103,7 +103,9 @@ void webapp_ws_meter(const struct websock_hdr *hdr,
 		struct mbuf *mb, void *arg);
 void webapp_ws_options(const struct websock_hdr *hdr,
 		struct mbuf *mb, void *arg);
-void ws_meter_process(unsigned int ch, float *in, unsigned long nframes);
+void ws_meter_process(unsigned int ch, const float *in, unsigned long nframes);
+void ws_meter_process_planar(unsigned int ch, const float *l, const float *r,
+			     unsigned long nframes);
 void webapp_ws_meter_init(void);
 void webapp_ws_meter_close(void);
 
