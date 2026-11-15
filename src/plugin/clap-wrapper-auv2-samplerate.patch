@@ -1,0 +1,20 @@
+diff --git a/src/wrapasauv2.cpp b/src/wrapasauv2.cpp
+index 2c451b6..8490adb 100644
+--- a/src/wrapasauv2.cpp
++++ b/src/wrapasauv2.cpp
+@@ -2427,6 +2427,15 @@ OSStatus WrapAsAUV2::ChangeStreamFormat(AudioUnitScope inScope, AudioUnitElement
+   // LOGINFO("ChangedStreamFormat called {} {}", inScope, inNewFormat.mChannelsPerFrame);
+   auto res = ausdk::AUBase::ChangeStreamFormat(inScope, inElement, inPrevFormat, inNewFormat);
+ 
++  // StreamFormatWritable() lets the host change the format of an initialized
++  // AU (Logic Pro sets the project rate after Initialize(), which activated
++  // the CLAP with the 44.1 kHz default). A CLAP gets its sample rate only
++  // from activate(), so cycle it on the next idle tick (see onIdle()).
++  if (res == noErr && IsInitialized() && inPrevFormat.mSampleRate != inNewFormat.mSampleRate)
++  {
++    _requestRestart = true;
++  }
++
+   return res;
+ }
+ 

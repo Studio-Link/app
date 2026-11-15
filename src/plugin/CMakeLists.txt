@@ -56,7 +56,13 @@ if(_clap_formats)
   FetchContent_Declare(clap-wrapper
     GIT_REPOSITORY https://github.com/free-audio/clap-wrapper.git
     GIT_TAG ${SL_CLAP_WRAPPER_VERSION}
-    GIT_SHALLOW TRUE)
+    GIT_SHALLOW TRUE
+    # AUv2: re-activate the CLAP when the host changes the sample rate of an
+    # initialized AU, else the plugin keeps the 44.1 kHz default (wrong
+    # sample rate warning in Logic Pro at 48 kHz)
+    PATCH_COMMAND ${CMAKE_COMMAND}
+      -DPATCH=${CMAKE_CURRENT_SOURCE_DIR}/clap-wrapper-auv2-samplerate.patch
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/apply_patch.cmake)
   FetchContent_MakeAvailable(clap-wrapper)
 
   add_library(sl_clap_impl STATIC clap/sl_clap.c)
