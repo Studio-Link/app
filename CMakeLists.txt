@@ -262,6 +262,7 @@ set(re_DIR "${SL_RE_DIR}/cmake" CACHE PATH "" FORCE)
 set(RE_INCLUDE_DIR "${SL_RE_DIR}/include" CACHE PATH "" FORCE)
 set(RE_LIBRARY SL::re CACHE STRING "" FORCE)
 set(MODULES ${SL_UI_MODULE} opus g711 ice stun turn dtls_srtp uuid auresamp
+  netroam
   CACHE STRING "" FORCE)
 set(APP_MODULES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/modules"
   CACHE PATH "" FORCE)

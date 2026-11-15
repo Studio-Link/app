@@ -4,6 +4,11 @@
 
 ### Added
 
+- **Misc** Network change detection (baresip netroam module): local
+  address/DNS changes (Wi-Fi switch, VPN, resume from sleep) re-register
+  accounts without restarting Studio Link
+- **Misc** Failed outgoing calls (e.g. "Network is unreachable") are shown
+  as notification in the WebUI instead of only in the log
 - **Standalone** Recordings only keep the remote-track files of tracks that
   had a call during the recording (no more silent unused tracks)
 - **Plugin** New native CLAP, VST3 and AUv2 plugins (via clap-wrapper) and an

@@ -148,6 +148,7 @@ static int template_print(struct re_printf *pf, void *arg)
 		"module\t\t\tice.so\n"
 		"module\t\t\tdtls_srtp.so\n"
 		"module\t\t\tuuid.so\n"
+		"module\t\t\tnetroam.so\n"
 		"\n"
 		"module_app\t\t" SL_APP_MODULE ".so\n"
 		"\n"
