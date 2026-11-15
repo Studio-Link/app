@@ -38,6 +38,7 @@ struct slaudio_st
 	float *outBufferFloat;
 	float *ringData;
 	PaUtilRingBuffer ring;
+	bool ring_primed; /* output callback only, set on first full read */
 	PaStream *instream;
 	PaStream *outstream;
 	int in_channels;
@@ -1081,12 +1082,17 @@ static int write_callback(const void *input_buf, void *output_buf,
 
 	if (PaUtil_GetRingBufferReadAvailable(&slaudio->ring) <
 	    (ring_buffer_size_t)nframes) {
-		/* Ring buffer does not have enough data, fill with zeroes */
-		debug_count(&sl_debug.ring_ur);
+		/* Ring buffer does not have enough data, fill with zeroes.
+		 * Don't count underruns before the input stream delivered
+		 * its first data (startup priming) */
+		if (slaudio->ring_primed)
+			debug_count(&sl_debug.ring_ur);
 		memset(out, 0,
 		       nframes * slaudio->out_channels * sizeof(float));
 		return paContinue;
 	}
+
+	slaudio->ring_primed = true;
 
 	if (slaudio->out_channels == 2) {
 		(void)PaUtil_ReadRingBuffer(&slaudio->ring, out,
@@ -1197,6 +1203,8 @@ static int slaudio_start(void)
 	info("slaudio/start: in: %dhz (%dch) out: %dhz (%dch)\n",
 			(int)slaudio->in_srate, slaudio->in_channels,
 			(int)slaudio->out_srate, slaudio->out_channels);
+
+	slaudio->ring_primed = false;
 
 	perr = Pa_StartStream(slaudio->instream);
 	if (perr == paNoError)
