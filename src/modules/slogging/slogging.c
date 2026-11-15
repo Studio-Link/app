@@ -137,7 +137,7 @@ static int module_init(void)
 
 	log_register_handler(&lg);
 
-	info("slogging: started (%s)\n", file);
+	info("slogging: started (%s)\n", dir);
 	info("slogging: Version %s (baresip %s)\n", SLVERSION,
 	     BARESIP_VERSION);
 	info("slogging: Machine %s/%s\n", sys_arch_get(), sys_os_get());
