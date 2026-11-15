@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 #
-# Cross build for Windows with mingw-w64 (BUILD_TARGET: windows32|windows64)
+# Cross build for Windows with mingw-w64 (BUILD_TARGET: windows64)
 #
 # Optional:
 #   SL_SKIP_PLUGINS=1      don't build the DAW plugins (CLAP/VST3)
@@ -15,13 +15,13 @@ source dist/lib/functions.sh
 sl_prepare
 sl_3rdparty
 
-if [ "$BUILD_TARGET" == "windows32" ]; then
-    _arch="i686-w64-mingw32"
-    _proc="i686"
-else
-    _arch="x86_64-w64-mingw32"
-    _proc="x86_64"
+if [ "$BUILD_TARGET" != "windows64" ]; then
+    echo "unsupported BUILD_TARGET: $BUILD_TARGET (only windows64)" >&2
+    exit 1
 fi
+
+_arch="x86_64-w64-mingw32"
+_proc="x86_64"
 
 unset CC
 unset CXX

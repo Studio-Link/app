@@ -46,9 +46,6 @@ jobs:
           - target: windows64
             os: ubuntu-latest
             os_name: mingw
-          - target: windows32
-            os: ubuntu-latest
-            os_name: mingw
           - target: linux
             os: ubuntu-22.04
             os_name: linux
