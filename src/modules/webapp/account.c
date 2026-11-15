@@ -315,10 +315,16 @@ static void http_resp_handler(int err, const struct http_msg *msg, void *arg)
 	char user_quick[100] = {0};
 
 
-	if (!msg)
+	if (err || !msg) {
+		warning("webapp/account: provisioning failed (%m)\n", err);
 		return;
-	if (err)
+	}
+
+	if (msg->scode != 200) {
+		warning("webapp/account: provisioning failed: %u %r\n",
+			msg->scode, &msg->reason);
 		return;
+	}
 
 	mb = msg->mb;
 
