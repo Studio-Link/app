@@ -574,11 +574,11 @@ static int module_init(void)
 
 #ifdef SLPLUGIN
 	(void)re_fprintf(stderr, "Studio Link Webapp %s - Effect Plugin"
-			" Copyright (C) 2013-2021"
+			" Copyright (C) 2013-2026"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 #else
 	(void)re_fprintf(stderr, "Studio Link Webapp %s - Standalone"
-			" Copyright (C) 2013-2021"
+			" Copyright (C) 2013-2026"
 			" Sebastian Reimers <studio-link.de>\n", SLVERSION);
 #endif
 
