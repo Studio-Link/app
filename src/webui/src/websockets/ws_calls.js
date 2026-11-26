@@ -8,9 +8,15 @@ import { qs, on, render, onEnter, dialog, confirm, hideAll, notify, serializeFor
 
 var ws_calls_dropdown_open = 0;
 
-/* Sliding window (~2 s at 250 ms reports) for the recent packet loss rate */
-const NETSTATUS_WINDOW = 8;
+/* Sliding window (~10 s at 250 ms reports) for the recent packet loss rate */
+const NETSTATUS_WINDOW = 40;
+/* A better rating is only shown after it held for ~5 s (20 reports),
+ * a worse rating is shown immediately */
+const NETSTATUS_HOLD = 20;
+const NETSTATUS_RANK = { "netstatus-good": 0, "netstatus-fair": 1,
+			 "netstatus-bad": 2 };
 var netstatus_history = {};
+var netstatus_shown = {};
 
 /* Plugin: tracks owned by a plugin instance (from STATS) and tracks with a
  * call (from the calls list), the difference is shown as empty slots.
@@ -41,7 +47,9 @@ function fmt_ms_us(us) {
 }
 
 /* Recent loss rate in percent, from jitter buffer counters (received
- * frames vs. lost and too-late-dropped frames). */
+ * frames vs. frames missing at playout). Frames dropped as too late
+ * (late_lost) are already counted in lost, when the buffer played past
+ * them, so they must not be added again. */
 function netstatus_loss(t) {
 	let h = netstatus_history[t.track];
 	if (!h || !t.jbuf || !t.active) {
@@ -50,7 +58,7 @@ function netstatus_loss(t) {
 			return null;
 	}
 
-	const lost = t.jbuf.lost + t.jbuf.late_lost;
+	const lost = t.jbuf.lost;
 	/* counters reset (new call) */
 	if (h.length && (t.jbuf.put < h[h.length-1].put ||
 			lost < h[h.length-1].lost))
@@ -88,13 +96,37 @@ function netstatus_quality(t, loss) {
 	return { cls: "netstatus-good", text: "good" };
 }
 
+function netstatus_smooth(track, q) {
+	let s = netstatus_shown[track];
+
+	if (!s || !(q.cls in NETSTATUS_RANK) ||
+	    !(s.q.cls in NETSTATUS_RANK) ||
+	    NETSTATUS_RANK[q.cls] >= NETSTATUS_RANK[s.q.cls]) {
+		netstatus_shown[track] = { q: q, better: null, count: 0 };
+		return q;
+	}
+
+	/* better than shown: wait until it is stable, then show the worst
+	 * rating seen during the hold time */
+	if (!s.better || NETSTATUS_RANK[q.cls] > NETSTATUS_RANK[s.better.cls])
+		s.better = q;
+
+	if (++s.count >= NETSTATUS_HOLD) {
+		const b = s.better;
+		netstatus_shown[track] = { q: b, better: null, count: 0 };
+		return b;
+	}
+
+	return s.q;
+}
+
 function netstatus_update(t) {
 	const el = qs("#netstatus" + t.track);
 	if (!el)
 		return;
 
 	const loss = netstatus_loss(t);
-	const q = netstatus_quality(t, loss);
+	const q = netstatus_smooth(t.track, netstatus_quality(t, loss));
 
 	const icon = el.querySelector(".netstatus-icon");
 	if (icon) {
