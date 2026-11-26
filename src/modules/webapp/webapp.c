@@ -28,7 +28,6 @@ static struct tmr tmr;
 #endif
 
 static struct http_sock *httpsock = NULL;
-static char webapp_call_json[150] = {0};
 struct odict *webapp_calls = NULL;
 static char command[100] = {0};
 static bool auto_answer = false;
@@ -300,6 +299,29 @@ static void http_req_handler(struct http_conn *conn,
 }
 
 
+/**
+ * Send a call event to the webui, encoded with odict (JSON escaped, no
+ * fixed buffer size: long peer URIs must not be truncated)
+ */
+static void send_call_msg(const char *callback, const char *k1,
+			  const char *v1, const char *k2, const char *v2)
+{
+	struct odict *o = NULL;
+
+	if (odict_alloc(&o, 4))
+		return;
+
+	odict_entry_add(o, "callback", ODICT_STRING, callback);
+	if (k1)
+		odict_entry_add(o, k1, ODICT_STRING, v1 ? v1 : "");
+	if (k2)
+		odict_entry_add(o, k2, ODICT_STRING, v2 ? v2 : "");
+
+	ws_send_json(WS_CALLS, o);
+	mem_deref(o);
+}
+
+
 static void event_handler(enum bevent_ev ev, struct bevent *event,
 			  void *arg)
 {
@@ -343,19 +365,18 @@ static void event_handler(enum bevent_ev ev, struct bevent *event,
 				return;
 
 			if (!auto_answer) {
-				re_snprintf(webapp_call_json,
-						sizeof(webapp_call_json),
-						"{ \"callback\": \"INCOMING\",\
-						\"peeruri\": \"%s\",\
-						\"key\": \"%d\" }",
-						call_peeruri(call), key);
+				char skey[8];
+
+				re_snprintf(skey, sizeof(skey), "%d", key);
+				send_call_msg("INCOMING",
+					      "peeruri", call_peeruri(call),
+					      "key", skey);
 			}
 			else {
 				debug("auto answering call\n");
 				ua_answer(call_get_ua(call), call,
 						VIDMODE_OFF);
 			}
-			ws_send_all(WS_CALLS, webapp_call_json);
 			break;
 
 		case BEVENT_CALL_ESTABLISHED:
@@ -363,11 +384,8 @@ static void event_handler(enum bevent_ev ev, struct bevent *event,
 			break;
 
 		case BEVENT_CALL_CLOSED:
-			re_snprintf(webapp_call_json, sizeof(webapp_call_json),
-					"{ \"callback\": \"CLOSED\",\
-					\"message\": \"%s\" }", prm);
 			webapp_session_delete(NULL, call);
-			ws_send_all(WS_CALLS, webapp_call_json);
+			send_call_msg("CLOSED", "message", prm, NULL, NULL);
 			ws_send_json(WS_CALLS, webapp_calls);
 			break;
 
