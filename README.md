@@ -105,6 +105,16 @@ cd app
 export BUILD_OS="linux"; export BUILD_TARGET="linuxjack"; dist/build.sh
 ```
 
+### Build on Linux arm64 (aarch64)
+
+Native build on an arm64 host (no JACK)
+
+```bash
+git clone https://github.com/Studio-Link/app.git
+cd app
+export BUILD_OS="linux"; export BUILD_TARGET="linux_arm64"; dist/build.sh
+```
+
 ### Build on macOS
 
 ```bash

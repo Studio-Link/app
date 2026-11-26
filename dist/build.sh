@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 #
-# BUILD_TARGET: linux | linuxjack | macos_x86_64 | macos_arm64 | ccheck
+# BUILD_TARGET: linux | linuxjack | linux_arm64 | macos_x86_64 | macos_arm64 | ccheck
 # BUILD_OS:     linux | macos
 #
 # Optional:
@@ -26,7 +26,7 @@ cmake_extra=""
 standalone_extra=()
 plugin_formats=""
 
-if [ "$BUILD_TARGET" == "linux" ]; then
+if [ "$BUILD_TARGET" == "linux" ] || [ "$BUILD_TARGET" == "linux_arm64" ]; then
     plugin_formats="CLAP;VST3;LV2"
 fi
 
@@ -88,7 +88,7 @@ fi
 # Testing and collect artifacts
 #-----------------------------------------------------------------------------
 
-if [ "$BUILD_TARGET" == "linux" ] || [ "$BUILD_TARGET" == "linuxjack" ]; then
+if [ "$BUILD_OS" == "linux" ]; then
     # only system/audio server libs should be dynamic
     # direct dependencies (ldd also lists libpulse's own dependencies)
     readelf -d studio-link-standalone | grep NEEDED
