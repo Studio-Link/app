@@ -63,6 +63,9 @@ sl_get_libre() {
         -O re-${re}.tar.gz
     tar --no-same-owner -xzf re-${re}.tar.gz
     ln -sfn re-$re re
+    pushd re
+    patch -p1 < ../../dist/patches/re_${re}_sip_tcp_recv_uaf.patch
+    popd
 }
 
 sl_get_baresip() {

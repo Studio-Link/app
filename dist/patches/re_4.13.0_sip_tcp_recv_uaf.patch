@@ -1,0 +1,38 @@
+--- a/src/sip/transp.c	2026-11-04 19:31:42.000000000 +0000
++++ b/src/sip/transp.c	2026-11-26 12:25:30.686008556 +0000
+@@ -469,6 +469,10 @@
+ 	size_t pos;
+ 	int err = 0;
+ 
++	/* sip_recv() handlers may close or flush this connection
++	 * (e.g. sip_transp_flush(), ua_stop_all()), keep it alive */
++	mem_ref(conn);
++
+ 	if (conn->mb) {
+ 		pos = conn->mb->pos;
+ 
+@@ -565,6 +569,10 @@
+ 		sip_recv(conn->sip, msg, 0);
+ 		mem_deref(msg);
+ 
++		/* connection closed or flushed by a handler */
++		if (!conn->he.list || !conn->mb)
++			break;
++
+ 		if (end <= conn->mb->end) {
+ 			conn->mb = mem_deref(conn->mb);
+ 			break;
+@@ -586,10 +594,12 @@
+ 	}
+ 
+  out:
+-	if (err) {
++	if (err && conn->he.list) {
+ 		conn_close(conn, err);
+ 		mem_deref(conn);
+ 	}
++
++	mem_deref(conn);
+ }
+ 
+ 
