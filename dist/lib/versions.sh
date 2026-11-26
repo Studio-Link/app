@@ -1,6 +1,6 @@
 vmajor=26; vminor=11; vpatch=0
 vbuild="$(git rev-parse --short HEAD)"
-release="beta-${vbuild}"
+release="rc0-${vbuild}"
 #release="stable"
 baresip="4.13.0"
 re="4.13.0"
