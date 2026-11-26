@@ -6,7 +6,7 @@ baresip="4.13.0"
 re="4.13.0"
 # 3rdparty release with PortAudio (instead of libsoundio), see
 # https://github.com/Studio-Link/3rdparty
-sl3rdparty="v26.11.0"
+sl3rdparty="v26.11.1"
 # DAW plugins: clap-wrapper (pins the CLAP, VST3 and AudioUnit SDKs)
 clap_wrapper="v0.17.0"
 # Embedded CA certificates, https://curl.se/ca/cacert-<date>.pem
