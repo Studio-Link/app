@@ -91,6 +91,7 @@ struct session {
 void webapp_sessions_init(void);
 void webapp_sessions_close(void);
 int webapp_session_delete(char * const sess_id, struct call *call);
+bool webapp_session_local_hangup(void);
 int8_t webapp_call_update(struct call *call, char *state);
 int8_t webapp_call_update_track(struct call *call, char *state,
 				int8_t want);

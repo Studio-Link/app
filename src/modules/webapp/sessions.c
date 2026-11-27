@@ -104,6 +104,28 @@ bool webapp_session_available(void)
 }
 
 
+static bool local_hangup = false;
+
+
+static void session_hangup(struct ua *ua, struct call *call)
+{
+	local_hangup = true;
+	ua_hangup(ua, call, 0, NULL);
+	local_hangup = false;
+}
+
+
+/**
+ * Is the current BEVENT_CALL_CLOSED caused by a local hangup?
+ *
+ * @return true if closed by the local user
+ */
+bool webapp_session_local_hangup(void)
+{
+	return local_hangup;
+}
+
+
 int webapp_session_stop_stream(void)
 {
 	struct list *tsession;
@@ -118,7 +140,7 @@ int webapp_session_stop_stream(void)
 
 		if (sess->stream) {
 			streaming = false;
-			ua_hangup(webapp_get_main_ua(), sess->call, 0, NULL);
+			session_hangup(webapp_get_main_ua(), sess->call);
 			sess->call = NULL;
 
 			return err;
@@ -184,8 +206,8 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 
 		if (sess_id) {
 			if (!str_cmp(id, sess_id)) {
-				ua_hangup(call_get_ua(sess->call), sess->call,
-						0, NULL);
+				session_hangup(call_get_ua(sess->call),
+					       sess->call);
 				sess->call = NULL;
 				odict_entry_del(webapp_calls, id);
 				return err;

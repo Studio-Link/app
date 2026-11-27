@@ -317,7 +317,7 @@ window.ws_calls_init = function() {
 		} else if (msg.callback == "CLOSED") {
 
 			hideAll();
-			notify("Call closed: " + msg.message, "warn");
+			notify(msg.message ? "Call closed: " + msg.message : "Call closed", "warn");
 
 		} else if (msg.callback == "STATS") {
 

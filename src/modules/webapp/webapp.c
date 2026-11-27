@@ -384,8 +384,10 @@ static void event_handler(enum bevent_ev ev, struct bevent *event,
 			break;
 
 		case BEVENT_CALL_CLOSED:
+			if (!webapp_session_local_hangup())
+				send_call_msg("CLOSED", "message", prm,
+					      NULL, NULL);
 			webapp_session_delete(NULL, call);
-			send_call_msg("CLOSED", "message", prm, NULL, NULL);
 			ws_send_json(WS_CALLS, webapp_calls);
 			break;
 

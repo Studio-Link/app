@@ -2,9 +2,6 @@
 #include <baresip.h>
 #include "webapp.h"
 
-#define SIP_CLOSED "{ \"callback\": \"CLOSED\"}"
-
-
 void webapp_ws_calls(const struct websock_hdr *hdr,
 				     struct mbuf *mb, void *arg)
 {
@@ -38,9 +35,6 @@ void webapp_ws_calls(const struct websock_hdr *hdr,
 	}
 	else if (!str_cmp(odict_entry_str(e), "hangup")) {
 		webapp_session_delete(odict_entry_str(key), NULL);
-		if (!webapp_active_calls()) {
-			ws_send_all(WS_CALLS, SIP_CLOSED);
-		}
 	}
 	else if (!str_cmp(odict_entry_str(e), "chmix")) {
 	 	webapp_session_chmix(odict_entry_str(key));
