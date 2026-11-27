@@ -118,7 +118,7 @@ static void rec_filename(const struct session *sess, char *buf, size_t sz)
 				  record_folder);
 	}
 	else {
-		(void)re_snprintf(buf, sz, "%s" DIR_SEP "remote-track-%d.flac",
+		(void)re_snprintf(buf, sz, "%s" DIR_SEP "remote-track-%u.flac",
 				  record_folder, sess->track);
 	}
 }
@@ -521,7 +521,7 @@ static int record_thread(void *arg)
 				encstate = FLAC__stream_encoder_get_state(
 						sess->flac);
 				warning("slaudio/record: FLAC ENCODE ERROR "
-					"track %d: %s\n", sess->track,
+					"track %u: %s\n", sess->track,
 				    FLAC__StreamEncoderStateString[encstate]);
 				/* keep draining to stay in sync, the
 				 * recording is stopped by rec_tmr */
@@ -538,7 +538,7 @@ static int record_thread(void *arg)
 
 		if (st == REC_STOPPING && done == end) {
 			slaudio_record_closefile(sess);
-			info("slaudio/record: track %d closed "
+			info("slaudio/record: track %u closed "
 			     "(%llu samples)\n", sess->track, done);
 
 			/* no call on this track while recording */
@@ -549,7 +549,7 @@ static int record_thread(void *arg)
 				rec_filename(sess, filename,
 					     sizeof(filename));
 				if (remove(filename) == 0)
-					info("slaudio/record: track %d "
+					info("slaudio/record: track %u "
 					     "unused, removed\n",
 					     sess->track);
 				else

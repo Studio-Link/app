@@ -1,3 +1,4 @@
+#include <limits.h>
 #include <re.h>
 #include <baresip.h>
 #include <slua.h>
@@ -55,12 +56,12 @@ void webapp_ws_baresip(const struct websock_hdr *hdr,
 		}
 		else {
 			uint64_t num = 0;
-			int8_t track = 0;
+			unsigned track = 0;
 
 			/* optional: call out on this track (plugin track) */
 			if (odict_get_number(cmd, &num, "track") &&
-			    num <= INT8_MAX)
-				track = (int8_t)num;
+			    num <= UINT_MAX)
+				track = (unsigned)num;
 
 			if (!webapp_session_available_track(track)) {
 				ws_send_all(WS_CALLS, track ? SIP_TRACK_BUSY :

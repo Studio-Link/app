@@ -251,7 +251,7 @@ int effect_session_stop(struct session *session)
 		}
 	}
 
-	re_snprintf(sess_id, sizeof(sess_id), "%d", session->track);
+	re_snprintf(sess_id, sizeof(sess_id), "%u", session->track);
 	webapp_session_delete(sess_id, NULL);
 
 	re_thread_leave();
@@ -578,11 +578,11 @@ static void auplay_destructor(void *arg)
 static struct session *sess_find(bool play, const char *device)
 {
 	struct pl pl;
-	int track = 0;
+	unsigned track = 0;
 	struct le *le;
 
 	if (!re_regex(device, str_len(device), "^[0-9]+$", &pl))
-		track = (int)pl_u32(&pl);
+		track = pl_u32(&pl);
 
 	for (le = sessionl.head; le; le = le->next) {
 		struct session *sess = le->data;
@@ -598,7 +598,7 @@ static struct session *sess_find(bool play, const char *device)
 	}
 
 	if (track)
-		warning("effect: no session for track %d (%s)\n", track,
+		warning("effect: no session for track %u (%s)\n", track,
 			play ? "play" : "src");
 
 	return NULL;

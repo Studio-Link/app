@@ -77,7 +77,7 @@ static bool session_usable(const struct session *sess)
  *
  * @return true if the session (or any session) is usable
  */
-bool webapp_session_available_track(int8_t track)
+bool webapp_session_available_track(unsigned track)
 {
 	struct list *tsession;
 	struct le *le;
@@ -166,7 +166,7 @@ struct call* webapp_session_get_call(char * const sess_id)
 		if (sess->local)
 			continue;
 
-		re_snprintf(id, sizeof(id), "%d", sess->track);
+		re_snprintf(id, sizeof(id), "%u", sess->track);
 
 		if (!str_cmp(id, sess_id)) {
 			return sess->call;
@@ -202,7 +202,7 @@ int webapp_session_delete(char * const sess_id, struct call *call)
 					(void *)sess);
 		}
 
-		re_snprintf(id, sizeof(id), "%d", sess->track);
+		re_snprintf(id, sizeof(id), "%u", sess->track);
 
 		if (sess_id) {
 			if (!str_cmp(id, sess_id)) {
@@ -236,7 +236,7 @@ static void session_to_webapp_calls(struct session *sess)
 	if (err)
 		return;
 
-	re_snprintf(id, sizeof(id), "%d", sess->track);
+	re_snprintf(id, sizeof(id), "%u", sess->track);
 
 	odict_entry_del(webapp_calls, id);
 	odict_entry_add(o, "peer", ODICT_STRING, call_peeruri(sess->call));
@@ -269,13 +269,13 @@ static void session_to_webapp_calls(struct session *sess)
  *
  * @return Track number of the session, 0 if no session
  */
-int8_t webapp_call_update_track(struct call *call, char *state,
-				int8_t want)
+unsigned webapp_call_update_track(struct call *call, char *state,
+				  unsigned want)
 {
 	struct list *tsession;
 	struct session *sess;
 	struct le *le;
-	int8_t track = 0;
+	unsigned track = 0;
 	bool new = true;
 
 	tsession = sl_sessions();
@@ -303,7 +303,7 @@ int8_t webapp_call_update_track(struct call *call, char *state,
 
 		if (sess->call == call) {
 			new = false;
-			debug("webapp: session update: %d\n", sess->ch);
+			debug("webapp: session update: %d\n", (int)sess->ch);
 		}
 	}
 
@@ -324,7 +324,7 @@ int8_t webapp_call_update_track(struct call *call, char *state,
 			/* the effect module picks the session of an audio
 			 * source/player by this device name (track number),
 			 * the audio starts after this (answer/progress) */
-			re_snprintf(dev, sizeof(dev), "%d", sess->track);
+			re_snprintf(dev, sizeof(dev), "%u", sess->track);
 			if (audio_set_devicename(call_audio(call), dev, dev))
 				warning("webapp: could not set track device "
 					"%s\n", dev);
@@ -346,7 +346,7 @@ out:
 }
 
 
-int8_t webapp_call_update(struct call *call, char *state)
+unsigned webapp_call_update(struct call *call, char *state)
 {
 	return webapp_call_update_track(call, state, 0);
 }
@@ -543,7 +543,7 @@ void webapp_session_chmix(char *const sess_id)
 		if (sess->local)
 			continue;
 
-		re_snprintf(id, sizeof(id), "%d", sess->track);
+		re_snprintf(id, sizeof(id), "%u", sess->track);
 
 		if (!str_cmp(id, sess_id)) {
 			if (sess->chmix == CH_MONO_R) {
@@ -575,7 +575,7 @@ void webapp_session_volume(char *const sess_id, char *const volume)
 		if (sess->local)
 			continue;
 
-		re_snprintf(id, sizeof(id), "%d", sess->track);
+		re_snprintf(id, sizeof(id), "%u", sess->track);
 
 		if (!str_cmp(id, sess_id)) {
 			sess->volume = atof(volume);

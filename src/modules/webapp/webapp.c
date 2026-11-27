@@ -329,7 +329,7 @@ static void event_handler(enum bevent_ev ev, struct bevent *event,
 	struct ua *ua = bevent_get_ua(event);
 	const char *prm = bevent_get_text(event);
 	const char *aor = account_aor(ua_account(ua));
-	int8_t key = 0;
+	unsigned key = 0;
 	int err;
 	(void)arg;
 
@@ -367,7 +367,7 @@ static void event_handler(enum bevent_ev ev, struct bevent *event,
 			if (!auto_answer) {
 				char skey[8];
 
-				re_snprintf(skey, sizeof(skey), "%d", key);
+				re_snprintf(skey, sizeof(skey), "%u", key);
 				send_call_msg("INCOMING",
 					      "peeruri", call_peeruri(call),
 					      "key", skey);
