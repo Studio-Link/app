@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [v26.11.0-stable] - 2026-11-27
+
 ### Added
 
 - **Standalone/Plugin** G.722 codec (wideband 16 kHz, 64 kbit/s) re-enabled
