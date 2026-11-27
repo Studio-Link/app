@@ -4,6 +4,11 @@
 
 ### Added
 
+- **Standalone/Plugin** G.722 codec (wideband 16 kHz, 64 kbit/s) re-enabled
+  as fallback for SIP peers without Opus (e.g. FRITZ!Box, SIP providers),
+  not included in OnAir. Fixed
+  crackling on loud received audio (decoder output wrapped around instead
+  of clipping) and a buffer overflow with oversized RTP packets
 - **Misc** Network change detection (baresip netroam module): local
   address/DNS changes (Wi-Fi switch, VPN, resume from sleep) re-register
   accounts without restarting Studio Link

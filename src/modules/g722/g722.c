@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include <re.h>
 #include <rem_au.h>
 #include <baresip.h>
@@ -131,16 +132,18 @@ static int encode(struct auenc_state *st,
 	int n;
 	(void)marker;
 
+	if (!st || !buf || !len || !sampv)
+		return EINVAL;
+
 	if (fmt != AUFMT_S16LE)
 		return ENOTSUP;
 
+	if (sampc > INT_MAX || *len < (sampc + 1) / 2)
+		return ENOMEM;
+
 	n = g722_encode(&st->enc, buf, sampv, (int)sampc);
-	if (n <= 0) {
+	if (n <= 0)
 		return EPROTO;
-	}
-	else if (n > (int)*len) {
-		return EOVERFLOW;
-	}
 
 	*len = n;
 
@@ -154,11 +157,14 @@ static int decode(struct audec_state *st, int fmt, void *sampv, size_t *sampc,
 	int n;
 	(void)marker;
 
-	if (!st || !sampv || !buf)
+	if (!st || !sampv || !sampc || !buf)
 		return EINVAL;
 
 	if (fmt != AUFMT_S16LE)
 		return ENOTSUP;
+
+	if (len > INT_MAX / 2 || *sampc < len * 2)
+		return ENOMEM;
 
 	n = g722_decode(&st->dec, sampv, buf, (int)len);
 	if (n < 0)

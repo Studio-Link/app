@@ -47,6 +47,12 @@
 		"module\t\t\tslogging.so\n"
 #endif
 
+#if defined (SLIVE)
+#define SL_CONF_G722_MODULE ""
+#else
+#define SL_CONF_G722_MODULE "module\t\t\tg722.so\n"
+#endif
+
 #ifndef SLVERSION
 #define SLVERSION "dev"
 #endif
@@ -139,7 +145,7 @@ static int template_print(struct re_printf *pf, void *arg)
 		"# Modules\n"
 		SL_CONF_LOG_MODULES
 		"module\t\t\topus.so\n"
-		"module\t\t\tg722.so\n"
+		SL_CONF_G722_MODULE
 		"module\t\t\tg711.so\n"
 		"module\t\t\tauresamp.so\n"
 		"module\t\t\t" SL_AUDIO_MODULE ".so\n"
