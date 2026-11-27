@@ -2,8 +2,8 @@ vmajor=26; vminor=11; vpatch=0
 vbuild="$(git rev-parse --short HEAD)"
 release="rc0-${vbuild}"
 #release="stable"
-baresip="4.13.0"
-re="4.13.0"
+baresip="main"
+re="main"
 # 3rdparty release with PortAudio (instead of libsoundio), see
 # https://github.com/Studio-Link/3rdparty
 sl3rdparty="v26.11.1"

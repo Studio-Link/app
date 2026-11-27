@@ -59,24 +59,24 @@ sl_build_webui() {
 }
 
 sl_get_libre() {
-    wget -q "https://github.com/baresip/re/archive/refs/tags/v${re}.tar.gz" \
+    wget -q "https://github.com/baresip/re/archive/refs/heads/${re}.tar.gz" \
         -O re-${re}.tar.gz
     tar --no-same-owner -xzf re-${re}.tar.gz
     ln -sfn re-$re re
     pushd re
-    patch -p1 < ../../dist/patches/re_${re}_sip_tcp_recv_uaf.patch
+    patch -p1 < ../../dist/patches/re_sip_tcp_recv_uaf.patch
     popd
 }
 
 sl_get_baresip() {
-    wget -q "https://github.com/baresip/baresip/archive/refs/tags/v${baresip}.tar.gz" \
+    wget -q "https://github.com/baresip/baresip/archive/refs/heads/${baresip}.tar.gz" \
         -O baresip-${baresip}.tar.gz
     tar --no-same-owner -xzf baresip-${baresip}.tar.gz
     ln -sfn baresip-$baresip baresip
     pushd baresip
-    patch -p1 < ../../dist/patches/baresip_${baresip}_dtls_aes256.patch
-    patch -p1 < ../../dist/patches/baresip_${baresip}_ausrc_nonblocking.patch
-    patch -p1 < ../../dist/patches/baresip_${baresip}_jbuf_stat.patch
+    patch -p1 < ../../dist/patches/baresip_dtls_aes256.patch
+    patch -p1 < ../../dist/patches/baresip_ausrc_nonblocking.patch
+    patch -p1 < ../../dist/patches/baresip_jbuf_stat.patch
     popd
 }
 

@@ -44,7 +44,7 @@
 
 ### Changed
 
-- **Misc** Migrated to baresip/libre 4.13.0, jitter buffering is now handled
+- **Misc** Migrated to baresip/libre main, jitter buffering is now handled
   by baresip
 - **Misc** Remote logging (log.studio.link) removed, logs are now written
   locally to `<config path>/logs/` (last 7 starts are kept)
