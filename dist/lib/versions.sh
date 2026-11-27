@@ -1,7 +1,7 @@
 vmajor=26; vminor=11; vpatch=0
 vbuild="$(git rev-parse --short HEAD)"
-release="rc2-${vbuild}"
-#release="stable"
+#release="rc2-${vbuild}"
+release="stable"
 baresip="main"
 re="main"
 # 3rdparty release with PortAudio (instead of libsoundio), see
