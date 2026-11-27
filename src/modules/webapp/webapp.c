@@ -606,9 +606,9 @@ static int module_init(void)
 
 	bevent_register(event_handler, NULL);
 	webapp_ws_init();
+	webapp_options_init(); /* first, verbose SIP trace for REGISTER */
 	webapp_accounts_init();
 	webapp_contacts_init();
-	webapp_options_init();
 	webapp_ws_meter_init();
 	webapp_sessions_init();
 

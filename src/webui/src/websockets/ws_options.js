@@ -3,7 +3,7 @@ import { qs, on, render, dialog } from "../ui.js";
 "use strict";
 
 // Settings shown in the Options tab (labels in options.handlebars)
-var OPTION_KEYS = ["monitoring", "monorecord", "monostream"];
+var OPTION_KEYS = ["monitoring", "monorecord", "monostream", "verbose"];
 
 window.ws_options_init = function() {
   var ws_options = new WebSocket("ws://" + window.ws_host + "/ws_options");

@@ -17,6 +17,7 @@ static const char *persist_keys[] = {
 	"monitoring",
 	"monorecord",
 	"monostream",
+	"verbose",
 };
 
 /* Runtime state, sent to the webui but never persisted */
@@ -29,6 +30,29 @@ static const char *state_keys[] = {
 	"mute",
 	"samplerate", /* set by the running host */
 };
+
+
+static void sip_trace_handler(bool tx, enum sip_transp tp,
+			      const struct sa *src, const struct sa *dst,
+			      const uint8_t *pkt, size_t len, void *arg)
+{
+	/* vlog() drops messages exceeding its 8 KiB buffer */
+	const size_t max = 7168;
+	(void)arg;
+
+	info("sip-trace: %s %s %J -> %J (%zu bytes)\n%b%s\n",
+	     tx ? "TX" : "RX", sip_transp_name(tp), src, dst, len,
+	     pkt, MIN(len, max), len > max ? "\n[truncated]" : "");
+}
+
+
+static void verbose_set(bool enable)
+{
+	log_enable_debug(enable);
+	sip_set_trace_handler(uag_sip(), enable ? sip_trace_handler : NULL);
+	info("webapp/option: verbose logging (SIP trace) %s\n",
+	     enable ? "enabled" : "disabled");
+}
 
 
 static bool key_in(const char *key, const char **keys, size_t n)
@@ -106,6 +130,15 @@ void webapp_options_set(char *key, char *value)
 	    !key_in(key, state_keys, RE_ARRAY_SIZE(state_keys))) {
 		warning("webapp/option: ignoring unknown key %s\n", key);
 		return;
+	}
+
+	if (!str_cmp(key, "verbose")) {
+		bool enable = !str_cmp(value, "true");
+		const char *cur = webapp_options_getv("verbose", "");
+
+		/* only on change, keeps -v/-s command line flags when off */
+		if (enable != !str_cmp(cur, "true"))
+			verbose_set(enable);
 	}
 
 #ifdef SLPLUGIN
@@ -230,6 +263,7 @@ int webapp_options_init(void)
 #ifndef SLPLUGIN
 	char *key;
 #endif
+	char *verbose;
 	struct odict *loaded = NULL;
 	struct mbuf *mb;
 	int err = 0;
@@ -261,6 +295,11 @@ int webapp_options_init(void)
 
 	options_write();
 
+	str_dup(&verbose, webapp_options_getv("verbose", ""));
+	odict_entry_del(options, "verbose");
+	webapp_options_set("verbose", verbose);
+	mem_deref(verbose);
+
 #ifndef SLPLUGIN
 	str_dup(&key, webapp_options_getv("monorecord", "true"));
 	webapp_options_set("monorecord", key);
@@ -283,6 +322,9 @@ out:
 
 void webapp_options_close(void)
 {
+	if (!str_cmp(webapp_options_getv("verbose", ""), "true"))
+		sip_set_trace_handler(uag_sip(), NULL);
+
 	options_write();
 	options = mem_deref(options);
 }
